@@ -1,0 +1,20 @@
+{
+  "_deprecated": "No longer referenced by any build script — see vite.core.config.js's own header comment for the full explanation. The `src/core/**` this once type-checked has moved to ../core/ (@keystone-dashboard-layout/core), which has its own tsconfig.json.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src"
+  },
+  "include": ["src/core/**/*", "src/components/Grid/layout-definition.ts", "src/components/Grid/grid-layout-props.interface.ts"],
+  "exclude": [
+    "src/**/__tests__/*",
+    "src/**/*.cy.ts",
+    "**/*.spec.ts",
+    "vitepress-docs/*",
+    "tests/*",
+    "sandbox/",
+    "demo/",
+    "/dist",
+    "node_modules/*",
+    "*.tgz"
+  ]
+}

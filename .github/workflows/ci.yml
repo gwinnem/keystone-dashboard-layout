@@ -1,25 +1,22 @@
 name: CI
 
-# Runs on every push to main and every PR. This is Phase 1 from
-# docs/REFACTOR_STRATEGY.md: before this workflow existed, there was no
-# automated verification of anything — a PR could delete src/ entirely and
-# nothing would fail before a human noticed.
+# Runs on every push to main and every PR. Monorepo-aware: turbo runs each
+# task (typecheck, lint, test, build, ...) per package, automatically
+# skipping any package whose package.json doesn't define that script (e.g.
+# packages/react and packages/angular are scaffolds and don't yet define
+# every task packages/vue does).
 on:
   push:
     branches: [main]
   pull_request:
 
-# Cancel superseded runs on the same branch/PR so pushing a fix doesn't
-# leave a stale run occupying a runner.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  # actions/setup-node's built-in npm cache needs a lockfile to key off of.
-  # If package-lock.json isn't committed, remove the `cache: npm` lines
-  # below (or commit the lockfile — recommended for a project this size).
   NODE_VERSION_DEFAULT: '20'
+  PNPM_VERSION: '9'
 
 jobs:
   verify:
@@ -28,68 +25,65 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # package.json's engines field is "^18.0.0 || ^20.0.0 || >=22.0.0"
-        # (see docs/REFACTORING.md #6) — test against the full supported
-        # range, not just whatever happens to be on the runner by default.
+        # Root package.json's engines field is "^18.0.0 || ^20.0.0 || >=22.0.0"
+        # — test against the full supported range.
         node: ['18', '20', '22']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
       - name: Setup Node ${{ matrix.node }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Typecheck (all packages)
+        run: pnpm typecheck
 
-      - name: Lint (style — clean, blocking)
-        run: npm run lint:style
+      - name: Lint styles — clean, blocking (packages that define lint:style)
+        run: pnpm lint:style
 
-      - name: Lint (ESLint — advisory, not yet blocking)
-        # ~800 pre-existing issues from before this codebase had a working
-        # ESLint config at all (see docs/REFACTORING.md #6 and
-        # docs/REFACTOR_STRATEGY.md's "Phase 0.5" note on `lint:fix`).
-        # Runs so the count is visible on every PR without failing builds
-        # on debt nobody's asked this PR to pay down. Flip this to a hard
+      - name: Lint — advisory, not yet blocking
+        # packages/vue carries ~800 pre-existing issues from before it had a
+        # working ESLint config at all (see packages/vue/docs/REFACTORING.md
+        # #6). Runs so the count is visible on every PR without failing
+        # builds on debt nobody's asked this PR to pay down. Flip to a hard
         # gate once that cleanup lands.
-        run: npm run lint
+        run: pnpm lint
         continue-on-error: true
 
       - name: Unit + component tests (with coverage gate)
-        # Coverage thresholds (90% lines/branches/functions/statements)
-        # are enforced by vitest.config.js itself — this step fails on
-        # either a test failure or a coverage drop below that floor.
-        run: npm run test:coverage
+        # packages/vue enforces a 90% coverage floor via its own
+        # vitest.config.js; packages/react passes trivially
+        # (passWithNoTests) until real tests exist.
+        run: pnpm test:coverage
 
-      - name: Build library
-        run: npm run build:only
+      - name: Build all packages
+        run: pnpm build
 
-      - name: Check bundle size
-        run: npm run check:bundle-size
+      - name: Check bundle size (Vue package)
+        run: pnpm --filter @keystone-dashboard-layout/vue run check:bundle-size
 
-      - name: Verify the published package actually installs and resolves
-        # Every other step in this workflow (test:coverage, e2e, the demo
-        # build, every VitePress example) exercises the library through
-        # source aliases, never package.json's own `exports` field the
-        # way a real `npm install`'d consumer would. That gap is exactly
-        # what let a real, published-package-breaking bug ship
-        # undetected once already (see docs/REFACTORING.md #46) — this
-        # step packs the tarball, installs it into a genuinely separate
-        # scratch directory, and asserts every exports subpath actually
-        # resolves.
-        run: npm run check:package-install
+      - name: Verify the published Vue package actually installs and resolves
+        # Packs the tarball and installs it into a genuinely separate
+        # scratch directory, asserting every `exports` subpath resolves —
+        # catches issues that testing through source aliases never would.
+        run: pnpm --filter @keystone-dashboard-layout/vue run check:package-install
 
-      - name: Build demo app
-        run: npm run demo:build
+      - name: Build Vue demo app
+        run: pnpm --filter @keystone-dashboard-layout/vue run demo:build
 
       - name: Build documentation site
-        run: npm run docs:build
+        run: pnpm docs:build
 
   e2e:
     name: End-to-end tests
@@ -98,29 +92,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION_DEFAULT }}
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        # playwright.config.ts defines chromium/firefox/webkit projects —
-        # install all three, plus their OS-level dependencies.
-        run: npx playwright install --with-deps
+        # Only packages/vue defines playwright.config.ts today; this
+        # installs browsers once for whichever packages need them.
+        run: pnpm --filter @keystone-dashboard-layout/vue exec playwright install --with-deps
 
       - name: Run e2e tests
-        run: npm run test:e2e
+        # turbo skips any package without a test:e2e script (currently only
+        # packages/vue defines one).
+        run: pnpm test:e2e
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: packages/*/playwright-report/
           retention-days: 14
 
   audit:
@@ -130,37 +131,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION_DEFAULT }}
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Audit production dependencies (blocking)
-        # Scoped to production deps: this is the security surface a
-        # consumer of the published package actually inherits. Currently
-        # clean — see docs/REFACTOR_STRATEGY.md's Phase 1 notes.
-        run: npm audit --omit=dev --audit-level=high
+        run: pnpm audit --prod --audit-level=high
 
       - name: Audit all dependencies (advisory)
-        # Includes devDependencies. `qs` and `esbuild` advisories were
-        # fixed via package.json's `overrides` (see docs/REFACTORING.md
-        # #28); the remainder is vitepress's own vendored `vite` (a major
-        # version behind this project's own top-level vite, with no
-        # non-breaking fix available yet) — dev-server-only, doesn't
-        # affect published consumers. Visible on every run without
-        # blocking on a docs-tooling issue outside this project's control.
-        run: npm audit --audit-level=high
+        # vitepress vendors its own vite a major version behind the
+        # workspace's top-level vite, with no non-breaking fix available
+        # yet — dev-server-only, doesn't affect published consumers.
+        run: pnpm audit --audit-level=high
         continue-on-error: true
 
       - name: Check production dependency licenses (blocking)
-        # Fails if any production dependency (or transitive dependency) is
-        # under a license outside the allowlist — copyleft licenses
-        # (GPL/AGPL/etc.) are the main thing this catches, since they'd
-        # impose obligations on every consumer of this package. Scoped to
-        # production deps for the same reason as the audit step above:
-        # this is what a consumer actually inherits. Currently clean.
-        run: npm run check:licenses
+        # Fails if any production (or transitive) dependency is under a
+        # license outside the allowlist — mainly catches copyleft licenses,
+        # which would impose obligations on every consumer of a published
+        # package.
+        run: pnpm run check:licenses

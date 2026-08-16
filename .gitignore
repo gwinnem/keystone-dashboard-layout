@@ -1,25 +1,28 @@
 .DS_Store
 node_modules
-/dist
-/coverage
+dist
+coverage
 /examples
-/dist-demo
-/dist-analyze
-/playwright-report
-/test-results
-/blob-report
-/playwright/.cache
+dist-demo
+dist-analyze
+playwright-report
+test-results
+blob-report
+playwright/.cache
+
+# turborepo
+.turbo
+
+# pnpm
+pnpm-debug.log*
 
 # vitepress
 /vitepress-docs/.vitepress/cache
 /vitepress-docs/.vitepress/dist
 
-# coverage
-/tests/coverage
-
 # stryker (mutation testing)
 .stryker-tmp
-/reports/mutation
+reports/mutation
 StrykerTrapper.log
 
 # local env files
@@ -30,7 +33,6 @@ StrykerTrapper.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 
 # Editor directories and files
 .idea
@@ -41,6 +43,5 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
-# npm package
-/vue-ts-responsive-grid-layout*.tgz
-vue-ts-responsive-grid-layout*.tgz
+# npm/pnpm packages
+*.tgz

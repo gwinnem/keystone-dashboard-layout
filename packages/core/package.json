@@ -1,0 +1,46 @@
+{
+  "name": "@keystone-dashboard-layout/core",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Framework-agnostic grid-layout algorithms (bin-packing, collision detection, compaction, responsive breakpoints, alignment guides) shared by the Vue, React, and Angular packages in this monorepo. Zero framework dependency — every function takes plain data in, returns plain data out.",
+  "author": "Geirr Winnem <geirr@winnem.tech>",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "dist/keystone-dashboard-layout-core.cjs.js",
+  "module": "dist/keystone-dashboard-layout-core.es.js",
+  "types": "./dist/types/index.d.ts",
+  "files": ["dist/*"],
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/keystone-dashboard-layout-core.es.js",
+      "require": "./dist/keystone-dashboard-layout-core.cjs.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gwinnem/keystone-dashboard-layout.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/gwinnem/keystone-dashboard-layout/issues"
+  },
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "eslint --color",
+    "lint:fix": "eslint --fix --color",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.10",
+    "jsdom": "^29.1.1",
+    "vite": "^8.1.5",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": "^18.0.0 || ^20.0.0 || >=22.0.0"
+  }
+}

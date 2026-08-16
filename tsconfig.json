@@ -1,54 +1,9 @@
 {
-  "compilerOptions": {
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "declarationDir": "dist/types",
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "importHelpers": true,
-    "isolatedModules": false,
-    "jsx": "preserve",
-    "lib": [
-      "es2022",
-      "dom",
-      "dom.iterable",
-      "scripthost",
-      "es2016.Array.Include"
-    ],
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "newLine": "lf",
-    // "noEmit": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": false,
-    "paths": {
-      "@/*": ["./src/*"],
-      "@theme/*": ["./vitepress-docs/.vitepress/theme/*"],
-    },
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "strict": true,
-    "target": "ESNext",
-    "types": [
-      "node",
-      "vue",
-      "vite/client",
-      "vitest/globals"
-    ]
-  },
-  "exclude": [
-    "src/**/__tests__/*",
-    "src/**/*.cy.ts",
-    "**/*.spec.ts",
-    "/dist",
-    "node_modules",
-    "*.tgz",
-    "vitepress-docs/*",
-    "tests/*",
-    "sandbox/*"
-  ],
-  "include": ["src/**/*.ts", "src/**/*.vue", "./**/*.vue"],
-  "references": [],
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/vue" },
+    { "path": "./packages/react" },
+    { "path": "./packages/angular" }
+  ]
 }

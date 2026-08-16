@@ -1,0 +1,48 @@
+{
+  "name": "@keystone-dashboard-layout/angular",
+  "version": "0.1.0",
+  "description": "Angular port of the responsive & dynamic grid / dashboard layout with drag, drop and resizable actions.",
+  "author": "Geirr Winnem <geirr@winnem.tech>",
+  "license": "MIT",
+  "main": "dist/keystone-dashboard-layout-angular/index.js",
+  "types": "./dist/keystone-dashboard-layout-angular/index.d.ts",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gwinnem/keystone-dashboard-layout.git",
+    "directory": "packages/angular"
+  },
+  "bugs": {
+    "url": "https://github.com/gwinnem/keystone-dashboard-layout/issues"
+  },
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "_comment_scripts": "dev/build/lint/test/test:e2e intentionally omitted until this package is scaffolded as a real Angular CLI workspace (angular.json + `ng generate library`) — see README.md. turbo skips tasks a package doesn't define, so CI stays green in the meantime.",
+  "dependencies": {
+    "@keystone-dashboard-layout/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@angular/animations": "^19.0.0",
+    "@angular/cli": "^19.0.0",
+    "@angular/common": "^19.0.0",
+    "@angular/compiler": "^19.0.0",
+    "@angular/compiler-cli": "^19.0.0",
+    "@angular/core": "^19.0.0",
+    "@angular/platform-browser": "^19.0.0",
+    "@angular/platform-browser-dynamic": "^19.0.0",
+    "@angular-devkit/build-angular": "^19.0.0",
+    "karma": "^6.4.0",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-jasmine": "^5.1.0",
+    "typescript": "^6.0.3",
+    "zone.js": "^0.15.0"
+  },
+  "peerDependencies": {
+    "@angular/common": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "@angular/core": "^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "engines": {
+    "node": "^18.0.0 || ^20.0.0 || >=22.0.0"
+  }
+}

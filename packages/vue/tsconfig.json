@@ -1,0 +1,59 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "declarationDir": "dist/types",
+    "jsx": "preserve",
+    // Without an explicit `rootDir`, TypeScript auto-computes one from
+    // `include` — which only covers this package's own `src/`. Once the
+    // `@/core/*` alias below pulls in sibling files from
+    // `../core/src/**` (a real, separate workspace package, not part of
+    // this one), those files fall outside that auto-computed root,
+    // and `declaration: true` (inherited from tsconfig.base.json) makes
+    // TS enforce rootDir consistency even under this config's own
+    // `--noEmit` typecheck-only usage — producing a TS6059 for every
+    // single cross-package file, cascading into dozens of errors that
+    // are really one root cause. `".."` (this package's parent,
+    // i.e. `packages/`) is the common ancestor of both `vue/src` and
+    // `core/src`, so it covers both without needing to widen all the
+    // way to the monorepo root. Doesn't affect the *real* declaration
+    // build at all — `tsconfig.build-types.json` (used by
+    // `vite-plugin-dts`, not this file) already overrides `rootDir` to
+    // `"src"` explicitly for that separate, actual-emission path.
+    "rootDir": "..",
+    "paths": {
+      // Bare-barrel entries (no trailing `/*`) are a *different* paths
+      // pattern from the wildcard one below — TypeScript's `paths`
+      // wildcard matching requires at least one path segment after the
+      // prefix, so `@/core/foo` resolves via the wildcard entry but a
+      // bare `@/core` (no segment) or the real published package name
+      // `@keystone-dashboard-layout/core` (used directly by some demo
+      // files and by this package's own grid-layout-props.interface.ts)
+      // needs its own explicit entry pointing at the core barrel.
+      "@/core": ["../core/src/index"],
+      "@keystone-dashboard-layout/core": ["../core/src/index"],
+      "@/core/*": ["../core/src/*"],
+      "@/components/Grid/layout-definition": ["../core/src/layout-definition"],
+      "@/*": ["./src/*"],
+      "@theme/*": ["../../vitepress-docs/.vitepress/theme/*"],
+    },
+    "types": [
+      "node",
+      "vue",
+      "vite/client",
+      "vitest/globals"
+    ]
+  },
+  "exclude": [
+    "src/**/__tests__/*",
+    "src/**/*.cy.ts",
+    "**/*.spec.ts",
+    "/dist",
+    "node_modules",
+    "*.tgz",
+    "../../vitepress-docs/*",
+    "tests/*",
+    "sandbox/*"
+  ],
+  "include": ["src/**/*.ts", "src/**/*.vue", "./**/*.vue"],
+  "references": [],
+}

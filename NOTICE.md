@@ -8,21 +8,31 @@ regardless before approving a dependency.
 
 ## Runtime dependencies bundled into the shipped package
 
-These are the packages actually declared under `dependencies` in
-`package.json`, and whose code is bundled into `dist/` — see
-[`docs/BUNDLE_ANALYSIS.md`](./docs/BUNDLE_ANALYSIS.md) for exactly how
-much of the shipped bundle each one accounts for.
+As of this writing, **there are none** — every package in this monorepo
+(`@keystone-dashboard-layout/core`, `@keystone-dashboard-layout/vue`,
+and the scaffolded React/Angular packages) has an empty `dependencies`
+field aside from the internal workspace dependency on
+`@keystone-dashboard-layout/core` itself, which isn't a separate
+bundled artifact — it's this monorepo's own code, built from the same
+source tree.
 
-| Package | License | Homepage |
-|---|---|---|
-| `mitt` | MIT | <https://github.com/developit/mitt> |
+The last external runtime dependency, `mitt` (MIT,
+<https://github.com/developit/mitt>), was removed once its only real
+usage — the internal `GridLayout`↔`GridItem` pub/sub event bus — was
+replaced with a small hand-rolled typed emitter
+(`packages/core/src/helpers/event-emitter.ts`) implementing the exact
+narrow `on`/`off`/`emit` surface actually used (no wildcard listeners,
+nothing else `mitt` offered was ever called). `mitt`'s own `Emitter<T>`
+type was never part of the public API (`TGridLayoutEventBus`/
+`TGridItemEventBus` were never exported from either package's barrel),
+so this was a zero-risk internal implementation change, not a breaking
+one.
 
-Until this library's own native drag/resize engine replaced it
-entirely (`src/core/helpers/native-interaction.ts` — see
-`docs/REFACTORING.md`), `@interactjs/*` and its transitive dependencies
-were bundled here too, all MIT-licensed under `taye/interact.js`. That
-dependency is gone from `package.json` as of this writing — `mitt` is
-the only runtime dependency left.
+Before that, until this library's own native drag/resize engine
+replaced it entirely (`native-interaction.ts` — see
+`packages/vue/docs/REFACTORING.md`), `@interactjs/*` and its transitive
+dependencies were bundled here too, all MIT-licensed under
+`taye/interact.js`.
 
 ## Peer dependency
 
