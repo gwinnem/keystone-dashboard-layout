@@ -85,20 +85,28 @@ export { ECompactType } from '@/core/gridlayout/enums/ECompactType';
 export { calcXY } from '@/core/helpers/calculate-utils';
 export { clamp, calcGridItemWH, calcColWidth } from '@/core/griditem/helpers/grid-item-calculate-helper';
 
-// The 8 resize-handle identifiers (`resizeHandles` prop) — a type-only
-// export, so this doesn't pull in native-interaction.ts's own
-// DOM-dependent runtime code (which stays reachable only through the
-// main Vue component entry point, per this file's own header comment).
-export type { TResizeHandle } from '@/core/helpers/native-interaction';
+// The 8 resize-handle identifiers (`resizeHandles` prop) and the
+// `dragActivationDistance` value shape — both type-only exports, so
+// this doesn't pull in native-interaction.ts's own DOM-dependent
+// runtime code (which stays reachable only through the main Vue
+// component entry point, per this file's own header comment).
+export type { TDragActivationDistance, TResizeHandle } from '@/core/helpers/native-interaction';
 
 // Ordering, static/non-static partitioning, and bounds correction.
 export { sortLayoutItemsByRowCol, sortLayoutItemsByColRow } from '@/core/gridlayout/helpers/sort-helper';
 export { getAllStaticGridItems, getAllNonStaticGridItems } from '@/core/common/helpers/grid-item-type-helpers';
 export { correctBounds } from '@/core/helpers/responsive-utils';
 
-// Alignment guides / magnetic snapping.
+// Alignment guides / magnetic snapping / spacing indicators.
 export type { IAlignmentGuide } from '@/core/gridlayout/helpers/alignment-helper';
-export { findAlignmentGuides, findSnapAdjustment } from '@/core/gridlayout/helpers/alignment-helper';
+export type { ISpacingIndicator } from '@/core/gridlayout/helpers/alignment-helper';
+export { findAlignmentGuides, findSnapAdjustment, findSpacingIndicators } from '@/core/gridlayout/helpers/alignment-helper';
+
+// multiSelect align/distribute commands — pure position-adjustment
+// computation, mirroring the same "pure function in /core, wiring in
+// GridLayout.vue" split every other command-style feature here uses.
+export type { TAlignEdge, TDistributeAxis } from '@/core/gridlayout/helpers/align-distribute-helper';
+export { computeAlignAdjustments, computeDistributeAdjustments } from '@/core/gridlayout/helpers/align-distribute-helper';
 
 // Responsive breakpoints.
 export { findOrGenerateResponsiveLayout } from '@/core/gridlayout/helpers/responsive-helper';

@@ -48,7 +48,7 @@ import { IUseLayoutPresets, IUseLayoutPresetsOptions, useLayoutPresets } from '@
 import { IOutsideItemDropped } from '@/core/gridlayout/interfaces/outside-drop.interfaces';
 import { ICrossGridDropRejected, ICrossGridItemDropped } from '@/core/gridlayout/interfaces/cross-grid.interfaces';
 import { IPlaceholder } from '@/core/gridlayout/interfaces/layout-data.interface';
-import { IAlignmentGuide } from '@/core/gridlayout/helpers/alignment-helper';
+import { IAlignmentGuide, ISpacingIndicator } from '@/core/gridlayout/helpers/alignment-helper';
 import { IGridItemPosition } from '@/core/griditem/interfaces/grid-item.interfaces';
 
 // Enums carry runtime values (e.g. `EGridItemEvent.RESIZE === 'resize'`),
@@ -147,5 +147,6 @@ export type {
   // or the scoped props of the `#placeholder` slot.
   IPlaceholder,
   IAlignmentGuide,
+  ISpacingIndicator,
   IGridItemPosition,
 };

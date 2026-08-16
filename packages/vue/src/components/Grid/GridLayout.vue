@@ -37,6 +37,11 @@
       :key="`alignment-guide-${index}`"
       class="vue-grid-alignment-guide"
       :style="guide"></div>
+    <div
+      v-for="(indicator, index) in spacingIndicatorStyles"
+      :key="`spacing-indicator-${index}`"
+      class="vue-grid-spacing-indicator"
+      :style="{ left: indicator.left, top: indicator.top }">{{ indicator.label }}</div>
   </div>
 </template>
 <script lang="ts">
@@ -86,7 +91,8 @@
   import { getBottomYCoordinate } from '@/core/gridlayout/helpers/grid-layout-helper';
   import { getAllStaticGridItems } from '@/core/common/helpers/grid-item-type-helpers';
   import { moveElement } from '@/core/gridlayout/helpers/move-helper';
-  import { findAlignmentGuides, findSnapAdjustment, IAlignmentGuide } from '@/core/gridlayout/helpers/alignment-helper';
+  import { findAlignmentGuides, findSnapAdjustment, findSpacingIndicators, IAlignmentGuide, ISpacingIndicator } from '@/core/gridlayout/helpers/alignment-helper';
+  import { computeAlignAdjustments, computeDistributeAdjustments, TAlignEdge, TDistributeAxis } from '@/core/gridlayout/helpers/align-distribute-helper';
   import { calcColWidth } from '@/core/griditem/helpers/grid-item-calculate-helper';
   import { IOutsideItemDropped } from '@/core/gridlayout/interfaces/outside-drop.interfaces';
   import { layoutValidator } from '@/core/validators/layout-validator';
@@ -103,6 +109,7 @@
     allowCrossGridDrag: false,
     ariaLabels: () => ({}),
     autoSize: true,
+    heightMode: null,
     borderRadiusPx: 10,
     breakpoints: (): IBreakpoints => ({
       xxl: 1600,
@@ -149,6 +156,7 @@
     restoreOnDrag: false,
     rowHeight: 150,
     showAlignmentGuides: false,
+    showSpacingGuides: false,
     snapToGrid: false,
     snapThreshold: 1,
     showCloseButton: false,
@@ -181,6 +189,8 @@
   });
   /** Populated during a drag/resize (when `showAlignmentGuides` is on) with every edge alignment found against the rest of `props.layout`; emptied on drag/resize end, or whenever an active item's position/size no longer aligns with anything. See `updateAlignmentGuides` below and `core/gridlayout/helpers/alignment-helper.ts` for what "alignment" means here. */
   const alignmentGuides = ref<IAlignmentGuide[]>([]);
+  /** Populated during a drag/resize (when `showSpacingGuides` is on) with the nearest-neighbor gap on each side that has one — a distinct, independently-toggleable sibling to `alignmentGuides` above (a labeled distance, not an edge-alignment line). See `updateSpacingIndicators` below and `findSpacingIndicators`'s own doc comment for the full nearest-neighbor/overlap rules. */
+  const spacingIndicators = ref<ISpacingIndicator[]>([]);
   const originalLayout = ref<TLayout>();
   const erd = ref<ResizeObserver | null>(null);
   const positionsBeforeDrag = ref<Record<string | number, { x: number; y: number }>>();
@@ -229,18 +239,47 @@
   }>();
   emit(EGridLayoutEvent.LAYOUT_CREATED, props.layout);
 
-  /** Computed CSS `height` for the grid container when `autoSize` is enabled — empty string (no explicit height) otherwise. */
-  const containerHeight = (): string => {
-    if(!props.autoSize) {
-      return ``;
+  /**
+   * `heightMode`'s own precedence rule, resolved once here rather than
+   * repeated at both call sites below: an explicit `heightMode` always
+   * wins outright; `null` (its own default) defers entirely to
+   * `autoSize` instead, mapping its two states onto the two `heightMode`
+   * values that reproduce today's exact prior behavior for anyone not
+   * using `heightMode` at all.
+   */
+  const resolvedHeightMode = computed(() => {
+    if(props.heightMode !== null) {
+      return props.heightMode;
     }
-    return `${getBottomYCoordinate(props.layout) * (props.rowHeight + props.margin[1]) + props.margin[1]}px`;
+    return props.autoSize ? `auto` : `fixed`;
+  });
+
+  /** Computed CSS `height` for the grid container — see `heightMode`'s own doc comment for what each of the four resolved modes actually does; `'fixed'`/`'scroll'` both mean "no explicit height here," differing only in `containerOverflow()` below. */
+  const containerHeight = (): string => {
+    switch(resolvedHeightMode.value) {
+      case `auto`: {
+        return `${getBottomYCoordinate(props.layout) * (props.rowHeight + props.margin[1]) + props.margin[1]}px`;
+      }
+      case `fit`: {
+        return `100%`;
+      }
+      default: {
+        return ``;
+      }
+    }
   };
 
-  /** Recomputes `mergeStyle` (currently just `height`) — called whenever something that could change the container's required height changes. */
+  /** `overflow-y`, alongside `containerHeight()` above — only `'scroll'`/`'fit'` apply one at all, so the container's own natural overflow behavior (whatever the consumer's surrounding CSS already does) is untouched for `'auto'`/`'fixed'`. */
+  const containerOverflow = (): string => {
+    return resolvedHeightMode.value === `scroll` || resolvedHeightMode.value === `fit` ? `auto` : ``;
+  };
+
+  /** Recomputes `mergeStyle` (`height`, and `overflow-y` when `heightMode` calls for it) — called whenever something that could change the container's required height changes. */
   const updateHeight = (): void => {
+    const overflow = containerOverflow();
     mergeStyle.value = {
       height: containerHeight(),
+      ...(overflow ? { 'overflow-y': overflow } : {}),
     };
   };
 
@@ -280,6 +319,18 @@
 
   const clearAlignmentGuides = (): void => {
     alignmentGuides.value = [];
+  };
+
+  /** `showSpacingGuides` counterpart to `updateAlignmentGuides` above — same call sites, same live-position/no-op-when-off shape, distinct underlying data (a labeled gap, not an edge-alignment line). */
+  const updateSpacingIndicators = (id: string | number, x: number, y: number, w: number, h: number): void => {
+    if(!props.showSpacingGuides) {
+      return;
+    }
+    spacingIndicators.value = findSpacingIndicators(props.layout, { h, i: id, w, x, y });
+  };
+
+  const clearSpacingIndicators = (): void => {
+    spacingIndicators.value = [];
   };
 
   /**
@@ -482,6 +533,94 @@
   };
 
   /**
+   * Applies a computed `Map<id, { x?, y?, }>` of adjustments to
+   * `props.layout` in place, then runs the same post-processing every
+   * other layout-mutating exposed method here already does (undo
+   * snapshot, compaction, the `compact` eventBus emit, height
+   * recompute, both layout events) — shared by `alignSelected`/
+   * `distributeSelected` below rather than duplicated between them.
+   *
+   * `preventCollision` guard: when the prop is on, an adjustment that
+   * would land an item on top of a *non-selected* item is skipped
+   * entirely for that one item (the rest of the batch still applies) —
+   * colliding with another item *also being aligned/distributed* isn't
+   * treated as a collision at all here, since that's frequently the
+   * whole point of the command (e.g. aligning three items to the same
+   * left edge necessarily overlaps them along that edge until
+   * compaction, if any, resolves it).
+   */
+  const applyAlignDistributeAdjustments = (
+    adjustments: Map<string | number, { x?: number; y?: number }>,
+    selectedIds: (string | number)[],
+  ): void => {
+    if(adjustments.size === 0) {
+      return;
+    }
+    const beforeCompact = cloneLayout(props.layout);
+    const selectedIdSet = new Set(selectedIds);
+
+    adjustments.forEach((adjustment, id) => {
+      const item = getLayoutItem(props.layout, id);
+      if(!item) {
+        return;
+      }
+      const candidate = { ...item, ...adjustment };
+      if(props.preventCollision) {
+        const collisions = getAllCollisions(props.layout, candidate)
+          .filter(layoutItem => layoutItem.i !== item.i && !selectedIdSet.has(layoutItem.i));
+        if(collisions.length > 0) {
+          return;
+        }
+      }
+      if(adjustment.x !== undefined) {
+        item.x = adjustment.x;
+      }
+      if(adjustment.y !== undefined) {
+        item.y = adjustment.y;
+      }
+    });
+
+    commitUndoPoint(beforeCompact);
+    runCompaction();
+    eventBus.emit(`compact`);
+    updateHeight();
+    emit(EGridLayoutEvent.LAYOUT_UPDATE, props.layout);
+    emit(EGridLayoutEvent.LAYOUT_UPDATED, props.layout);
+  };
+
+  /**
+   * Aligns every currently-selected item (`multiSelect`) to the given
+   * edge/center of the *anchor* — the first item the user actually
+   * selected (a `Set`'s own insertion order), which itself never moves.
+   * A no-op when fewer than 2 items are selected (nothing to align
+   * against), including when `multiSelect` is off entirely (selection
+   * is then always empty). See `computeAlignAdjustments`'s own doc
+   * comment (`@keystone-dashboard-layout/core`) for the exact
+   * per-edge/center math.
+   */
+  const alignSelected = (edge: TAlignEdge): void => {
+    const selectedIds = Array.from(selectedItemIds.value);
+    const adjustments = computeAlignAdjustments(props.layout, selectedIds, edge);
+    applyAlignDistributeAdjustments(adjustments, selectedIds);
+  };
+
+  /**
+   * Evenly spaces the currently-selected items (`multiSelect`) along
+   * the given axis — the standard design-tool "distribute" behavior:
+   * the two outermost selected items (by actual position, not
+   * selection order) stay exactly where they are, and only the ones
+   * "in between" move to close any uneven gaps. A no-op with fewer than
+   * 3 items selected (nothing meaningfully in between). See
+   * `computeDistributeAdjustments`'s own doc comment
+   * (`@keystone-dashboard-layout/core`) for the exact spacing math.
+   */
+  const distributeSelected = (axis: TDistributeAxis): void => {
+    const selectedIds = Array.from(selectedItemIds.value);
+    const adjustments = computeDistributeAdjustments(props.layout, selectedIds, axis);
+    applyAlignDistributeAdjustments(adjustments, selectedIds);
+  };
+
+  /**
    * Multi-select state (`multiSelect`) — see that prop's own doc
    * comment in `grid-layout-props.interface.ts` for the full design
    * scope (deliberately not collision-aware for passenger items during
@@ -594,6 +733,46 @@
         top: `${guide.position * (props.rowHeight + props.margin[1]) + props.margin[1]}px`,
         height: `1px`,
         width: `100%`,
+      };
+    });
+  });
+
+  /**
+   * Converts `spacingIndicators`' grid-unit gap into a pixel-positioned
+   * text label ("2 cols"/"1 row") — same guarded not-yet-measured
+   * handling as `alignmentGuideStyles` above. Positioned at the
+   * midpoint of the gap along its own axis; the *cross*-axis position
+   * (where along the gap, not how wide it is) comes from `placeholder`,
+   * since that already tracks the live active item's own position
+   * during a drag/resize/outside-drop — exactly the item this gap is
+   * measured relative to. Rendered as `left`/`top` only (no width/
+   * height, unlike the guide lines above): the template centers each
+   * label on that point via CSS `transform: translate(-50%, -50%)`.
+   */
+  const spacingIndicatorStyles = computed(() => {
+    if(spacingIndicators.value.length === 0 || !width.value || width.value < 1) {
+      return [];
+    }
+
+    const colWidth = calcColWidth(width.value, props.margin[0], props.colNum as number);
+    return spacingIndicators.value.map(indicator => {
+      if(indicator.axis === `x`) {
+        const startPx = indicator.gapStart * (colWidth + props.margin[0]) + props.margin[0];
+        const endPx = indicator.gapEnd * (colWidth + props.margin[0]) + props.margin[0];
+        const centerY = (placeholder.value.y + placeholder.value.h / 2) * (props.rowHeight + props.margin[1]) + props.margin[1];
+        return {
+          label: `${indicator.distance} col${indicator.distance === 1 ? `` : `s`}`,
+          left: `${(startPx + endPx) / 2}px`,
+          top: `${centerY}px`,
+        };
+      }
+      const startPxY = indicator.gapStart * (props.rowHeight + props.margin[1]) + props.margin[1];
+      const endPxY = indicator.gapEnd * (props.rowHeight + props.margin[1]) + props.margin[1];
+      const centerX = (placeholder.value.x + placeholder.value.w / 2) * (colWidth + props.margin[0]) + props.margin[0];
+      return {
+        label: `${indicator.distance} row${indicator.distance === 1 ? `` : `s`}`,
+        left: `${centerX}px`,
+        top: `${(startPxY + endPxY) / 2}px`,
       };
     });
   });
@@ -762,6 +941,7 @@
     placeholder.value.w = w as number;
     placeholder.value.h = h as number;
     updateAlignmentGuides(id, x as number, y as number, w as number, h as number);
+    updateSpacingIndicators(id, x as number, y as number, w as number, h as number);
 
     const staticItem = getAllStaticGridItems(propsLayout.value);
     if(
@@ -955,6 +1135,7 @@
       positionsBeforeDrag.value = undefined;
       originalLayout.value = layout;
       clearAlignmentGuides();
+      clearSpacingIndicators();
       // Bug fix (docs/REFACTORING.md #32, same class): this used to also
       // `emit(EGridLayoutEvent.DRAG_END, 1)` here — a second,
       // hardcoded-wrong-id emission for the same dragend, firing after
@@ -1098,6 +1279,7 @@
   ): void => {
     if(eventName !== `resizestart` && eventName !== `resizemove`) {
       clearAlignmentGuides();
+      clearSpacingIndicators();
       nextTick(() => {
         isDragging.value = false;
       });
@@ -1110,6 +1292,7 @@
     placeholder.value.w = l.w as number;
     placeholder.value.h = l.h as number;
     updateAlignmentGuides(placeholder.value.i, placeholder.value.x, placeholder.value.y, placeholder.value.w, placeholder.value.h);
+    updateSpacingIndicators(placeholder.value.i, placeholder.value.x, placeholder.value.y, placeholder.value.w, placeholder.value.h);
     nextTick(() => {
       isDragging.value = true;
     });
@@ -1174,6 +1357,7 @@
     if(eventName === `resizeend`) {
       commitResizeEnd();
       clearAlignmentGuides();
+      clearSpacingIndicators();
       originalLayout.value = props.layout;
       emit(EGridLayoutEvent.LAYOUT_UPDATED, props.layout);
     }
@@ -1644,6 +1828,20 @@
   );
 
   /**
+   * `heightMode`/`autoSize` reactivity — same "recompute mergeStyle"
+   * shape as the `margin` watcher directly above, needed for the same
+   * reason: `containerHeight()`/`containerOverflow()` are only ever
+   * read through `updateHeight()`, at specific trigger points, not on
+   * every render automatically.
+   */
+  watch(
+    [() => props.heightMode, () => props.autoSize],
+    () => {
+      updateHeight();
+    },
+  );
+
+  /**
    * This is what a child `GridItem` actually sees through `proxy.$parent`
    * (see `thisLayout` in `GridItem.vue` and docs/ARCHITECTURE.md) —
    * anything a `GridItem` needs to read from its parent layout must be
@@ -1674,6 +1872,8 @@
     compactNow,
     rearrange,
     duplicateItem,
+    alignSelected,
+    distributeSelected,
     undo,
     redo,
     canUndo,
@@ -1697,6 +1897,8 @@
     placeholder,
     alignmentGuides,
     alignmentGuideStyles,
+    spacingIndicators,
+    spacingIndicatorStyles,
     width,
   });
 </script>
@@ -1762,6 +1964,29 @@
     // those need to stay clickable/visible above a guide that happens
     // to cross through them.
     z-index: 16;
+  }
+
+  // Distance-labeled spacing indicator ("2 cols"/"1 row") —
+  // independently toggleable sibling to `.vue-grid-alignment-guide`
+  // above, not a variant of it: this labels a gap size, the guide
+  // lines visualize an edge alignment. `transform: translate(-50%,
+  // -50%)` centers the badge on the `left`/`top` point
+  // `spacingIndicatorStyles` computes (the gap's own midpoint), rather
+  // than that point being the badge's own top-left corner. `z-index:
+  // 17` — one above the alignment guide lines — so a label isn't
+  // visually cut through by a guide line crossing the same point.
+  .vue-grid-spacing-indicator {
+    background: rgb(37 99 235 / 90%);
+    border-radius: 3px;
+    color: #fff;
+    font-size: 11px;
+    line-height: 1;
+    padding: 2px 6px;
+    pointer-events: none;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    z-index: 17;
   }
 
   .grid::before {

@@ -110,8 +110,11 @@ suggesting something that already exists in a different form:
     approach this item originally warned against, and not per
     intermediate drag-move frame. Opt-in (`false` by default) given the
     real memory cost of keeping snapshots. See `docs/REFACTORING.md` #80.
-23. **Align/distribute commands on `multiSelect`'s selected items** —
-    found via a scoping pass on `@marsio/vue-grid-layout`'s own command
+23. ~~Align/distribute commands on `multiSelect`'s selected items~~ —
+    **done**: `alignSelected(edge)`/`distributeSelected(axis)` exposed
+    methods on `GridLayout`, plus `computeAlignAdjustments`/
+    `computeDistributeAdjustments` in `@keystone-dashboard-layout/core`.
+    Found via a scoping pass on `@marsio/vue-grid-layout`'s own command
     layer (`COMPARISON_ALTERNATIVES.md`) before starting on it, which
     corrected an earlier, too-quick assumption: `snapToGrid` (magnetic
     snap *during* a single drag) and `distributeEvenly` (spreading
@@ -119,13 +122,10 @@ suggesting something that already exists in a different form:
     mechanisms from "align every selected item's left edge to match
     one anchor" or "evenly space the vertical gaps between selected
     items" as an explicit, on-demand command over a `multiSelect`
-    group — genuinely missing, not just differently named. `isStatic`
-    toggled per selected item ("lock") is the one part of that same
-    command layer that *does* already exist under a different name.
-    Not started — deliberately scoped out of the same work that added
-    undo/redo, to keep that feature's own design and test quality from
-    being rushed by also building this in the same pass. See
-    `docs/PARITY_GAP_PLAN.md` item 4 for the full implementation design.
+    group. Anchor is the first-selected item (a `Set`'s own insertion
+    order); undo-able through the existing `commitUndoPoint` path, same
+    as `compactNow()`/`duplicateItem()`. See `docs/PARITY_GAP_PLAN.md`
+    item 4 for the full implementation design.
 18. ~~Named layout presets~~ — **done** (`useLayoutPresets`), see "Recently completed" above.
 19. ~~A hook for blocked-move feedback~~ — **done** (`MOVE_BLOCKED_BY_COLLISION`), see "Recently completed" above.
 20. ~~Localizable UI/ARIA strings~~ — **done** (`ariaLabels` prop on both `GridLayout` and `GridItem`), see "Recently completed" above.
@@ -151,18 +151,20 @@ to keep this page a single stop for "what's suggested."
     `isDraggable`/`isResizable`/`showCloseButton`), selecting which of
     the 8 corner/edge handles actually render and activate. See
     `docs/PARITY_GAP_PLAN.md` item 1.
-25. **Spacing guides with distance labels** — alongside the existing
-    edge/center alignment guides, a labeled distance indicator (e.g.
-    "2 cols") for the gap between the dragged item and its nearest
-    neighbor. Not started. See `docs/PARITY_GAP_PLAN.md` item 2.
-26. **Per-input-type drag-activation thresholds** — distinct
-    activation-distance values for mouse/touch/pen, instead of one
-    fixed threshold for all pointer types. Not started. See
-    `docs/PARITY_GAP_PLAN.md` item 3.
-27. **Configurable container height modes** — `heightMode`
-    (`auto`/`fixed`/`scroll`/`fit`), with `autoSize` becoming a
-    deprecated, non-breaking alias rather than being removed. Not
-    started. See `docs/PARITY_GAP_PLAN.md` item 5.
+25. ~~Spacing guides with distance labels~~ — **done**: `showSpacingGuides`
+    prop on `GridLayout`, alongside the existing edge/center alignment
+    guides — a labeled distance indicator (e.g. "2 cols") for the gap
+    between the dragged/resized item and its nearest neighbor on each
+    side that has one. See `docs/PARITY_GAP_PLAN.md` item 2.
+26. ~~Per-input-type drag-activation thresholds~~ — **done**: `dragActivationDistance`
+    prop on `GridItem` — distinct activation-distance values for
+    mouse/touch/pen, instead of one fixed threshold for all pointer
+    types. See `docs/PARITY_GAP_PLAN.md` item 3.
+27. ~~Configurable container height modes~~ — **done**: `heightMode`
+    (`'auto' | 'fixed' | 'scroll' | 'fit' | null`), with `autoSize`
+    kept as a deprecated, non-breaking alias (`null`, the default,
+    defers to it entirely; an explicit `heightMode` wins outright when
+    both are set). See `docs/PARITY_GAP_PLAN.md` item 5.
 28. **Async persistence backends** (IndexedDB, remote HTTP) — a new,
     separate `useAsyncLayoutStorage` composable with its own adapter
     interface, alongside (not replacing) the existing synchronous
@@ -228,3 +230,15 @@ to keep this page a single stop for "what's suggested."
 
 Open an issue on
 [GitHub](https://github.com/gwinnem/vue-responsive-grid-layout/issues).
+
+## Full implementation plans
+
+- [`docs/PARITY_GAP_PLAN.md`](./docs/PARITY_GAP_PLAN.md) — the 9
+  items sourced from the five actively-checked open-source
+  alternatives (spacing guides, drag-activation thresholds,
+  align/distribute, height modes, async persistence, pluggable
+  positioning strategy, fast compaction, worker engine).
+- [`docs/OPEN_ISSUES_IMPLEMENTATION_PLAN.md`](./docs/OPEN_ISSUES_IMPLEMENTATION_PLAN.md) —
+  everything else currently open: swap-on-drag, sub-grid nesting,
+  maximize/restore, the two remaining Syncfusion follow-ups, and all
+  verification/tooling debt, with a recommended overall sequence.

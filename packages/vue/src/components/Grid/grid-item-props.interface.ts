@@ -1,5 +1,5 @@
 import { IGridAriaLabels } from '@/core/common/interfaces/aria-labels.interface';
-import { TResizeHandle } from '@/core/helpers/native-interaction';
+import { TDragActivationDistance, TResizeHandle } from '@/core/helpers/native-interaction';
 
 /**
  * Props accepted by the `GridItem` component. `h`, `i`, `w`, `x`, and `y`
@@ -45,6 +45,20 @@ export interface IGridItemProps {
   borderRadiusPx?: number | null;
   /** CSS selector restricting which descendant elements can start a drag; `null` (default) allows dragging from anywhere on the item except `dragIgnoreFrom` matches. Passed to interact.js as `allowFrom`. */
   dragAllowFrom?: string | null;
+  /**
+   * Minimum pointer movement, in pixels, before a pointerdown on this
+   * item is treated as a drag rather than a click — either one fixed
+   * value for every pointer type (a plain number), or distinct values
+   * per `mouse`/`touch`/`pen`. A touch drag commonly wants a larger
+   * threshold than a mouse drag, since a finger's own contact-point
+   * jitter is larger than a mouse's. `null` (default) uses the
+   * library's own fixed 3px threshold for every pointer type — the
+   * exact behavior before this prop existed, unchanged for anyone not
+   * using it. A pointer type left unset in the object form (e.g.
+   * `{ touch: 8 }`, leaving `mouse`/`pen` unset) falls back to that
+   * same 3px default for the unset ones, rather than 0.
+   */
+  dragActivationDistance?: TDragActivationDistance | null;
   /** CSS selector for elements that should *not* start a drag (e.g. buttons/links inside the item). Default `` `a, button` ``. */
   dragIgnoreFrom?: string;
   /** Master switch for interactivity — when `false`, the item can't be dragged, resized, or closed regardless of the other props. `null` (default) inherits `GridLayout`'s own `enableEditMode` (itself `true` by default) — same inherit pattern as `isDraggable`/`isResizable`/`isBounded`/`showCloseButton`. Set explicitly per item to override the grid-wide default for just that item. */

@@ -26,7 +26,13 @@ feature here.
 
 ## Phase 1 — low risk, extends existing systems, clear value
 
-### 1. Configurable resize-handle set
+### 1. Configurable resize-handle set — done
+
+**Shipped** as the `resizeHandles` prop on both `GridLayout` (grid-wide
+default) and `GridItem` (per-item override, `null` = inherit) — see
+`ROADMAP.md` item 24 and `docs/REFACTORING.md`. Left in place below
+(struck through the status line only) as an accurate record of the
+original design reasoning, which matched what was actually built.
 
 **Source**: `@marsio/vue-grid-layout`'s `resizeHandles: Array<'s'|'w'|'e'|'n'|'sw'|'nw'|'se'|'ne'>`.
 
@@ -59,7 +65,15 @@ the existing `resizeIgnoreFrom` test pattern in `item-overrides.spec.ts`).
 
 ---
 
-### 2. Spacing guides with distance labels
+### 2. Spacing guides with distance labels — done
+
+**Shipped** as `showSpacingGuides` on `GridLayout`, plus
+`findSpacingIndicators()` (`core/gridlayout/helpers/alignment-helper.ts`)
+and a rendered `.vue-grid-spacing-indicator` badge per qualifying side.
+Built exactly as designed below — nearest-neighbor only per side, a
+perpendicular-overlap requirement so an unrelated item on the same
+row/column doesn't get labeled as a "gap," and zero-distance gaps
+(items already touching) excluded. See `ROADMAP.md` item 25.
 
 **Source**: `@marsio/vue-grid-layout`'s spacing guides (distance labels
 like "2 cols"), alongside its edge/center alignment guides.
@@ -92,15 +106,28 @@ spacing badge appears with the correct grid-unit count during a drag.
 
 ---
 
-### 3. Per-input-type drag-activation thresholds
+### 3. Per-input-type drag-activation thresholds — done
+
+**Shipped** as `dragActivationDistance` on `GridItem` (`number |
+{ mouse?; touch?; pen? }`, `null` default preserving the single 3px
+threshold every pointer type used before). Resolved once per gesture
+at `pointerdown` from the native event's own `PointerEvent.pointerType`
+— see `resolveActivationDistance()` in `native-interaction.ts`. See
+`ROADMAP.md` item 26.
 
 **Source**: `@marsio/vue-grid-layout`'s `dragActivationDistance`
 (distinct mouse/pen/touch values).
 
-**Current state**: not yet confirmed — first implementation step is
-locating `native-interaction.ts`'s current activation-distance handling
-before finalizing this design, not assuming a specific existing
-threshold constant's name/location.
+**Current state** (confirmed directly — `native-interaction.ts`):
+a single module-level constant, `DRAG_ACTIVATION_THRESHOLD_PX = 3`,
+read unconditionally in `createNativeDraggable`'s `onPointerMove` via
+`Math.hypot(dx, dy) < DRAG_ACTIVATION_THRESHOLD_PX` — no branching on
+`PointerEvent.pointerType` anywhere in the file. (The resize engine,
+`createNativeResizable`, has no equivalent activation-distance check at
+all — a resize starts immediately on a handle's own `pointerdown`,
+since the handle itself is already the precise target; only the drag
+engine needs a distance threshold to distinguish a click from a drag on
+the much larger item-body target area.)
 
 **Design**: new prop `dragActivationDistance?: number | { mouse?: number; touch?: number; pen?: number }`,
 default preserves the current single-threshold behavior for every
@@ -120,7 +147,18 @@ below it.
 
 ## Phase 2 — moderate effort, already-scoped or well-contained
 
-### 4. Align/distribute commands on `multiSelect`
+### 4. Align/distribute commands on `multiSelect` — done
+
+**Shipped** as `alignSelected(edge)`/`distributeSelected(axis)` exposed
+methods on `GridLayout`, plus `computeAlignAdjustments`/
+`computeDistributeAdjustments` in `@keystone-dashboard-layout/core`
+(`gridlayout/helpers/align-distribute-helper.ts`). Built exactly as
+designed below, including the anchor-is-first-selected-item resolution
+and the `preventCollision` guard (skips an adjustment that would land on
+a *non-selected* item specifically — colliding with another item also
+being aligned/distributed is not treated as a collision here). Both
+methods are undo-able through the existing `commitUndoPoint` path, same
+as `compactNow()`/`duplicateItem()`.
 
 **Source**: `@marsio/vue-grid-layout`'s `align`/`distribute` commands
 over the current selection.
@@ -155,7 +193,15 @@ on each axis, and interaction with `preventCollision`.
 
 ---
 
-### 5. Configurable container height modes
+### 5. Configurable container height modes — done
+
+**Shipped** as `heightMode?: 'auto' | 'fixed' | 'scroll' | 'fit' | null`
+on `GridLayout`, default `null` (defers entirely to `autoSize`, so a
+consumer using only the older prop sees no behavior change at all).
+`autoSize` kept, unchanged, as a non-breaking deprecated alias — same
+precedence pattern `compactType`/`verticalCompact` already established:
+an explicit `heightMode` wins outright when both are set, `autoSize` is
+simply ignored rather than merged.
 
 **Source**: `@marsio/vue-grid-layout`'s `heightMode`.
 
@@ -308,11 +354,11 @@ unnecessary entirely — don't build this speculatively.
 
 | # | Item | Phase | Effort | Source | New deps? |
 |---|---|---|---|---|---|
-| 1 | Resize-handle set | 1 | Small | `@marsio` | No |
-| 2 | Spacing guides | 1 | Moderate | `@marsio` | No |
-| 3 | Drag-activation thresholds | 1 | Small | `@marsio` | No |
-| 4 | Align/distribute | 2 | Moderate | `@marsio` | No |
-| 5 | Height modes | 2 | Moderate | `@marsio` | No |
+| 1 | Resize-handle set | 1 | Small | `@marsio` | — **done** |
+| 2 | Spacing guides | 1 | Moderate | `@marsio` | — **done** |
+| 3 | Drag-activation thresholds | 1 | Small | `@marsio` | — **done** |
+| 4 | Align/distribute | 2 | Moderate | `@marsio` | — **done** |
+| 5 | Height modes | 2 | Moderate | `@marsio` | — **done** |
 | 6 | Async persistence backends | 3 | Significant | `@marsio` | Maybe (`fake-indexeddb`, tests only) |
 | 7 | Pluggable positioning strategy | 3 | Significant | `react-grid-layout` v2 | No |
 | 8 | Fast compaction | 4 | Large | `react-grid-layout` v2 | No |

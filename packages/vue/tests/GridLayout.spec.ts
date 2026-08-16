@@ -90,6 +90,96 @@ describe(`GridLayout`, () => {
     expect(wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``).not.toContain(`height:`);
   });
 
+  describe(`heightMode`, () => {
+    it(`Should default to null, deferring entirely to autoSize`, () => {
+      const wrapper = mountGrid(basicLayout());
+      expect(wrapper.props(`heightMode`)).toBeNull();
+    });
+
+    it(`Should compute the same pixel height as autoSize: true (the default) when heightMode is 'auto'`, async () => {
+      const wrapper = mountGrid(basicLayout(), { layoutProps: { heightMode: `auto`, rowHeight: 100, margin: [10, 10] } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      expect(wrapper.find(`.vue-grid-layout`).attributes(`style`)).toContain(`height: 230px`);
+    });
+
+    it(`Should render with no explicit height when heightMode is 'fixed', matching autoSize: false's own prior behavior`, async () => {
+      const wrapper = mountGrid(basicLayout(), { layoutProps: { heightMode: `fixed` } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      const style = wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``;
+      expect(style).not.toContain(`height:`);
+      expect(style).not.toContain(`overflow-y`);
+    });
+
+    it(`Should render with no explicit height but an inline overflow-y: auto when heightMode is 'scroll'`, async () => {
+      const wrapper = mountGrid(basicLayout(), { layoutProps: { heightMode: `scroll` } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      const style = wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``;
+      expect(style).not.toContain(`height:`);
+      expect(style).toContain(`overflow-y: auto`);
+    });
+
+    it(`Should lock height to 100% and set overflow-y: auto when heightMode is 'fit'`, async () => {
+      const wrapper = mountGrid(basicLayout(), { layoutProps: { heightMode: `fit` } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      const style = wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``;
+      expect(style).toContain(`height: 100%`);
+      expect(style).toContain(`overflow-y: auto`);
+    });
+
+    it(`Should let an explicit heightMode win outright over autoSize when both are set, not merge or average them`, async () => {
+      // autoSize: true would normally mean auto-height (see the very
+      // first autoSize test above) — heightMode: 'fixed' here should
+      // override that entirely, not partially apply either.
+      const wrapper = mountGrid(basicLayout(), {
+        layoutProps: { autoSize: true, heightMode: `fixed`, rowHeight: 100, margin: [10, 10] },
+      });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      const style = wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``;
+      expect(style).not.toContain(`height:`);
+    });
+
+    it(`Should react when heightMode changes after mount`, async () => {
+      const wrapper = mountGrid(basicLayout(), { layoutProps: { heightMode: `fixed`, rowHeight: 100, margin: [10, 10] } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+      expect(wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``).not.toContain(`height:`);
+
+      await wrapper.setProps({ heightMode: `auto` });
+      await nextTick();
+
+      expect(wrapper.find(`.vue-grid-layout`).attributes(`style`)).toContain(`height: 230px`);
+    });
+
+    it(`Should react when autoSize changes after mount, for a consumer not using heightMode at all (heightMode stays null)`, async () => {
+      const wrapper = mountGrid(basicLayout(), { layoutProps: { rowHeight: 100, margin: [10, 10] } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+      expect(wrapper.find(`.vue-grid-layout`).attributes(`style`)).toContain(`height: 230px`);
+
+      await wrapper.setProps({ autoSize: false });
+      await nextTick();
+
+      expect(wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``).not.toContain(`height:`);
+    });
+  });
+
   it(`Should emit breakpoint-changed when responsive is enabled`, async () => {
     stubOffsetWidth(500); // falls in the default "xs" breakpoint band (480-767)
     const wrapper = mountGrid(basicLayout(), { layoutProps: { responsive: true } });
@@ -1493,6 +1583,234 @@ describe(`GridLayout`, () => {
       }).not.toThrow();
     });
 
+    it(`Should align every other selected item's left edge to the anchor's, without moving the anchor itself`, async () => {
+      const wrapper = mountGrid([
+        { i: `anchor`, x: 5, y: 0, w: 2, h: 2 },
+        { i: `other`, x: 0, y: 4, w: 2, h: 2 },
+      ], { layoutProps: { multiSelect: true, compactType: ECompactType.NONE } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`anchor`);
+      wrapper.vm.selectItem(`other`, true);
+      await nextTick();
+
+      wrapper.vm.alignSelected(`left`);
+      await nextTick();
+
+      const anchor = wrapper.vm.layout.find((item: { i: string }) => item.i === `anchor`);
+      const other = wrapper.vm.layout.find((item: { i: string }) => item.i === `other`);
+      expect(anchor.x).toBe(5);
+      expect(other.x).toBe(5);
+    });
+
+    it(`Should align to the right edge`, async () => {
+      // "other" stays far away in y (y:10) throughout, so aligning its x
+      // inside the anchor's own x-footprint never creates a collision
+      // for compaction to resolve — keeping this test isolated to just
+      // the alignment math itself.
+      const wrapper = mountGrid([
+        { i: `anchor`, x: 0, y: 0, w: 4, h: 2 },
+        { i: `other`, x: 10, y: 10, w: 2, h: 2 },
+      ], { layoutProps: { multiSelect: true, compactType: ECompactType.NONE } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`anchor`);
+      wrapper.vm.selectItem(`other`, true);
+      await nextTick();
+
+      wrapper.vm.alignSelected(`right`);
+      await nextTick();
+
+      // anchor's right edge: 0+4=4; other (w:2) needs x:2 for its own
+      // right edge (2+2=4) to match.
+      const other = wrapper.vm.layout.find((item: { i: string }) => item.i === `other`);
+      expect(other.x).toBe(2);
+    });
+
+    it(`Should align to the top edge`, async () => {
+      // "other" stays at x:10 throughout — outside the anchor's own
+      // x-footprint (0-4) — so aligning its y to match the anchor's
+      // top edge never creates a collision.
+      const wrapper = mountGrid([
+        { i: `anchor`, x: 0, y: 0, w: 4, h: 2 },
+        { i: `other`, x: 10, y: 10, w: 2, h: 2 },
+      ], { layoutProps: { multiSelect: true, compactType: ECompactType.NONE } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`anchor`);
+      wrapper.vm.selectItem(`other`, true);
+      await nextTick();
+
+      wrapper.vm.alignSelected(`top`);
+      await nextTick();
+
+      const other = wrapper.vm.layout.find((item: { i: string }) => item.i === `other`);
+      expect(other.y).toBe(0);
+    });
+
+    it(`Should align to the bottom edge`, async () => {
+      const wrapper = mountGrid([
+        { i: `anchor`, x: 0, y: 0, w: 4, h: 4 },
+        { i: `other`, x: 10, y: 10, w: 2, h: 2 },
+      ], { layoutProps: { multiSelect: true, compactType: ECompactType.NONE } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`anchor`);
+      wrapper.vm.selectItem(`other`, true);
+      await nextTick();
+
+      wrapper.vm.alignSelected(`bottom`);
+      await nextTick();
+
+      // anchor's bottom edge: 0+4=4; other (h:2) needs y:2 for its own
+      // bottom edge (2+2=4) to match.
+      const other = wrapper.vm.layout.find((item: { i: string }) => item.i === `other`);
+      expect(other.y).toBe(2);
+    });
+
+    it(`Should be a no-op when fewer than 2 items are selected`, async () => {
+      const wrapper = mountGrid([
+        { i: `0`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `1`, x: 4, y: 0, w: 2, h: 2 },
+      ], { layoutProps: { multiSelect: true, compactType: ECompactType.NONE } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`0`);
+      await nextTick();
+
+      expect(() => wrapper.vm.alignSelected(`left`)).not.toThrow();
+      await nextTick();
+
+      const item1 = wrapper.vm.layout.find((entry: { i: string }) => entry.i === `1`);
+      expect(item1.x).toBe(4);
+    });
+
+    it(`Should be undo-able, same as any other layout-mutating exposed method`, async () => {
+      const wrapper = mountGrid([
+        { i: `anchor`, x: 5, y: 0, w: 2, h: 2 },
+        { i: `other`, x: 0, y: 4, w: 2, h: 2 },
+      ], { layoutProps: { compactType: ECompactType.NONE, enableUndoRedo: true, multiSelect: true } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`anchor`);
+      wrapper.vm.selectItem(`other`, true);
+      await nextTick();
+
+      wrapper.vm.alignSelected(`left`);
+      await nextTick();
+      expect(wrapper.vm.layout.find((item: { i: string }) => item.i === `other`).x).toBe(5);
+
+      wrapper.vm.undo();
+      await nextTick();
+      expect(wrapper.vm.layout.find((item: { i: string }) => item.i === `other`).x).toBe(0);
+    });
+
+    it(`Should skip an adjustment that would collide with a non-selected item when preventCollision is on, applying the rest of the batch normally`, async () => {
+      const wrapper = mountGrid([
+        { i: `anchor`, x: 5, y: 0, w: 2, h: 2 },
+        { i: `other`, x: 0, y: 4, w: 2, h: 2 },
+        { i: `blocker`, x: 5, y: 4, w: 2, h: 2 },
+      ], { layoutProps: { compactType: ECompactType.NONE, multiSelect: true, preventCollision: true } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`anchor`);
+      wrapper.vm.selectItem(`other`, true);
+      await nextTick();
+
+      // Aligning "other" to the anchor's left edge (x:5) would land it
+      // exactly on "blocker" (also at x:5, same y:4 row) — a real,
+      // non-selected item, not the anchor itself.
+      wrapper.vm.alignSelected(`left`);
+      await nextTick();
+
+      const other = wrapper.vm.layout.find((item: { i: string }) => item.i === `other`);
+      expect(other.x).toBe(0);
+    });
+
+    it(`Should distribute the middle selected item evenly between the two outermost selected items`, async () => {
+      const wrapper = mountGrid([
+        { i: `first`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `middle`, x: 5, y: 0, w: 2, h: 2 },
+        { i: `last`, x: 20, y: 0, w: 2, h: 2 },
+      ], { layoutProps: { compactType: ECompactType.NONE, multiSelect: true } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`first`);
+      wrapper.vm.selectItem(`middle`, true);
+      wrapper.vm.selectItem(`last`, true);
+      await nextTick();
+
+      wrapper.vm.distributeSelected(`horizontal`);
+      await nextTick();
+
+      const first = wrapper.vm.layout.find((item: { i: string }) => item.i === `first`);
+      const middle = wrapper.vm.layout.find((item: { i: string }) => item.i === `middle`);
+      const last = wrapper.vm.layout.find((item: { i: string }) => item.i === `last`);
+      expect(first.x).toBe(0);
+      expect(middle.x).toBe(10);
+      expect(last.x).toBe(20);
+    });
+
+    it(`Should distribute on the vertical axis too`, async () => {
+      const wrapper = mountGrid([
+        { i: `first`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `middle`, x: 0, y: 5, w: 2, h: 2 },
+        { i: `last`, x: 0, y: 20, w: 2, h: 2 },
+      ], { layoutProps: { compactType: ECompactType.NONE, multiSelect: true } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`first`);
+      wrapper.vm.selectItem(`middle`, true);
+      wrapper.vm.selectItem(`last`, true);
+      await nextTick();
+
+      wrapper.vm.distributeSelected(`vertical`);
+      await nextTick();
+
+      const middle = wrapper.vm.layout.find((item: { i: string }) => item.i === `middle`);
+      expect(middle.y).toBe(10);
+    });
+
+    it(`Should be a no-op when fewer than 3 items are selected (nothing meaningfully in between)`, async () => {
+      const wrapper = mountGrid([
+        { i: `0`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `1`, x: 20, y: 0, w: 2, h: 2 },
+      ], { layoutProps: { compactType: ECompactType.NONE, multiSelect: true } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`0`);
+      wrapper.vm.selectItem(`1`, true);
+      await nextTick();
+
+      expect(() => wrapper.vm.distributeSelected(`horizontal`)).not.toThrow();
+      await nextTick();
+
+      const item0 = wrapper.vm.layout.find((entry: { i: string }) => entry.i === `0`);
+      const item1 = wrapper.vm.layout.find((entry: { i: string }) => entry.i === `1`);
+      expect(item0.x).toBe(0);
+      expect(item1.x).toBe(20);
+    });
+
     it(`Should move every other selected item when a keyboard-driven arrow-key move is performed on a selected item (group move)`, async () => {
       const wrapper = mountGrid([
         { i: `0`, x: 0, y: 0, w: 2, h: 2 },
@@ -1699,6 +2017,199 @@ describe(`GridLayout`, () => {
       await nextTick();
 
       expect(wrapper.vm.alignmentGuides).toContainEqual({ axis: `x`, position: 4 });
+    });
+  });
+
+  describe(`showSpacingGuides`, () => {
+    // Mirrors the showAlignmentGuides describe block above exactly —
+    // same call sites, same off-by-default/no-cost shape, distinct
+    // underlying data (a labeled gap between nearest neighbors, not an
+    // edge-alignment line).
+    it(`Should do nothing when showSpacingGuides is false (the default)`, async () => {
+      const wrapper = mountGrid(basicLayout(), { layoutProps: { compactType: ECompactType.NONE } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      // item `1` (x:2) dragged to x:6 leaves a real 2-unit gap to item
+      // `0` (x:0,w:2, right edge at 2) — but the feature is off by
+      // default, so no indicator should appear.
+      wrapper.vm.dragEvent(`dragstart`, `1`, 2, 0, 2, 2);
+      wrapper.vm.dragEvent(`dragmove`, `1`, 6, 0, 2, 2);
+      await nextTick();
+
+      expect(wrapper.vm.spacingIndicators).toStrictEqual([]);
+      expect(wrapper.findAll(`.vue-grid-spacing-indicator`)).toHaveLength(0);
+    });
+
+    it(`Should show a spacing indicator with the correct gap distance when a dragged item leaves a real gap to its nearest neighbor`, async () => {
+      stubOffsetWidth(1200);
+      const wrapper = mountGrid(basicLayout(), {
+        layoutProps: { compactType: ECompactType.NONE, showSpacingGuides: true },
+      });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      // item `0` (x:0,w:2, right edge at 2); dragging item `1` to x:6
+      // leaves a 4-unit gap on its left side, back to item `0`'s right
+      // edge.
+      wrapper.vm.dragEvent(`dragstart`, `1`, 2, 0, 2, 2);
+      wrapper.vm.dragEvent(`dragmove`, `1`, 6, 0, 2, 2);
+      await nextTick();
+
+      expect(wrapper.vm.spacingIndicators).toContainEqual({ axis: `x`, distance: 4, gapEnd: 6, gapStart: 2 });
+      expect(wrapper.findAll(`.vue-grid-spacing-indicator`).length).toBeGreaterThan(0);
+    });
+
+    it(`Should clear spacing indicators when the drag ends`, async () => {
+      const wrapper = mountGrid(basicLayout(), { layoutProps: { compactType: ECompactType.NONE, showSpacingGuides: true } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.dragEvent(`dragstart`, `1`, 2, 0, 2, 2);
+      wrapper.vm.dragEvent(`dragmove`, `1`, 6, 0, 2, 2);
+      await nextTick();
+      expect(wrapper.vm.spacingIndicators.length).toBeGreaterThan(0);
+
+      wrapper.vm.dragEvent(`dragend`, `1`, 6, 0, 2, 2);
+      await nextTick();
+      expect(wrapper.vm.spacingIndicators).toStrictEqual([]);
+    });
+
+    it(`Should clear spacing indicators when a resize ends too`, async () => {
+      // Distinct call site from the drag test above — resizeEvent's own
+      // clearSpacingIndicators() call, on resizeend.
+      const wrapper = mountGrid(basicLayout(), { layoutProps: { compactType: ECompactType.NONE, showSpacingGuides: true } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.resizeEvent(`resizestart`, `0`, 0, 0, 2, 2);
+      wrapper.vm.resizeEvent(`resizemove`, `0`, 0, 0, 2, 1);
+      await nextTick();
+      expect(wrapper.vm.spacingIndicators.length).toBeGreaterThan(0);
+
+      wrapper.vm.resizeEvent(`resizeend`, `0`, 0, 0, 2, 1);
+      await nextTick();
+      expect(wrapper.vm.spacingIndicators).toStrictEqual([]);
+    });
+
+    it(`Should render a spacing indicator with a pixel position derived from the grid-unit gap's midpoint`, async () => {
+      stubOffsetWidth(1200);
+      const wrapper = mountGrid(basicLayout(), {
+        layoutProps: { compactType: ECompactType.NONE, margin: [10, 10], rowHeight: 100, showSpacingGuides: true },
+      });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.dragEvent(`dragstart`, `1`, 2, 0, 2, 2);
+      wrapper.vm.dragEvent(`dragmove`, `1`, 6, 0, 2, 2);
+      await nextTick();
+
+      const indicatorEl = wrapper.find(`.vue-grid-spacing-indicator`);
+      expect(indicatorEl.exists()).toBe(true);
+      expect(indicatorEl.text()).toBe(`4 cols`);
+    });
+
+    it(`Should show a spacing indicator during a resize too, using the resized item's live width`, async () => {
+      // Distinct code path from the drag tests above — resizeEvent's own
+      // updateSpacingIndicators call site.
+      const wrapper = mountGrid([
+        { i: `0`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `1`, x: 6, y: 0, w: 2, h: 2 },
+      ], { layoutProps: { compactType: ECompactType.NONE, showSpacingGuides: true } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      // item `0` (x:0,w:2, right edge at 2) shrunk to w:1 (right edge at
+      // 1) opens up a wider gap to item `1` (x:6) than the initial 4-unit
+      // one.
+      wrapper.vm.resizeEvent(`resizestart`, `0`, 0, 0, 2, 2);
+      wrapper.vm.resizeEvent(`resizemove`, `0`, 0, 0, 2, 1);
+      await nextTick();
+
+      expect(wrapper.vm.spacingIndicators).toContainEqual({ axis: `x`, distance: 5, gapEnd: 6, gapStart: 1 });
+    });
+
+    it(`Should not show a spacing indicator when nothing qualifies as a nearest neighbor (no perpendicular overlap)`, async () => {
+      const wrapper = mountGrid([
+        { i: `0`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `1`, x: 0, y: 10, w: 2, h: 2 },
+      ], { layoutProps: { compactType: ECompactType.NONE, showSpacingGuides: true } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      // item `1`'s y-range (10-12) doesn't overlap item `0`'s (0-2) at
+      // all — not a real left/right neighbor, per findSpacingIndicators'
+      // own overlap rule.
+      wrapper.vm.dragEvent(`dragstart`, `0`, 0, 0, 2, 2);
+      wrapper.vm.dragEvent(`dragmove`, `0`, 5, 0, 2, 2);
+      await nextTick();
+
+      expect(wrapper.vm.spacingIndicators).toStrictEqual([]);
+    });
+
+    it(`Should render a vertical (y-axis) spacing indicator with the label/position derived from row height, not just the horizontal case`, async () => {
+      // Every other test in this block only ever exercises a horizontal
+      // gap (axis: 'x') — spacingIndicatorStyles' own y-axis branch
+      // (startPxY/endPxY/centerX, and the "N rows" label) is otherwise
+      // never reached at this rendering level, only in the lower-level
+      // alignment-helper.spec.ts unit tests.
+      stubOffsetWidth(1200);
+      const wrapper = mountGrid([
+        { i: `0`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `1`, x: 0, y: 6, w: 2, h: 2 },
+      ], {
+        layoutProps: { compactType: ECompactType.NONE, margin: [10, 10], rowHeight: 100, showSpacingGuides: true },
+      });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      // item `0` (y:0,h:2, bottom edge at 2) and item `1` (already at
+      // y:6 in this layout) leave a 4-unit vertical gap between them —
+      // no need to actually move anything; a dragstart/dragmove pair at
+      // item `1`'s own current, unchanged position is enough to trigger
+      // updateSpacingIndicators() and populate it from the real layout.
+      // dragEvent's own arg order is (eventName, id, x, y, h, w) — not
+      // (x, y, w, h) — mixing that up here previously passed the wrong
+      // position entirely.
+      wrapper.vm.dragEvent(`dragstart`, `1`, 0, 6, 2, 2);
+      wrapper.vm.dragEvent(`dragmove`, `1`, 0, 6, 2, 2);
+      await nextTick();
+
+      expect(wrapper.vm.spacingIndicators).toContainEqual({ axis: `y`, distance: 4, gapEnd: 6, gapStart: 2 });
+      const indicatorEl = wrapper.find(`.vue-grid-spacing-indicator`);
+      expect(indicatorEl.exists()).toBe(true);
+      expect(indicatorEl.text()).toBe(`4 rows`);
+    });
+
+    it(`Should use the singular label ("1 col"/"1 row", not "1 cols"/"1 rows") when the gap distance is exactly 1`, async () => {
+      // Every other test in this block uses a distance of 4 or 5 — the
+      // plural branch of spacingIndicatorStyles' own "N col${distance
+      // === 1 ? '' : 's'}" ternary (both axes). This is the only place
+      // the singular branch gets exercised.
+      stubOffsetWidth(1200);
+      const wrapper = mountGrid(basicLayout(), {
+        layoutProps: { compactType: ECompactType.NONE, showSpacingGuides: true },
+      });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      // item `0` (x:0,w:2, right edge at 2); dragging item `1` to x:3
+      // leaves exactly a 1-unit gap.
+      wrapper.vm.dragEvent(`dragstart`, `1`, 2, 0, 2, 2);
+      wrapper.vm.dragEvent(`dragmove`, `1`, 3, 0, 2, 2);
+      await nextTick();
+
+      const indicatorEl = wrapper.find(`.vue-grid-spacing-indicator`);
+      expect(indicatorEl.text()).toBe(`1 col`);
     });
   });
 

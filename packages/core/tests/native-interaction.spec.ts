@@ -190,6 +190,71 @@ describe(`native-interaction`, () => {
       }).not.toThrow();
       expect(events).toStrictEqual([]);
     });
+
+    describe(`dragActivationDistance`, () => {
+      it(`Should use the default 3px threshold for every pointer type when activationDistance isn't set`, () => {
+        const el = document.createElement(`div`);
+        document.body.appendChild(el);
+        const events: string[] = [];
+        createNativeDraggable(el, () => ({ enabled: true }), (event) => events.push(event.type));
+
+        el.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1, pointerType: `touch` }));
+        el.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 2, clientY: 0, pointerId: 1, pointerType: `touch` }));
+        expect(events).toStrictEqual([]);
+
+        el.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 10, clientY: 0, pointerId: 1, pointerType: `touch` }));
+        expect(events).toStrictEqual([`dragstart`, `dragmove`]);
+      });
+
+      it(`Should apply a single numeric activationDistance to every pointer type`, () => {
+        const el = document.createElement(`div`);
+        document.body.appendChild(el);
+        const events: string[] = [];
+        createNativeDraggable(el, () => ({ activationDistance: 20, enabled: true }), (event) => events.push(event.type));
+
+        el.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1, pointerType: `mouse` }));
+        // Past the library's own 3px default, but short of this gesture's
+        // explicit 20px threshold — confirms the override actually took
+        // effect, not just that some threshold exists.
+        el.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 10, clientY: 0, pointerId: 1, pointerType: `mouse` }));
+        expect(events).toStrictEqual([]);
+
+        el.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 25, clientY: 0, pointerId: 1, pointerType: `mouse` }));
+        expect(events).toStrictEqual([`dragstart`, `dragmove`]);
+      });
+
+      it(`Should apply a distinct per-pointer-type threshold, resolved from the gesture's own pointerType at pointerdown`, () => {
+        const el = document.createElement(`div`);
+        document.body.appendChild(el);
+        const events: string[] = [];
+        createNativeDraggable(el, () => ({ activationDistance: { mouse: 3, touch: 20 }, enabled: true }), (event) => events.push(event.type));
+
+        // A touch gesture: past the mouse-sized 3px default, but short of
+        // the explicit 20px touch threshold.
+        el.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1, pointerType: `touch` }));
+        el.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 10, clientY: 0, pointerId: 1, pointerType: `touch` }));
+        expect(events).toStrictEqual([]);
+
+        el.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 25, clientY: 0, pointerId: 1, pointerType: `touch` }));
+        expect(events).toStrictEqual([`dragstart`, `dragmove`]);
+      });
+
+      it(`Should fall back to the default threshold for a pointer type left unset in the per-type object form, rather than 0`, () => {
+        const el = document.createElement(`div`);
+        document.body.appendChild(el);
+        const events: string[] = [];
+        // Only `touch` is set — `mouse`/`pen` should still use the
+        // library's own 3px default, not become instantly-activating.
+        createNativeDraggable(el, () => ({ activationDistance: { touch: 20 }, enabled: true }), (event) => events.push(event.type));
+
+        el.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1, pointerType: `mouse` }));
+        el.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 1, clientY: 0, pointerId: 1, pointerType: `mouse` }));
+        expect(events).toStrictEqual([]);
+
+        el.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 10, clientY: 0, pointerId: 1, pointerType: `mouse` }));
+        expect(events).toStrictEqual([`dragstart`, `dragmove`]);
+      });
+    });
   });
 
   describe(`createNativeResizable`, () => {

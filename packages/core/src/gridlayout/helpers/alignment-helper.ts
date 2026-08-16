@@ -73,6 +73,113 @@ export function findAlignmentGuides(layout: TLayout, activeItem: ILayoutItem): I
 }
 
 /**
+ * A single distance-labeled spacing indicator between `activeItem` and
+ * its nearest neighbor on one side — alongside `findAlignmentGuides`'s
+ * edge-alignment lines, but a distinct concept: a gap size (e.g. "2
+ * cols"/"1 row"), not an edge lining up with another edge. `gapStart`/
+ * `gapEnd` are grid-unit coordinates on the relevant axis; `distance`
+ * (`gapEnd - gapStart`) is the number a rendered label actually shows.
+ */
+export interface ISpacingIndicator {
+  axis: `x` | `y`;
+  gapStart: number;
+  gapEnd: number;
+  distance: number;
+}
+
+/**
+ * Finds the nearest neighbor above/below/left/right of `activeItem` (the
+ * item currently being dragged/resized, live position) and returns the
+ * grid-unit gap to each one found — a labeled distance alongside the
+ * existing edge/center alignment guides `findAlignmentGuides` already
+ * provides. Deliberately nearest-neighbor only per side, not every item
+ * on that side: `findAlignmentGuides`'s own all-matches approach
+ * doesn't apply here — a distance label to every item on a side, not
+ * just the closest one, would be visual noise, not useful feedback.
+ *
+ * Only considers a candidate whose own perpendicular-axis range
+ * actually overlaps `activeItem`'s (e.g. for a left/right gap, the
+ * candidate's own y-range must overlap `activeItem`'s y-range) —
+ * otherwise an item that merely happens to sit further along the same
+ * row/column, but isn't actually adjacent to `activeItem`, would get
+ * reported as a "gap" when nothing about their relative layout suggests
+ * they're related. A gap of exactly `0` (items already touching) is
+ * excluded — there's no meaningful distance left to label at that
+ * point.
+ *
+ * @param layout The entire grid layout, including `activeItem` itself (filtered out by `i`, not assumed absent).
+ * @param activeItem The item currently being dragged/resized, with its live (in-progress) `x`/`y`/`w`/`h`.
+ * @return Up to 4 indicators (one per side that actually has a qualifying neighbor) — empty if nothing qualifies on any side.
+ */
+export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem): ISpacingIndicator[] {
+  const activeLeft = activeItem.x;
+  const activeRight = activeItem.x + activeItem.w;
+  const activeTop = activeItem.y;
+  const activeBottom = activeItem.y + activeItem.h;
+
+  const others = layout.filter(item => item.i !== activeItem.i);
+  const indicators: ISpacingIndicator[] = [];
+
+  let bestLeft: number | undefined;
+  others.forEach(item => {
+    const otherRight = item.x + item.w;
+    const otherTop = item.y;
+    const otherBottom = item.y + item.h;
+    const yOverlaps = otherTop < activeBottom && otherBottom > activeTop;
+    if(yOverlaps && otherRight <= activeLeft && (bestLeft === undefined || otherRight > bestLeft)) {
+      bestLeft = otherRight;
+    }
+  });
+  if(bestLeft !== undefined && bestLeft < activeLeft) {
+    indicators.push({ axis: `x`, distance: activeLeft - bestLeft, gapEnd: activeLeft, gapStart: bestLeft });
+  }
+
+  let bestRight: number | undefined;
+  others.forEach(item => {
+    const otherLeft = item.x;
+    const otherTop = item.y;
+    const otherBottom = item.y + item.h;
+    const yOverlaps = otherTop < activeBottom && otherBottom > activeTop;
+    if(yOverlaps && otherLeft >= activeRight && (bestRight === undefined || otherLeft < bestRight)) {
+      bestRight = otherLeft;
+    }
+  });
+  if(bestRight !== undefined && bestRight > activeRight) {
+    indicators.push({ axis: `x`, distance: bestRight - activeRight, gapEnd: bestRight, gapStart: activeRight });
+  }
+
+  let bestTop: number | undefined;
+  others.forEach(item => {
+    const otherBottom = item.y + item.h;
+    const otherLeft = item.x;
+    const otherRight = item.x + item.w;
+    const xOverlaps = otherLeft < activeRight && otherRight > activeLeft;
+    if(xOverlaps && otherBottom <= activeTop && (bestTop === undefined || otherBottom > bestTop)) {
+      bestTop = otherBottom;
+    }
+  });
+  if(bestTop !== undefined && bestTop < activeTop) {
+    indicators.push({ axis: `y`, distance: activeTop - bestTop, gapEnd: activeTop, gapStart: bestTop });
+  }
+
+  let bestBottom: number | undefined;
+  others.forEach(item => {
+    const otherTop = item.y;
+    const otherLeft = item.x;
+    const otherRight = item.x + item.w;
+    const xOverlaps = otherLeft < activeRight && otherRight > activeLeft;
+    if(xOverlaps && otherTop >= activeBottom && (bestBottom === undefined || otherTop < bestBottom)) {
+      bestBottom = otherTop;
+    }
+  });
+  if(bestBottom !== undefined && bestBottom > activeBottom) {
+    indicators.push({ axis: `y`, distance: bestBottom - activeBottom, gapEnd: bestBottom, gapStart: activeBottom });
+  }
+
+  return indicators;
+}
+
+/**
  * A magnetic counterpart to `findAlignmentGuides` — `showAlignmentGuides`
  * is deliberately visual-only (shows where edges line up without
  * changing where the item actually lands); this is for `snapToGrid`,

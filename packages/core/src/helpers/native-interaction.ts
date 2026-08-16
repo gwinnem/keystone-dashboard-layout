@@ -20,8 +20,42 @@ import { IInteractEdges } from '@/core/griditem/interfaces/grid-item.interfaces'
  * interact.js's version was already redundant, not load-bearing.
  */
 
-/** Minimum pointer movement, in pixels, before a pointerdown on the item's root is treated as a drag rather than a click — mirrors interact.js's own default drag-activation behavior, and keeps a plain click from being misread as a zero-distance drag. */
+/** Minimum pointer movement, in pixels, before a pointerdown on the item's root is treated as a drag rather than a click — mirrors interact.js's own default drag-activation behavior, and keeps a plain click from being misread as a zero-distance drag. Used for every `PointerEvent.pointerType` unless overridden via {@link TDragActivationDistance}. */
 const DRAG_ACTIVATION_THRESHOLD_PX = 3;
+
+/**
+ * `dragActivationDistance`'s own value shape — either one fixed
+ * threshold for every pointer type (a plain `number`, matching the
+ * single hardcoded constant this replaces), or distinct values per
+ * `PointerEvent.pointerType`. A pointer type left unset in the object
+ * form falls back to {@link DRAG_ACTIVATION_THRESHOLD_PX}, not `0` —
+ * so setting only `{ touch: 8 }` doesn't silently make mouse/pen
+ * drags activate instantly.
+ */
+export type TDragActivationDistance = number | { mouse?: number; touch?: number; pen?: number };
+
+/**
+ * Resolves the effective activation-distance threshold for a given
+ * gesture's `pointerType`, honoring every shape `TDragActivationDistance`
+ * allows: `undefined`/`null` (not set at all) and a plain `number` both
+ * mean "this same value for every pointer type" — the exact behavior
+ * before this prop existed, preserved unchanged for anyone not using
+ * it. The object form's `pointerType` isn't restricted to Pointer
+ * Events' own three documented values (`'mouse'|'touch'|'pen'`) at the
+ * type level here — an unrecognized string (some browsers report
+ * others) falls through to the same default the object form's own
+ * unset fields use, rather than being rejected.
+ */
+function resolveActivationDistance(distance: TDragActivationDistance | undefined | null, pointerType: string): number {
+  if(distance === undefined || distance === null) {
+    return DRAG_ACTIVATION_THRESHOLD_PX;
+  }
+  if(typeof distance === `number`) {
+    return distance;
+  }
+  const perType = (distance as Record<string, number | undefined>)[pointerType];
+  return perType ?? DRAG_ACTIVATION_THRESHOLD_PX;
+}
 
 export interface INativeDragEvent {
   type: `dragstart` | `dragmove` | `dragend`;
@@ -34,6 +68,8 @@ export interface INativeDraggableOptions {
   enabled: boolean;
   allowFrom?: string | null;
   ignoreFrom?: string | null;
+  /** See {@link TDragActivationDistance}. `undefined`/`null` (the default) preserves the single fixed threshold every pointer type used before this option existed. */
+  activationDistance?: TDragActivationDistance | null;
 }
 
 /** `false`/no-match reasons a candidate pointerdown target is rejected before a drag is allowed to start. */
@@ -91,6 +127,8 @@ export function createNativeDraggable(
   let startX = 0;
   let startY = 0;
   let dragStarted = false;
+  /** Resolved once per gesture at `pointerdown` (see there) — doesn't need to react to a mid-gesture options change, the same "read once at gesture start" treatment `allowFrom`/`ignoreFrom` already get here. */
+  let activationThresholdPx = DRAG_ACTIVATION_THRESHOLD_PX;
 
   const onPointerMove = (event: PointerEvent): void => {
     if(event.pointerId !== pointerId) {
@@ -99,7 +137,7 @@ export function createNativeDraggable(
     if(!dragStarted) {
       const dx = event.clientX - startX;
       const dy = event.clientY - startY;
-      if(Math.hypot(dx, dy) < DRAG_ACTIVATION_THRESHOLD_PX) {
+      if(Math.hypot(dx, dy) < activationThresholdPx) {
         return;
       }
       dragStarted = true;
@@ -166,6 +204,7 @@ export function createNativeDraggable(
 
     ({ pointerId } = event);
     ({ clientX: startX, clientY: startY } = event);
+    activationThresholdPx = resolveActivationDistance(options.activationDistance, event.pointerType);
     dragStarted = false;
     el.setPointerCapture(pointerId);
     el.addEventListener(`pointermove`, onPointerMove);

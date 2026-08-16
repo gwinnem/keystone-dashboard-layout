@@ -288,13 +288,22 @@ describe(`GridItem`, () => {
         { i: `0`, x: 0, y: 0, w: 2, h: 2, resizeHandles: [`se`] } as unknown as ILayoutItem,
       );
       await settle();
-      expect(wrapper.find(`.vue-resize-hint--se`).exists()).toBe(true);
-      expect(wrapper.find(`.vue-resize-hint--nw`).exists()).toBe(false);
+      // Scoped to exclude .vue-grid-placeholder — GridLayout's own
+      // internal drag-preview GridItem isn't part of this helper's own
+      // itemState spread, so it still renders all 8 default handles
+      // regardless of what's set here; an unscoped selector would match
+      // its own `nw` handle instead of correctly finding none on the
+      // real item. See the (already-scoped) resizeHandles tests above
+      // this one in the file for the same pattern.
+      let realItem = wrapper.find(`.vue-grid-item:not(.vue-grid-placeholder)`);
+      expect(realItem.find(`.vue-resize-hint--se`).exists()).toBe(true);
+      expect(realItem.find(`.vue-resize-hint--nw`).exists()).toBe(false);
 
       itemState.resizeHandles = [`nw`];
       await settle();
-      expect(wrapper.find(`.vue-resize-hint--se`).exists()).toBe(false);
-      expect(wrapper.find(`.vue-resize-hint--nw`).exists()).toBe(true);
+      realItem = wrapper.find(`.vue-grid-item:not(.vue-grid-placeholder)`);
+      expect(realItem.find(`.vue-resize-hint--se`).exists()).toBe(false);
+      expect(realItem.find(`.vue-resize-hint--nw`).exists()).toBe(true);
     });
 
     it(`Should render no resize-hint spans at all when resizeHandles is an empty array, without disabling resizability entirely`, async () => {

@@ -27,6 +27,71 @@ loosely based on [Keep a Changelog](https://keepachangelog.com/); dates are
 
 ### Added
 
+- **`alignSelected(edge)`/`distributeSelected(axis)` exposed methods
+  (`GridLayout`, `multiSelect`)** — align every currently-selected item
+  to the *anchor*'s (the first-selected item's) left/right/top/bottom
+  edge or horizontal/vertical center, or evenly space the gaps between
+  3+ selected items along an axis (the standard design-tool "distribute"
+  behavior — the two outermost items stay fixed, only what's "in
+  between" moves). New `computeAlignAdjustments`/
+  `computeDistributeAdjustments` pure functions in
+  `@keystone-dashboard-layout/core` (`gridlayout/helpers/align-distribute-helper.ts`).
+  Both are no-ops below the minimum item count they need (2 for align,
+  3 for distribute), respect `preventCollision` (skips an adjustment
+  that would land on a *non-selected* item specifically — colliding
+  with another item also being aligned/distributed isn't treated as a
+  collision here), and are undo-able through the existing
+  `commitUndoPoint` path, same as `compactNow()`/`duplicateItem()`.
+  Closes the `@marsio/vue-grid-layout` parity gap noted in
+  `COMPARISON_ALTERNATIVES.md` and tracked as `ROADMAP.md` item 23. See
+  `docs/PARITY_GAP_PLAN.md` item 4.
+
+- **`heightMode` prop (`GridLayout`)** — `'auto' | 'fixed' | 'scroll' |
+  'fit' | null`, replacing `autoSize`'s own boolean toggle with four
+  explicit container-height behaviors: `'auto'` (today's `autoSize:
+  true`, unchanged), `'fixed'` (today's `autoSize: false`, unchanged),
+  `'scroll'` (same as `'fixed'` for height, plus an inline `overflow-y:
+  auto` so content taller than the consumer's own fixed height scrolls
+  internally), and `'fit'` (height locked to `100%` of the parent
+  container, with the same `overflow-y: auto`). `autoSize` is kept,
+  completely unchanged, as a non-breaking deprecated alias — `heightMode`
+  defaults to `null`, meaning "defer to `autoSize` entirely," so a
+  consumer using only the older prop sees zero behavior change. An
+  explicit `heightMode` wins outright over `autoSize` when both are
+  set (not merged), the same precedence pattern `compactType`/
+  `verticalCompact` already established. Closes the
+  `@marsio/vue-grid-layout` parity gap noted in
+  `COMPARISON_ALTERNATIVES.md` and tracked as `ROADMAP.md` item 27. See
+  `docs/PARITY_GAP_PLAN.md` item 5.
+
+- **`dragActivationDistance` prop (`GridItem`)** — minimum pointer
+  movement, in pixels, before a pointerdown is treated as a drag rather
+  than a click, either as one fixed value for every pointer type (a
+  plain number) or distinct values per `mouse`/`touch`/`pen`. `null`
+  (the default) preserves the library's existing single 3px threshold
+  for every pointer type — no behavior change for anyone not using it.
+  Resolved once per gesture from the native `PointerEvent`'s own
+  `pointerType`, in `native-interaction.ts`'s new
+  `resolveActivationDistance()`. Closes the `@marsio/vue-grid-layout`
+  parity gap noted in `COMPARISON_ALTERNATIVES.md` and tracked as
+  `ROADMAP.md` item 26. See `docs/PARITY_GAP_PLAN.md` item 3.
+
+- **`showSpacingGuides` prop (`GridLayout`)** — a labeled distance
+  badge ("2 cols"/"1 row") in the gap between the item currently being
+  dragged/resized and its nearest neighbor on each side that has one,
+  alongside the existing edge/center `showAlignmentGuides` — an
+  independently-toggleable sibling, not a variant of it (either can be
+  on without the other). New `findSpacingIndicators()`
+  (`@keystone-dashboard-layout/core`, alongside the existing
+  `findAlignmentGuides`/`findSnapAdjustment`): nearest-neighbor only
+  per side (not every item on that side), requiring the candidate's
+  own perpendicular-axis range to actually overlap the active item's
+  (so an unrelated item merely sharing a row/column isn't reported as
+  a "gap"), and excluding zero-distance gaps (items already touching).
+  Closes the `@marsio/vue-grid-layout` parity gap noted in
+  `COMPARISON_ALTERNATIVES.md` and tracked as `ROADMAP.md` item 25. See
+  `docs/PARITY_GAP_PLAN.md` item 2.
+
 - **`zIndex` prop and `#header` slot (`GridItem`)** — found via a direct
   read of Syncfusion DashboardLayout's actual API reference (not
   marketing copy), which surfaced two genuine, concrete gaps against

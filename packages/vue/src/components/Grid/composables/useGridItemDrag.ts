@@ -270,6 +270,7 @@ export function useGridItemDrag(ctx: IGridItemDragContext): IUseGridItemDragRetu
         allowFrom: props.dragAllowFrom,
         enabled: Boolean(draggable.value) && !props.isStatic,
         ignoreFrom: props.dragIgnoreFrom,
+        activationDistance: props.dragActivationDistance,
       }),
       handleDrag,
     );

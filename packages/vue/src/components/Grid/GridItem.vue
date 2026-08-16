@@ -190,6 +190,7 @@
     autoHeight: false,
     borderRadiusPx: null,
     dragAllowFrom: null,
+    dragActivationDistance: null,
     dragIgnoreFrom: `a, button`,
     enableEditMode: null,
     i: ``,

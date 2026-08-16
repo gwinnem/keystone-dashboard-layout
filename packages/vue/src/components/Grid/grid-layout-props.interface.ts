@@ -26,8 +26,43 @@ export type { IBreakpoints, IColumns } from '@keystone-dashboard-layout/core';
  * `IGridItemProps` and `docs/ARCHITECTURE.md` for how that cascade works.
  */
 export interface IGridLayoutProps {
-  /** Automatically grow/shrink the container's height to fit the layout's content. Default `true`. */
+  /**
+   * Deprecated — prefer `heightMode`. Kept, unchanged, as a non-breaking
+   * alias: still works exactly as before for anyone not using
+   * `heightMode`, and is simply ignored once `heightMode` is set
+   * explicitly (see that prop's own doc comment for the precedence
+   * rule). `autoSize: true` behaves like `heightMode: 'auto'`;
+   * `autoSize: false` behaves like `heightMode: 'fixed'`. Default `true`.
+   */
   autoSize?: boolean;
+  /**
+   * How this grid's own container height is determined. Default `null`,
+   * meaning "defer to `autoSize` instead" — so a consumer using only the
+   * older `autoSize` prop sees no behavior change at all; this only
+   * takes over once set to an actual mode. When both are set,
+   * `heightMode` wins outright, `autoSize` is simply ignored (not
+   * merged or averaged) — this is the modern replacement, `autoSize` is
+   * the deprecated alias, and mixing the two is the same "one wins
+   * cleanly, not both applied" pattern `compactType`/`verticalCompact`
+   * already established.
+   *
+   * - `'auto'`: grows/shrinks to fit the layout's content — today's
+   *   `autoSize: true` behavior, computed the exact same way
+   *   (`getBottomYCoordinate(layout) * (rowHeight + margin) + margin`).
+   * - `'fixed'`: no explicit height is applied at all — today's
+   *   `autoSize: false` behavior; the consumer's own CSS decides.
+   * - `'scroll'`: same as `'fixed'` for the height itself (still the
+   *   consumer's own CSS), but this grid's own root element also gets
+   *   an inline `overflow-y: auto`, so content taller than whatever
+   *   fixed height the consumer gave it scrolls internally instead of
+   *   silently overflowing outside the container's own bounds.
+   * - `'fit'`: height is locked to `100%` of the parent container (so
+   *   the *parent's* own height governs, not this grid's content) with
+   *   the same `overflow-y: auto` as `'scroll'` — for a grid meant to
+   *   fill a fixed-size panel exactly and scroll its own content
+   *   internally, rather than the panel growing to fit the grid.
+   */
+  heightMode?: `auto` | `fixed` | `scroll` | `fit` | null;
   /** Enables this grid to participate in cross-grid drag/drop: its items can be dragged out into any other `GridLayout` that also has this set, and (unless `disableExternalDrop` is also set) it accepts drops from them too. Default `false`. See [Drag, drop from grid to grid](/examples/12-example) and [Cross-grid drop restrictions](/examples/22-example). */
   allowCrossGridDrag?: boolean;
   /** Grid-wide overrides for localizable UI/ARIA strings (the close button's label, keyboard move/resize instructions, the item's `aria-roledescription`) — only the keys actually set here override the built-in English defaults; everything else falls back to them. A specific `GridItem` can further override any of these for just itself via its own `ariaLabels` prop. See `IGridAriaLabels` for every key and its default text. */
@@ -68,6 +103,15 @@ export interface IGridLayoutProps {
   transitionTimingFunction?: string;
   /** Shows Figma-style alignment guide lines while dragging or resizing an item, wherever its edges land on the same grid coordinate as another item's edges (not restricted to same-side matches — a left edge lining up with another item's right edge counts too). Grid-unit-based, not pixel-based: an alignment exists independent of the current `colWidth`/`rowHeight`. Default `false`. */
   showAlignmentGuides?: boolean;
+  /**
+   * Shows a labeled distance badge (e.g. "2 cols"/"1 row") in the gap
+   * between the item currently being dragged/resized and its nearest
+   * neighbor on each side that has one — a distinct, independently
+   * toggleable sibling to `showAlignmentGuides`, not a variant of it:
+   * that one visualizes edges lining up, this one labels the size of a
+   * gap, and either can be on without the other. Default `false`.
+   */
+  showSpacingGuides?: boolean;
   /**
    * Magnetic snapping during drag — distinct from `showAlignmentGuides`,
    * which is purely visual and never changes where an item actually

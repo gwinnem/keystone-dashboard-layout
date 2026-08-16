@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findAlignmentGuides, findSnapAdjustment } from '../src/gridlayout/helpers/alignment-helper';
+import { findAlignmentGuides, findSnapAdjustment, findSpacingIndicators } from '../src/gridlayout/helpers/alignment-helper';
 
 describe(`findSnapAdjustment`, () => {
   it(`Should snap x to align the active item's left edge with another item's left edge, within threshold`, () => {
@@ -246,5 +246,159 @@ describe(`findAlignmentGuides`, () => {
 
   it(`Should return no guides for an empty layout (only the active item, already excluded)`, () => {
     expect(findAlignmentGuides([], { h: 2, i: `active`, w: 2, x: 0, y: 0 })).toStrictEqual([]);
+  });
+});
+
+describe(`findSpacingIndicators`, () => {
+  it(`Should find the gap to a neighbor on the left`, () => {
+    const layout = [
+      { h: 2, i: `other`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `active`, w: 2, x: 5, y: 0 },
+    ];
+
+    const indicators = findSpacingIndicators(layout, layout[1]);
+
+    expect(indicators).toContainEqual({ axis: `x`, distance: 3, gapEnd: 5, gapStart: 2 });
+  });
+
+  it(`Should find the gap to a neighbor on the right`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 5, y: 0 },
+    ];
+
+    const indicators = findSpacingIndicators(layout, layout[0]);
+
+    expect(indicators).toContainEqual({ axis: `x`, distance: 3, gapEnd: 5, gapStart: 2 });
+  });
+
+  it(`Should find the gap to a neighbor above`, () => {
+    const layout = [
+      { h: 2, i: `other`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `active`, w: 2, x: 0, y: 6 },
+    ];
+
+    const indicators = findSpacingIndicators(layout, layout[1]);
+
+    expect(indicators).toContainEqual({ axis: `y`, distance: 4, gapEnd: 6, gapStart: 2 });
+  });
+
+  it(`Should find the gap to a neighbor below`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 0, y: 6 },
+    ];
+
+    const indicators = findSpacingIndicators(layout, layout[0]);
+
+    expect(indicators).toContainEqual({ axis: `y`, distance: 4, gapEnd: 6, gapStart: 2 });
+  });
+
+  it(`Should find all four sides' gaps at once when neighbors exist on every side`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 5, y: 5 },
+      { h: 2, i: `left`, w: 2, x: 0, y: 5 },
+      { h: 2, i: `right`, w: 2, x: 8, y: 5 },
+      { h: 2, i: `top`, w: 2, x: 5, y: 0 },
+      { h: 2, i: `bottom`, w: 2, x: 5, y: 8 },
+    ];
+
+    const indicators = findSpacingIndicators(layout, layout[0]);
+
+    expect(indicators).toHaveLength(4);
+  });
+
+  it(`Should pick the nearest neighbor per side, not every item on that side`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 10, y: 0 },
+      { h: 2, i: `far`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `near`, w: 2, x: 6, y: 0 },
+    ];
+
+    const indicators = findSpacingIndicators(layout, layout[0]);
+    const leftGap = indicators.find(indicator => indicator.axis === `x` && indicator.gapEnd === 10);
+
+    // "near"'s right edge (8) should win over "far"'s (2).
+    expect(leftGap?.gapStart).toBe(8);
+    expect(leftGap?.distance).toBe(2);
+  });
+
+  it(`Should pick the nearest of multiple candidates on the right side too, not just the left`, () => {
+    // The test above only ever exercises the left-side "pick the
+    // nearer candidate" comparison (otherRight > bestLeft) — this is a
+    // separate branch (otherLeft < bestRight) that needs its own
+    // multi-candidate case to exercise.
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `far`, w: 2, x: 20, y: 0 },
+      { h: 2, i: `near`, w: 2, x: 6, y: 0 },
+    ];
+
+    const indicators = findSpacingIndicators(layout, layout[0]);
+    const rightGap = indicators.find(indicator => indicator.axis === `x` && indicator.gapStart === 2);
+
+    // "near"'s left edge (6) should win over "far"'s (20).
+    expect(rightGap?.gapEnd).toBe(6);
+    expect(rightGap?.distance).toBe(4);
+  });
+
+  it(`Should pick the nearest of multiple candidates above, too`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 10 },
+      { h: 2, i: `far`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `near`, w: 2, x: 0, y: 6 },
+    ];
+
+    const indicators = findSpacingIndicators(layout, layout[0]);
+    const topGap = indicators.find(indicator => indicator.axis === `y` && indicator.gapEnd === 10);
+
+    // "near"'s bottom edge (8) should win over "far"'s (2).
+    expect(topGap?.gapStart).toBe(8);
+    expect(topGap?.distance).toBe(2);
+  });
+
+  it(`Should pick the nearest of multiple candidates below, too`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `far`, w: 2, x: 0, y: 20 },
+      { h: 2, i: `near`, w: 2, x: 0, y: 6 },
+    ];
+
+    const indicators = findSpacingIndicators(layout, layout[0]);
+    const bottomGap = indicators.find(indicator => indicator.axis === `y` && indicator.gapStart === 2);
+
+    // "near"'s top edge (6) should win over "far"'s (20).
+    expect(bottomGap?.gapEnd).toBe(6);
+    expect(bottomGap?.distance).toBe(4);
+  });
+
+  it(`Should ignore a candidate whose perpendicular range doesn't overlap activeItem's, even though it's on the same side`, () => {
+    // "other" sits to the left in x, but its y-range (10-12) doesn't
+    // overlap active's (0-2) at all — not a real left neighbor.
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 5, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 0, y: 10 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should not report a gap for items already touching (distance 0)`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 2, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 0, y: 0 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should return no indicators when nothing else is in the layout`, () => {
+    expect(findSpacingIndicators([], { h: 2, i: `active`, w: 2, x: 5, y: 5 })).toStrictEqual([]);
+  });
+
+  it(`Should exclude the active item itself from comparison`, () => {
+    const layout = [{ h: 2, i: `active`, w: 2, x: 0, y: 0 }];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
   });
 });
