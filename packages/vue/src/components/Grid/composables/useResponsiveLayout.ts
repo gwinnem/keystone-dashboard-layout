@@ -53,6 +53,36 @@ export function useResponsiveLayout(ctx: IUseResponsiveLayoutContext): IUseRespo
    * Finds or generates the layout for the current container width's
    * breakpoint, and switches to it — emitting `breakpoint-changed` if the
    * breakpoint actually changed, and `update:layout` either way.
+   *
+   * **Investigated (not a bug found here):** the React port had a real
+   * bug where its own `containerWidth` state seeded at a value
+   * (`100`) indistinguishable from a genuine measurement, so its
+   * responsive-breakpoint effect could resolve a breakpoint against
+   * that seed before any real measurement landed (see the React
+   * package's own `docs/PARITY_GAP_IMPLEMENTATION_PLAN.md`, Phase 18).
+   * Checked whether `width` here shares that shape: it doesn't, in the
+   * common case — `width` seeds at `null` (not a number that could
+   * pass for a real measurement), and `onWindowResize()` (the only
+   * caller of `responsiveGridLayout()` during normal mount) measures
+   * `width.value` synchronously, in the same function call, *before*
+   * calling this — unlike React's separate, independently-scheduled
+   * effects, there's no window where this function reads a stale
+   * `width` after a real measurement already happened elsewhere.
+   * **One narrow, unconfirmed edge case remains, not fixed here:** the
+   * `props.colNum` watcher in `GridLayout.vue` calls
+   * `responsiveGridLayout()` directly (not through `onWindowResize()`),
+   * unconditionally, whenever `colNum` changes reactively — if a
+   * consumer changes `colNum` before this component's own first
+   * `onWindowResize()` call has completed (a real but narrow race, not
+   * the guaranteed-every-mount shape the React bug had), `width.value`
+   * would still be `null` here, and `getBreakpointFromWidth` would
+   * resolve to the lowest-threshold breakpoint (`'xxs'` by default) as
+   * a side effect of `null`'s own numeric coercion in that comparison
+   * — the same symptom the React bug produced, just via a different,
+   * much narrower path. Not fixed as part of this investigation, since
+   * it wasn't confirmed as an actually-reachable sequence in normal
+   * usage, only as a theoretical one worth flagging for whoever
+   * revisits this next.
    */
   const responsiveGridLayout = (): void => {
     const newBreakpoint = getBreakpointFromWidth(props.breakpoints!, width.value as number);

@@ -49,4 +49,20 @@ describe(`calcXY`, () => {
     expect(() => calcXY(10, 589, [10, 10], 10, 10, 10, 10, 1, 0))
       .toThrowError(EErrorMessage.INVALID_PARAM_CONTAINER_WIDTH);
   });
+
+  it(`Should compute x/y correctly with all-valid params, without throwing — confirmed gap via a fresh coverage report`, () => {
+    // Every existing test above only exercises a *throwing* validation
+    // path. Since validateXYParams's own checks run sequentially and an
+    // earlier one throwing means later checks (containerWidth's own
+    // included) are never reached at all, this file had no test
+    // reaching the containerWidth check's own false branch (continuing
+    // past it to the real calculation) -- every other test throws
+    // before getting there.
+    // colWidth = calcColWidth(600, 10, 6) = (600-7*10)/6 = 530/6 ≈ 88.33
+    // x = round((100-10)/(88.33+10)) = round(90/98.33) = round(0.915) = 1
+    // y = round((50-10)/(60+10)) = round(40/70) = round(0.571) = 1
+    const result = calcXY(50, 100, [10, 10], 60, 6, 2, 2, 10, 600);
+
+    expect(result).toStrictEqual({ x: 1, y: 1 });
+  });
 });

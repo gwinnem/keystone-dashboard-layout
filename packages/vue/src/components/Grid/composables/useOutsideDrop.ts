@@ -1,4 +1,4 @@
-import { Ref } from 'vue';
+import { ComputedRef, Ref } from 'vue';
 import { calcColWidth } from '@/core/griditem/helpers/grid-item-calculate-helper';
 import { IPlaceholder } from '@/core/gridlayout/interfaces/layout-data.interface';
 import { EGridLayoutEvent } from '@/core/gridlayout/enums/EGridLayoutEvents';
@@ -12,8 +12,8 @@ export interface IUseOutsideDropContext {
   emit: (...args: any[]) => void;
   /** `GridLayout`'s own root element ref — where the native drag-and-drop listeners attach. */
   refsLayout: Ref<HTMLElement>;
-  /** The container's last measured pixel width — used for the same grid-position-from-pixel math the rest of this file uses. */
-  width: Ref<number | null>;
+  /** The container's last measured pixel width — used for the same grid-position-from-pixel math the rest of this file uses. Accepts a plain `Ref` or a `ComputedRef` (e.g. `GridLayout.vue`'s own min/maxW-adjusted `effectiveWidth`) since this composable only ever reads `.value`, never writes it. */
+  width: Ref<number | null> | ComputedRef<number | null>;
   placeholder: Ref<IPlaceholder>;
   isDragging: Ref<boolean>;
 }

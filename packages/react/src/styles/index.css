@@ -1,0 +1,355 @@
+/**
+ * Base styles for `@keystone-dashboard-layout/react` — the React
+ * equivalent of the Vue package's own `GridItem.vue`/`GridLayout.vue`
+ * scoped `<style>` blocks, translated to a plain global stylesheet
+ * (React has no first-party CSS-scoping mechanism the way Vue's SFCs
+ * do) under the `kdl-` prefix used throughout this package's own
+ * class names, to avoid colliding with a consumer's own classes.
+ *
+ * Import this once, wherever you import `GridLayout`/`GridItem` from —
+ * `import '@keystone-dashboard-layout/react/style.css';`.
+ */
+
+/** Phase 9's own keyboard-instructions span (`aria-describedby`) — clips to a 1x1 box instead of `display: none`, which would also hide it from screen readers, defeating the purpose. Same standard "visually hidden" pattern as the Vue package's own `.visually-hidden`. */
+.kdl-visually-hidden {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/**
+ * `isolation: isolate` — keeps every item's own z-index (dragging/
+ * resizing/static/selected states) contained within this grid,
+ * regardless of what a sibling element outside it does with its own
+ * z-index (confirmed necessary via a real, reproduced bug: an
+ * oversized simulated-width grid area could otherwise visually cover
+ * an unrelated sibling column despite being a later DOM sibling).
+ *
+ * `overflow-x` is intentionally *not* set here at all — it's applied
+ * as a conditional inline style in `GridLayout.tsx` itself
+ * (`needsHorizontalScroll`), only when an item's own `minW` genuinely
+ * pushed this grid's own effective width past its measured container
+ * width. A static, unconditional `overflow-x: auto` here was tried
+ * and reverted: confirmed via direct inspection (React DevTools/live
+ * DOM measurement) to turn an ordinary, harmless sub-pixel rounding
+ * overflow — present in perfectly normal layouts with no `minW` at
+ * all — into a visible scrollbar that then persists, since the
+ * scrollbar itself eats into the element's own available width
+ * without the grid re-measuring to compensate. The inline,
+ * JS-computed version doesn't have this problem: it only ever applies
+ * when the *deliberate* `effectiveContainerWidth` expansion actually
+ * happened, never for an incidental rounding difference.
+ */
+.kdl-grid-layout {
+  isolation: isolate;
+  position: relative;
+}
+
+/*
+ * allowCrossGridDrag — confirmed gap via a fresh e2e run: the dragged
+ * item stays a DOM child of its own *source* grid the entire time it's
+ * being dragged, including while the pointer is visually hovering over
+ * a completely different, sibling grid. `isolation: isolate` above
+ * means every `.kdl-grid-layout` is its own stacking context, so
+ * without this, the dragged item could never actually paint above a
+ * sibling grid it's currently being dragged over: two sibling stacking
+ * contexts with no z-index of their own stack purely by DOM order, and
+ * the source grid (rendered first, in the common two-grids-side-by-
+ * side layout every cross-grid example uses) loses to a target grid
+ * that comes later in the DOM — confirmed directly via a real
+ * `elementFromPoint` check, not assumed: the dragged item visually
+ * disappeared behind the target grid's own background the moment it
+ * crossed into that grid's own bounds. Bumping the *source* grid's own
+ * z-index only while it has an active drag in progress
+ * (`isAnyItemDragging`, `GridLayout.tsx`) is enough: raising this one
+ * stacking context above its siblings carries the dragged item up with
+ * it, with no effect once the drag ends and this class is removed
+ * again. Matches the Vue package's own `.vue-grid-layout--active-drag`
+ * fix exactly.
+ */
+.kdl-grid-layout--active-drag {
+  z-index: 1;
+}
+
+.kdl-grid-item {
+  box-sizing: border-box;
+  transition:
+    left var(--kdl-transition-duration, 200ms) var(--kdl-transition-timing, ease),
+    top var(--kdl-transition-duration, 200ms) var(--kdl-transition-timing, ease),
+    transform var(--kdl-transition-duration, 200ms) var(--kdl-transition-timing, ease),
+    width var(--kdl-transition-duration, 200ms) var(--kdl-transition-timing, ease),
+    height var(--kdl-transition-duration, 200ms) var(--kdl-transition-timing, ease);
+}
+
+.kdl-grid-item--draggable {
+  cursor: move;
+}
+
+.kdl-grid-item--dragging {
+  transition: none;
+  user-select: none;
+  z-index: 3;
+}
+
+.kdl-grid-item--resizing {
+  opacity: 0.9;
+  transition: none;
+  z-index: 3;
+}
+
+.kdl-grid-item:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.kdl-grid-item--static {
+  z-index: -1;
+}
+
+.kdl-grid-item--selected {
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 80%);
+}
+
+/* header prop — only applied when actually provided (see the `kdl-grid-item--has-header` class binding in GridItem.tsx), so the no-header case's layout is completely unaffected. header shrinks to fit its own content; body takes the remaining space and scrolls internally if its content overflows, rather than pushing the item's own fixed pixel height (which the grid's own layout math depends on staying accurate). */
+.kdl-grid-item--has-header {
+  display: flex;
+  flex-direction: column;
+}
+
+.kdl-grid-item-header {
+  flex-shrink: 0;
+}
+
+.kdl-grid-item-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* autoHeight — only rendered when the item's own resolved autoHeight is on (see GridItem.tsx's own conditional wrapper), so the no-autoHeight case is completely unaffected. `height: auto` (not a fixed/inherited height) is the whole point — it lets this wrapper grow to its actual content size instead of being capped at the item's own current, fixed height, which is what the ResizeObserver watching it needs in order to ever detect a *growing* content size at all. */
+.kdl-grid-item-auto-height-wrapper {
+  height: auto;
+  width: 100%;
+}
+
+.kdl-resize-hint {
+  position: absolute;
+  z-index: 15;
+}
+
+.kdl-resize-hint--n,
+.kdl-resize-hint--s {
+  cursor: ns-resize;
+  height: 10px;
+  left: 10px;
+  right: 10px;
+}
+
+.kdl-resize-hint--n {
+  top: 0;
+}
+
+.kdl-resize-hint--s {
+  bottom: 0;
+}
+
+.kdl-resize-hint--e,
+.kdl-resize-hint--w {
+  bottom: 10px;
+  cursor: ew-resize;
+  top: 10px;
+  width: 10px;
+}
+
+.kdl-resize-hint--e {
+  right: 0;
+}
+
+.kdl-resize-hint--w {
+  left: 0;
+}
+
+.kdl-resize-hint--ne,
+.kdl-resize-hint--sw {
+  cursor: nesw-resize;
+  height: 10px;
+  width: 10px;
+}
+
+.kdl-resize-hint--ne {
+  right: 0;
+  top: 0;
+}
+
+.kdl-resize-hint--sw {
+  bottom: 0;
+  left: 0;
+}
+
+.kdl-resize-hint--nw,
+.kdl-resize-hint--se {
+  cursor: nwse-resize;
+  height: 10px;
+  width: 10px;
+}
+
+.kdl-resize-hint--nw {
+  left: 0;
+  top: 0;
+}
+
+.kdl-resize-hint--se {
+  bottom: 0;
+  right: 0;
+}
+
+/* showGridLines — sized via --kdl-grid-line-column-size/--kdl-grid-line-row-size, computed in GridLayout.tsx from the actual colNum/rowHeight/margin, not a fixed pattern. */
+.kdl-grid-layout--grid-lines::before {
+  background-image:
+    linear-gradient(to right, rgb(128 128 128 / 30%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(128 128 128 / 30%) 1px, transparent 1px);
+  background-repeat: repeat;
+  background-size: var(--kdl-grid-line-column-size, 1px) var(--kdl-grid-line-row-size, 1px);
+  content: '';
+  height: calc(100% - 5px);
+  margin: 5px;
+  position: absolute;
+  width: calc(100% - 5px);
+}
+
+/* showCloseButton */
+.kdl-grid-item-close-button {
+  background: rgb(0 0 0 / 10%);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  height: 20px;
+  line-height: 1;
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 20px;
+  z-index: 20;
+}
+
+.kdl-grid-item-close-button:hover {
+  background: rgb(0 0 0 / 20%);
+}
+
+/* isMirrored (RTL) — the close button sits at the item's own leading corner regardless of direction, matching the Vue package's own `.render-rtl` override. */
+.kdl-grid-item--rtl .kdl-grid-item-close-button {
+  left: 4px;
+  right: auto;
+}
+
+/*
+ * isMirrored (RTL) — confirmed gap via a fresh e2e run: `setTransformRtl`
+ * (`@keystone-dashboard-layout/core`) computes `translate3d(-right, ...)`,
+ * which is only correct if the item's own *pre-transform* static
+ * position is already anchored to the container's right edge. Nothing
+ * previously established that anchor — an RTL item's static position
+ * defaulted to the same left-anchored (0,0) baseline an LTR item uses,
+ * since `position: absolute` with no explicit `left`/`right` set falls
+ * back to the browser's own "static position" algorithm regardless of
+ * direction. The observable result: any RTL item positioned more than a
+ * few pixels from the container's own right edge rendered far off-
+ * screen to the left (confirmed directly — an item at grid-columns 4-6
+ * of 12 measured a bounding-box x of roughly -407px, matching
+ * `-(rightDistance)` computed from a real, wide container almost
+ * exactly). `right: 0; left: auto;` here gives the transform the
+ * right-anchored baseline it was always assuming existed.
+ */
+.kdl-grid-item--rtl {
+  left: auto;
+  right: 0;
+}
+
+/* showAlignmentGuides — above item drag/resize interaction states (z-index 3), but below the close button/resize handles (20/15), matching the Vue package's own layering. */
+.kdl-grid-alignment-guide {
+  background: rgb(37 99 235 / 60%);
+  pointer-events: none;
+  position: absolute;
+  z-index: 16;
+}
+
+/* showSpacingGuides — one above the alignment guide lines so a label isn't visually cut through by a guide line crossing the same point. `translate(-50%, -50%)` centers the badge on its own left/top point (the gap's own midpoint), rather than that point being the badge's own top-left corner. */
+.kdl-grid-spacing-indicator {
+  background: rgb(37 99 235 / 90%);
+  border-radius: 3px;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 6px;
+  pointer-events: none;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  z-index: 17;
+}
+
+/* allowOutsideDrop — the live drop-position preview, tracking the pointer while a native HTML5 drag is over the grid. */
+.kdl-grid-outside-drop-placeholder {
+  background: rgb(37 99 235 / 15%);
+  border: 2px dashed rgb(37 99 235 / 60%);
+  border-radius: 4px;
+  pointer-events: none;
+  position: absolute;
+  z-index: 4;
+}
+
+/*
+ * showResizeHandles — a *visible* resize-handle affordance, layered on
+ * top of the existing (always-present, invisible) `.kdl-resize-hint`
+ * hit zones via a `::after` pseudo-element, so the real grabbable area
+ * is completely unchanged either way — only its own visual appearance
+ * differs. Off by default: none of this renders unless the ancestor
+ * `.kdl-grid-item` also carries `--show-resize-handles`, so a consumer
+ * who never sets `showResizeHandles` sees byte-identical output to
+ * before this feature existed. Edge handles get a short centered bar;
+ * corner handles get a small square — a common, unobtrusive
+ * resize-handle convention.
+ */
+.kdl-grid-item--show-resize-handles .kdl-resize-hint::after {
+  background: var(--kdl-resize-handle-color, rgb(94 94 94 / 45%));
+  content: '';
+  position: absolute;
+}
+
+.kdl-grid-item--show-resize-handles .kdl-resize-hint--n::after,
+.kdl-grid-item--show-resize-handles .kdl-resize-hint--s::after {
+  border-radius: 2px;
+  height: 4px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+}
+
+.kdl-grid-item--show-resize-handles .kdl-resize-hint--e::after,
+.kdl-grid-item--show-resize-handles .kdl-resize-hint--w::after {
+  border-radius: 2px;
+  height: 24px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+}
+
+.kdl-grid-item--show-resize-handles .kdl-resize-hint--ne::after,
+.kdl-grid-item--show-resize-handles .kdl-resize-hint--nw::after,
+.kdl-grid-item--show-resize-handles .kdl-resize-hint--se::after,
+.kdl-grid-item--show-resize-handles .kdl-resize-hint--sw::after {
+  border-radius: 2px;
+  height: 6px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+}

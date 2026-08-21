@@ -37,6 +37,54 @@ describe('cloneLayoutItem', () => {
     const result = cloneLayoutItem(item);
     expect(result).toStrictEqual(item);
   });
+
+  it('Should preserve Infinity/-Infinity/NaN through the JSON round-trip, not silently corrupt them to null — regression test for a real, confirmed bug', () => {
+    // Bug fix: JSON.stringify(Infinity) === "null" is a well-known JSON
+    // limitation (JSON itself has no representation for Infinity/
+    // -Infinity/NaN). `y: Infinity`/`x: Infinity` is a common, widely-
+    // used convention for "place this new item past everything else,
+    // then let compaction settle it" (see compactItem's own regression
+    // test above), and maxH/maxW/minH/minW/zIndex/borderRadiusPx can all
+    // legitimately be Infinity too ("no maximum"). Every one of those
+    // silently became null the moment a layout item carrying one passed
+    // through cloneLayout — which happens on essentially every drag/
+    // resize tick and controlled-component sync in both the Vue and
+    // React packages.
+    const item: ILayoutItem = {
+      i: 'a', h: 1, w: 2, x: 1, y: Infinity,
+      maxH: Infinity, maxW: -Infinity, minH: NaN,
+    };
+    const result = cloneLayoutItem(item);
+    expect(result.y).toBe(Infinity);
+    expect(result.maxH).toBe(Infinity);
+    expect(result.maxW).toBe(-Infinity);
+    expect(Number.isNaN(result.minH)).toBe(true);
+  });
+
+  it('Should not rewrite a genuine string value that happens to equal the sentinel format, when it lives under an unrelated key name — the fix is scoped by key, not applied to every value in the tree, so a consumer-provided data payload is never touched regardless of what it contains', () => {
+    // The consumer-defined `data` field is "never read or written by the
+    // library itself" (see that field's own doc comment) — it could
+    // legitimately contain any string at all, under any key name. This
+    // confirms the sentinel transformation genuinely only applies to the
+    // specific known numeric field names (h/w/x/y/minH/minW/maxH/maxW/
+    // zIndex/borderRadiusPx) — `label` here isn't one of them, so this
+    // string round-trips unchanged even though its own value happens to
+    // exactly match the sentinel format.
+    const item: ILayoutItem = { i: 'a', h: 1, w: 2, x: 0, y: 0, data: { label: '\uE000Infinity\uE000' } };
+    const result = cloneLayoutItem(item);
+    expect(result.data).toStrictEqual({ label: '\uE000Infinity\uE000' });
+  });
+
+  it('Should deep-clone the nested ariaLabels object and resizeHandles array, not share references with the original', () => {
+    const ariaLabels = { closeButton: 'Close this' };
+    const resizeHandles: ILayoutItem['resizeHandles'] = ['n', 's'];
+    const item: ILayoutItem = { i: 'a', h: 1, w: 2, x: 0, y: 0, ariaLabels, resizeHandles };
+    const result = cloneLayoutItem(item);
+    expect(result.ariaLabels).toStrictEqual(ariaLabels);
+    expect(result.ariaLabels).not.toBe(ariaLabels);
+    expect(result.resizeHandles).toStrictEqual(resizeHandles);
+    expect(result.resizeHandles).not.toBe(resizeHandles);
+  });
 });
 
 describe('cloneLayout', () => {

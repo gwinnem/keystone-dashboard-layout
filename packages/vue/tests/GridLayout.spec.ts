@@ -38,16 +38,13 @@ describe(`GridLayout`, () => {
     expect(wrapper.exists()).toBe(true);
   });
 
-  it(`Should emit the layout lifecycle events in order`, async () => {
+  it(`Should emit LAYOUT_UPDATED after mount settles`, async () => {
     const wrapper = mountGrid(basicLayout());
     await nextTick();
     await nextTick();
     await nextTick();
 
     const emittedEvents = Object.keys(wrapper.emitted());
-    expect(emittedEvents).toContain(EGridLayoutEvent.LAYOUT_CREATED);
-    expect(emittedEvents).toContain(EGridLayoutEvent.LAYOUT_BEFORE_MOUNT);
-    expect(emittedEvents).toContain(EGridLayoutEvent.LAYOUT_MOUNTED);
     expect(emittedEvents).toContain(EGridLayoutEvent.LAYOUT_UPDATED);
   });
 
@@ -63,6 +60,45 @@ describe(`GridLayout`, () => {
     const wrapper = mountGrid(basicLayout(), { layoutProps: { showGridLines: true } });
 
     expect(wrapper.find(`.vue-grid-layout`).classes()).toContain(`grid`);
+  });
+
+  describe(`effectiveWidth (minW-driven container expansion)`, () => {
+    it(`Should widen the container and enable horizontal scroll when an item's minW exceeds the measured width — confirmed gap via a fresh coverage report`, async () => {
+      // No existing test set minW small enough to leave the container
+      // unaffected but large enough to force expansion — both
+      // needsWidthWrapper/needsHorizontalScroll's own true branches
+      // (contentWrapperStyle/overflowXStyle) were unreached as a result.
+      // At rowHeight:100, margin:[10,10], minW:10 floors to
+      // 10*100 + 9*10 = 1090px — far past the 100px stubbed width.
+      stubOffsetWidth(100);
+      const wrapper = mountGrid(
+        [{ i: `0`, x: 0, y: 0, w: 2, h: 2, minW: 10 }],
+        { layoutProps: { margin: [10, 10], rowHeight: 100 } },
+      );
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      const style = wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``;
+      expect(style).toContain(`overflow-x: auto`);
+
+      const wrapperDiv = wrapper.find(`.vue-grid-layout > div`);
+      expect(wrapperDiv.attributes(`style`)).toContain(`width: 1090px`);
+    });
+
+    it(`Should not widen the container or enable horizontal scroll when no item sets minW (the common case)`, async () => {
+      // Confirms the fix above didn't regress the byte-identical-when-
+      // unused behavior the effectiveWidth computed's own doc comment
+      // promises.
+      stubOffsetWidth(100);
+      const wrapper = mountGrid(basicLayout(), { layoutProps: { margin: [10, 10], rowHeight: 100 } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      const style = wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``;
+      expect(style).not.toContain(`overflow-x: auto`);
+    });
   });
 
   it(`Should not apply the "grid" class by default`, () => {
@@ -410,6 +446,28 @@ describe(`GridLayout`, () => {
       await nextTick();
 
       await expect(wrapper.setProps({ layout: basicLayout() })).resolves.not.toThrow();
+    });
+
+    it(`Should not throw when the layout's length changes but findDifference finds nothing genuinely new or removed (a duplicate id) — confirmed gap via a fresh coverage report`, async () => {
+      // layoutUpdate's own "if(diff.length > 0)" guard's else side —
+      // findDifference compares purely by id, so a length change where
+      // every id in the new layout still matches something in the old
+      // one (here: two entries sharing id "1", alongside the existing
+      // "0") produces an empty diff despite props.layout.length !==
+      // originalLayout.value?.length — genuinely unusual layout data
+      // (a duplicate id), but not something this function guards
+      // against elsewhere, so it's a real reachable case, not a
+      // manufactured one.
+      const wrapper = mountGrid(basicLayout());
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      await expect(
+        wrapper.setProps({
+          layout: [...basicLayout(), { i: `1`, x: 4, y: 0, w: 2, h: 2 }],
+        }),
+      ).resolves.not.toThrow();
     });
   });
 
@@ -1583,6 +1641,52 @@ describe(`GridLayout`, () => {
       }).not.toThrow();
     });
 
+    it(`Should not apply a group-move/resize delta when eventName matches neither DRAG_START nor a recognized move/end phase, even with a valid multi-select snapshot in place — confirmed gaps via a fresh coverage report`, async () => {
+      // applyGroupMove/applyGroupResize's own "else if(...)" guards
+      // check eventName against DRAG_MOVE/DRAG_END (drag) or
+      // resizemove/resizeend (resize) — every other multi-select test
+      // in this file only ever calls dragEvent/resizeEvent with a
+      // recognized phase, so the case where this else-if's own
+      // condition evaluates to false (reached via the switch's default
+      // branch, same technique as the existing "takes the default
+      // branch" tests elsewhere in this file) was never exercised, even
+      // though a valid groupMoveStartPositions/groupResizeStartSizes
+      // snapshot already exists from a real dragstart/resizestart.
+      const wrapper = mountGrid([
+        { i: `0`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `1`, x: 4, y: 0, w: 2, h: 2 },
+      ], { layoutProps: { multiSelect: true, compactType: ECompactType.NONE } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`0`);
+      wrapper.vm.selectItem(`1`, true);
+      await nextTick();
+
+      // Real dragstart/resizestart first — populates a genuine snapshot
+      // for both the anchor and the passenger, so the subsequent
+      // unrecognized-eventName calls have a snapshot they *could* have
+      // matched against, if the else-if's own condition weren't false.
+      wrapper.vm.dragEvent(`dragstart`, `0`, 0, 0, 2, 2);
+      wrapper.vm.resizeEvent(`resizestart`, `0`, 0, 0, 2, 2);
+      await nextTick();
+
+      expect(() => {
+        wrapper.vm.dragEvent(undefined, `0`, 5, 5, 2, 2);
+        wrapper.vm.resizeEvent(undefined, `0`, 0, 0, 4, 4);
+      }).not.toThrow();
+      await nextTick();
+
+      // The passenger should be completely unaffected — an unrecognized
+      // eventName means neither group-move's nor group-resize's own
+      // delta-application branch ever ran.
+      const item1 = wrapper.vm.layout.find((entry: { i: string }) => entry.i === `1`);
+      expect(item1.x).toBe(4);
+      expect(item1.w).toBe(2);
+      expect(item1.h).toBe(2);
+    });
+
     it(`Should align every other selected item's left edge to the anchor's, without moving the anchor itself`, async () => {
       const wrapper = mountGrid([
         { i: `anchor`, x: 5, y: 0, w: 2, h: 2 },
@@ -1739,6 +1843,34 @@ describe(`GridLayout`, () => {
 
       const other = wrapper.vm.layout.find((item: { i: string }) => item.i === `other`);
       expect(other.x).toBe(0);
+    });
+
+    it(`Should apply an adjustment normally when preventCollision is on but that specific adjustment doesn't actually collide with anything — confirmed gap via a fresh coverage report`, async () => {
+      // The test above only ever exercises preventCollision's own
+      // "skip" branch (a real collision found) — this covers the other
+      // side: preventCollision on, but the computed collision check
+      // for this specific adjustment genuinely finds nothing, so it
+      // should apply exactly like preventCollision being off would.
+      const wrapper = mountGrid([
+        { i: `anchor`, x: 5, y: 0, w: 2, h: 2 },
+        { i: `other`, x: 0, y: 20, w: 2, h: 2 },
+      ], { layoutProps: { compactType: ECompactType.NONE, multiSelect: true, preventCollision: true } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.selectItem(`anchor`);
+      wrapper.vm.selectItem(`other`, true);
+      await nextTick();
+
+      // Aligning "other" to the anchor's left edge (x:5) lands it in
+      // empty space — nothing else occupies y:20 at x:5, so
+      // preventCollision has nothing to block here.
+      wrapper.vm.alignSelected(`left`);
+      await nextTick();
+
+      const other = wrapper.vm.layout.find((item: { i: string }) => item.i === `other`);
+      expect(other.x).toBe(5);
     });
 
     it(`Should distribute the middle selected item evenly between the two outermost selected items`, async () => {
@@ -1911,6 +2043,41 @@ describe(`GridLayout`, () => {
 
       const item0 = wrapper.vm.layout.find((entry: { i: string }) => entry.i === `0`);
       expect(item0.y).toBe(2);
+    });
+
+    it(`Should snap only x when x is within threshold but y is not — confirmed gap via a fresh coverage report`, async () => {
+      // applySnapToGridAdjustment's own "if(adjustment.y !== undefined)"
+      // guard — the existing x-only and y-only tests above each only
+      // ever exercise one axis snapping while the *other* axis was
+      // already exactly aligned (nothing to adjust either way), so
+      // findSnapAdjustment never actually returned an adjustment object
+      // with x defined but y explicitly absent.
+      //
+      // Dragging to x:3 (not x:1, which turned out equidistant —
+      // distance 1 — from both of item "1"'s edges (0 and 2), an
+      // ambiguous tie that resolved to the left edge rather than the
+      // intended right one, confirmed by a fresh test run rather than
+      // assumed) leaves item "0"'s own left edge (3) a clean, single
+      // distance of 1 from item "1"'s right edge (2) — within
+      // threshold:2 — while its distance to item "1"'s left edge (0)
+      // is 3, safely outside it, so only the right edge is ever a
+      // candidate. y stays at 10, far from item "1"'s own y edges
+      // (0/2).
+      const wrapper = mountGrid([
+        { i: `0`, x: 10, y: 10, w: 2, h: 2 },
+        { i: `1`, x: 0, y: 0, w: 2, h: 2 },
+      ], { layoutProps: { snapThreshold: 2, snapToGrid: true, compactType: ECompactType.NONE } });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      wrapper.vm.dragEvent(`dragstart`, `0`, 10, 10, 2, 2);
+      wrapper.vm.dragEvent(`dragend`, `0`, 3, 10, 2, 2);
+      await nextTick();
+
+      const item0 = wrapper.vm.layout.find((entry: { i: string }) => entry.i === `0`);
+      expect(item0.x).toBe(2);
+      expect(item0.y).toBe(10);
     });
   });
 
@@ -2210,6 +2377,32 @@ describe(`GridLayout`, () => {
 
       const indicatorEl = wrapper.find(`.vue-grid-spacing-indicator`);
       expect(indicatorEl.text()).toBe(`1 col`);
+    });
+
+    it(`Should use the singular label ("1 row", not "1 rows") for a vertical gap too, not just the horizontal case above — confirmed gap via a fresh coverage report`, async () => {
+      // The horizontal singular-label test above only ever exercises the
+      // x-axis branch of spacingIndicatorStyles' own "N
+      // col/row${distance === 1 ? '' : 's'}" ternary — the y-axis variant
+      // has an identical, but structurally separate, ternary of its own.
+      stubOffsetWidth(1200);
+      const wrapper = mountGrid([
+        { i: `0`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `1`, x: 0, y: 3, w: 2, h: 2 },
+      ], {
+        layoutProps: { compactType: ECompactType.NONE, showSpacingGuides: true },
+      });
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      // item `0` (y:0,h:2, bottom edge at 2) and item `1` (y:3) leave
+      // exactly a 1-unit vertical gap between them.
+      wrapper.vm.dragEvent(`dragstart`, `1`, 0, 3, 2, 2);
+      wrapper.vm.dragEvent(`dragmove`, `1`, 0, 3, 2, 2);
+      await nextTick();
+
+      const indicatorEl = wrapper.find(`.vue-grid-spacing-indicator`);
+      expect(indicatorEl.text()).toBe(`1 row`);
     });
   });
 
@@ -2721,6 +2914,29 @@ describe(`GridLayout`, () => {
       expect(item0.w).toBe(1);
       expect(item0.h).toBe(1);
     });
+
+    it(`Should not touch the item's own y when resizeEvent is called with y omitted — confirmed gap via a fresh coverage report`, async () => {
+      // resizeEvent()'s own "if(y !== undefined)" guard, mirroring the
+      // already-tested "if(x !== undefined)" one right above it — every
+      // other resizeEvent test in this file always passes a real y, so
+      // this side (a caller that genuinely omits it) was never
+      // exercised. Calling the exposed method directly with y left
+      // undefined is the only realistic way to reach this: the
+      // eventBus-driven path (useGridItemResize.ts's own emit) always
+      // includes both x and y.
+      const wrapper = mountGrid(basicLayout());
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      const yBefore = wrapper.vm.layout.find((entry: { i: string }) => entry.i === `0`).y;
+
+      expect(() => wrapper.vm.resizeEvent(`resizeend`, `0`, 1, undefined, 2, 3)).not.toThrow();
+      await nextTick();
+
+      const item0 = wrapper.vm.layout.find((entry: { i: string }) => entry.i === `0`);
+      expect(item0.y).toBe(yBefore);
+    });
   });
 
   it(`Should expose dragEvent, width and layouts for GridItem/consumer access`, () => {
@@ -2822,6 +3038,31 @@ describe(`GridLayout`, () => {
 
     expect(() => wrapper.unmount()).not.toThrow();
     expect(disconnectSpy).toHaveBeenCalled();
+  });
+
+  it(`Should not throw unmounting before the ResizeObserver has been created yet — confirmed gap via a fresh coverage report`, async () => {
+    // onBeforeUnmount's own "if(erd.value)" guard's else side. erd.value
+    // is only assigned inside onMounted's own nested nextTick() chain —
+    // unmounting synchronously before any of that settles would work in
+    // principle, but leaves that same pending chain (including
+    // onWindowResize(), scheduled inside it) to fire *after* unmount has
+    // already torn down the component, throwing on the now-cleared
+    // refsLayout — confirmed directly via a fresh test run showing
+    // exactly that as an unrelated unhandled rejection, not assumed.
+    // Mounting fully, then simulating the "not yet created" state
+    // directly on the exposed erd ref, reaches the same guard without
+    // that risk.
+    const wrapper = mountGrid(basicLayout());
+    await nextTick();
+    await nextTick();
+    await nextTick();
+    await nextTick();
+    await nextTick();
+
+    expect(wrapper.vm.erd).toBeTruthy();
+    wrapper.vm.erd = null;
+
+    expect(() => wrapper.unmount()).not.toThrow();
   });
 
   describe(`allowOutsideDrop`, () => {

@@ -31,9 +31,19 @@ describe(`EGridLayoutEvent`, () => {
     expect(EGridLayoutEvent.CROSS_GRID_DROP_REJECTED).toBe(`cross-grid-drop-rejected`);
     expect(EGridLayoutEvent.CROSS_GRID_ITEM_DROPPED).toBe(`cross-grid-item-dropped`);
     expect(EGridLayoutEvent.ITEM_DROPPED_FROM_OUTSIDE).toBe(`item-dropped-from-outside`);
-    expect(EGridLayoutEvent.LAYOUT_BEFORE_MOUNT).toBe(`layout-before-mount`);
-    expect(EGridLayoutEvent.LAYOUT_CREATED).toBe(`layout-created`);
-    expect(EGridLayoutEvent.LAYOUT_MOUNTED).toBe(`layout-mounted`);
+    // LAYOUT_BEFORE_MOUNT/LAYOUT_CREATED/LAYOUT_MOUNTED were removed
+    // from the enum itself (not just unwired from GridLayout.vue's own
+    // defineEmits) — see EGridLayoutEvents.ts's own history and
+    // packages/react/docs/PARITY_GAP_VUE.md's "lifecycle events" note
+    // for the full rationale (LAYOUT_CREATED fired before the
+    // container's real width was known, so every listener saw
+    // pre-measurement, unsettled item positions; LAYOUT_BEFORE_MOUNT/
+    // LAYOUT_MOUNTED fired before layout validation/responsive setup
+    // had run). This test used to assert all three still had their old
+    // string values, which stayed stale after the enum members
+    // themselves were deleted — `EGridLayoutEvent.LAYOUT_BEFORE_MOUNT`
+    // etc. are simply `undefined` now, not a leftover string constant
+    // to compare against.
     expect(EGridLayoutEvent.LAYOUT_READY).toBe(`layout-ready`);
     expect(EGridLayoutEvent.LAYOUT_UPDATE).toBe(`update:layout`);
     expect(EGridLayoutEvent.LAYOUT_UPDATED).toBe(`layout-updated`);

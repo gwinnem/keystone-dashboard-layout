@@ -177,6 +177,34 @@ describe(`native-interaction`, () => {
       expect(events.length).toBe(4);
     });
 
+    it(`Should ignore a pointerup from a pointer other than the one currently tracked, while a drag is still active — confirmed gap via a fresh coverage report`, () => {
+      // Distinct from the test above: there, the mismatched pointerup
+      // dispatch happened *after* the tracked gesture's own pointerup
+      // had already fired cleanup() (which removes el's own pointerup
+      // listener entirely) -- so that dispatch never actually reached
+      // onPointerUp at all, and passed trivially for the wrong reason.
+      // This dispatches the mismatch while pointerId:1's own gesture is
+      // still genuinely in progress (listener still attached), so it
+      // actually exercises onPointerUp's own "if(event.pointerId !==
+      // pointerId)" branch.
+      const el = document.createElement(`div`);
+      document.body.appendChild(el);
+      const events: string[] = [];
+      createNativeDraggable(el, () => ({ enabled: true }), (event) => events.push(event.type));
+
+      el.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+      el.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 20, clientY: 20, pointerId: 1 }));
+      // A different, never-tracked pointer's own pointerup, while
+      // pointerId:1's own gesture is still active — should be ignored,
+      // not treated as ending the real gesture.
+      el.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 20, clientY: 20, pointerId: 2 }));
+      expect(events).toStrictEqual([`dragstart`, `dragmove`]);
+
+      // The real gesture is still alive and can still end normally.
+      el.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 20, clientY: 20, pointerId: 1 }));
+      expect(events).toStrictEqual([`dragstart`, `dragmove`, `dragend`]);
+    });
+
     it(`Should stop listening after destroy() is called`, () => {
       const el = document.createElement(`div`);
       document.body.appendChild(el);
@@ -189,6 +217,25 @@ describe(`native-interaction`, () => {
         el.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 50, clientY: 50, pointerId: 1 }));
       }).not.toThrow();
       expect(events).toStrictEqual([]);
+    });
+
+    it(`Should allow a drag to start when the pointerdown target isn't an Element at all — confirmed gap via a fresh coverage report`, () => {
+      // passesDragFilters's own "if(!(target instanceof Element)) return
+      // true" guard — a Text node is a valid EventTarget (can dispatch a
+      // bubbling event) but not an Element, so allowFrom/ignoreFrom have
+      // nothing to match against; the drag is allowed unconditionally
+      // rather than filtered.
+      const el = document.createElement(`div`);
+      const textNode = document.createTextNode(`some text`);
+      el.appendChild(textNode);
+      document.body.appendChild(el);
+      const events: string[] = [];
+      createNativeDraggable(el, () => ({ enabled: true, ignoreFrom: `*` }), (event) => events.push(event.type));
+
+      textNode.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+      textNode.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 50, clientY: 50, pointerId: 1 }));
+
+      expect(events).toStrictEqual([`dragstart`, `dragmove`]);
     });
 
     describe(`dragActivationDistance`, () => {
@@ -388,6 +435,53 @@ describe(`native-interaction`, () => {
       seHandle.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 20, clientY: 20, pointerId: 1 }));
 
       expect(events).toStrictEqual([`resizestart`, `resizemove`, `resizeend`]);
+    });
+
+    it(`Should ignore a pointermove from a pointer other than the one currently tracked, on the same handle, while a resize is still active — confirmed gap via a fresh coverage report`, () => {
+      // Distinct from the "second pointer on any handle" test above:
+      // that one dispatches its own mismatched events on a *different*
+      // handle (swHandle) whose own onPointerMove/onPointerUp were never
+      // attached at all (its pointerdown was ignored before reaching
+      // those addEventListener calls) -- so those dispatches never
+      // actually reached onPointerMove/onPointerUp either, and passed
+      // trivially for the wrong reason. This dispatches the mismatch on
+      // the *same* handle whose listeners genuinely are attached
+      // (seHandle, the one actually being tracked), exercising
+      // onPointerMove's own "if(event.pointerId !== pointerId ||
+      // !activeEdges)" branch for real.
+      const root = document.createElement(`div`);
+      const seHandle = document.createElement(`span`);
+      root.appendChild(seHandle);
+      document.body.appendChild(root);
+      const events: string[] = [];
+      createNativeResizable(root, { se: seHandle }, () => ({ enabled: true }), (event) => events.push(event.type));
+
+      seHandle.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+      // A different, never-tracked pointer's own move, on the same
+      // handle that's actually tracking pointerId:1.
+      seHandle.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 10, clientY: 10, pointerId: 2 }));
+      expect(events).toStrictEqual([`resizestart`]);
+
+      seHandle.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 20, clientY: 20, pointerId: 1 }));
+      expect(events).toStrictEqual([`resizestart`, `resizemove`]);
+    });
+
+    it(`Should ignore a pointerup from a pointer other than the one currently tracked, on the same handle, while a resize is still active — confirmed gap via a fresh coverage report`, () => {
+      // Same rationale as the pointermove test above, for onPointerUp's
+      // own identical mismatch guard.
+      const root = document.createElement(`div`);
+      const seHandle = document.createElement(`span`);
+      root.appendChild(seHandle);
+      document.body.appendChild(root);
+      const events: string[] = [];
+      createNativeResizable(root, { se: seHandle }, () => ({ enabled: true }), (event) => events.push(event.type));
+
+      seHandle.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+      seHandle.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 2 }));
+      expect(events).toStrictEqual([`resizestart`]);
+
+      seHandle.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+      expect(events).toStrictEqual([`resizestart`, `resizeend`]);
     });
 
     it(`Should stop listening on all handles after destroy() is called`, () => {

@@ -93,7 +93,24 @@ export function useGridItemKeyboard(
   const resizeBy = (dw: number, dh: number): void => {
     let w = innerW.value + dw;
     let h = innerH.value + dh;
+    // The `?? Infinity`/`?? 1` fallbacks below are type-necessary, not
+    // runtime-reachable — confirmed directly, not assumed: a fresh
+    // coverage report flagged all four as uncovered branches, and tracing
+    // why confirmed `props.maxW`/`minW`/`maxH`/`minH` are guaranteed
+    // already-concrete numbers (`Infinity`/`Infinity`/`1`/`1` by default)
+    // via `GridItem.vue`'s own `withDefaults()` call, before this
+    // composable ever receives them through `ctx.props` — so the `??`
+    // operator's own right-hand side can never execute at runtime.
+    // They're kept anyway because `IGridItemComposableContext.props` is
+    // typed as the raw `IGridItemProps` interface (where these fields are
+    // `number | undefined`, genuinely optional at the type level, since
+    // that interface has no way to express "already resolved by
+    // withDefaults") — removing them entirely would be a real TypeScript
+    // error here (`Math.min`/`Math.max` require `number`, not `number |
+    // undefined`), not just a stylistic no-op.
+    /* v8 ignore next -- see the comment above: type-necessary, not runtime-reachable. */
     w = Math.max(Math.min(w, cols.value - innerX.value, props.maxW ?? Infinity), props.minW ?? 1);
+    /* v8 ignore next -- same rationale as the line above; a single `v8 ignore next 2` above both lines was tried first and only suppressed the first line's own branches, not this one's, so each line gets its own explicit directive instead. */
     h = Math.max(Math.min(h, maxRows.value - innerY.value, props.maxH ?? Infinity), props.minH ?? 1);
     if(w === innerW.value && h === innerH.value) {
       return;

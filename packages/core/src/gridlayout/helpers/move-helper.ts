@@ -223,6 +223,7 @@ export function moveElementAwayFromCollision(
     itemToMove,
     movingCordsData.$default.x,
     movingCordsData.$default.y,
+    isUserAction,
     horizontalShift,
     preventCollision,
   );

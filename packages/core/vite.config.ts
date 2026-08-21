@@ -40,7 +40,21 @@ export default defineConfig({
     dts({
       entryRoot: 'src',
       outDir: 'dist/types',
-      tsconfigPath: './tsconfig.json',
+      // Bug fix: the plain `./tsconfig.json` (used here previously) has
+      // no explicit `rootDir` set, only `declarationDir` — without it,
+      // vite-plugin-dts's own `entryRoot: 'src'` option was silently
+      // ineffective, and every emitted .d.ts landed one directory
+      // deeper than expected (`dist/types/src/index.d.ts`, not
+      // `dist/types/index.d.ts`), not matching this package's own
+      // `package.json` `types`/`exports` fields at all — the exact same
+      // class of bug the Vue package's own `tsconfig.build-types.json`
+      // already exists to fix (see its own comment) for the identical
+      // reason. Never caught before now because nothing actually
+      // consumed this package's own *built* output until the React
+      // package started importing it via its real published name —
+      // Vue's own build bypasses this package's dist entirely via a
+      // source-path alias (see this file's own `resolve.alias` below).
+      tsconfigPath: './tsconfig.build-types.json',
     }),
   ],
   resolve: {

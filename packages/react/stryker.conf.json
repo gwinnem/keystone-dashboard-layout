@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/api/schema/stryker-schema.json",
+  "packageManager": "pnpm",
+  "testRunner": "vitest",
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "reporters": ["clear-text", "progress", "html", "json"],
+  "clearTextReporter": {
+    "allowColor": true,
+    "allowEmojis": true,
+    "logTests": false,
+    "maxTestsToLog": 3,
+    "reportTests": true,
+    "reportMutants": true,
+    "reportScoreTable": true,
+    "skipFull": false
+  },
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "coverageAnalysis": "perTest",
+  "timeoutMS": 15000,
+  "mutate": [
+    "src/components/Grid/GridLayout.tsx",
+    "src/components/Grid/GridItem.tsx",
+    "src/components/Grid/hooks/*.ts",
+    "src/hooks/*.ts",
+    "!src/**/*.d.ts"
+  ],
+  "ignorePatterns": [
+    "e2e",
+    "e2e-fixture",
+    "dist",
+    "docs",
+    "coverage"
+  ]
+}

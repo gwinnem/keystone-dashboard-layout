@@ -1,0 +1,52 @@
+/* Minimal, utilitarian styling for the e2e test fixture only — not a
+   showcase/demo stylesheet. Just enough for items to have a visible,
+   non-zero bounding box for Playwright assertions; the library's own
+   src/styles/index.css (imported in main.tsx) already handles the real
+   positioning/transition mechanics. */
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+}
+
+.fixture-nav button {
+  cursor: pointer;
+  margin: 4px;
+  padding: 6px 12px;
+}
+
+.fixture-main {
+  padding: 16px;
+}
+
+.fixture-item-content {
+  align-items: center;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  box-sizing: border-box;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.fixture-item-content.is-static {
+  background: #f1f5f9;
+}
+
+/*
+ * cross-grid.spec.ts's own grid B — starts with an empty layout, and
+ * heightMode's own default ('auto') computes an empty grid's own
+ * height as an explicit inline `height: 0px` (or close to it). CSS's
+ * own box model rule ("used height is the greater of height and
+ * min-height", regardless of inline vs. stylesheet origin) means this
+ * min-height correctly overrides that small inline height, giving the
+ * actual `.kdl-grid-layout` element — not just its wrapping div — a
+ * real, non-zero interactive area for a cross-grid drop to land in.
+ * Confirmed necessary via a fresh e2e run: a wrapping div's own
+ * min-height alone doesn't help, since the grid element inside it can
+ * still collapse to zero height independently of its own parent.
+ */
+.cross-grid-empty-target {
+  min-height: 200px;
+}

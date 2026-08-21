@@ -1,0 +1,414 @@
+/* Minimal, utilitarian styling for the demo app — matching this
+   package's own README/plan non-goals: no bespoke design system, this
+   borrows the library's own shipped kdl-* classes for the grid itself.
+   Enough structure/spacing for a human (or an agent driving Chrome) to
+   comfortably read and use every view, nothing more. */
+
+:root {
+  --demo-border: #d8dbe0;
+  --demo-text: #1a1d23;
+  --demo-text-muted: #5b6270;
+  --demo-accent: #3457d5;
+  --demo-bg: #f7f8fa;
+  --demo-surface: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--demo-bg);
+  color: var(--demo-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+}
+
+code {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+}
+
+.demo-app {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.demo-sidebar {
+  border-right: 1px solid var(--demo-border);
+  flex: 0 0 240px;
+  padding: 24px 16px;
+}
+
+.demo-sidebar h1 {
+  font-size: 1.1rem;
+  margin: 0 0 8px;
+}
+
+.demo-subtitle {
+  color: var(--demo-text-muted);
+  font-size: 18px;
+  margin: 0 0 20px;
+  max-width: 70ch;
+}
+
+.demo-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.demo-nav-button {
+  background: var(--demo-surface);
+  border: 1px solid var(--demo-border);
+  border-radius: 6px;
+  color: var(--demo-text);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.demo-nav-button:hover {
+  border-color: var(--demo-accent);
+}
+
+.demo-nav-button--active {
+  background: var(--demo-accent);
+  border-color: var(--demo-accent);
+  color: #fff;
+}
+
+.demo-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 24px;
+}
+
+.demo-view h2 {
+  font-size: 1.1rem;
+  margin: 0 0 4px;
+}
+
+.demo-view-description {
+  color: var(--demo-text-muted);
+  font-size: 18px;
+  margin: 0 0 16px;
+  max-width: 70ch;
+}
+
+/* A view with a live event log splits into a left column (controls +
+   grid) and a fixed-width right column (the log itself) — established
+   here so every later view needing a log reuses the same shape rather
+   than re-deriving it. */
+.demo-view-body {
+  display: flex;
+  gap: 16px;
+}
+
+.demo-view-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.demo-view-log-column {
+  flex: 0 0 480px;
+  /* Explicit stacking context + a z-index comfortably above anything
+     inside `.demo-grid-area`/`.kdl-grid-layout` (whose own isolated
+     items top out at z-index 20 for the close button) — without this,
+     an oversized simulated-width grid area (ResponsiveView) could
+     visually cover this column even though it's a later DOM sibling. */
+  position: relative;
+  z-index: 30;
+}
+
+/* ResponsiveView's own simulated-width wrapper — the grid area inside
+   can be given an inline pixel width wider than the available space
+   (simulating a container-width change); without a scrollable wrapper,
+   that overflow would bleed into the page layout instead of staying
+   contained and reachable via a horizontal scrollbar. */
+.demo-grid-area-scroll {
+  overflow-x: auto;
+}
+
+/* Every view's own grid area — a light card so the grid's own
+   drag/resize surface reads clearly against the page background.
+   Explicit `width: 100%` rather than relying on flex's own default
+   stretch behavior cascading correctly through every nested container
+   (`.demo-view-body` -> `.demo-view-main` -> here) — confirmed as a
+   real, observed bug: this card was rendering narrower than its own
+   available space, leaving unexplained empty area to its right. */
+.demo-grid-area {
+  background: var(--demo-surface);
+  border: 1px solid var(--demo-border);
+  border-radius: 8px;
+  padding: 16px;
+  width: 100%;
+}
+
+/* Later views' own control panels (toggles, sliders, selects) share
+   this shape — established now so Phase 2 onward doesn't need to
+   re-derive it. `margin-bottom` added after `.demo-controls` moved to
+   sit above `.demo-view-body` as a separate, full-width sibling (not
+   nested inside `.demo-view-main` alongside the grid anymore) — it
+   used to get spacing for free from `.demo-view-main`'s own `gap:16px`
+   when it was a flex sibling in that column; as a standalone block
+   above, nothing was providing that gap anymore, leaving it flush
+   against the grid/log row below with no visible seam between them. */
+.demo-controls {
+  background: var(--demo-surface);
+  border: 1px solid var(--demo-border);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  width: 100%;
+}
+
+.demo-control-group {
+  border: 1px solid var(--demo-border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 10px;
+}
+
+.demo-control-group legend {
+  color: var(--demo-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.demo-control {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.demo-control--wrap {
+  flex-wrap: wrap;
+}
+
+.demo-control label {
+  font-size: 14px;
+}
+
+.demo-control input:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.demo-status {
+  color: var(--demo-text-muted);
+  font-size: 12px;
+  margin: 0;
+}
+
+/* The `header` render prop's own worked example in DragResizeView. */
+.demo-drag-handle {
+  background: rgba(0, 0, 0, 0.08);
+  cursor: grab;
+  font-size: 12px;
+  padding: 4px 8px;
+  text-align: center;
+}
+
+/* `renderResizeHandle`'s own worked example — the resize-hint hit
+   zone it renders inside is only 10px tall/wide (`.kdl-resize-hint--n`
+   etc., in the library's own shipped stylesheet), so this needs
+   absolute positioning centered on that small parent rather than
+   flowing as a normal inline child, which would overflow/misalign
+   against such a tiny box. `pointer-events: none` so the icon itself
+   never intercepts the drag gesture the hit zone underneath exists to
+   handle. */
+.demo-resize-icon {
+  background: #fff;
+  border-radius: 2px;
+  font-size: 8px;
+  left: 50%;
+  line-height: 1;
+  padding: 1px 2px;
+  pointer-events: none;
+  position: absolute;
+  text-transform: uppercase;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+}
+
+/* ResponsiveView's own breakpoints/cols editor. */
+.demo-breakpoint-table {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.demo-breakpoint-table th,
+.demo-breakpoint-table td {
+  padding: 2px 8px 2px 0;
+  text-align: left;
+}
+
+.demo-breakpoint-table input {
+  width: 70px;
+}
+
+/* MinMaxWidthDemo's own two side-by-side, deliberately narrow grids. */
+.demo-minmax-section {
+  border-top: 1px solid var(--demo-border);
+  margin-top: 8px;
+  padding-top: 16px;
+}
+
+.demo-minmax-section h3 {
+  font-size: 1rem;
+  margin: 0 0 4px;
+}
+
+.demo-minmax-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.demo-minmax-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.demo-minmax-wrapper {
+  background: var(--demo-surface);
+  border: 1px dashed var(--demo-border);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+/* CrossGridView's own two side-by-side grids — reuses the same
+   row/item shape as MinMaxWidthDemo above, but each item's own grid
+   area needs full width (not a narrow, fixed wrapper), so this is a
+   distinct pair of classes rather than reusing those directly. */
+.demo-cross-grid-row {
+  display: flex;
+  gap: 24px;
+}
+
+.demo-cross-grid-item {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* ExternalDropView's own draggable chip — the native HTML5 drag
+   source dropped into either grid below. */
+.demo-drag-chip {
+  background: #eef2ff;
+  border: 1px dashed #818cf8;
+  border-radius: 6px;
+  cursor: grab;
+  display: inline-block;
+  font-size: 14px;
+  padding: 8px 14px;
+}
+
+/* ResponsiveView's own live layout/responsiveLayouts state inspector,
+   shown above the event log in the same right-hand column. Own
+   internal scroll (not unbounded growth) keeps the combined column
+   height reasonable alongside the event log below it. */
+.demo-state-inspector {
+  background: var(--demo-surface);
+  border: 1px solid var(--demo-border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 10px 12px;
+}
+
+.demo-json {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 12px;
+  margin: 4px 0 12px;
+  overflow-x: auto;
+  padding: 6px 8px;
+  white-space: pre;
+}
+
+/* AdvancedFeaturesView's own exportLayoutAsSvg() output panel. */
+.demo-svg-output {
+  background: var(--demo-surface);
+  border: 1px solid var(--demo-border);
+  border-radius: 8px;
+  max-height: 240px;
+  overflow: auto;
+  padding: 12px 16px;
+}
+
+/* Every rendered GridItem's own content, across every view — matches
+   e2e-fixture's own naming for consistency, distinct visual treatment
+   since this one's meant to actually be looked at. */
+.demo-item-content {
+  align-items: center;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  box-sizing: border-box;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.demo-item-content.is-static {
+  background: #f1f5f9;
+}
+
+/* Every view's own live event log, where relevant — lives in the
+   right-hand column (`.demo-view-log-column`), sized to fill it.
+   `min-height` reduced from an earlier, taller value: combined with
+   `.demo-state-inspector` sitting above it in the same column
+   (ResponsiveView), a tall floor here was forcing the whole right
+   column noticeably taller than the main section's own natural height
+   — `.demo-view-body`'s own flex stretch means both columns should
+   match whichever is naturally taller, not have the log's own floor
+   dictate it regardless. */
+.demo-event-log {
+  background: #0f1117;
+  border-radius: 8px;
+  color: #d7dbe3;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 14px;
+  height: 100%;
+  min-height: 120px;
+  overflow-y: auto;
+  padding: 10px 12px;
+}
+
+.demo-event-log-entry {
+  white-space: pre-wrap;
+}
+
+/* CrossGridView's own two grids each have a "Left grid"/"Right grid"
+   label (`.demo-status`) sitting above `.demo-grid-area` -- the log
+   column has no such label, so without this it starts flush with that
+   label's own top instead of the grid area's own top below it.
+   Measured directly (not guessed): the label's own height plus the
+   `.demo-cross-grid-item` gap comes to exactly 24px. */
+.demo-event-log--label-offset {
+  margin-top: 24px;
+}

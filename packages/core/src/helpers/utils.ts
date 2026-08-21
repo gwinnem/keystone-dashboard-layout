@@ -6,6 +6,85 @@ import { EErrorMessage } from '@/core/common/enums/ErrorMessages';
 import { sortLayoutItemsByColRow, sortLayoutItemsByRowCol } from '@/core/gridlayout/helpers/sort-helper';
 
 /**
+ * `JSON.stringify`/`JSON.parse`'s own well-known limitation:
+ * `JSON.stringify(Infinity) === "null"` (JSON itself has no
+ * representation for `Infinity`/`-Infinity`/`NaN`) — a real, confirmed
+ * bug for `cloneLayoutItem`/`cloneLayout` below, not a hypothetical
+ * edge case. `y: Infinity`/`x: Infinity` is a common, widely-used
+ * convention for "place this new item past everything else, then let
+ * compaction settle it" (see `compactItem`'s own doc comment below,
+ * which explicitly documents and relies on this convention), and
+ * `maxH`/`maxW`/`minH`/`minW`/`zIndex`/`borderRadiusPx` can all
+ * legitimately be `Infinity` too ("no maximum" being the obvious case).
+ * Every one of those silently became `null` the moment a layout item
+ * carrying one passed through `cloneLayout` — which happens on
+ * essentially every drag/resize tick and every controlled-component
+ * sync in both the Vue and React packages, since both call this
+ * function (directly, or via `@keystone-dashboard-layout/core`)
+ * constantly.
+ *
+ * Fixed with a custom replacer/reviver pair, the standard pattern for
+ * this exact JSON limitation, rather than switching away from the
+ * JSON-round-trip approach entirely — `ILayoutItem` isn't fully
+ * monomorphic/primitive-only despite the doc comment below's own
+ * simplifying description (it has a nested `ariaLabels` object and a
+ * nested `resizeHandles` array), so a shallow `{ ...item }` spread
+ * would share those nested references between the original and the
+ * clone instead of genuinely deep-cloning them; the JSON round-trip
+ * already handles that correctly and this fix preserves it.
+ *
+ * Deliberately scoped to only this specific, known set of field names
+ * that can legitimately hold `Infinity`/`-Infinity`/`NaN` on an
+ * `ILayoutItem`, rather than transforming *any* number anywhere in the
+ * tree — a real flaw caught in an earlier version of this fix, not a
+ * defensive guard against a hypothetical: applying the sentinel
+ * transformation unconditionally meant the reviver couldn't distinguish
+ * "a number this replacer transformed" from "a string the consumer's
+ * own free-form `data` field genuinely contains" — a consumer storing
+ * the literal sentinel string somewhere in `data` would have had it
+ * silently rewritten back into a real `Infinity`/`NaN`, corrupting data
+ * this function has no business touching at all (see `data`'s own doc
+ * comment: "never read or written by the library itself"). Scoping by
+ * key name means a `data` payload's own fields, whatever they're named
+ * or contain, are never touched by this transformation regardless of
+ * their value.
+ */
+const INFINITY_SENTINEL_KEYS = new Set([`h`, `w`, `x`, `y`, `minH`, `minW`, `maxH`, `maxW`, `zIndex`, `borderRadiusPx`]);
+const INFINITY_SENTINEL = `\uE000Infinity\uE000`;
+const NEGATIVE_INFINITY_SENTINEL = `\uE000-Infinity\uE000`;
+const NAN_SENTINEL = `\uE000NaN\uE000`;
+
+function cloneLayoutReplacer(key: string, value: unknown): unknown {
+  if(INFINITY_SENTINEL_KEYS.has(key) && typeof value === `number`) {
+    if(value === Infinity) {
+      return INFINITY_SENTINEL;
+    }
+    if(value === -Infinity) {
+      return NEGATIVE_INFINITY_SENTINEL;
+    }
+    if(Number.isNaN(value)) {
+      return NAN_SENTINEL;
+    }
+  }
+  return value;
+}
+
+function cloneLayoutReviver(key: string, value: unknown): unknown {
+  if(INFINITY_SENTINEL_KEYS.has(key)) {
+    if(value === INFINITY_SENTINEL) {
+      return Infinity;
+    }
+    if(value === NEGATIVE_INFINITY_SENTINEL) {
+      return -Infinity;
+    }
+    if(value === NAN_SENTINEL) {
+      return NaN;
+    }
+  }
+  return value;
+}
+
+/**
  * Deep-clone a single layout item via JSON round-trip. Fast because the
  * shape is monomorphic (every `ILayoutItem` has the same set of primitive
  * fields) — `JSON.parse(JSON.stringify(...))` is a reasonable choice here
@@ -13,7 +92,7 @@ import { sortLayoutItemsByColRow, sortLayoutItemsByRowCol } from '@/core/gridlay
  * `Date`s, etc.) on an `ILayoutItem` to worry about losing.
  */
 export function cloneLayoutItem(layoutItem: ILayoutItem): ILayoutItem {
-  return JSON.parse(JSON.stringify(layoutItem));
+  return JSON.parse(JSON.stringify(layoutItem, cloneLayoutReplacer), cloneLayoutReviver);
 }
 
 /** Deep-clone an entire layout array (see {@link cloneLayoutItem}) — used whenever a layout needs to be mutated without affecting the caller's original array/objects (e.g. per-breakpoint layout caching in `useResponsiveLayout`). */
@@ -61,7 +140,17 @@ export function compactItem(
 
   if(verticalCompact) {
     // Move the element up as far as it can go without colliding.
-    while (layoutItem.y > 0 && !getFirstCollision(compareWith, layoutItem)) {
+    // Bug fix: `minPositions` (the `restoreOnDrag` case) was
+    // previously only consulted in the `else if` branch below — i.e.
+    // only when `verticalCompact` is `false` — meaning `restoreOnDrag`
+    // silently had no effect at all under the default
+    // `ECompactType.VERTICAL`, contradicting this file's own
+    // `ICompactorContext.minPositions` doc comment, which explicitly
+    // documents `y` as applying to `VERTICAL` too. `?? 0` preserves the
+    // exact prior behavior (rise all the way to `0`) whenever no
+    // `minPositions` entry exists for this item.
+    const minY = minPositions?.[layoutItem.i]?.y ?? 0;
+    while (layoutItem.y > minY && !getFirstCollision(compareWith, layoutItem)) {
       layoutItem.y--;
     }
   } else if(minPositions) {
@@ -149,7 +238,13 @@ export function compactItemHorizontal(
 
   if(horizontalCompact) {
     // Move the element left as far as it can go without colliding.
-    while (layoutItem.x > 0 && !getFirstCollision(compareWith, layoutItem)) {
+    // Bug fix: same class of bug as `compactItem`'s own fix above (see
+    // its comment for the full account) — `minPositions` was
+    // previously only consulted in the `else if` branch below, meaning
+    // `restoreOnDrag` silently had no effect under `ECompactType.
+    // HORIZONTAL` (`horizontalCompact: true`).
+    const minX = minPositions?.[layoutItem.i]?.x ?? 0;
+    while (layoutItem.x > minX && !getFirstCollision(compareWith, layoutItem)) {
       layoutItem.x--;
     }
   } else if(minPositions) {

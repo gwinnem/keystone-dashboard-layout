@@ -190,6 +190,18 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
    * `tryMakeResizable`, not called directly.
    */
   const handleResize = (event: TResizeEvent): void => {
+    // Confirmed unreachable through any real interaction path, not
+    // assumed: the isResizable side of this guard only matters when
+    // enableEditMode is false, but resizableAndNotStatic (GridItem.vue's
+    // own gate on rendering the 8 resize-hint spans, and therefore on
+    // whether tryMakeResizable() ever has any handleEls to wire up at
+    // all) is already false in that same state — so the native resize
+    // engine's own handler is never even registered, and there's no way
+    // to reach handleResize() at all when this specific branch would
+    // matter. A fresh test dispatching directly via the native-handler
+    // backdoor in this state confirmed the handler itself doesn't exist
+    // to call, rather than confirming this guard's own behavior.
+    /* v8 ignore next 3 -- see the comment above: unreachable since the native resize engine is never wired up at all in the one state (enableEditMode false) where this branch would matter. */
     if(props.isStatic || (!editModeEnabled.value && props.isResizable)) {
       return;
     }
@@ -481,6 +493,13 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
   const tryMakeResizable = (): void => {
     // See the matching guard + comment in useGridItemDrag.ts's
     // tryMakeDraggable() (docs/REFACTORING.md #38) — same bug, same fix.
+    // Confirmed unreachable through any normal test flow, not assumed:
+    // gridItem isn't exposed via defineExpose, and exposing an internal
+    // DOM ref solely to manufacture coverage for an already-fixed bug
+    // would be adding public API surface for the wrong reason (see
+    // docs/REFACTORING.md #70's own "genuinely hard-to-cover guards"
+    // note for the identical gridItem check in useGridItemDrag.ts).
+    /* v8 ignore next 3 -- see the comment above: unreachable without exposing gridItem via defineExpose solely to manufacture coverage. */
     if(!(gridItem.value instanceof HTMLElement)) {
       return;
     }
@@ -592,6 +611,15 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
       }
     }
 
+    // Bug fix (docs/REFACTORING.md #70): calcWH's own autoSizeFlag height
+    // conversion uses Math.ceil, which rounds any non-negative height up
+    // to at least 1 grid unit on its own — confirmed, not assumed, that
+    // this makes the floor check below genuinely unreachable for height
+    // specifically (never negative from a real getBoundingClientRect()),
+    // unlike the width side (Math.round, which can round down to 0).
+    // Left as a documented, understood gap rather than forced with a
+    // manufactured negative-height double.
+    /* v8 ignore next 3 -- see the comment above: Math.ceil already floors height to >=1 whenever it's non-negative, which a real getBoundingClientRect() always is. */
     if(pos.h < 1) {
       pos.h = 1;
     }

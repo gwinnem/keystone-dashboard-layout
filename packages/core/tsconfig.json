@@ -5,6 +5,7 @@
     "paths": {
       "@/core/*": ["./src/*"]
     },
+    "rootDir": "src",
     "types": ["node", "vite/client", "vitest/globals"]
   },
   "include": ["src/**/*.ts"],

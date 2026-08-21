@@ -4,10 +4,23 @@
     "jsx": "react-jsx",
     "declarationDir": "dist/types",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/core/*": ["../core/src/*"]
     },
+    // Widened to this package's own *parent* directory (not just ".",
+    // this package's own root) because `@/core/*` now reaches into the
+    // sibling `../core/src` package — a genuine cross-package boundary,
+    // the same reason the Vue package's own tsconfig.json widens its
+    // own `rootDir` to `".."` too (see that file's matching comment).
+    // Only ever used for `tsc --noEmit` (typecheck) and the editor's own
+    // language server, never for real declaration emission —
+    // `vite.config.ts` points its `dts` plugin at the separate
+    // `tsconfig.build-types.json` instead specifically to keep this
+    // widening from affecting the real build's own output paths (see
+    // that file's matching comment).
+    "rootDir": "..",
     "types": ["node", "vite/client", "vitest/globals"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["src/**/__tests__/*", "**/*.spec.tsx", "**/*.spec.ts", "dist", "node_modules"]
+  "exclude": ["src/**/__tests__/*", "**/*.spec.tsx", "**/*.spec.ts", "dist", "node_modules", "tests/*"]
 }

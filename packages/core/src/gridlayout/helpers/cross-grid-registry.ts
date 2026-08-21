@@ -1,4 +1,4 @@
-import { ICrossGridZone } from '@/core/gridlayout/interfaces/cross-grid.interfaces';
+import { ICrossGridZone } from '../interfaces/cross-grid.interfaces';
 
 /**
  * Every mounted `GridLayout` with `allowCrossGridDrag` enabled registers
@@ -12,6 +12,26 @@ import { ICrossGridZone } from '@/core/gridlayout/interfaces/cross-grid.interfac
  * that isn't naturally Vue state" as the `eventBus` `GridLayout` already
  * hands each `GridItem` — just needed across separate `GridLayout`
  * instances instead of within one.
+ *
+ * Bug fix: this file's own import of `ICrossGridZone` used to go through
+ * the `@/core` alias (a historical carryover from when this code lived
+ * inside the Vue package's own `src/core/`, where every internal
+ * cross-reference used that same self-referential alias) — a raw
+ * relative path escaping the project root, resolved only via each
+ * consuming package's own `vite.config.ts`/`vitest.config.ts` alias
+ * definition. That broke this file specifically once it needed to be
+ * reachable from *outside* `@keystone-dashboard-layout/core`'s own
+ * build (via the package's new `./gridlayout/helpers/cross-grid-registry`
+ * subpath export, added for React's own `useCrossGridDrag.ts` — see
+ * that file's own comment): Stryker's own sandboxed test runs relocate
+ * a consuming package's `vitest.config.ts` one directory level deeper
+ * than its real location, which breaks any alias computed as a
+ * relative path escaping that config file's own directory, in a way no
+ * amount of Stryker configuration can work around — the mismatch is
+ * structural, not a settings problem. A plain relative import within
+ * this package's own `src/` tree never crosses a package or sandbox
+ * boundary at all, so it can't break this way regardless of where or
+ * how this file ends up being loaded from.
  */
 const zones = new Set<ICrossGridZone>();
 

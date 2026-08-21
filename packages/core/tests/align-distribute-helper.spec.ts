@@ -103,6 +103,72 @@ describe(`computeAlignAdjustments`, () => {
     expect(result.has(`other`)).toBe(false);
   });
 
+  // Confirmed gap via a fresh coverage report: the "already aligned, no
+  // adjustment needed" branch above was only ever exercised for `left`
+  // — the other 5 edge/center cases each have their own identical
+  // `if(item.x/y !== target) { ... }` check, but none of those false
+  // branches were reached by any existing test.
+  it(`Should not include an item already exactly aligned to the right edge`, () => {
+    // anchor's right edge: 5+4=9; other (w:2) already at its own target
+    // x (7, since 7+2=9) needs no adjustment.
+    const layout = [
+      { h: 2, i: `anchor`, w: 4, x: 5, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 7, y: 4 },
+    ];
+
+    const result = computeAlignAdjustments(layout, [`anchor`, `other`], `right`);
+
+    expect(result.has(`other`)).toBe(false);
+  });
+
+  it(`Should not include an item already exactly aligned to the top edge`, () => {
+    const layout = [
+      { h: 2, i: `anchor`, w: 2, x: 0, y: 5 },
+      { h: 2, i: `other`, w: 2, x: 4, y: 5 },
+    ];
+
+    const result = computeAlignAdjustments(layout, [`anchor`, `other`], `top`);
+
+    expect(result.has(`other`)).toBe(false);
+  });
+
+  it(`Should not include an item already exactly aligned to the bottom edge`, () => {
+    // anchor's bottom edge: 5+4=9; other (h:2) already at its own
+    // target y (7, since 7+2=9) needs no adjustment.
+    const layout = [
+      { h: 4, i: `anchor`, w: 2, x: 0, y: 5 },
+      { h: 2, i: `other`, w: 2, x: 4, y: 7 },
+    ];
+
+    const result = computeAlignAdjustments(layout, [`anchor`, `other`], `bottom`);
+
+    expect(result.has(`other`)).toBe(false);
+  });
+
+  it(`Should not include an item already exactly center-aligned on the x axis`, () => {
+    // anchor's horizontal center: 0+4/2=2; other (w:2) already at its
+    // own target x (1, since 1+1=2) needs no adjustment.
+    const layout = [
+      { h: 2, i: `anchor`, w: 4, x: 0, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 1, y: 4 },
+    ];
+
+    const result = computeAlignAdjustments(layout, [`anchor`, `other`], `center-x`);
+
+    expect(result.has(`other`)).toBe(false);
+  });
+
+  it(`Should not include an item already exactly center-aligned on the y axis`, () => {
+    const layout = [
+      { h: 4, i: `anchor`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 4, y: 1 },
+    ];
+
+    const result = computeAlignAdjustments(layout, [`anchor`, `other`], `center-y`);
+
+    expect(result.has(`other`)).toBe(false);
+  });
+
   it(`Should return an empty map when fewer than 2 ids are given`, () => {
     const layout = [{ h: 2, i: `solo`, w: 2, x: 0, y: 0 }];
 

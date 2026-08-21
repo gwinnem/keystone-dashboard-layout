@@ -68,6 +68,43 @@ describe(`GridLayout cross-grid drag/drop (allowCrossGridDrag)`, () => {
     expect(target.emitted(EGridLayoutEvent.CROSS_GRID_ITEM_DROPPED)?.[0][0]).toMatchObject({ sourceLayoutId: `source-1` });
   });
 
+  it(`Should not throw when the dragged item's id doesn't match any real layout entry at accept-time (removedIndex's own defensive branch) — confirmed gap via a fresh coverage report`, async () => {
+    // useCrossGridDrag.ts's own handleDragEnd looks up the dragged
+    // item's index in props.layout ("removedIndex") right before
+    // splicing it out — every existing test here has that lookup
+    // succeed, so the "not found" branch (removedIndex === -1, skipping
+    // the splice entirely) was never exercised. Using an id that never
+    // existed in the source layout at all, rather than removing a real
+    // item mid-gesture, keeps handleDragStart/handleDragEnd's own
+    // internal item resolution ("currentItem", via dragEvent's own
+    // getLayoutItem-or-fallback) consistent with itself throughout —
+    // removing a real item in between dragstart/dragend would also
+    // corrupt that resolution, not just the specific branch this test
+    // targets.
+    stubOffsetWidth(1200);
+    const source = track(mountGrid([{ i: `a`, x: 0, y: 0, w: 2, h: 2 }], {
+      layoutProps: { allowCrossGridDrag: true, layoutId: `source-missing-index` },
+    }));
+    const target = track(mountGrid([], { layoutProps: { allowCrossGridDrag: true, layoutId: `target-missing-index` } }));
+    await settle();
+
+    stubGridRect(source, { bottom: 100, left: 0, right: 100, top: 0 });
+    stubGridRect(target, { bottom: 100, left: 200, right: 300, top: 0 });
+
+    const lengthBefore = source.vm.layout.length;
+    source.vm.dragEvent(`dragstart`, `ghost`, 0, 0, 2, 2);
+
+    expect(() => {
+      source.vm.dragEvent(`dragend`, `ghost`, 0, 0, 2, 2, 250, 50);
+    }).not.toThrow();
+    await settle();
+
+    // removedIndex was -1, so the splice was skipped entirely — the
+    // source's own real item is untouched, still exactly one entry.
+    expect(source.vm.layout.length).toBe(lengthBefore);
+    expect(target.emitted(EGridLayoutEvent.CROSS_GRID_ITEM_DROPPED)).toBeTruthy();
+  });
+
   it(`Should not transfer the item on a dragmove that happens to cross into another grid's rect — only on the actual dragend`, async () => {
     // Regression test for a real bug: the cross-grid transfer check ran
     // unconditionally on every dragEvent() call, not gated to dragend

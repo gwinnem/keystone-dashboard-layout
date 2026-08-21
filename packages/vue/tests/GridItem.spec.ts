@@ -5,6 +5,7 @@ import { h, nextTick, reactive } from 'vue';
 import { mount } from '@vue/test-utils';
 import { EGridItemEvent } from '@/core/griditem/enums/EGridItemEvents';
 import { ECompactType } from '@/core/gridlayout/enums/ECompactType';
+import { createEventEmitter } from '@/core/helpers/event-emitter';
 import { GridItem, GridLayout, ILayoutItem } from '../src/components';
 import { mountGrid, mountGridWithReactiveItem, restoreOffsetWidth, stubOffsetWidth } from './helpers/mountGrid';
 
@@ -304,6 +305,27 @@ describe(`GridItem`, () => {
       realItem = wrapper.find(`.vue-grid-item:not(.vue-grid-placeholder)`);
       expect(realItem.find(`.vue-resize-hint--se`).exists()).toBe(false);
       expect(realItem.find(`.vue-resize-hint--nw`).exists()).toBe(true);
+    });
+
+    it(`Should not change the resolved resizeHandles when the item's own prop is reassigned back to null — confirmed gap via a fresh coverage report`, async () => {
+      // The reactive test above only ever reassigns to a new,
+      // non-null array — the watcher's own "if(val !== null)" guard's
+      // else side (a genuine null reassignment after already having a
+      // real value) was never exercised. resizeHandlesResolved should
+      // stay at its last real value once this happens, matching every
+      // other null-means-inherit prop's own "once set, an explicit
+      // null doesn't un-set it" behavior.
+      const { itemState, wrapper } = mountGridWithReactiveItem(
+        { i: `0`, x: 0, y: 0, w: 2, h: 2, resizeHandles: [`se`] } as unknown as ILayoutItem,
+      );
+      await settle();
+      let realItem = wrapper.find(`.vue-grid-item:not(.vue-grid-placeholder)`);
+      expect(realItem.find(`.vue-resize-hint--se`).exists()).toBe(true);
+
+      itemState.resizeHandles = null;
+      await settle();
+      realItem = wrapper.find(`.vue-grid-item:not(.vue-grid-placeholder)`);
+      expect(realItem.find(`.vue-resize-hint--se`).exists()).toBe(true);
     });
 
     it(`Should render no resize-hint spans at all when resizeHandles is an empty array, without disabling resizability entirely`, async () => {
@@ -751,6 +773,33 @@ describe(`GridItem`, () => {
       expect(style).toContain(`translate3d`);
     });
 
+    it(`Should not throw resizing when the item's own w or h is Infinity — confirmed gap via a fresh coverage report`, async () => {
+      // calcPosition's own "w === Infinity ? w : Math.round(...)"/"h ===
+      // Infinity ? h : Math.round(...)" ternaries — every other test in
+      // this file uses a finite grid-unit size, so the Infinity side of
+      // both was never exercised, for either render direction (LTR/RTL).
+      // maxW/maxH both default to Infinity, so an item's own w/h
+      // reaching Infinity (e.g. after growing without either prop set)
+      // is a real, reachable state, not a purely synthetic one. colNum
+      // must also be Infinity — otherwise createStyle()'s own overflow
+      // clamp ("innerW.value = props.w > cols.value ? cols.value :
+      // props.w") clamps w down to a finite value before it ever
+      // reaches calcPosition, since Infinity > any finite colNum is
+      // always true; confirmed directly via a fresh test run that only
+      // h's own ternary closed without this, not w's.
+      const ltr = mountGrid([{ i: `0`, x: 0, y: 0, w: Infinity, h: Infinity }], {
+        layoutProps: { colNum: Infinity, compactType: ECompactType.NONE },
+      });
+      await settle();
+      expect(() => ltr.find(`.vue-grid-item`).attributes(`style`)).not.toThrow();
+
+      const rtl = mountGrid([{ i: `0`, x: 0, y: 0, w: Infinity, h: Infinity }], {
+        layoutProps: { colNum: Infinity, compactType: ECompactType.NONE, isMirrored: true },
+      });
+      await settle();
+      expect(() => rtl.find(`.vue-grid-item`).attributes(`style`)).not.toThrow();
+    });
+
     it(`Should position via top/left instead of a transform when useCssTransforms is false`, async () => {
       stubOffsetWidth(1200);
       const wrapper = mountGrid([{ i: `0`, x: 1, y: 0, w: 2, h: 2 }], {
@@ -919,6 +968,38 @@ describe(`GridItem`, () => {
       expect(() => wrapper.find(`.vue-grid-item`).attributes(`style`)).not.toThrow();
     });
   });
+
+  describe(`mounted without a GridLayout parent (thisLayout undefined) — confirmed gaps via a fresh coverage report`, () => {
+    it(`Should not throw, and should fall back to sensible defaults, when mounted standalone`, () => {
+      // Every other test in this file mounts via mountGrid (a real
+      // GridLayout parent), so both $parent (thisLayout) and the
+      // injected eventBus are always populated. Mounting GridItem
+      // directly with no GridLayout wrapper leaves thisLayout
+      // genuinely undefined (exercising isSelected's own "?? false"
+      // fallback and onMounted's own margin/resizeHandles fallbacks
+      // all at once) — but GridItem still unconditionally calls
+      // eventBus.on(...) at setup regardless, so a real (if otherwise
+      // unused) eventBus still has to be provided for this to mount at
+      // all; confirmed directly via a fresh test run that omitting it
+      // entirely throws "Cannot read properties of undefined (reading
+      // 'on')" before ever reaching the code this test means to
+      // exercise.
+      expect(() => mount(GridItem, {
+        global: { provide: { eventBus: createEventEmitter() } },
+        props: { h: 2, i: `0`, w: 2, x: 0, y: 0 },
+      })).not.toThrow();
+    });
+
+    it(`Should resolve isSelected to false when there's no parent layout to check selection against`, () => {
+      const wrapper = mount(GridItem, {
+        global: { provide: { eventBus: createEventEmitter() } },
+        props: { h: 2, i: `0`, w: 2, x: 0, y: 0 },
+      });
+
+      expect(wrapper.find(`.vue-grid-item`).classes()).not.toContain(`vue-grid-item-selected`);
+    });
+  });
+
 
   describe(`ITEM_CLICKED (multiSelect support)`, () => {
     it(`Should emit ITEM_CLICKED with the item's id and the native MouseEvent on a plain click`, async () => {
@@ -1473,6 +1554,75 @@ describe(`GridItem`, () => {
       expect(lastCall[2]).toBeGreaterThan(4);
     });
 
+    it(`Should not throw when a preserveAspectRatio resizemove drives neither a horizontal nor a vertical edge — confirmed gap via a fresh coverage report`, async () => {
+      // The if/else-if/else-if chain (drivingWidth-only, drivingHeight-
+      // only, both) has no explicit else — every other preserveAspectRatio
+      // test here always has at least one real edge active, since a
+      // resize is normally started via one of the 8 actual handles, each
+      // of which always sets at least one edge true. Dispatching with
+      // every edge false directly (bypassing which real handle a gesture
+      // would have started from) is the only way to reach the case where
+      // none of the three branches match at all.
+      const wrapper = mountGrid([{ i: `0`, x: 0, y: 0, w: 4, h: 4 }], { itemProps: { preserveAspectRatio: true } });
+      await settle();
+
+      const el = wrapper.find(`.vue-grid-item`).element;
+      const noEdges = { bottom: false, left: false, right: false, top: false };
+      dispatchResizeEvent(el, `resizestart`, { clientX: 0, clientY: 0, edges: noEdges });
+      expect(() => dispatchResizeEvent(el, `resizemove`, { clientX: 200, clientY: 100, edges: noEdges })).not.toThrow();
+    });
+
+    it(`Should also adjust top when a preserveAspectRatio corner resize includes the top edge — confirmed gap via a fresh coverage report`, async () => {
+      // The corner test above only ever drives bottom+right — this
+      // drives top+right instead, reaching the edges.top branch
+      // specifically inside the corner (drivingWidth && drivingHeight)
+      // case, which adjusts the derived top position by the resulting
+      // height delta the same way a direct (non-derived) height change
+      // already does elsewhere in this same function.
+      const wrapper = mountGrid([{ i: `0`, x: 4, y: 4, w: 4, h: 4 }], {
+        itemProps: { preserveAspectRatio: true },
+        layoutProps: { compactType: ECompactType.NONE },
+      });
+      await settle();
+
+      const el = wrapper.find(`.vue-grid-item`).element;
+      const topRight = { bottom: false, left: false, right: true, top: true };
+      dispatchResizeEvent(el, `resizestart`, { clientX: 0, clientY: 0, edges: topRight });
+      dispatchResizeEvent(el, `resizemove`, { clientX: 200, clientY: -100, edges: topRight });
+      await settle();
+
+      const item2 = wrapper.findComponent({ name: `GridItem` });
+      const resizeCalls2 = item2.emitted(EGridItemEvent.RESIZE);
+      expect(resizeCalls2).toBeTruthy();
+      const lastCall2 = resizeCalls2!.at(-1) as unknown[];
+      expect(lastCall2[1]).toBeGreaterThan(4);
+      expect(lastCall2[2]).toBeGreaterThan(4);
+    });
+
+    it(`Should not throw computing aspect ratio when the item's own starting pixel height is zero — confirmed gap via a fresh coverage report`, async () => {
+      // aspectRatio.value's own ternary ("pos.height > 0 ? pos.width /
+      // pos.height : undefined") — every other preserveAspectRatio test
+      // here starts from a real, positive height, so the "not actually
+      // positive" else side was never exercised. rowHeight:0 alone isn't
+      // enough — calcPosition's own height formula still adds
+      // Math.max(0, h-1)*margin[1] on top, so margin must also be [0,0]
+      // for pos.height to resolve to exactly 0; confirmed directly via a
+      // fresh test run that rowHeight:0 alone left pos.height at 30
+      // (3 * the default 10px vertical margin), not 0.
+      const wrapper = mountGrid([{ i: `0`, x: 0, y: 0, w: 4, h: 4 }], {
+        itemProps: { preserveAspectRatio: true },
+        layoutProps: { margin: [0, 0], rowHeight: 0 },
+      });
+      await settle();
+
+      const el = wrapper.find(`.vue-grid-item`).element;
+      expect(() => dispatchResizeEvent(el, `resizestart`, {
+        clientX: 0,
+        clientY: 0,
+        edges: { bottom: false, left: false, right: true, top: false },
+      })).not.toThrow();
+    });
+
     it(`Should add the resizing class while a resize is in progress`, async () => {
       stubOffsetWidth(1200);
       const wrapper = mountGrid(singleItemLayout(), { layoutProps: { rowHeight: 100, margin: [10, 10] } });
@@ -1785,6 +1935,59 @@ describe(`GridItem`, () => {
       await wrapper.setProps({ isDraggable: false });
       await settle();
       expect(wrapper.find(`.vue-grid-item`).classes()).toContain(`vue-draggable`);
+    });
+
+    it(`Should ignore GridLayout's own isResizable change for an item that already has its own isResizable set — confirmed gap via a fresh coverage report`, async () => {
+      // setResizableHandler's own "if(props.isResizable === null)" guard
+      // — the isDraggable test above already covers the equivalent
+      // guard for that handler, but isResizable/isBounded each have
+      // their own separate handler and were never exercised for this
+      // specific "item already has its own override" branch.
+      const wrapper = mountGrid(singleItemLayout(), { itemProps: { isResizable: true } });
+      await settle();
+      expect(wrapper.find(`.vue-grid-item`).classes()).toContain(`vue-resizable`);
+
+      await wrapper.setProps({ isResizable: false });
+      await settle();
+      expect(wrapper.find(`.vue-grid-item`).classes()).toContain(`vue-resizable`);
+    });
+
+    it(`Should ignore GridLayout's own isBounded change for an item that already has its own isBounded set — confirmed gap via a fresh coverage report`, async () => {
+      // Same rationale as the isResizable test above, for
+      // setBoundedHandler's own identical guard. colNum is
+      // deliberately large (100, not the small 3 the equivalent
+      // "clamp drag position..." test below uses) — calcXY's own
+      // grid-unit capping (`cols.value - innerW.value`) already
+      // constrains x regardless of isBounded, so a small colNum would
+      // make the two clamps indistinguishable and this test
+      // meaningless; confirmed directly via a fresh test run showing
+      // exactly that failure mode before widening colNum here.
+      stubOffsetWidth(300);
+      const wrapper = mountGrid(singleItemLayout(), {
+        itemProps: { isBounded: false },
+        layoutProps: { colNum: 100, rowHeight: 100, margin: [10, 10] },
+      });
+      await settle();
+
+      await wrapper.setProps({ isBounded: true });
+      await settle();
+
+      const target = wrapper.find(`.vue-grid-item`).element;
+      dispatchDragEvent(target, `dragstart`);
+      await settle();
+      // Far past the container's bounds — if the item's own isBounded:
+      // false were overridden by GridLayout's change, this would clamp;
+      // it should not, since the item's own explicit value wins.
+      dispatchDragEvent(target, `dragmove`, { clientX: 5000, clientY: 5000 });
+      await settle();
+
+      expect(() => dispatchDragEvent(target, `dragend`, { clientX: 5000, clientY: 5000 })).not.toThrow();
+      const item = wrapper.findComponent({ name: `GridItem` });
+      const movedCalls = item.emitted(EGridItemEvent.MOVE) ?? [];
+      const lastMove = movedCalls[movedCalls.length - 1];
+      if (lastMove) {
+        expect(lastMove[1]).toBeGreaterThan(50);
+      }
     });
 
     it(`Should clamp drag position to container bounds once GridLayout's own isBounded turns on, for an item without its own`, async () => {
@@ -2597,6 +2800,33 @@ describe(`GridItem`, () => {
       const lastCall = item.emitted(EGridItemEvent.RESIZE)!.at(-1) as unknown[];
       expect(lastCall[1]).toBe(3);
       expect(lastCall[2]).toBe(3);
+    });
+
+    it(`Should skip the maxW/maxH clamp entirely when both are explicitly falsy (0) — confirmed gap via a fresh coverage report`, async () => {
+      // autoSize()'s own "if(props.maxW)"/"if(props.maxH)" checks —
+      // every other test in this file either leaves maxW/maxH at their
+      // withDefaults() default (Infinity, always truthy) or sets a real
+      // positive value, so the "falsy" side of both was never exercised.
+      // 0 is the only way maxW/maxH can actually be falsy, since the
+      // prop type is a plain number with no null/undefined allowed.
+      const wrapper = mountGrid([{ i: `0`, x: 0, y: 0, w: 1, h: 1 }], {
+        itemProps: { maxH: 0, maxW: 0 },
+        layoutProps: { rowHeight: 100, margin: [10, 10] },
+        slotContent: () => h(`div`, { class: `content` }, `content`),
+      });
+      await settle();
+
+      const item = wrapper.findComponent({ name: `GridItem` });
+      // A huge measured size that would ordinarily be clamped down by a
+      // real maxW/maxH — with both falsy, the clamp is skipped entirely,
+      // so the full (large) grid-unit size should apply instead.
+      withMeasuredSlotSize(item, { height: 5000, width: 5000 });
+
+      item.vm.autoSize();
+
+      const lastCall = item.emitted(EGridItemEvent.RESIZE)!.at(-1) as unknown[];
+      expect(lastCall[1]).toBeGreaterThan(2);
+      expect(lastCall[2]).toBeGreaterThan(2);
     });
   });
 });

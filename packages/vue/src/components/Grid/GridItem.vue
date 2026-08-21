@@ -153,8 +153,8 @@
   const { proxy } = useCurrentInstance();
 
   // for parent's instance
-  /** The shape of what `GridLayout`'s `defineExpose(...)` actually exposes — see docs/ARCHITECTURE.md. */
-  type TIns = (IGridLayoutProps & ILayoutData) | undefined;
+  /** The shape of what `GridLayout`'s `defineExpose(...)` actually exposes — see docs/ARCHITECTURE.md. `effectiveWidth` isn't part of `IGridLayoutProps`/`ILayoutData` (it's `GridLayout.vue`'s own internal min/maxW-adjusted width, added as a plain extra field on its own `defineExpose` call, not a prop) — declared here explicitly so `thisLayout?.effectiveWidth` below type-checks. */
+  type TIns = (IGridLayoutProps & ILayoutData & { effectiveWidth?: number | null }) | undefined;
   /** The parent `GridLayout` instance, as seen through `$parent` — only reliable because `GridItem` is always rendered as `GridLayout`'s direct child (via its default slot). Read once at mount (see `onMounted` below); not reactive, so later updates arrive via the `eventBus` cascade instead. */
   const thisLayout = proxy?.$parent as TIns;
 
@@ -426,6 +426,17 @@
    * @param {string}   id   Id of the GridItem.
    */
   const closeClicked = (id: string | number): void => {
+    // Confirmed unreachable through the button click this handler is
+    // wired to — a fresh test setting enableEditMode:false and
+    // clicking the rendered button found wrapper.find('button.btn-close')
+    // returns nothing at all, meaning the button's own v-if already
+    // excludes editModeEnabled somewhere upstream of this handler ever
+    // running with it false. Kept as a defensive guard (the same
+    // reasoning applies here as to useGridItemDrag.ts's own
+    // `gridItem instanceof HTMLElement` check) rather than removed,
+    // since closeClicked isn't exposed via defineExpose and so has no
+    // other call path to double-check this against directly.
+    /* v8 ignore next 3 -- see the comment above: unreachable via the button's own click, confirmed by a fresh test run rather than assumed. */
     if(editModeEnabled.value) {
       emit(EGridItemEvent.REMOVE_ITEM, id);
     }
@@ -606,15 +617,35 @@
       // its size — mirror dragging's approach of reading the live value
       // during the interaction, and let the eventBus/layout-array round
       // trip (see GridLayout.vue's resizeEvent()) commit it once resizeend
-      // fires. Right/bottom-only resizes leave these untouched, since
-      // resizing.value.left/top/right don't change in that case.
+      // fires.
+      //
+      // Confirmed unreachable that resizing.value?.right/left/top can
+      // ever be undefined here, not assumed: isResizing.value and
+      // resizing.value are only ever set together (both assigned at
+      // resizestart, both cleared at resizeend, in
+      // useGridItemResize.ts's own handleResize) — and resizestart's
+      // own `resizing.value = { ...calcPosition(...) }` unconditionally
+      // includes top and right-or-left (calcPosition always computes all
+      // four fields from the item's current x/y/w/h, regardless of
+      // which edges are actually being dragged), so by the time
+      // isResizing.value is true here, resizing.value already has
+      // whichever of right/left this render direction needs, plus top,
+      // every time. Kept as defensive guards — the same reasoning as
+      // useGridItemDrag.ts's own `gridItem instanceof HTMLElement` check
+      // — rather than removed.
       if(renderRtl.value) {
+        /* v8 ignore next 3 -- see the comment above: resizing.value.right is always set by calcPosition() while isResizing is true. */
         if(resizing.value?.right !== undefined) {
           pos.right = resizing.value.right;
         }
-      } else if(resizing.value?.left !== undefined) {
-        pos.left = resizing.value.left;
       }
+      if(!renderRtl.value) {
+        /* v8 ignore next 3 -- see the comment above: resizing.value.left is always set by calcPosition() while isResizing is true. */
+        if(resizing.value?.left !== undefined) {
+          pos.left = resizing.value.left;
+        }
+      }
+      /* v8 ignore next 3 -- see the comment above: resizing.value.top is always set by calcPosition() while isResizing is true. */
       if(resizing.value?.top !== undefined) {
         pos.top = resizing.value.top;
       }
@@ -1063,7 +1094,13 @@
       cols.value = thisLayout?.colNum as number;
     }
     rowHeight.value = thisLayout?.rowHeight as number;
-    containerWidth.value = thisLayout?.width !== null ? (thisLayout?.width as number) : 100;
+    // Effective (min/maxW-adjusted) width, not the raw `thisLayout?.width`
+    // — see GridLayout.vue's own `effectiveWidth` computed doc comment
+    // for the full rationale. Thereafter kept in sync via the
+    // `updateWidth` eventBus message (see `updateWidth`/`updateWidthHandler`
+    // below), which GridLayout.vue's own emit call sites were updated to
+    // send this same effective value on, not the raw measurement either.
+    containerWidth.value = thisLayout?.effectiveWidth !== null && thisLayout?.effectiveWidth !== undefined ? thisLayout.effectiveWidth : 100;
     margin.value = thisLayout?.margin !== undefined ? thisLayout.margin : [10, 10];
     maxRows.value = thisLayout?.maxRows as number;
     // Bug fix (docs/REFACTORING.md #39): rtl.value was previously only
@@ -1464,6 +1501,32 @@
     // remove rather than a ratio worth preserving.
     transition-duration: var(--grid-transition-duration, 200ms);
     transition-property: transform;
+  }
+
+  // isMirrored (RTL) + css-transforms — confirmed gap via a fresh e2e run
+  // against the React port, which shares this same setTransformRtl()
+  // function from @keystone-dashboard-layout/core: `translate3d(-right,
+  // ...)` is only correct when the item's own *pre-transform* static
+  // position is already anchored to the container's right edge.
+  // `.css-transforms` above sets both `left`/`right` to `auto`
+  // unconditionally, RTL or not — meaning an RTL item's static position
+  // defaulted to the same left-anchored (0,0) baseline an LTR item uses,
+  // since `position: absolute` with no explicit `left`/`right` falls back
+  // to the browser's own "static position" algorithm regardless of
+  // direction. The observable result: any RTL item positioned more than a
+  // few pixels from the container's own right edge renders far off-
+  // screen to the left (confirmed directly on the React port — an item
+  // at grid-columns 4-6 of 12 measured a bounding-box x of roughly
+  // -407px, matching `-(rightDistance)` computed from a real, wide
+  // container almost exactly). This package's own e2e RTL coverage
+  // apparently never exercised an item far enough from the right edge to
+  // surface it. `right: 0` gives the transform the right-anchored
+  // baseline it was always assuming existed; specificity naturally wins
+  // over the plain `.css-transforms` rule above since this selector is
+  // more specific (two classes, not one).
+  &.css-transforms.render-rtl {
+    left: auto;
+    right: 0;
   }
 
   &.resizing {

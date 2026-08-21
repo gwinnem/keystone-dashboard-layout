@@ -39,4 +39,18 @@ describe(`getBottomYCoordinate`, () => {
         const result = getBottomYCoordinate(l1);
         expect(result).toBe(2);
     });
+
+    it(`Should not lower the running max when a later item's own bottom edge is smaller than an earlier one's`, () => {
+        // Confirmed gap via a fresh coverage report: every existing test
+        // has each subsequent item extend the running max (the
+        // `if(bottomY > max)` check's own true branch) -- this layout's
+        // second item (bottomY: 0+1=1) is smaller than the first's
+        // (bottomY: 0+3=3), exercising that check's own false branch for
+        // the first time.
+        const layout: TLayout = [
+            { h: 3, i: 'tall', w: 1, x: 0, y: 0 },
+            { h: 1, i: 'short', w: 1, x: 1, y: 0 },
+        ];
+        expect(getBottomYCoordinate(layout)).toBe(3);
+    });
 })

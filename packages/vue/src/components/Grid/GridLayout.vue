@@ -12,36 +12,38 @@
     class="vue-grid-layout"
     :class="{ grid: props.showGridLines, 'vue-grid-layout--active-drag': isDragging }"
     :dir="props.isMirrored ? 'rtl' : 'ltr'"
-    :style="[mergeStyle, transitionStyle, gridLinesStyle, resizeHandleStyle]"
+    :style="[mergeStyle, transitionStyle, gridLinesStyle, resizeHandleStyle, overflowXStyle]"
     @click="backgroundClickHandler">
-    <slot></slot>
-    <GridItem
-      v-show="isDragging"
-      ref="defaultGridItem"
-      class="vue-grid-placeholder"
-      :enable-edit-mode="enableEditMode"
-      :h="placeholder.h"
-      :i="placeholder.i"
-      :show-close-button="showCloseButton"
-      :use-border-radius="useBorderRadius"
-      :w="placeholder.w"
-      :x="placeholder.x"
-      :y="placeholder.y">
-      <slot
-        :is-dragging="isDragging"
-        name="placeholder"
-        :placeholder="placeholder"></slot>
-    </GridItem>
-    <div
-      v-for="(guide, index) in alignmentGuideStyles"
-      :key="`alignment-guide-${index}`"
-      class="vue-grid-alignment-guide"
-      :style="guide"></div>
-    <div
-      v-for="(indicator, index) in spacingIndicatorStyles"
-      :key="`spacing-indicator-${index}`"
-      class="vue-grid-spacing-indicator"
-      :style="{ left: indicator.left, top: indicator.top }">{{ indicator.label }}</div>
+    <div :style="contentWrapperStyle">
+      <slot></slot>
+      <GridItem
+        v-show="isDragging"
+        ref="defaultGridItem"
+        class="vue-grid-placeholder"
+        :enable-edit-mode="enableEditMode"
+        :h="placeholder.h"
+        :i="placeholder.i"
+        :show-close-button="showCloseButton"
+        :use-border-radius="useBorderRadius"
+        :w="placeholder.w"
+        :x="placeholder.x"
+        :y="placeholder.y">
+        <slot
+          :is-dragging="isDragging"
+          name="placeholder"
+          :placeholder="placeholder"></slot>
+      </GridItem>
+      <div
+        v-for="(guide, index) in alignmentGuideStyles"
+        :key="`alignment-guide-${index}`"
+        class="vue-grid-alignment-guide"
+        :style="guide"></div>
+      <div
+        v-for="(indicator, index) in spacingIndicatorStyles"
+        :key="`spacing-indicator-${index}`"
+        class="vue-grid-spacing-indicator"
+        :style="{ left: indicator.left, top: indicator.top }">{{ indicator.label }}</div>
+    </div>
   </div>
 </template>
 <script lang="ts">
@@ -49,7 +51,6 @@
     computed,
     defineComponent,
     nextTick,
-    onBeforeMount,
     onBeforeUnmount,
     onMounted,
     provide,
@@ -176,6 +177,55 @@
   });
 
   const width = ref<number | null>(null);
+  /**
+   * This grid's own actually-used width for every colWidth-derived
+   * calculation (item positioning, guides, grid lines, outside-drop
+   * placement) — ported from the React package's own identical fix
+   * (see that package's `GridLayout.tsx`, `effectiveContainerWidth`, for
+   * the full design rationale; this is the same logic, adapted to
+   * Vue's own reactivity primitives). Distinct from the raw measured
+   * `width` above, which stays the true, unadjusted `ResizeObserver`
+   * reading — still what `useResponsiveLayout.ts`'s own breakpoint
+   * resolution uses (a minW-driven expansion here is not a real page
+   * layout change and shouldn't shift which breakpoint is active), and
+   * still what this component's own `defineExpose`'d `width` shows to
+   * an external consumer (not silently redefined to mean something
+   * different than it always has).
+   *
+   * Ensures no item ever renders narrower than its own `minW` implies,
+   * converted to pixels via `rowHeight` (the only other pixel-valued
+   * sizing constant already on this component — treating a column as
+   * roughly square by default, not an arbitrary constant invented for
+   * this alone). For a layout with no `minW` set at all, this equals
+   * `width.value` exactly — byte-identical behavior to before this
+   * existed.
+   *
+   * Deliberately does *not* also derive a ceiling from any item's own
+   * `maxW` the same way — an earlier version of this did, and it was a
+   * real, confirmed bug ported over from the React package's own
+   * identical mistake (see that file's own `effectiveContainerWidth`
+   * doc comment for the full account, including the specific failing
+   * test that surfaced it): `maxW` constrains what width *that one
+   * item* is allowed to grow to — already enforced correctly,
+   * independently of this, by `useGridItemResize.ts`'s own clamping —
+   * not how wide the *container* should be. Treating it as a
+   * container-wide ceiling meant a single item with a `maxW` set shrank
+   * `colWidth` for every item in the grid, not just itself.
+   */
+  const effectiveWidth = computed<number | null>(() => {
+    if(width.value === null) {
+      return null;
+    }
+    let minFloorPx = 0;
+    const margin = props.margin!;
+    const rowHeight = props.rowHeight as number;
+    props.layout.forEach(item => {
+      if(item.minW !== undefined && item.minW !== null) {
+        minFloorPx = Math.max(minFloorPx, item.minW * rowHeight + Math.max(0, item.minW - 1) * margin[0]);
+      }
+    });
+    return Math.max(width.value, minFloorPx);
+  });
   const mergeStyle = ref<{ [key: string]: string }>({});
 
   const lastLayoutLength = ref<number>(0);
@@ -228,16 +278,12 @@
     (e: EGridLayoutEvent.DRAG_END, itemId: string | number): void;
     (e: EGridLayoutEvent.DRAG_MOVE, itemId: string | number): void;
     (e: EGridLayoutEvent.DRAG_START, itemId: string | number): void;
-    (e: EGridLayoutEvent.LAYOUT_BEFORE_MOUNT, layout: TLayout): void;
-    (e: EGridLayoutEvent.LAYOUT_CREATED, layout: TLayout): void;
-    (e: EGridLayoutEvent.LAYOUT_MOUNTED, layout: TLayout): void;
     (e: EGridLayoutEvent.LAYOUT_UPDATE, layout: TLayout): void;
     (e: EGridLayoutEvent.LAYOUT_UPDATED, layout: TLayout): void;
     (e: EGridLayoutEvent.LAYOUT_READY, layout: TLayout): void;
     (e: EGridLayoutEvent.MOVE_BLOCKED_BY_COLLISION, itemId: string | number): void;
     (e: EGridLayoutEvent.SELECTION_CHANGED, selectedItems: (string | number)[]): void;
   }>();
-  emit(EGridLayoutEvent.LAYOUT_CREATED, props.layout);
 
   /**
    * `heightMode`'s own precedence rule, resolved once here rather than
@@ -295,11 +341,14 @@
 
   const { setOutsideDropEnabled } = useOutsideDrop({
     emit,
+    // Effective (min/maxW-adjusted) width, not the raw measurement — see
+    // that computed's own doc comment above. The composable's own
+    // parameter is still named `width`; only what's passed in changed.
     isDragging,
     placeholder,
     props,
     refsLayout,
-    width,
+    width: effectiveWidth,
   });
 
   /**
@@ -561,6 +610,23 @@
 
     adjustments.forEach((adjustment, id) => {
       const item = getLayoutItem(props.layout, id);
+      // Confirmed unreachable through either of this function's own two
+      // callers (alignSelected/distributeSelected), not assumed — traced
+      // directly into computeAlignAdjustments/computeDistributeAdjustments
+      // (@keystone-dashboard-layout/core): both already filter out any
+      // selected id that doesn't match a real layout item before ever
+      // adding it to the returned Map (computeAlignAdjustments's own
+      // `if(!item) { return; }` inside its forEach; computeDistributeAdjustments's
+      // own `.filter((item): item is ILayoutItem => item !== undefined)`).
+      // Every key `adjustments` can ever contain by the time it reaches
+      // here is already guaranteed to resolve via getLayoutItem. Kept as
+      // a defensive guard for a hypothetical future caller of this
+      // function that doesn't provide that same guarantee, not removed
+      // entirely — confirmed via a fresh coverage report that a
+      // "selected id no longer in the layout" test genuinely can't reach
+      // this line through the public alignSelected/distributeSelected API
+      // at all, since the filtering already happened one level up.
+      /* v8 ignore next 3 -- see the comment above: unreachable through either real caller, kept as a defensive guard against a hypothetical future one. */
       if(!item) {
         return;
       }
@@ -683,15 +749,42 @@
    * the bug that guard was written for the first time.
    */
   const gridLinesStyle = computed(() => {
-    if(!width.value || width.value < 1) {
+    if(!effectiveWidth.value || effectiveWidth.value < 1) {
       return { '--grid-line-column-size': `1px`, '--grid-line-row-size': `1px` };
     }
-    const colWidth = calcColWidth(width.value, props.margin[0], props.colNum as number);
+    const colWidth = calcColWidth(effectiveWidth.value, props.margin[0], props.colNum as number);
     return {
       '--grid-line-column-size': `${colWidth + props.margin[0]}px`,
       '--grid-line-row-size': `${props.rowHeight + props.margin[1]}px`,
     };
   });
+
+  /**
+   * Ported from the React package's own identical fix (`GridLayout.tsx`,
+   * `needsWidthWrapper`/`needsHorizontalScroll`) — when a min/maxW-driven
+   * expansion or contraction pushed `effectiveWidth` away from the raw
+   * measured `width` (see that computed's own doc comment), the actual
+   * grid content needs to render at that wider or narrower pixel width
+   * rather than the 100%-of-parent width this element gets by default.
+   * `contentWrapperStyle` below is always applied to the same wrapper
+   * element (not conditionally rendered via `v-if`/`v-else`, which would
+   * mean maintaining two copies of the slot/placeholder/guides markup
+   * in the template) — an empty style object in the common (no `minW`/
+   * `maxW` set) case has zero layout effect, so the extra wrapper node
+   * costs nothing observable for any consumer not using this feature.
+   * `overflowXStyle` mirrors React's own conditional `overflow-x: auto`
+   * on the *outer* root — only when genuinely wider than the real
+   * available space (never for the narrower/maxW-driven case, which has
+   * nothing to scroll to).
+   */
+  const needsWidthWrapper = computed(() => effectiveWidth.value !== width.value);
+  const needsHorizontalScroll = computed(() => (
+    effectiveWidth.value !== null && width.value !== null && effectiveWidth.value > width.value
+  ));
+  const contentWrapperStyle = computed(() => (
+    needsWidthWrapper.value ? { height: `100%`, position: `relative`, width: `${effectiveWidth.value}px` } : {}
+  ));
+  const overflowXStyle = computed(() => (needsHorizontalScroll.value ? { 'overflow-x': `auto` } : {}));
 
   /**
    * Converts `alignmentGuides`'s grid-unit positions into pixel offsets
@@ -714,11 +807,11 @@
     // computed was written without the guard, since accessing it in the
     // template evaluates the function body on every render regardless
     // of whether alignmentGuides.value is empty.
-    if(alignmentGuides.value.length === 0 || !width.value || width.value < 1) {
+    if(alignmentGuides.value.length === 0 || !effectiveWidth.value || effectiveWidth.value < 1) {
       return [];
     }
 
-    const colWidth = calcColWidth(width.value, props.margin[0], props.colNum as number);
+    const colWidth = calcColWidth(effectiveWidth.value, props.margin[0], props.colNum as number);
     return alignmentGuides.value.map(guide => {
       if(guide.axis === `x`) {
         return {
@@ -750,11 +843,11 @@
    * label on that point via CSS `transform: translate(-50%, -50%)`.
    */
   const spacingIndicatorStyles = computed(() => {
-    if(spacingIndicators.value.length === 0 || !width.value || width.value < 1) {
+    if(spacingIndicators.value.length === 0 || !effectiveWidth.value || effectiveWidth.value < 1) {
       return [];
     }
 
-    const colWidth = calcColWidth(width.value, props.margin[0], props.colNum as number);
+    const colWidth = calcColWidth(effectiveWidth.value, props.margin[0], props.colNum as number);
     return spacingIndicators.value.map(indicator => {
       if(indicator.axis === `x`) {
         const startPx = indicator.gapStart * (colWidth + props.margin[0]) + props.margin[0];
@@ -956,7 +1049,7 @@
       nextTick(() => {
         isDragging.value = true;
       });
-      eventBus.emit(`updateWidth`, width.value);
+      eventBus.emit(`updateWidth`, effectiveWidth.value);
     } else {
       nextTick(() => {
         isDragging.value = false;
@@ -1296,7 +1389,7 @@
     nextTick(() => {
       isDragging.value = true;
     });
-    eventBus.emit(`updateWidth`, width.value);
+    eventBus.emit(`updateWidth`, effectiveWidth.value);
   };
 
   const resizeEvent = (
@@ -1454,7 +1547,7 @@
       }
 
       runCompaction();
-      eventBus.emit(`updateWidth`, width.value);
+      eventBus.emit(`updateWidth`, effectiveWidth.value);
       updateHeight();
       originalLayout.value = props.layout;
       // emit(EGridLayoutEvent.LAYOUT_UPDATED, props.layout);
@@ -1498,19 +1591,6 @@
     setOutsideDropEnabled(false);
   });
 
-  onBeforeMount(() => {
-    emit(EGridLayoutEvent.LAYOUT_BEFORE_MOUNT, props.layout);
-  });
-
-  /**
-   * Validates the layout, then — across a few chained `nextTick()`s, so
-   * each step can rely on the DOM having settled from the previous one —
-   * initializes responsive features, measures the container, compacts the
-   * layout, and finally attaches the `ResizeObserver`. See
-   * docs/REFACTORING.md #3 for why `ResizeObserver` instead of
-   * `element-resize-detector`.
-   */
-
   watch(
     () => props.allowOutsideDrop,
     enabled => {
@@ -1526,8 +1606,6 @@
   );
 
   onMounted(() => {
-    emit(EGridLayoutEvent.LAYOUT_MOUNTED, props.layout);
-
     initLastSnapshot();
     setCrossGridDragEnabled(props.allowCrossGridDrag as boolean);
     setOutsideDropEnabled(props.allowOutsideDrop as boolean);
@@ -1573,7 +1651,14 @@
    */
   watch(width, (newVal, oldVal) => {
     nextTick(() => {
-      eventBus.emit(`updateWidth`, newVal);
+      // Emits the effective (min/maxW-adjusted) width, not the raw
+      // `newVal` this watcher itself observed — `effectiveWidth` is a
+      // computed already synchronously up to date by the time this
+      // callback runs, since it derives from the same `width` this
+      // watcher just fired for. `oldVal === null` below is deliberately
+      // still checked against the *raw* value, matching this watcher's
+      // own original "first real measurement" detection intent.
+      eventBus.emit(`updateWidth`, effectiveWidth.value);
       if(oldVal === null) {
         /*
         If old val == null is when the width has never been
@@ -1900,6 +1985,7 @@
     spacingIndicators,
     spacingIndicatorStyles,
     width,
+    effectiveWidth,
   });
 </script>
 

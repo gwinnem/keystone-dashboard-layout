@@ -59,12 +59,6 @@ export enum EGridLayoutEvent {
    * own, so nothing is added automatically.
    */
   ITEM_DROPPED_FROM_OUTSIDE = `item-dropped-from-outside`,
-  /** Fired from `onBeforeMount`, before the layout has been validated or laid out. */
-  LAYOUT_BEFORE_MOUNT = `layout-before-mount`,
-  /** Fired synchronously during component setup, immediately, with the initial `layout` prop. */
-  LAYOUT_CREATED = `layout-created`,
-  /** Fired from `onMounted`, before layout validation/responsive setup has run. */
-  LAYOUT_MOUNTED = `layout-mounted`,
   /** Fired once, after the container's width is known and every GridItem's size is stable — the first reliable point to inspect final positions/sizes. */
   LAYOUT_READY = `layout-ready`,
   /**

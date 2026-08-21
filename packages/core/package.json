@@ -9,12 +9,20 @@
   "main": "dist/keystone-dashboard-layout-core.cjs.js",
   "module": "dist/keystone-dashboard-layout-core.es.js",
   "types": "./dist/types/index.d.ts",
-  "files": ["dist/*"],
+  "files": ["dist/*", "src/gridlayout/helpers/cross-grid-registry.ts", "src/gridlayout/interfaces/cross-grid.interfaces.ts"],
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/keystone-dashboard-layout-core.es.js",
       "require": "./dist/keystone-dashboard-layout-core.cjs.js"
+    },
+    "./gridlayout/helpers/cross-grid-registry": {
+      "types": "./src/gridlayout/helpers/cross-grid-registry.ts",
+      "default": "./src/gridlayout/helpers/cross-grid-registry.ts"
+    },
+    "./gridlayout/interfaces/cross-grid.interfaces": {
+      "types": "./src/gridlayout/interfaces/cross-grid.interfaces.ts",
+      "default": "./src/gridlayout/interfaces/cross-grid.interfaces.ts"
     }
   },
   "repository": {
