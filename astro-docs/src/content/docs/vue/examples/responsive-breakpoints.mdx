@@ -1,0 +1,21 @@
+---
+title: Responsive breakpoints
+description: Auto-generate a layout per breakpoint, based on container-width thresholds.
+---
+import ResponsiveBreakpoints from '../../../../components/examples/07-responsive-breakpoints.vue';
+import ResponsiveBreakpointsSource from '../../../../components/examples/07-responsive-breakpoints.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={ResponsiveBreakpointsSource} filename="responsive-breakpoints.vue">
+  <ResponsiveBreakpoints client:visible />
+</ExampleTryIt>
+
+`responsive` enables breakpoint switching using the `breakpoints`/`cols`
+props (both default to a standard 7-tier scale — `xxl`/`xl`/`lg`/`md`/`sm`/`xs`/`xxs`).
+When the container's measured width crosses a threshold, the layout
+regenerates for the new breakpoint's column count, and
+`breakpoint-changed` fires with the new breakpoint name.
+
+See [Responsive predefined layouts](/vue/examples/responsive-predefined-layouts/)
+for full control over what each breakpoint's layout looks like, instead
+of relying on auto-generation.

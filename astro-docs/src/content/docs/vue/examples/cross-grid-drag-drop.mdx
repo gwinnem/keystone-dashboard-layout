@@ -1,0 +1,22 @@
+---
+title: Drag, drop from grid to grid
+description: Both grids set allowCrossGridDrag — drag an item from one into the other.
+---
+import CrossGridDragDrop from '../../../../components/examples/12-cross-grid-drag-drop.vue';
+import CrossGridDragDropSource from '../../../../components/examples/12-cross-grid-drag-drop.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CrossGridDragDropSource} filename="cross-grid-drag-drop.vue">
+  <CrossGridDragDrop client:visible />
+</ExampleTryIt>
+
+**Must be set on both grids** — a drop onto a grid that doesn't have
+`allowCrossGridDrag` set is indistinguishable from dropping on empty
+space. `layoutId` gives each grid a stable identifier used in the
+`cross-grid-item-dropped`/`cross-grid-drop-rejected` event payloads to
+say which grid an item came from — omit it and one is auto-generated.
+
+See [Cross-grid drop restrictions](/vue/examples/cross-grid-drop-restrictions/)
+for rejecting a drop with `disableExternalDrop`, and
+[Multiple grids](/vue/examples/multiple-grids/) if you only need two
+independent grids on the same page without dragging between them.

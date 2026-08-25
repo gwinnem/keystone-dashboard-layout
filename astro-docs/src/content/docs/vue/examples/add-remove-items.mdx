@@ -1,0 +1,17 @@
+---
+title: Add or remove items
+description: Push a new entry into (or filter one out of) the layout array — the grid re-compacts automatically.
+---
+import AddRemoveItems from '../../../../components/examples/10-add-remove-items.vue';
+import AddRemoveItemsSource from '../../../../components/examples/10-add-remove-items.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={AddRemoveItemsSource} filename="add-remove-items.vue">
+  <AddRemoveItems client:visible />
+</ExampleTryIt>
+
+`y: Infinity` is a common placement convention — the compaction pass
+that runs immediately after settles the new item into the first
+available gap, so there's no need to compute a real starting position
+yourself. `remove-grid-item` fires when the close button is clicked (`showCloseButton`
+is on) — pair it with a `.filter()` the same way as above.

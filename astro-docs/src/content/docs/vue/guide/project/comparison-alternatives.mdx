@@ -1,0 +1,119 @@
+---
+title: "Comparison: alternatives"
+description: How KeystoneGrid for Vue compares to other open-source dashboard grid-layout projects.
+---
+
+## Scope
+
+This compares projects in the same category as this library —
+**draggable/resizable dashboard layout engines** (position arbitrary
+widgets on a grid, drag/resize them, responsive breakpoints) — not data
+tables/grids (Kendo's Grid, AG Grid, etc.), which solve a different
+problem. For commercial layout-engine peers, see
+[Comparison: commercial](/vue/guide/project/comparison-commercial/) instead.
+
+Projects compared: **`vue-grid-layout`** (jbaysolutions, the original
+Vue library this space descends from), **`grid-layout-plus`** (a Vue 3
+migration of the original, now the closest thing to a de-facto default
+by real npm download volume), **`react-grid-layout`** (the React
+equivalent this whole category traces back to, recently rewritten with
+a hooks-based v2), and **`gridstack.js`** (framework-agnostic, ships
+official Vue/React/Angular wrappers).
+
+## The headline finding
+
+The most-starred Vue option, `vue-grid-layout`, still has no official
+Vue 3 release years after Vue 3 shipped — its own issue tracker confirms
+people were still asking about a Vue 3 alternative well after Vue 3's
+release. What filled the gap instead is a scatter of independently
+maintained community forks with no single obvious default among
+them — except that one of them, `grid-layout-plus`, has actually
+emerged as something close to a de-facto default by real usage: an
+order of magnitude more weekly downloads than the other forks, its own
+polished documentation site, and a regular release history. It's a
+faithful Vue 3 port of the original codebase, not an expanded fork — its
+own feature set matches the original almost exactly, nothing more.
+
+## Feature comparison
+
+| Feature | This project | `vue-grid-layout` | `grid-layout-plus` | `react-grid-layout` v2 | `gridstack.js` |
+|---|---|---|---|---|---|
+| Native Vue 3 support | Yes, ground-up | No official release | Yes | N/A (React) | Yes, official wrapper |
+| Cross-grid drag/drop (independent instances) | Yes | No | No | No | Via nested sub-grids — a different mechanism |
+| Drag-and-drop from outside the component | Yes | No | No | Yes | Yes |
+| Magnetic snap-to-grid | Yes | No | No | No | No |
+| Visual alignment guides | Yes | No | No | No | No |
+| Blocked-move feedback event | Yes | No | No | No | No |
+| Named layout presets | Yes | No | No | No | No |
+| First-party persistence helper | Yes | No | No | No | Yes, built into the core engine |
+| Grid-to-SVG export | Yes | No | No | No | No |
+| Localizable UI/ARIA strings | Yes | No | No | No | No |
+| Per-item live-resyncing autoHeight | Yes | No | No | No | Partial — content-driven initial sizing only |
+| Keyboard-only move/resize | Yes | No | No | No | No |
+| Multi-select + group move/resize | Yes | No | No | Not confirmed | Not confirmed |
+| Pluggable compaction algorithm | Yes | No | No | Yes | — |
+| Framework-agnostic core as public API | Yes | No | No | Yes | Yes (core is framework-agnostic by design) |
+| Undo/redo | Yes | No | No | No | No |
+| Dependency footprint | Zero runtime dependencies | jQuery-free | Depends on `interactjs` | Zero | Zero (core) |
+| Test coverage rigor (publicly documented) | 99%+ statement/branch, mutation testing | Not documented to this level | Not documented to this level | Not published as a specific number | Not published as a specific number |
+
+## Where this project genuinely leads
+
+Cross-referencing the table above, the features with **no equivalent in
+any alternative checked**: magnetic snap-to-grid (distinct from a
+visual guide), visual alignment guides, the blocked-move feedback
+event, named layout presets, grid-to-SVG export, localizable ARIA
+strings as a dedicated prop surface, live-resyncing per-item
+`autoHeight`, and multi-select with group move/resize. None of these
+are exotic — they're the kind of real-world friction points (hand-rolled
+persistence, a hand-wired collision-shake animation, English-only
+screen reader text) a dedicated roadmap process exists specifically to
+find and close one at a time.
+
+## Where this project is genuinely behind
+
+- **Ecosystem size and battle-testing.** `react-grid-layout` and
+  `gridstack.js` have years more production usage across far more
+  companies — not a feature gap this library can close by writing code,
+  just a newer project.
+- **Framework breadth.** `gridstack.js` covers Vue, React, and Angular
+  from one core engine. This library is Vue-only by design today — a
+  reasonable scope choice, but a real limitation for a team needing the
+  same layout logic across multiple frameworks (see the
+  [landing page](/)'s own React/Angular framework picker for where that's headed).
+- **Sub-grids / nesting.** `gridstack.js` supports grids-within-grids as
+  first-class nested structures. This library's cross-grid feature is
+  sibling-to-sibling dragging between independent grid instances — a
+  different capability, not a nesting system.
+- **Swap-on-drag.** In `gridstack.js`'s default top-gravity mode,
+  dragging one item onto another of the same size swaps their
+  positions. This library only pushes items aside via compaction — an
+  item landing on another never swaps with it.
+- **A specific, unusually feature-rich fork** (`@marsio/vue-grid-layout`,
+  minimal current adoption but technically ambitious) offers multiple
+  persistence backends and a worker-based layout engine for very large
+  layouts, neither of which this project has yet (both are on the
+  [Roadmap](/vue/guide/project/roadmap/)). It does **not**, however,
+  have an equivalent to several things this project already checked and
+  confirmed it does have, contrary to an earlier version of this
+  comparison: align/distribute commands over a multi-selection
+  (`alignSelected`/`distributeSelected`, exposed on the `GridLayout`
+  instance), a configurable resize-handle *set* (`resizeHandles`,
+  restricting which specific corners/edges render, not just an
+  all-or-nothing toggle), and spacing guides with distance labels
+  (`showSpacingGuides`). The fork in turn has no equivalent to this
+  project's cross-grid drag, outside-drop typed-payload helper, or
+  multi-select **group resize** specifically (its own docs note group
+  move is supported but group resize is not).
+
+## Bottom line
+
+For a Vue 3, TypeScript-first dashboard layout library, the realistic
+field is small and genuinely fragmented — the most-starred option still
+doesn't officially support Vue 3, and what exists instead is a handful
+of differently-maintained community forks with no clear default.
+Measured against that actual field, this project has meaningfully more
+features (several with no equivalent in any alternative checked) and a
+more rigorously documented test/coverage process, at the cost of being
+a newer, smaller-community project without the multi-year production
+track record the category's oldest entries can claim.

@@ -1,0 +1,43 @@
+{
+  "$ref": "#/definitions/examples",
+  "definitions": {
+    "examples": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "order": {
+          "type": "number"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "drag-resize",
+            "layout-collision",
+            "multi-select",
+            "responsive",
+            "i18n-accessibility",
+            "cross-grid-dnd",
+            "styling",
+            "developer-experience"
+          ]
+        },
+        "componentName": {
+          "type": "string"
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "order",
+        "category",
+        "componentName"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

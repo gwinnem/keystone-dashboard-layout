@@ -1,0 +1,264 @@
+---
+// Overrides Starlight's default Header for a VitePress-style top nav:
+// a row of top-level section links, plus a small custom icon row
+// (instead of Starlight's own <SocialIcons>, whose supported platform
+// list — checked directly in schemas/social.ts — has no `npm` entry at
+// all, so it can't represent this row as-is).
+//
+// Deliberately a plain flexbox layout, not a reuse of the default
+// Header's own CSS grid — that grid's column math is tuned specifically
+// for its own 3-region layout (title | search | icons) and isn't built
+// to accommodate a 4th "nav links" region without a deeper rework.
+//
+// NOTE: only the desktop (>=50rem) layout has been designed here.
+// Starlight's own mobile menu toggle/drawer behavior is tied to class
+// names and JS in the default Header/MobileMenuToggle — worth testing
+// on a narrow viewport and adjusting before relying on this in
+// production.
+import type { Props } from '@astrojs/starlight/props';
+import Search from 'virtual:starlight/components/Search';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+import config from 'virtual:starlight/user-config';
+
+// Top-level section links, per framework — edit these arrays directly
+// to add, remove, or reorder nav items. Each `href` is a real, final
+// page in that section (its own landing page), not a bare section
+// prefix. Framework-specific rather than one shared array: a real bug
+// existed before this (confirmed directly, not assumed) — these links
+// were hardcoded to Vue's own routes and shown unconditionally on every
+// page, including the React/Angular placeholder pages, which have none
+// of Guide/Features/Components/API/Examples/Changelog as real pages at
+// all. React and Angular deliberately get an empty array rather than
+// invented links to pages that don't exist yet — extend either array
+// the same way Vue's is once that framework has real sections of its
+// own to link to.
+const VUE_NAV_LINKS: { label: string; href: string }[] = [
+	{ label: `Guide`, href: `/vue/guide/introduction/` },
+	{ label: `Features`, href: `/vue/features/` },
+	{ label: `Components`, href: `/vue/components/` },
+	{ label: `API`, href: `/vue/api/` },
+	{ label: `Examples`, href: `/vue/examples/` },
+	{ label: `Changelog`, href: `/vue/guide/changelog/` },
+];
+const REACT_NAV_LINKS: { label: string; href: string }[] = [];
+const ANGULAR_NAV_LINKS: { label: string; href: string }[] = [];
+
+const navLinks: { label: string; href: string }[] = Astro.url.pathname.includes(`/react`)
+	? REACT_NAV_LINKS
+	: Astro.url.pathname.includes(`/angular`)
+		? ANGULAR_NAV_LINKS
+		: VUE_NAV_LINKS;
+
+// Custom icon row — edit this array directly to add, remove, or
+// reorder icons. Each `svg` is a raw inline path (no external request,
+// no dependency on Starlight's own curated icon set, which doesn't
+// include npm at all). Swap any `href` for your own real profile URL.
+// `color` is each icon's own real brand color, applied via inline
+// style so it wins over the fill="currentColor" every icon's <svg>
+// otherwise inherits from the surrounding theme text color — omit it
+// (or leave undefined) for an icon that should just follow the theme
+// instead, which is why GitHub below has none: its brand mark reads as
+// black/white already, so forcing a color onto it would look like the
+// odd one out next to the others, not more "branded."
+const iconLinks: { label: string; href: string; svg: string; color?: string }[] = [
+	{
+		label: `GitHub`,
+		href: config.social?.github?.url ?? `https://github.com/gwinnem/keystone-dashboard-layout`,
+		svg: `<path d="M12 .5C5.65.5.5 5.65.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.79-.25.79-.55 0-.27-.01-1.16-.02-2.11-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.77.11 3.06.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.4-5.27 5.69.42.36.78 1.07.78 2.17 0 1.57-.01 2.83-.01 3.22 0 .3.21.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>`,
+	},
+	{
+		label: `Twitter`,
+		href: `https://twitter.com/`,
+		color: `#1DA1F2`,
+		svg: `<path d="M23.44 4.83c-.8.36-1.66.6-2.56.71.92-.55 1.63-1.42 1.96-2.46-.86.51-1.82.88-2.83 1.08a4.45 4.45 0 0 0-7.58 4.06 12.63 12.63 0 0 1-9.17-4.65 4.45 4.45 0 0 0 1.38 5.94 4.4 4.4 0 0 1-2.02-.56v.06a4.45 4.45 0 0 0 3.57 4.36 4.47 4.47 0 0 1-2.01.08 4.45 4.45 0 0 0 4.16 3.09A8.93 8.93 0 0 1 1 19.13a12.6 12.6 0 0 0 6.83 2c8.19 0 12.67-6.79 12.67-12.68 0-.19 0-.39-.01-.58a9.05 9.05 0 0 0 2.22-2.3l-.27-.02Z"/>`,
+	},
+	{
+		label: `LinkedIn`,
+		href: `https://www.linkedin.com/`,
+		color: `#0A66C2`,
+		svg: `<path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z"/>`,
+	},
+	{
+		label: `Vue package on npm`,
+		href: `https://www.npmjs.com/package/@keystone-dashboard-layout/vue`,
+		color: `#42B883`,
+		svg: `<path d="M24,1.61H14.06L12,5.16,9.94,1.61H0L12,22.39ZM12,14.08,5.16,2.23H9.59L12,6.41l2.41-4.18h4.43Z"/>`,
+	},
+	{
+		label: `React package on npm`,
+		href: `https://www.npmjs.com/package/@keystone-dashboard-layout/react`,
+		color: `#61DAFB`,
+		svg: `<circle cx="12" cy="12" r="2.2"/><g fill="none" stroke="currentColor" stroke-width="1.3"><ellipse cx="12" cy="12" rx="10.5" ry="4.2"/><ellipse cx="12" cy="12" rx="10.5" ry="4.2" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10.5" ry="4.2" transform="rotate(120 12 12)"/></g>`,
+	},
+	{
+		label: `Angular package on npm`,
+		href: `https://www.npmjs.com/package/@keystone-dashboard-layout/angular`,
+		color: `#DD0031`,
+		svg: `<path d="M12 .5 1.3 4.3l1.6 14 9.1 5 9.1-5 1.6-14ZM12 3.8l7.1 12.6-2.6.1-1.4-3.5H9l-1.4 3.5-2.6-.1ZM12 8.2l2.3 5.3H9.7Z"/>`,
+	},
+];
+---
+
+<div class="header sl-flex">
+	<div class="left-group sl-flex">
+		<div class="title-wrapper sl-flex">
+			<a
+				class="site-title sl-flex"
+				href={Astro.props.siteTitleHref}>
+				<svg
+					class="site-title-icon"
+					viewBox="0 0 22 22"
+					xmlns="http://www.w3.org/2000/svg">
+					<rect
+						fill="#4FB8C9"
+						height="9"
+						rx="2"
+						width="9"
+						x="1"
+						y="1" />
+					<rect
+						fill="#F5F4EF"
+						height="6"
+						rx="2"
+						width="9"
+						x="12"
+						y="1" />
+					<rect
+						fill="#F5F4EF"
+						fill-opacity="0.6"
+						height="12"
+						rx="2"
+						width="9"
+						x="12"
+						y="9" />
+					<rect
+						fill="#F2A93B"
+						height="9"
+						rx="2"
+						width="9"
+						x="1"
+						y="12" />
+				</svg>
+				<span>KDL</span>
+				<span class="site-title-tooltip">Keystone Dashboard Layout</span>
+			</a>
+		</div>
+		<nav class="top-nav sl-hidden md:sl-flex" aria-label="Sections">
+			{navLinks.map((link) => (
+				<a href={link.href}>{link.label}</a>
+			))}
+		</nav>
+	</div>
+	<div class="sl-flex">
+		<Search {...Astro.props} />
+	</div>
+	<div class="sl-hidden md:sl-flex right-group">
+		<ThemeSelect {...Astro.props} />
+		<div class="sl-flex icon-links">
+			{iconLinks.map((link) => (
+				<a href={link.href} rel="me" aria-label={link.label} title={link.label} class="sl-flex" style={link.color ? `color: ${link.color}` : undefined}>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" set:html={link.svg} />
+				</a>
+			))}
+		</div>
+	</div>
+</div>
+
+<style>
+	.header {
+		gap: 1rem;
+		justify-content: space-between;
+		align-items: center;
+		height: 100%;
+	}
+
+	.left-group {
+		align-items: center;
+		gap: 2rem;
+		min-width: 0;
+	}
+
+	.title-wrapper {
+		overflow: visible;
+		padding: 0.25rem;
+		margin: -0.25rem;
+		min-width: 0;
+	}
+
+	.site-title {
+		align-items: center;
+		color: var(--sl-color-text-accent);
+		font-size: var(--sl-text-h4);
+		font-weight: 600;
+		gap: 0.5rem;
+		position: relative;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.site-title-icon {
+		height: calc(var(--sl-nav-height) - 2 * var(--sl-nav-pad-y) - 4px);
+		width: auto;
+	}
+
+	.site-title-tooltip {
+		background: var(--sl-color-black);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 4px;
+		color: var(--sl-color-white);
+		font-size: var(--sl-text-xs);
+		font-weight: 500;
+		left: 0;
+		opacity: 0;
+		padding: 4px 8px;
+		pointer-events: none;
+		position: absolute;
+		top: calc(100% + 8px);
+		transform: translateY(-4px);
+		transition: opacity 150ms ease, transform 150ms ease;
+		white-space: nowrap;
+		z-index: 10;
+	}
+
+	.site-title:hover .site-title-tooltip {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.top-nav {
+		gap: 1.5rem;
+		align-items: center;
+		font-size: var(--sl-text-sm);
+		white-space: nowrap;
+	}
+
+	.top-nav a {
+		color: var(--sl-color-text);
+		text-decoration: none;
+		font-weight: 500;
+	}
+
+	.top-nav a:hover {
+		color: var(--sl-color-text-accent);
+	}
+
+	.right-group,
+	.icon-links {
+		gap: 1rem;
+		align-items: center;
+	}
+
+	.icon-links {
+		border-inline-start: 1px solid var(--sl-color-gray-5);
+		padding-inline-start: 1rem;
+	}
+
+	.icon-links a {
+		color: var(--sl-color-text);
+		transition: opacity 150ms;
+	}
+
+	.icon-links a:hover {
+		opacity: 0.7;
+	}
+</style>

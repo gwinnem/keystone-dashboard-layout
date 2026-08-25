@@ -1,0 +1,37 @@
+---
+title: ECompactType
+description: Selects the built-in compaction strategy GridLayout uses via its compactType prop.
+---
+
+Re-exported from the package's main entry point as a real (value)
+export, so you can both type `compactType` and compare/construct
+against these at runtime.
+
+```ts
+enum ECompactType {
+  NONE = 'none',
+  HORIZONTAL = 'horizontal',
+  HORIZONTAL_OVERLAP = 'horizontal-overlap',
+  VERTICAL = 'vertical',
+  VERTICAL_OVERLAP = 'vertical-overlap',
+}
+```
+
+| Value | Behavior |
+|---|---|
+| `NONE` | No compaction at all — items stay exactly where placed, gaps included. Colliding items still get pushed down out of the way; this is distinct from `VERTICAL_OVERLAP` below — turning compaction off has never meant turning collision resolution off too. |
+| `HORIZONTAL` | Items compact leftward, floating to the smallest available `x` without colliding with anything already placed. |
+| `HORIZONTAL_OVERLAP` | Horizontal compaction, but every non-static item moves straight to `x: 0` unconditionally, ignoring collisions entirely — matching `react-grid-layout`'s own `allowOverlap` semantics applied to compaction specifically. Items may end up visually overlapping as a result. |
+| `VERTICAL` (default) | Items compact upward, floating to the smallest available `y` without colliding with anything already placed. |
+| `VERTICAL_OVERLAP` | Vertical compaction, but every non-static item moves straight to `y: 0` unconditionally, ignoring collisions. Same overlap semantics as `HORIZONTAL_OVERLAP`, applied to the vertical axis. |
+
+Replaces an older, separate `verticalCompact: boolean` prop — a single
+enum-valued prop is easier to extend (the two `*_OVERLAP` members add a
+capability the boolean couldn't express at all) and easier to reason
+about than a growing pile of independent booleans.
+
+See [Pluggable compaction](/vue/api/interfaces/compactor/) for the
+`compactor` prop that lets you replace the algorithm entirely instead
+of picking one of these five, and [Pluggable compaction (compactType &
+compactor)](/vue/examples/pluggable-compaction/) for a live demo
+switching between all five plus a custom compactor.

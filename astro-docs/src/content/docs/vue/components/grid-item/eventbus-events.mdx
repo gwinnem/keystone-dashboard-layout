@@ -1,0 +1,36 @@
+---
+title: GridItem Eventbus events
+description: The internal event bus, from GridItem's own side.
+---
+
+The same shared event bus documented on
+[GridLayout's eventbus events page](/vue/components/grid-layout/eventbus-events/) —
+this page lists them from `GridItem`'s perspective: what it listens for,
+and what it emits.
+
+## Listens for (pushed down from GridLayout)
+
+`changeDirection`, `compact`, `setBounded`, `setBorderRadiusPx`,
+`setColNum`, `setDraggable`, `setEnableEditMode`, `setMargin`,
+`setMaxRows`, `setResizable`, `setResizeHandles`, `setRowHeight`,
+`setShowCloseButton`, `setTransformScale`, `setUseBorderRadius`,
+`setUseCssTransforms`, `updateWidth` — each has a corresponding handler
+registered on mount and deregistered on unmount.
+
+The `setDraggable`/`setResizable`/`setBounded`/`setShowCloseButton`/
+`setEnableEditMode`/`setUseBorderRadius`/`setBorderRadiusPx`/
+`setResizeHandles` handlers only apply the pushed value when the item's
+own matching prop is `null` — an explicit per-item prop always wins
+over the cascade. `setUseCssTransforms` is the one exception: it applies
+unconditionally, since there's no per-item override for it at all.
+
+## Emits (reported up to GridLayout)
+
+`dragEvent` and `resizeEvent`, both carrying an `IEventsData` payload —
+emitted on every `dragstart`/`dragmove`/`dragend` (or
+`resizestart`/`resizemove`/`resizeend`) tick. `itemClicked` (an
+`IItemClickedData` payload) fires on a genuine click/tap, backing
+`GridLayout`'s own `multiSelect` handling.
+
+See [GridLayout's eventbus events](/vue/components/grid-layout/eventbus-events/)
+for the full message table and payload shapes.

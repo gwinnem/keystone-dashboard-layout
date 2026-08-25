@@ -1,0 +1,19 @@
+---
+title: Per-item zIndex override
+description: An explicit stacking-order override that wins over the library's own implicit static/dragging/resizing rules.
+---
+import PerItemZIndex from '../../../../components/examples/49-per-item-z-index.vue';
+import PerItemZIndexSource from '../../../../components/examples/49-per-item-z-index.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={PerItemZIndexSource} filename="per-item-z-index.vue">
+  <PerItemZIndex client:visible />
+</ExampleTryIt>
+
+`null` (the default) means no override at all — the item falls back to
+the library's own implicit handling (static items sit at `-1`, an
+actively resizing item briefly rises to `3`, everything else uses
+normal DOM-order stacking). An explicit value always wins over both of
+those, regardless of the item's current static/resizing state — useful
+for pinning one panel permanently above every other, including while
+others are mid-drag or mid-resize.

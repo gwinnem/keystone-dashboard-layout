@@ -1,0 +1,96 @@
+---
+title: Roadmap
+description: What's suggested next for KeystoneGrid for Vue — not a task list nobody's committed to.
+---
+
+Forward-looking — what's suggested next, not a commitment. For what's
+already built, see [Features](/vue/features/) and the
+[Changelog](/vue/guide/changelog/).
+
+## Recently completed
+
+Most of this roadmap's earlier items have already shipped: cross-grid
+drag/drop, drag-and-drop from outside the grid, resize from all eight
+edges/corners, keyboard move/resize, a first-party persistence helper,
+configurable transitions, custom drag-placeholder content, alignment
+guides, `scrollToItem`/`focusItem`, `compactNow()`/`rearrange()`,
+`duplicateItem(id)`, blocked-move feedback, per-item `autoHeight`,
+magnetic snap-to-grid, configurable resize-hint appearance,
+`outsideDropAccept`, named layout presets, SVG export, localizable ARIA
+strings, a custom resize-handle slot, a layout-level edit-mode toggle,
+multi-select with group move/resize, align/distribute commands on a
+multi-selection, a configurable resize-handle set, spacing guides with
+distance labels, per-input-type drag-activation thresholds,
+configurable container height modes, undo/redo, per-item `zIndex`
+override, and a distinct header slot per item. See the
+[Changelog](/vue/guide/changelog/) for the full list with dates.
+
+## What's still open
+
+### A Nuxt module, paired with a real SSR audit
+
+One concrete SSR-breaking spot (an unguarded `navigator.userAgent` read
+inside a template-bound computed) has already been found and fixed —
+but that was one specific instance checked, not the exhaustive sweep a
+real audit would need before shipping a dedicated Nuxt wrapper around
+the rest of the codebase.
+
+### Swap-on-drag collision mode
+
+Dragging item A onto item B swaps their positions, as an alternative to
+the current push-aside compaction. Common in consumer tile-dashboard
+products (see [Comparison: alternatives](/vue/guide/project/comparison-alternatives/)
+for how `gridstack.js` handles this today).
+
+### Maximize/restore an item
+
+Temporarily expand a single item to fill the grid's entire visible
+area (its own header/close button still reachable, everything else
+hidden without being removed from `layout`), then restore it to its
+prior position/size. Needs its own design pass before starting,
+particularly around what happens to *other* items' compaction while one
+is maximized, and whether this lives as a per-item prop/method or a
+grid-level "which item is currently maximized" state. See
+[Comparison: commercial](/vue/guide/project/comparison-commercial/) for
+where this idea came from (DevExtreme's Dashboard Designer has it;
+Kendo TileLayout doesn't).
+
+### Async persistence backends
+
+A new, separate composable with its own adapter interface for IndexedDB
+and remote-HTTP-backed persistence, alongside (not replacing) the
+existing synchronous storage helper. `sessionStorage` already works
+today via the existing helper's own storage option — not a gap needing
+new code.
+
+### An open, pluggable CSS positioning strategy
+
+An interface (mirroring the existing pluggable-compaction precedent)
+replacing the current on/off toggle between CSS transforms and
+`top`/`left` positioning, with both current behaviors preserved as
+built-ins.
+
+### A fast, large-layout compaction algorithm
+
+An additional compaction strategy, implementing the same pluggable
+interface as the built-in ones, aimed at very large layouts. Needs a
+real performance benchmark proving the complexity claim before shipping
+— not to be added as an unverified swap.
+
+### A worker-based layout engine
+
+An opt-in Web Worker executor for compaction/responsive-generation on
+very large layouts. The largest lift of anything on this list —
+deliberately deferred until the fast-compaction item above alone is
+proven insufficient on its own, not built speculatively alongside it.
+
+## Known limitations (tracked, not silently ignored)
+
+Keyboard support is deliberately scoped to single-unit-step move/resize,
+not a full WAI-ARIA grid/application widget pattern — see
+[Accessibility scope](/vue/guide/project/accessibility/) for the full
+reasoning.
+
+## Have a request?
+
+Open an issue on [GitHub](https://github.com/gwinnem/keystone-dashboard-layout/issues).

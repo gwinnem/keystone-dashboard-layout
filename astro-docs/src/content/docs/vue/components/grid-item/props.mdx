@@ -1,0 +1,50 @@
+---
+title: GridItem Props
+description: Every prop GridItem accepts, with defaults and links to live examples.
+---
+
+`h`, `i`, `w`, `x`, and `y` are required — everything else has a default.
+Props that can defer to a `GridLayout` default (`isDraggable`,
+`isResizable`, `isBounded`) accept `null` for exactly that purpose.
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `h` | `number` (required) | — | Height, in grid row units. |
+| `i` | `string \| number` (required) | — | Unique identifier, matching this item's entry in the parent's `layout` array. |
+| `w` | `number` (required) | — | Width, in grid column units. |
+| `x` | `number` (required) | — | Starting horizontal position, in grid column units. |
+| `y` | `number` (required) | — | Starting vertical position, in grid row units. |
+| `ariaLabels` | `IGridAriaLabels` | `{}` | Per-item overrides for localizable UI/ARIA strings. See [Localizable ARIA strings](/vue/examples/aria-labels/). |
+| `autoScroll` | `boolean` | `false` | Scrolls the item's nearest scrollable ancestor automatically when a drag or resize approaches its edge. See [autoScroll](/vue/examples/auto-scroll/). |
+| `autoHeight` | `boolean` | `false` | Automatically re-runs `autoSize()`'s measurement whenever the default slot's content actually changes size. See [Per-item autoHeight](/vue/examples/per-item-auto-height/). |
+| `borderRadiusPx` | `number \| null` | `null` (inherits `GridLayout`'s own `borderRadiusPx`, itself `10` by default) | Border radius, in pixels, applied when `useBorderRadius` is true. See [Border radius](/vue/examples/border-radius/). |
+| `dragAllowFrom` | `string \| null` | `null` | CSS selector restricting which descendant elements can start a drag. See [Drag allow/ignore elements](/vue/examples/drag-allow-ignore-elements/). |
+| `dragActivationDistance` | `TDragActivationDistance \| null` | `null` (fixed 3px for every pointer type) | Minimum pointer movement, in pixels, before a pointerdown is treated as a drag rather than a click — one value for every pointer type, or distinct values per `mouse`/`touch`/`pen`. A pointer type left unset in the object form falls back to the same 3px default, not `0`. |
+| `dragIgnoreFrom` | `string` | `` `a, button` `` | CSS selector for elements that should *not* start a drag. |
+| `enableEditMode` | `boolean \| null` | `null` (inherits `GridLayout`'s own `enableEditMode`, itself `true` by default) | Master switch — when `false`, the item can't be dragged, resized, or closed regardless of other props. See [Edit mode toggle](/vue/examples/edit-mode-toggle/). |
+| `isBounded` | `boolean \| null` | `null` | Restrict dragging to within the container. `null` defers to `GridLayout`'s `isBounded`. See [Bounded drag](/vue/examples/bounded-drag/). |
+| `isDraggable` | `boolean \| null` | `null` | `null` defers to `GridLayout`'s `isDraggable`. |
+| `isMirrored` | `boolean \| null` | `true` | Whether this item participates in the parent layout's RTL mirroring. |
+| `isResizable` | `boolean \| null` | `null` | `null` defers to `GridLayout`'s `isResizable`. |
+| `isStatic` | `boolean \| null` | `false` | Ignores `isDraggable`/`isResizable` entirely; excluded from collision cascades. See [Static items](/vue/examples/static-items/). |
+| `maxH` | `number` | `Infinity` | Maximum height, in grid row units. See [Size constraints & aspect ratio](/vue/examples/size-constraints-aspect-ratio/). |
+| `maxW` | `number` | `Infinity` | Maximum width, in grid column units. |
+| `minH` | `number` | `1` | Minimum height, in grid row units. |
+| `minW` | `number` | `1` | Minimum width, in grid column units. |
+| `preserveAspectRatio` | `boolean` | `false` | Locks the width/height ratio while resizing. |
+| `resizeIgnoreFrom` | `string \| null` | `null` | CSS selector for elements that should *not* start a resize. |
+| `resizeHandles` | `TResizeHandle[] \| null` | `null` (inherits `GridLayout`'s own `resizeHandles`, itself all 8 by default) | Which of the 8 resize-hint spans actually render/activate for this item — restricts resizing to specific edges/corners instead of the all-or-nothing `showResizeHandles` toggle. An empty array (`[]`) is a deliberate, valid "no handle-driven resize for this item" value, distinct from `isResizable: false` (keyboard arrow-key resize still works with `[]`; it doesn't with `isResizable: false`). |
+| `resizeHandleColor` | `string \| null` | `null` (inherits `GridLayout`'s own `resizeHandleColor`) | CSS color for the visible resize handle, when `showResizeHandles` is true. |
+| `showResizeHandles` | `boolean \| null` | `null` (inherits `GridLayout`'s own `showResizeHandles`, itself `false` by default) | Renders a visible resize-handle affordance instead of only a cursor change on hover. See [Configurable resize-hint appearance](/vue/examples/resize-hint-appearance/). |
+| `showCloseButton` | `boolean \| null` | `null` (inherits `GridLayout`'s own `showCloseButton`, itself `false` by default) | Shows the built-in close button. Ignored when `isStatic` is true. See [Show close button](/vue/examples/close-button/). |
+| `useBorderRadius` | `boolean \| null` | `null` (inherits `GridLayout`'s own `useBorderRadius`, itself `false` by default) | Applies `borderRadiusPx` as a border radius. |
+| `zIndex` | `number \| null` | `null` (no override) | Explicit stacking-order override, applied as an inline `z-index` style. Without it, the item falls back to the library's own implicit handling (static items sit at `-1`, an actively resizing item briefly rises to `3`, everything else uses normal DOM-order stacking). An explicit value here always wins over both, regardless of the item's current static/resizing state — useful for pinning one panel permanently above every other, including while others are mid-resize. |
+
+## Resize direction support
+
+All four edges — top, right, bottom, left — and their diagonal corners
+are resizable. Left/top-edge resizes move the item's position (`x`/`y`)
+as well as its size, since growing from the left/top edge means the
+opposite edge stays fixed. In RTL mode, this is mirrored correctly too —
+dragging the right edge (rather than the left) is what moves the
+anchor. See [Mirrored (RTL)](/vue/examples/mirrored-rtl/).

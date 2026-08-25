@@ -15,10 +15,19 @@
     // are really one root cause. `".."` (this package's parent,
     // i.e. `packages/`) is the common ancestor of both `vue/src` and
     // `core/src`, so it covers both without needing to widen all the
-    // way to the monorepo root. Doesn't affect the *real* declaration
-    // build at all — `tsconfig.build-types.json` (used by
-    // `vite-plugin-dts`, not this file) already overrides `rootDir` to
-    // `"src"` explicitly for that separate, actual-emission path.
+    // way to the monorepo root.
+    //
+    // CORRECTION: an earlier version of this comment claimed
+    // `tsconfig.build-types.json` (used by `vite-plugin-dts` for the
+    // real declaration build) already had its own, separately-correct
+    // `rootDir` override and so was unaffected by this file's own
+    // value. That was wrong — confirmed via a real `pnpm build` run
+    // reproducing this exact TS6059 cascade against that config
+    // specifically: it extended this file but then re-narrowed
+    // `rootDir` back to `"src"`, silently undoing the fix below for
+    // the one build that most needed it. That override has since been
+    // removed from `tsconfig.build-types.json`, so it now correctly
+    // inherits `".."` from here instead.
     "rootDir": "..",
     "paths": {
       // Bare-barrel entries (no trailing `/*`) are a *different* paths

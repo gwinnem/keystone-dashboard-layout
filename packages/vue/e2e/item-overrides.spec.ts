@@ -304,6 +304,104 @@ test.describe('Per-item overrides (edge cases)', () => {
     await expect(item.locator('.demo-item')).toContainText('Item 0');
   });
 
+  test.skip('isBounded meaningfully restricts how far down item "0" can be dragged, compared to the unbounded default', async ({ page }) => {
+    // PAUSED (confirmed with the person maintaining this repo) after
+    // seven consecutive failed attempts at this test, not abandoned
+    // silently. isBounded itself is a real, working feature
+    // (unit-tested thoroughly in tests/GridItem.spec.ts, and in
+    // Angular's own equivalent) — the blocker is specific to *this
+    // demo view*, not the feature.
+    //
+    // Confirmed root cause, in order of elimination:
+    // 1. A +3000px drag target exceeded the real browser viewport's own
+    //    default height, so mouse.move() physically couldn't reach it.
+    // 2. A smaller, viewport-safe +800px drag still landed both bounded
+    //    and unbounded at (almost) exactly the same y regardless.
+    // 3. Computing a drag magnitude guaranteed to exceed the container's
+    //    own measured clientHeight STILL produced exactly equal results
+    //    (699.90625 = 699.90625, to five decimal places) — ruling out
+    //    "drag too small" definitively.
+    // 4. Overriding the container's own height via a direct DOM style
+    //    assignment (bypassing Vue's own reactive re-render, matching
+    //    how the passing unit test mocks a *fixed* clientHeight instead
+    //    of driving it through a real GridLayout) produced bit-for-bit
+    //    identical numbers to attempt 3 — confirming Vue's own reactive
+    //    style binding silently overwrites a manual override on the
+    //    very next re-render, so this approach can't work from outside
+    //    the component at all.
+    // Root cause: this view's own grid has autoSize on, which almost
+    // certainly recalculates the container's own height reactively on
+    // every drag tick, including the *live, in-progress* drag position
+    // — not just a committed one. isBounded's own clamp reads
+    // clientHeight live, on every dragmove, so the boundary it's
+    // supposed to enforce is never actually static once a drag begins
+    // here, no matter what's done from the test side.
+    //
+    // Real paths forward, not attempted here: add a genuine autoSize:
+    // false toggle to this demo view (a real code change, not test
+    // code — none exists currently), or exercise this against a
+    // different, non-autoSize demo view instead. Skipped rather than
+    // deleted so this intent and history survive for whoever picks it
+    // back up.
+    await page.getByTestId('select-is-bounded').selectOption('true');
+
+    const container = page.getByTestId('item-overrides-grid');
+    const fixedContainerHeight = 400;
+    await container.evaluate((el, height) => {
+      el.style.height = `${height}px`;
+      el.style.overflow = `hidden`;
+    }, fixedContainerHeight);
+    const dragMagnitude = fixedContainerHeight + 500;
+
+    const item = page.getByTestId('grid-item-0');
+    const itemBefore = await stableBoundingBox(item);
+    expect(itemBefore).not.toBeNull();
+    await page.setViewportSize({ width: 1280, height: Math.ceil(itemBefore!.y + dragMagnitude + 300) });
+
+    // Unbounded first (isBounded left at its own default).
+    await page.mouse.move(itemBefore!.x + itemBefore!.width / 2, itemBefore!.y + itemBefore!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(itemBefore!.x + itemBefore!.width / 2, itemBefore!.y + itemBefore!.height / 2 + dragMagnitude, { steps: 20 });
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+    const unboundedAfter = await item.boundingBox();
+    expect(unboundedAfter).not.toBeNull();
+
+    // Reset, then repeat the identical drag with isBounded now true.
+    // page.reload() alone doesn't work here — confirmed directly, not
+    // assumed: it timed out waiting for select-is-bounded to ever
+    // appear at all. This demo switches views via client-side JS state
+    // (clicking nav-item-overrides), not a real URL route, so reloading
+    // resets the page back to whatever its own default view is, not
+    // back to item-overrides — the same full re-navigation sequence
+    // this file's own beforeEach already uses is needed here too, not
+    // just a reload.
+    await page.goto('/');
+    await page.setViewportSize({ width: 1280, height: Math.ceil(itemBefore!.y + dragMagnitude + 300) });
+    await page.getByTestId('nav-item-overrides').click();
+    await expect(page.getByTestId('grid-item-0')).toHaveClass(/vue-draggable/);
+    await page.getByTestId('select-is-bounded').selectOption('true');
+    await container.evaluate((el, height) => {
+      el.style.height = `${height}px`;
+      el.style.overflow = `hidden`;
+    }, fixedContainerHeight);
+    const itemBefore2 = await stableBoundingBox(item);
+    expect(itemBefore2).not.toBeNull();
+
+    await page.mouse.move(itemBefore2!.x + itemBefore2!.width / 2, itemBefore2!.y + itemBefore2!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(itemBefore2!.x + itemBefore2!.width / 2, itemBefore2!.y + itemBefore2!.height / 2 + dragMagnitude, { steps: 20 });
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+    const boundedAfter = await item.boundingBox();
+    expect(boundedAfter).not.toBeNull();
+
+    // The bounded drag should have landed meaningfully higher (smaller
+    // y) than the unbounded one, given the exact same drag magnitude —
+    // a purely relative comparison, not an absolute pixel guess.
+    expect(boundedAfter!.y).toBeLessThan(unboundedAfter!.y - 100);
+  });
+
   test('an explicit zIndex on item "0" keeps it visually above item "1" while dragged over it', async ({ page }) => {
     await page.getByTestId('input-item-z-index').fill('999');
 

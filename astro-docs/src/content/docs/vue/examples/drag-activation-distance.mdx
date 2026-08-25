@@ -1,0 +1,19 @@
+---
+title: Drag activation distance
+description: Minimum pointer movement, in pixels, before a pointerdown is treated as a drag rather than a click.
+---
+import DragActivationDistance from '../../../../components/examples/51-drag-activation-distance.vue';
+import DragActivationDistanceSource from '../../../../components/examples/51-drag-activation-distance.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={DragActivationDistanceSource} filename="drag-activation-distance.vue">
+  <DragActivationDistance client:visible />
+</ExampleTryIt>
+
+Either a single fixed value for every pointer type, or distinct values
+per type: `{ mouse: 3, touch: 12, pen: 3 }`. `null` (the default) uses a
+fixed 3px threshold for every pointer type. A pointer type left unset in
+the object form falls back to that same 3px default, not `0`. Useful for
+touch specifically, where a finger's own contact-point jitter is larger
+than a mouse's — a small, unintentional finger movement shouldn't start
+a drag the way it reasonably can for a precise mouse pointer.

@@ -2,6 +2,7 @@ import { computed, ComputedRef, ref, Ref } from 'vue';
 import { IGridLayoutProps } from '../grid-layout-props.interface';
 import { EGridLayoutEvent } from '@/core/gridlayout/enums/EGridLayoutEvents';
 import { IItemClickedData } from '@/core/griditem/interfaces/grid-item.interfaces';
+import { computeRangeSelection } from '@/core/gridlayout/helpers/selection-range-helper';
 
 /** Dependencies `useMultiSelect` needs from `GridLayout.vue`. */
 export interface IUseMultiSelectContext {
@@ -56,6 +57,20 @@ export function useMultiSelect(ctx: IUseMultiSelectContext): IUseMultiSelectRetu
    */
   const selectedItemIds = ref<Set<string | number>>(new Set());
 
+  /**
+   * The anchor for a future Shift-click range — the last item selected
+   * without Shift (a plain click, or a Ctrl/Cmd toggle), matching the
+   * standard file-explorer/spreadsheet convention: the range always
+   * spans from this fixed point to whatever's Shift-clicked next, not
+   * from the *previous* Shift-click target (which would make repeated
+   * Shift-clicks compound unpredictably instead of always re-anchoring
+   * to the same starting point). `null` until the first click of any
+   * kind — a Shift-click with no anchor yet has nothing to range from,
+   * so `itemClickedHandler` below falls back to a plain select in that
+   * case.
+   */
+  const lastAnchorId = ref<string | number | null>(null);
+
   /** Reactive, read-only array view of the current selection — the exposed public form. `selectedItemIds` (a `Set`) stays internal; `GridItem`'s own `isSelected` check via `thisLayout` uses it directly for O(1) lookups. */
   const selectedItems = computed(() => Array.from(selectedItemIds.value));
 
@@ -94,8 +109,9 @@ export function useMultiSelect(ctx: IUseMultiSelectContext): IUseMultiSelectRetu
     }
   };
 
-  /** Empties the selection entirely — the "click empty grid background" gesture, also callable directly. A no-op (no event fired) if nothing was selected. */
+  /** Empties the selection entirely — the "click empty grid background" gesture, also callable directly. A no-op (no event fired) if nothing was selected. Also clears `lastAnchorId`: a range anchor pointing at an item outside the (now-empty) selection would be a confusing starting point for whatever's Shift-clicked next. */
   const clearSelection = (): void => {
+    lastAnchorId.value = null;
     if(selectedItemIds.value.size === 0) {
       return;
     }
@@ -111,9 +127,19 @@ export function useMultiSelect(ctx: IUseMultiSelectContext): IUseMultiSelectRetu
    * own code), a dangling reference to something that no longer
    * exists. Wired to the same `props.layout.length` watcher that
    * already reacts to add/remove — a length change is exactly when
-   * this can happen.
+   * this can happen. Also clears `lastAnchorId` specifically when *it*
+   * no longer matches a real item — a range computed from a removed
+   * anchor would silently fall back to `computeRangeSelection`'s own
+   * "anchor not found" case (just the target alone), which is
+   * confusing rather than useful; resetting it here means the next
+   * Shift-click with no valid anchor instead falls through to a plain
+   * select, the same well-defined "no anchor yet" behavior a fresh
+   * grid starts with.
    */
   const pruneSelection = (): void => {
+    if(lastAnchorId.value !== null && !props.layout.some(item => item.i === lastAnchorId.value)) {
+      lastAnchorId.value = null;
+    }
     if(selectedItemIds.value.size === 0) {
       return;
     }
@@ -132,9 +158,27 @@ export function useMultiSelect(ctx: IUseMultiSelectContext): IUseMultiSelectRetu
    * `multiSelect` is on, since a `GridItem` has no way to know this
    * grid's own prop value itself; the early return here is what
    * actually gates the feature being off by default.
+   *
+   * Shift-click range-selection: extends from `lastAnchorId` (the last
+   * plain/Ctrl-click) to the clicked item, inclusive, via `core`'s own
+   * `computeRangeSelection` — *replacing* the current selection with
+   * that range, matching the standard desktop convention (not
+   * additive; a Shift-click after an unrelated Ctrl-click selection
+   * doesn't merge with it). Falls back to a plain select if there's no
+   * anchor yet (the very first click on a fresh grid) — a range needs
+   * two ends to mean anything, and a lone Shift-click has only one.
+   * Deliberately does *not* update `lastAnchorId` on a Shift-click
+   * itself: see that ref's own doc comment for why the anchor should
+   * stay fixed across repeated Shift-clicks.
    */
   const itemClickedHandler = (data: IItemClickedData): void => {
     if(!props.multiSelect) {
+      return;
+    }
+    if(data.shiftKey && lastAnchorId.value !== null) {
+      const range = computeRangeSelection(props.layout, lastAnchorId.value, data.i);
+      selectedItemIds.value = new Set(range);
+      emitSelectionChanged();
       return;
     }
     if(data.shiftKey || data.ctrlKey || data.metaKey) {
@@ -142,6 +186,7 @@ export function useMultiSelect(ctx: IUseMultiSelectContext): IUseMultiSelectRetu
     } else {
       selectItem(data.i, false);
     }
+    lastAnchorId.value = data.i;
   };
 
   /**

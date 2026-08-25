@@ -1,0 +1,16 @@
+---
+title: Alignment guides while dragging
+description: Figma-style guide lines wherever the dragged item's edges align with another item's — purely visual.
+---
+import AlignmentGuides from '../../../../components/examples/26-alignment-guides.vue';
+import AlignmentGuidesSource from '../../../../components/examples/26-alignment-guides.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={AlignmentGuidesSource} filename="alignment-guides.vue">
+  <AlignmentGuides client:visible />
+</ExampleTryIt>
+
+Purely visual — unlike [snap to grid](/vue/examples/snap-to-grid/),
+alignment guides never change where a dragged item actually lands.
+Both can be enabled together: the guide shows exactly where the
+magnetic snap is about to lock to.

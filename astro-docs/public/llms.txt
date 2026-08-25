@@ -1,0 +1,125 @@
+# KeystoneGrid
+
+> A draggable, resizable dashboard grid layout library for Vue, React, and Angular — Vue ships today; React and Angular reuse the same framework-agnostic core. Zero runtime dependencies, TypeScript-first, native Pointer Events (no bundled drag library), 99%+ statement coverage.
+
+KeystoneGrid provides two components — `GridLayout` (the container) and
+`GridItem` (a single draggable/resizable cell) — for building
+customizable dashboards: drag, resize, responsive breakpoints,
+collision handling, undo/redo, cross-grid drag-and-drop, and more, all
+built in. Only the Vue package (`@keystone-dashboard-layout/vue`) is
+published; React and Angular packages are in progress and reuse the
+same core positioning/collision engine (`@keystone-dashboard-layout/core`).
+
+Paths below are relative to the site root. Every example page embeds a
+live, interactive instance of the real published component.
+
+## Guide
+
+- [Introduction](/vue/guide/introduction/): what KeystoneGrid is, what you get, and where to go next
+- [Installation](/vue/guide/installation/): adding the package, styles, and basic usage
+- [Architecture](/vue/guide/project/architecture/): how GridLayout and GridItem communicate internally
+- [Testing philosophy](/vue/guide/project/testing/): unit/component/e2e layers and what each covers
+- [Accessibility scope](/vue/guide/project/accessibility/): what keyboard/screen-reader support does and doesn't cover
+- [Comparison: alternatives](/vue/guide/project/comparison-alternatives/): vs. vue-grid-layout, grid-layout-plus, react-grid-layout, gridstack.js
+- [Comparison: commercial](/vue/guide/project/comparison-commercial/): vs. Kendo TileLayout and DevExtreme Dashboard Designer
+- [Roadmap](/vue/guide/project/roadmap/): what's genuinely still open
+- [Production readiness](/vue/guide/project/production-readiness/): an honest, snapshot-dated checklist
+- [Changelog](/vue/guide/changelog/): release history
+
+## Features
+
+- [Features](/vue/features/): every capability, grouped into 9 categories, each linking to a live example
+
+## Components
+
+- [Components overview](/vue/components/): the four exported components
+- [GridLayout props](/vue/components/grid-layout/props/)
+- [GridLayout Vue events](/vue/components/grid-layout/vue-events/)
+- [GridLayout eventbus events](/vue/components/grid-layout/eventbus-events/): internal GridLayout↔GridItem plumbing
+- [GridLayout slots](/vue/components/grid-layout/slots/): default slot and `#placeholder`
+- [GridItem props](/vue/components/grid-item/props/)
+- [GridItem Vue events](/vue/components/grid-item/vue-events/)
+- [GridItem eventbus events](/vue/components/grid-item/eventbus-events/)
+- [GridItem slots](/vue/components/grid-item/slots/): default slot and `#resize-handle`
+- [CustomCloseButton](/vue/components/custom-close-button/)
+- [CustomDragElement](/vue/components/custom-drag-element/)
+- [Styling → CSS variables](/vue/components/styling/css-variables/)
+- [Styling → GridLayout CSS](/vue/components/styling/css-grid-layout/)
+- [Styling → GridItem CSS](/vue/components/styling/css-grid-item/)
+
+## API
+
+- [API overview](/vue/api/): now covers the full real export list, not a partial one
+- [Eventbus (IEventsData)](/vue/api/interfaces/eventbus/)
+- [Layout interface (ILayoutItem)](/vue/api/interfaces/layout/)
+- [ARIA labels (IGridAriaLabels)](/vue/api/interfaces/aria-labels/): plus the exported DEFAULT_ARIA_LABELS constant
+- [Pluggable compaction (ICompactor)](/vue/api/interfaces/compactor/): the compactor interface, its context object, and the five built-in strategies
+- [Layout persistence](/vue/api/interfaces/layout-persistence/): serializeLayout/deserializeLayout, useLayoutStorage, useLayoutPresets
+- [SVG export & outside-drop payload](/vue/api/interfaces/svg-export-and-payload/): exportLayoutAsSvg, readOutsideDropPayload
+- [Cross-grid & outside-drop event payloads](/vue/api/interfaces/event-payloads/)
+- [Exposed instance state](/vue/api/interfaces/exposed-state/): IPlaceholder, IAlignmentGuide, ISpacingIndicator, IGridItemPosition
+- [Layout types](/vue/api/types/layout/): TLayout, TResponsiveLayout, TBreakpoint, TBreakpoints
+- [EGridLayoutEvent](/vue/api/enums/grid-layout-events/)
+- [EGridItemEvent](/vue/api/enums/grid-item-events/)
+- [ECompactType](/vue/api/enums/compact-type/)
+
+## Examples
+
+- [Examples gallery](/vue/examples/): all 45, grouped by category
+- [01 — Basic drag & resize](/vue/examples/basic-drag-resize/)
+- [02 — Bounded drag to container](/vue/examples/bounded-drag/)
+- [03 — Events](/vue/examples/events/)
+- [04 — Multiple grids](/vue/examples/multiple-grids/)
+- [05 — Drag allow / ignore elements](/vue/examples/drag-allow-ignore-elements/)
+- [06 — Mirrored (RTL)](/vue/examples/mirrored-rtl/)
+- [07 — Responsive breakpoints](/vue/examples/responsive-breakpoints/)
+- [08 — Prevent collision](/vue/examples/prevent-collision/)
+- [09 — Responsive predefined layouts](/vue/examples/responsive-predefined-layouts/)
+- [10 — Add or remove items](/vue/examples/add-remove-items/)
+- [11 — Drag, drop from outside](/vue/examples/outside-drag-drop/)
+- [12 — Drag, drop from grid to grid](/vue/examples/cross-grid-drag-drop/)
+- [13 — Show close button](/vue/examples/close-button/)
+- [14 — Border radius](/vue/examples/border-radius/)
+- [15 — Horizontal shift](/vue/examples/horizontal-shift/)
+- [16 — Show grid lines](/vue/examples/grid-lines/)
+- [17 — Static items](/vue/examples/static-items/)
+- [18 — Custom drag handle & close button](/vue/examples/custom-drag-handle-close-button/)
+- [19 — v-model & save/load layout](/vue/examples/save-load-layout/)
+- [20 — Auto-size grid on content](/vue/examples/auto-size-grid/)
+- [21 — Edit mode toggle](/vue/examples/edit-mode-toggle/)
+- [22 — Cross-grid drop restrictions](/vue/examples/cross-grid-drop-restrictions/)
+- [23 — Drag, drop from outside into multiple grids](/vue/examples/outside-drag-drop-multiple-grids/)
+- [24 — Configurable transition duration & easing](/vue/examples/transition-duration-easing/)
+- [25 — Custom drag-placeholder content](/vue/examples/custom-drag-placeholder/)
+- [26 — Alignment guides while dragging](/vue/examples/alignment-guides/)
+- [27 — scrollToItem & focusItem](/vue/examples/scroll-to-item-focus-item/)
+- [28 — Export layout as SVG](/vue/examples/svg-export/)
+- [29 — compactNow, rearrange & duplicateItem](/vue/examples/compact-now-rearrange-duplicate-item/)
+- [30 — Blocked-move feedback](/vue/examples/blocked-move-feedback/)
+- [31 — Per-item autoHeight](/vue/examples/per-item-auto-height/)
+- [32 — Snap to grid](/vue/examples/snap-to-grid/)
+- [33 — Configurable resize-hint appearance](/vue/examples/resize-hint-appearance/)
+- [34 — outsideDropAccept & readOutsideDropPayload](/vue/examples/outside-drop-accept-payload/)
+- [35 — Named layout presets](/vue/examples/named-presets/)
+- [36 — Localizable ARIA strings](/vue/examples/aria-labels/)
+- [37 — Multi-select & group move/resize](/vue/examples/multi-select-group-move-resize/)
+- [38 — Size constraints & aspect ratio](/vue/examples/size-constraints-aspect-ratio/)
+- [39 — autoScroll](/vue/examples/auto-scroll/)
+- [40 — Layout lifecycle events](/vue/examples/layout-lifecycle-events/)
+- [41 — Layout bounds & rendering options](/vue/examples/layout-bounds-rendering-options/)
+- [42 — Pluggable compaction](/vue/examples/pluggable-compaction/)
+- [43 — Undo/redo](/vue/examples/undo-redo/)
+- [44 — Grid dimensions](/vue/examples/grid-dimensions/)
+- [45 — Switching layouts & forcing a remount](/vue/examples/switching-layouts-remount/)
+- [46 — Align & distribute selected items](/vue/examples/align-distribute-selected/): new, not in the original 45 — alignSelected/distributeSelected
+- [47 — Spacing indicators](/vue/examples/spacing-indicators/): new — showSpacingGuides
+- [48 — Custom header slot](/vue/examples/custom-header-slot/): new — GridItem's #header slot
+- [49 — Per-item zIndex override](/vue/examples/per-item-z-index/): new
+- [50 — Height modes (heightMode)](/vue/examples/height-modes/): new — the modern replacement for autoSize
+- [51 — Drag activation distance](/vue/examples/drag-activation-distance/): new — dragActivationDistance
+- [52 — Restricting resize handles to specific edges](/vue/examples/restrict-resize-handles/): new — resizeHandles
+
+## Optional
+
+- [GitHub repository](https://github.com/gwinnem/keystone-dashboard-layout): source, issues, contributing
+- React and Angular documentation: not yet published — both packages are in progress, reusing `@keystone-dashboard-layout/core`

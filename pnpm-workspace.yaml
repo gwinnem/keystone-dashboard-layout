@@ -1,2 +1,38 @@
 packages:
   - "packages/*"
+
+# Moved here from the root package.json's own "pnpm" field — pnpm no
+# longer reads overrides/onlyBuiltDependencies from package.json (see
+# https://pnpm.io/settings), confirmed directly by a fresh `pnpm
+# install` run emitting exactly that warning.
+#
+# `allowBuilds` (not `onlyBuiltDependencies`, which this file used
+# briefly and incorrectly) — confirmed via a fresh install run plus a
+# web search of pnpm's own current docs, not assumed: this workspace is
+# on pnpm v11, which removed `onlyBuiltDependencies` entirely in favor
+# of this `allowBuilds` map (package name -> true/false). pnpm itself
+# had already auto-generated a placeholder version of this exact block
+# in this file during an earlier install attempt (each value literally
+# read "set this to true or false") — that placeholder was mistakenly
+# deleted in an earlier pass rather than filled in, and pnpm then
+# re-added a second, duplicate copy of it on a later install run before
+# this fix consolidated both into the one map below. `puppeteer` is set
+# `true` here since its own postinstall script is what actually
+# downloads the bundled Chromium `karma.conf.js` (packages/angular)
+# depends on.
+overrides:
+  qs: 6.15.3
+  esbuild: 0.25.12
+  "@commitlint/load": 20.5.3
+  "@commitlint/types": 20.5.0
+  "@commitlint/execute-rule": 20.0.0
+  "@commitlint/resolve-extends": 20.5.3
+  "@commitlint/config-validator": 20.5.0
+
+allowBuilds:
+  "@parcel/watcher": true
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true
+  puppeteer: true
+  vue-demi: true

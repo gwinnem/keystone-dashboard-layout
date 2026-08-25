@@ -1,0 +1,18 @@
+---
+title: Undo/redo (enableUndoRedo)
+description: Opt-in history at committed-change granularity, not per intermediate drag-move frame.
+---
+import UndoRedo from '../../../../components/examples/43-undo-redo.vue';
+import UndoRedoSource from '../../../../components/examples/43-undo-redo.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={UndoRedoSource} filename="undo-redo.vue">
+  <UndoRedo client:visible />
+</ExampleTryIt>
+
+`undo()`/`redo()`/`canUndo`/`canRedo` are all exposed on the `GridLayout`
+instance, the same `ref`-based pattern as `compactNow()`/`scrollToItem()`.
+A snapshot is captured at the *start* of a drag/resize and committed at
+its *end* — not per intermediate frame — so one undo reverts a whole
+gesture at once, not one step per pixel moved. `undoHistoryLimit`
+(default `50`) caps how many snapshots `undo()` can step back through.

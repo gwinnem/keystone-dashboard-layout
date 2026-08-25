@@ -1,0 +1,88 @@
+---
+title: Examples
+description: All 45 live, interactive examples of KeystoneGrid Vue, grouped by category.
+---
+
+Every example below renders the real, published component — not a
+screenshot — via an Astro/Vue island. All 45 are ported; grouped here
+the same way [Features](/vue/features/) groups its own categories, so
+a bullet there and an example here always mean the same thing.
+
+## Drag & resize
+
+- **[Basic drag & resize](/vue/examples/basic-drag-resize/)** — the simplest possible setup.
+- **[Bounded drag to container](/vue/examples/bounded-drag/)** — keep items inside the grid's own edges.
+- **[Drag allow / ignore elements](/vue/examples/drag-allow-ignore-elements/)** — restrict dragging to a handle, or exclude specific elements.
+- **[Static items](/vue/examples/static-items/)** — lock an item in place as a fixed obstacle.
+- **[Custom drag handle & close button](/vue/examples/custom-drag-handle-close-button/)** — the exported `CustomDragElement`/`CustomCloseButton` in place of the defaults.
+- **[Per-item autoHeight](/vue/examples/per-item-auto-height/)** — a live-resyncing height driven by the item's own content.
+- **[Size constraints & aspect ratio](/vue/examples/size-constraints-aspect-ratio/)** — clamp resize bounds; lock the width/height ratio.
+- **[autoScroll](/vue/examples/auto-scroll/)** — scroll a container automatically near its edge during drag/resize.
+- **[Drag activation distance](/vue/examples/drag-activation-distance/)** — minimum pointer movement before a pointerdown becomes a drag.
+- **[Restricting resize handles to specific edges](/vue/examples/restrict-resize-handles/)** — resize only from the edges/corners you choose.
+- **[Per-item zIndex override](/vue/examples/per-item-z-index/)** — pin one item permanently above every other.
+
+## Layout & collision
+
+- **[Prevent collision](/vue/examples/prevent-collision/)** — block a drag/resize instead of pushing other items.
+- **[Add or remove items](/vue/examples/add-remove-items/)** — the grid re-compacts automatically, no manual position math.
+- **[Horizontal shift](/vue/examples/horizontal-shift/)** — push colliding items left/right instead of down.
+- **[v-model & save/load layout](/vue/examples/save-load-layout/)** — `layout` is a plain, JSON-serializable array.
+- **[Auto-size grid on content](/vue/examples/auto-size-grid/)** — the container's own height grows/shrinks to fit.
+- **[Alignment guides while dragging](/vue/examples/alignment-guides/)** — Figma-style guide lines, purely visual.
+- **[Export layout as SVG](/vue/examples/svg-export/)** — a dependency-free standalone SVG snapshot.
+- **[compactNow, rearrange & duplicateItem](/vue/examples/compact-now-rearrange-duplicate-item/)** — on-demand tidying and item duplication.
+- **[Blocked-move feedback](/vue/examples/blocked-move-feedback/)** — a real event the moment `preventCollision` blocks a move.
+- **[Snap to grid](/vue/examples/snap-to-grid/)** — magnetic snapping that actually adjusts where an item lands.
+- **[Named layout presets](/vue/examples/named-presets/)** — save and switch between several named arrangements.
+- **[Layout bounds & rendering options](/vue/examples/layout-bounds-rendering-options/)** — `maxRows`, `distributeEvenly`, `useCssTransforms`.
+- **[Pluggable compaction](/vue/examples/pluggable-compaction/)** — five built-in strategies, or a genuinely custom `ICompactor`.
+- **[Undo/redo](/vue/examples/undo-redo/)** — opt-in history at committed-change granularity.
+- **[Spacing indicators](/vue/examples/spacing-indicators/)** — a labeled distance badge in the gap to the nearest neighbor.
+- **[Height modes (heightMode)](/vue/examples/height-modes/)** — the modern replacement for `autoSize`, including `'scroll'`/`'fit'` modes.
+
+## Multi-select & group operations
+
+- **[Multi-select & group move/resize](/vue/examples/multi-select-group-move-resize/)** — select several items, move one, the rest follow.
+- **[Align & distribute selected items](/vue/examples/align-distribute-selected/)** — align a multi-selection to an edge, or evenly space the ones between the outermost two.
+
+## Responsive
+
+- **[Responsive breakpoints](/vue/examples/responsive-breakpoints/)** — auto-generate a layout per breakpoint.
+- **[Responsive predefined layouts](/vue/examples/responsive-predefined-layouts/)** — full control over what each breakpoint looks like.
+
+## Internationalization
+
+- **[Mirrored (RTL)](/vue/examples/mirrored-rtl/)** — flip the entire grid for right-to-left locales.
+
+## Accessibility
+
+- **[scrollToItem & focusItem](/vue/examples/scroll-to-item-focus-item/)** — scroll an off-screen item into view, or move keyboard focus to it.
+- **[Localizable ARIA strings](/vue/examples/aria-labels/)** — override every user-facing string, not just read the English default.
+
+## Cross-grid & external drag-and-drop
+
+- **[Multiple grids](/vue/examples/multiple-grids/)** — independent `GridLayout`s on one page, nothing shared.
+- **[Drag, drop from outside](/vue/examples/outside-drag-drop/)** — native HTML5 drag-and-drop into the grid.
+- **[Drag, drop from grid to grid](/vue/examples/cross-grid-drag-drop/)** — drag an item between two independent grid instances.
+- **[Cross-grid drop restrictions](/vue/examples/cross-grid-drop-restrictions/)** — reject an incoming drop with `disableExternalDrop`.
+- **[Drag, drop from outside into multiple grids](/vue/examples/outside-drag-drop-multiple-grids/)** — each grid decides independently whether to accept.
+- **[outsideDropAccept & readOutsideDropPayload](/vue/examples/outside-drop-accept-payload/)** — reject incompatible drags; read a richer, typed payload.
+
+## Styling & customization
+
+- **[Show close button](/vue/examples/close-button/)** — a built-in per-item close affordance.
+- **[Border radius](/vue/examples/border-radius/)** — cascades from `GridLayout` to every item that doesn't set its own.
+- **[Show grid lines](/vue/examples/grid-lines/)** — visible guide lines behind the items.
+- **[Edit mode toggle](/vue/examples/edit-mode-toggle/)** — a master switch for a view-only dashboard mode.
+- **[Configurable transition duration & easing](/vue/examples/transition-duration-easing/)** — the CSS transition applied to position/size changes.
+- **[Custom drag-placeholder content](/vue/examples/custom-drag-placeholder/)** — the `#placeholder` slot renders custom content while dragging.
+- **[Configurable resize-hint appearance](/vue/examples/resize-hint-appearance/)** — a visible resize handle instead of only a cursor change.
+- **[Grid dimensions](/vue/examples/grid-dimensions/)** — `rowHeight`, `colNum`, `margin`, live-reactive.
+- **[Custom header slot](/vue/examples/custom-header-slot/)** — a separate region above an item's own main content.
+
+## Developer experience
+
+- **[Events](/vue/examples/events/)** — every event `GridLayout` and `GridItem` emit.
+- **[Layout lifecycle events](/vue/examples/layout-lifecycle-events/)** — `layout-ready`/`layout-updated`, in the order they actually fire.
+- **[Switching layouts & forcing a remount](/vue/examples/switching-layouts-remount/)** — a plain reassignment vs. a genuine `:key`-forced remount.

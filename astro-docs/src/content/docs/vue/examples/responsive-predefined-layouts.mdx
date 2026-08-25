@@ -1,0 +1,22 @@
+---
+title: Responsive predefined layouts
+description: Pre-define exactly what each breakpoint's layout looks like, instead of relying on auto-generation.
+---
+import ResponsivePredefinedLayouts from '../../../../components/examples/09-responsive-predefined-layouts.vue';
+import ResponsivePredefinedLayoutsSource from '../../../../components/examples/09-responsive-predefined-layouts.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={ResponsivePredefinedLayoutsSource} filename="responsive-predefined-layouts.vue">
+  <ResponsivePredefinedLayouts client:visible />
+</ExampleTryIt>
+
+Every key is optional — a breakpoint with no explicit entry still gets
+an auto-generated layout the first time it's entered, same as without
+`responsiveLayouts` at all. This is useful when a narrower breakpoint
+needs a genuinely different arrangement (a different reading order, a
+deliberately different item grouping), not just a reflowed version of
+the wider one auto-generation would produce.
+
+See [Layout types](/vue/api/types/layout/) for `TResponsiveLayout`'s
+full shape, including a note on why only the 7 standard breakpoint
+names are ever actually resolved to.

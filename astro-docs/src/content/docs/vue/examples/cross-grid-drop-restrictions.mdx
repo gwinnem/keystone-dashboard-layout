@@ -1,0 +1,21 @@
+---
+title: Cross-grid drop restrictions
+description: disableExternalDrop rejects an incoming cross-grid drop — items can still leave, just not arrive.
+---
+import CrossGridDropRestrictions from '../../../../components/examples/22-cross-grid-drop-restrictions.vue';
+import CrossGridDropRestrictionsSource from '../../../../components/examples/22-cross-grid-drop-restrictions.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CrossGridDropRestrictionsSource} filename="cross-grid-drop-restrictions.vue">
+  <CrossGridDropRestrictions client:visible />
+</ExampleTryIt>
+
+`disableExternalDrop` has no effect unless `allowCrossGridDrag` is also
+set — it only restricts the *incoming* direction. An item can still be
+dragged *out* of a grid with both set, into any other
+`allowCrossGridDrag` grid that doesn't reject it. `cross-grid-drop-rejected`
+fires on the target grid with the rejected item's id and the
+`layoutId` it came from.
+
+See [Drag, drop from grid to grid](/vue/examples/cross-grid-drag-drop/)
+for the unrestricted version of this same mechanism.

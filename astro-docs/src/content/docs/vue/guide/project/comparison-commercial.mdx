@@ -1,0 +1,100 @@
+---
+title: "Comparison: commercial"
+description: How KeystoneGrid for Vue compares to Kendo TileLayout and DevExtreme's Dashboard Designer.
+---
+
+## Scope, and why this is separate from Comparison: alternatives
+
+[Comparison: alternatives](/vue/guide/project/comparison-alternatives/)
+scopes itself to open-source peers in the same category. This page
+covers two commercial products instead, kept separate since both the
+licensing model and (for one of the two) the actual product category
+differ enough that folding them into the same table would be
+misleading.
+
+Two things worth correcting up front: Kendo's actual component is
+called **TileLayout** (available for jQuery, Angular, React, and
+Blazor) — "DashboardLayout" isn't a real Kendo product name. And
+DevExtreme's **Dashboard Designer** is a full BI platform, not a
+standalone layout component — it bundles data source binding,
+drill-down interactivity, a WYSIWYG designer, and export around its own
+layout mechanism. This page compares against just its layout engine
+(the drag/resize/arrange mechanics), since that's the only part in the
+same category as this library.
+
+## The bigger architectural difference
+
+Both commercial products use a **recursive binary split-pane tree**:
+adding a new item splits the largest existing pane in half; resizing
+means dragging the separator line between two adjacent panes, not
+independent per-item resize handles — the same model as a tiling window
+manager or an IDE's split editor panes. This library uses **freeform,
+independent `x`/`y`/`w`/`h` grid coordinates** instead: any item can
+move to any free position on its own, with its own resize handles on
+its own edges.
+
+This isn't a minor detail — several rows below aren't simple
+"missing feature" gaps, they're different tradeoffs a different
+architecture makes. A split-pane tree structurally guarantees no
+overlaps and no compaction step, at the cost of items never being fully
+independent of their neighbors. Freeform coordinates give full
+independent placement, at the cost of needing an explicit
+collision/compaction system. Neither is strictly better; they suit
+different products.
+
+## Feature comparison
+
+| Feature | This project | Kendo TileLayout | DevExtreme Dashboard (layout engine) |
+|---|---|---|---|
+| Layout model | Freeform x/y/w/h grid coordinates | CSS Grid, col/row/colSpan/rowSpan | Recursive binary split-pane tree |
+| Resize any of 8 edges/corners independently | Yes | No — bottom/right edges + bottom-right corner only | No — drag the separator between two adjacent panes |
+| Drag to an arbitrary free position | Yes | No — reorders within CSS Grid auto-flow | No — inserts into the tree at a new split point |
+| Click-to-select, click-to-place reorder (no drag gesture) | No | **Yes** — a real, non-drag accessibility alternative worth considering here | No |
+| Vue support | Native, ground-up | **None** — jQuery, Angular, React, Blazor only | Via a wrapper layer over a shared core |
+| Licensing | MIT, free | Commercial, but free for the React build specifically | Commercial, no free tier |
+| Cross-grid drag/drop between independent instances | Yes | No | No |
+| Drag-and-drop from outside the component | Yes | No | No — Toolbox is click-to-add, not a drag gesture |
+| Responsive breakpoints | Yes | No | Auto-stretches to fit its container — a different, non-breakpoint mechanism |
+| Undo/redo | Yes | No | No — dashboard-level save/reload only |
+| Multi-select group move/resize | Yes | No | No — single-item drag only |
+| Magnetic snap-to-grid / alignment guides | Yes (both) | No | No |
+| Keyboard move/resize | Yes | Comparable, via Ctrl+arrow (resize) / Shift+arrow (reorder) | Not documented as a distinct mode |
+| Per-item lock against rearrangement | Yes (`isStatic`) | Yes | Closer to a dashboard-level view mode than a per-item flag |
+| **Maximize/restore an item to fill the surface** | **No — a real, confirmed gap** | No | **Yes** |
+| Save/restore layout state | Yes | Yes — comparable | Yes — comparable |
+| Export layout as image/SVG | Yes, dependency-free | No | Yes, but exports the dashboard's data visualizations, not a plain layout-shell export |
+| Data source binding, drill-down, BI charting | **Out of scope entirely — a deliberate boundary** | No (presentation-only, same category as this library) | **Yes — its entire reason to exist** |
+
+## Honest summary
+
+Against **Kendo TileLayout**: this library is ahead on nearly every
+drag/resize/layout-mechanics dimension — full 8-edge independent resize
+vs. a 3-handle/axis-restricted model, freeform positioning vs.
+reorder-only, cross-grid drag, outside drop, snap/alignment guides,
+undo/redo, multi-select. TileLayout's genuine advantages: being one
+component in a large commercial suite with paid support, a mature
+click-move-click accessibility mode this library doesn't have, and
+(for the React build specifically) being free. There's no Vue build to
+compare against directly at all.
+
+Against **DevExtreme Dashboard**: these aren't real competitors for
+most consumers — Dashboard Designer is a BI-authoring product where
+drag/resize layout is one supporting piece of a much larger
+data-analytics platform, not something you'd choose *for* its layout
+engine alone. The one genuine, worth-tracking gap even at the pure
+layout-mechanics level is **maximize/restore** — a common, useful
+dashboard pattern this library doesn't have. It's tracked on the
+[Roadmap](/vue/guide/project/roadmap/), not yet designed.
+
+## What's not worth chasing from either
+
+- **Kendo's CSS Grid-based, resize-restricted-to-3-handles model** —
+  adopting this would be a regression, not a gap to close.
+- **DevExtreme's recursive split-pane structure itself** — rebuilding
+  around that architecture would abandon the freeform positioning model
+  that's core to what this library is. If a split-pane mode is ever
+  genuinely wanted, it belongs as an alternative, opt-in mode, not a
+  replacement.
+- **DevExtreme's BI/data-analytics layer entirely** — a different
+  product category by design, not a scope this library is trying to
+  grow into.

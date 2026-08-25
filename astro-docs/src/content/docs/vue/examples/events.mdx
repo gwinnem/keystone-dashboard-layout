@@ -1,0 +1,16 @@
+---
+title: Events
+description: Every event GridLayout and GridItem emit, plus the lower-level eventBus events used internally between the two.
+---
+import Events from '../../../../components/examples/03-events.vue';
+import EventsSource from '../../../../components/examples/03-events.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={EventsSource} filename="events.vue">
+  <Events client:visible />
+</ExampleTryIt>
+
+See the full list of events on [GridLayout](/vue/components/grid-layout/vue-events/)
+and [GridItem](/vue/components/grid-item/vue-events/), plus the lower-level
+[eventBus events](/vue/components/grid-item/eventbus-events/) used internally
+between the two components.

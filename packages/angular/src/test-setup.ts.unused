@@ -1,0 +1,22 @@
+// Vitest setup for Angular's TestBed — the Vitest-side equivalent of
+// what Karma's own `@angular-devkit/build-angular` framework plugin +
+// `polyfills: ['zone.js', 'zone.js/testing']` (angular.json) handled
+// automatically.
+//
+// `@analogjs/vitest-angular/setup-zone` initializes zone.js itself,
+// but *not* TestBed's own dynamic testing environment — confirmed by a
+// fresh test run throwing "Need to call TestBed.initTestEnvironment()
+// first" with only that import in place, not assumed from Analog's own
+// docs alone. The explicit `getTestBed().initTestEnvironment(...)`
+// call below (Angular's own standard API for this, the same one a
+// Karma-based `test.ts` bootstrap file would otherwise call) is what
+// actually satisfies that requirement.
+import '@analogjs/vitest-angular/setup-zone';
+
+import { getTestBed } from '@angular/core/testing';
+import {
+  BrowserDynamicTestingModule,
+  platformBrowserDynamicTesting,
+} from '@angular/platform-browser-dynamic/testing';
+
+getTestBed().initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());

@@ -1,0 +1,18 @@
+---
+title: Size constraints & aspect ratio
+description: minW/maxW/minH/maxH clamp resize bounds; preserveAspectRatio locks the width/height ratio while resizing.
+---
+import SizeConstraintsAspectRatio from '../../../../components/examples/38-size-constraints-aspect-ratio.vue';
+import SizeConstraintsAspectRatioSource from '../../../../components/examples/38-size-constraints-aspect-ratio.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={SizeConstraintsAspectRatioSource} filename="size-constraints-aspect-ratio.vue">
+  <SizeConstraintsAspectRatio client:visible />
+</ExampleTryIt>
+
+All four size-constraint props default to `1`/`Infinity` respectively
+(effectively unconstrained) and apply during both mouse/touch resize
+and [keyboard resize](/vue/guide/project/accessibility/). `preserveAspectRatio`
+locks the width/height ratio at whatever it was when the resize
+started — resizing from any handle keeps that ratio, not just the
+corner handles.

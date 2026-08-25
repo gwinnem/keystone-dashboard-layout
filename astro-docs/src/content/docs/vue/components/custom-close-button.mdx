@@ -1,0 +1,48 @@
+---
+title: CustomCloseButton
+description: The exact close button GridItem renders internally for showCloseButton — exported for standalone reuse.
+---
+
+The default close button rendered inside a `GridItem` when
+`showCloseButton` is true. Also exported standalone from the package's
+main entry point, in case you want to render the same button somewhere
+else (a custom header, say) and wire it to the same removal event
+yourself.
+
+```vue
+<script setup lang="ts">
+import { CustomCloseButton } from '@keystone-dashboard-layout/vue';
+
+function removeItem(id: string | number): void {
+  layout.value = layout.value.filter((item) => item.i !== id);
+}
+</script>
+
+<template>
+  <CustomCloseButton :i="item.i" @remove-grid-item="removeItem" />
+</template>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `i` | `string \| number` | `-1` | The id of the `GridItem` this button removes when clicked. `-1` is treated as a "no item" sentinel — clicking with the default value is a no-op, rather than emitting a removal for a nonexistent item. |
+
+## Events
+
+| Event | Payload | When |
+|---|---|---|
+| `remove-grid-item` | `(i: string \| number)` | The button was clicked with a real `i` set (not the `-1` default). |
+
+## Why you'd use this instead of `showCloseButton`
+
+`showCloseButton` is the right choice for the common case — the built-in
+button, styled via the classes documented in
+[Styling → GridItem](/vue/components/styling/css-grid-item/). Reach for
+`CustomCloseButton` directly when you want the exact same click/removal
+behavior but need to place it somewhere `GridItem`'s own internal
+rendering doesn't reach — inside a custom header slot, for instance. See
+[Custom drag handle & close button](/vue/examples/custom-drag-handle-close-button/)
+for a full working example using both `CustomCloseButton` and
+`CustomDragElement` together.

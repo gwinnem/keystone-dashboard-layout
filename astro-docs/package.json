@@ -1,0 +1,21 @@
+{
+  "name": "keystonegrid-docs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone Astro + Starlight documentation site for KeystoneGrid (Vue/React/Angular). Not part of the pnpm workspace — install/run independently from this directory.",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.30.0",
+    "@astrojs/vue": "^5.0.0",
+    "astro": "^5.0.0",
+    "vue": "^3.5.0",
+    "@keystone-dashboard-layout/vue": "link:../packages/vue"
+  }
+}

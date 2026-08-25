@@ -1,0 +1,91 @@
+---
+title: Layout persistence
+description: serializeLayout/deserializeLayout, useLayoutStorage, and useLayoutPresets — the exported building blocks and composables behind saving and loading a layout.
+---
+
+## `serializeLayout` / `deserializeLayout`
+
+The pure, storage-agnostic building blocks — use these directly for a
+backend other than `localStorage`/`sessionStorage` (a remote API, IndexedDB, anything else).
+
+```ts
+function serializeLayout(layout: TLayout): string;
+function deserializeLayout(json: string | null | undefined): TLayout | null;
+```
+
+`serializeLayout` strips the internal `moved` field before
+`JSON.stringify`-ing — the one piece of boilerplate every consumer
+doing this by hand otherwise has to remember. Never throws.
+
+`deserializeLayout` parses and **validates** the result against the
+same shape check `GridLayout` itself runs at mount — a layout that
+round-trips through this function is guaranteed to satisfy exactly the
+same checks the library enforces elsewhere. Never throws: malformed
+JSON, valid JSON that isn't an array of layout items, or an empty/
+missing string all return `null` rather than propagating an exception.
+
+## `useLayoutStorage`
+
+```ts
+function useLayoutStorage(
+  key: string,
+  layout: Ref<TLayout>,
+  options?: IUseLayoutStorageOptions,
+): IUseLayoutStorage;
+```
+
+```ts
+interface IUseLayoutStorageOptions {
+  storage?: Storage;       // default: window.localStorage
+  autoLoad?: boolean;      // default: true
+  autoSave?: boolean;      // default: false
+  debounceMs?: number;     // default: 500 — only relevant when autoSave is true
+}
+
+interface IUseLayoutStorage {
+  save: () => void;
+  load: () => boolean;    // true if a valid layout was found and applied
+  clear: () => void;
+  hasSaved: () => boolean; // whether *anything* is stored — not whether it's valid
+}
+```
+
+Wraps `serializeLayout`/`deserializeLayout` for the common
+`Storage`-backed case. SSR-safe — every storage access is guarded
+behind a `typeof window` check; `autoLoad`/`autoSave` are silent no-ops
+during a server render rather than throwing.
+
+## `useLayoutPresets`
+
+```ts
+function useLayoutPresets(
+  key: string,
+  layout: Ref<TLayout>,
+  options?: IUseLayoutPresetsOptions,
+): IUseLayoutPresets;
+```
+
+```ts
+interface IUseLayoutPresetsOptions {
+  storage?: Storage; // default: window.localStorage
+}
+
+interface IUseLayoutPresets {
+  savePreset: (name: string) => void;
+  loadPreset: (name: string) => boolean;
+  deletePreset: (name: string) => void;
+  listPresets: () => string[];
+  hasPreset: (name: string) => boolean;
+}
+```
+
+Layers on top of the same `serializeLayout`/`deserializeLayout`
+building blocks, for saving and switching between **several named**
+arrangements of the same items, rather than one single saved layout.
+Every preset for a given `key` is stored together as one object under
+one storage key — one read/write per operation, not one per preset.
+SSR-safe, same guard as `useLayoutStorage`.
+
+See [v-model & save/load layout](/vue/examples/save-load-layout/) and
+[Named layout presets](/vue/examples/named-presets/) for full working
+examples of each.

@@ -1,0 +1,22 @@
+---
+title: Custom drag handle & close button
+description: Combines the library's own exported CustomDragElement and CustomCloseButton instead of the defaults.
+---
+import CustomDragHandleCloseButton from '../../../../components/examples/18-custom-drag-handle-close-button.vue';
+import CustomDragHandleCloseButtonSource from '../../../../components/examples/18-custom-drag-handle-close-button.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CustomDragHandleCloseButtonSource} filename="custom-drag-handle-close-button.vue">
+  <CustomDragHandleCloseButton client:visible />
+</ExampleTryIt>
+
+`CustomDragElement` restricts dragging to just its own handle when
+paired with `dragAllowFrom` — combine with `resizeIgnoreFrom` on the
+same selector, or the handle can end up fighting the resize engine's
+own edge-proximity detection near a corner. `CustomCloseButton` is the
+exact same button `showCloseButton` renders internally, exported for
+placing wherever you want instead.
+
+See [CustomDragElement](/vue/components/custom-drag-element/) and
+[CustomCloseButton](/vue/components/custom-close-button/) for the full
+prop/event reference on each.

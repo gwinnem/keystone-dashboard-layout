@@ -1,0 +1,28 @@
+---
+title: GridItem Vue events
+description: Every event GridItem emits.
+---
+
+Emitted directly on a `<GridItem>` — listen with `@event-name`.
+
+| Event | Payload | When |
+|---|---|---|
+| `container-resized` | `(i, h, w, height, width)` | The item's rendered pixel size changed. See [Layout lifecycle events](/vue/examples/layout-lifecycle-events/). |
+| `item-clicked` | `(i, event: MouseEvent)` | A genuine click/tap on the item — the trailing click a browser can still dispatch immediately after a drag/resize gesture ends is suppressed. The native `MouseEvent` is included so a handler can check `shiftKey`/`ctrlKey`/`metaKey`. Backs `GridLayout`'s own `multiSelect` handling. See [Multi-select & group move/resize](/vue/examples/multi-select-group-move-resize/). |
+| `item-move` | `(i, x, y)` | Fired continuously while a drag is in progress, whenever the grid-unit position changes. |
+| `item-moved` | `(i, x, y)` | Fired once when a drag completes and the position actually changed. |
+| `remove-grid-item` | `(i)` | The item's close button was clicked. See [Show close button](/vue/examples/close-button/). |
+| `resize` | `(i, h, w, height, width)` | Fired continuously while a resize is in progress. |
+| `resized` | `(i, h, w, height, width)` | Fired once when a resize completes and the size actually changed. |
+
+Bind these with `@container-resized`, `@item-clicked`, `@item-move`,
+`@item-moved`, `@remove-grid-item`, `@resize`, and `@resized`
+respectively — see [Events](/vue/examples/events/) for a live demo, and
+[`EGridItemEvent`](/vue/api/enums/grid-item-events/) for the backing enum.
+
+:::caution[Declared but not currently emitted]
+`EGridItemEvent.DRAG` and `DRAGGED` exist on the enum for backwards
+compatibility, but `GridItem` emits `item-move`/`item-moved` instead —
+listening for `@drag`/`@dragged` won't see anything fire. See
+[Roadmap](/vue/guide/project/roadmap/).
+:::

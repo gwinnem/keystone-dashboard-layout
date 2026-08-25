@@ -1,0 +1,23 @@
+---
+title: Drag, drop from outside
+description: allowOutsideDrop accepts native HTML5 drag-and-drop from anywhere outside the grid system entirely.
+---
+import OutsideDragDrop from '../../../../components/examples/11-outside-drag-drop.vue';
+import OutsideDragDropSource from '../../../../components/examples/11-outside-drag-drop.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={OutsideDragDropSource} filename="outside-drag-drop.vue">
+  <OutsideDragDrop client:visible />
+</ExampleTryIt>
+
+The source element just needs `draggable="true"` and a real
+`dragstart` handler setting some `dataTransfer` payload — no
+special integration with the grid required on that side.
+`item-dropped-from-outside` fires with the grid position/size the drop
+landed at; it's up to your own handler to actually push a new layout
+entry (the library doesn't assume what you want to do with the drop).
+
+See [into multiple grids](/vue/examples/outside-drag-drop-multiple-grids/)
+for the same mechanism targeting more than one grid at once, and
+[outsideDropAccept & readOutsideDropPayload](/vue/examples/outside-drop-accept-payload/)
+for filtering/reading a richer payload.

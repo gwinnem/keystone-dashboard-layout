@@ -142,6 +142,12 @@ export { findAlignmentGuides, findSnapAdjustment, findSpacingIndicators } from '
 export type { TAlignEdge, TDistributeAxis } from '@/core/gridlayout/helpers/align-distribute-helper';
 export { computeAlignAdjustments, computeDistributeAdjustments } from '@/core/gridlayout/helpers/align-distribute-helper';
 
+// multiSelect Shift-click range-selection — same "pure function in
+// /core" split as align/distribute above; every framework port's own
+// click handler calls this rather than maintaining three separate
+// range-computation implementations.
+export { computeRangeSelection } from '@/core/gridlayout/helpers/selection-range-helper';
+
 // Responsive breakpoints.
 export { findOrGenerateResponsiveLayout } from '@/core/gridlayout/helpers/responsive-helper';
 export {

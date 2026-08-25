@@ -1,0 +1,81 @@
+---
+title: Features
+description: Everything KeystoneGrid for Vue does, grouped by category, with a live example linked from every bullet.
+---
+
+:::note[All 45 examples are live]
+Every link below now resolves to a real, ported page — confirmed against
+the full `astro.config.mjs` sidebar list, not just written and assumed
+correct. See [Examples](/vue/examples/) for the same 45, organized the
+same way this page is.
+:::
+
+## Drag & resize
+
+- **Drag anywhere, or from a handle.** Every item is draggable by default; restrict it to a specific handle with `dragAllowFrom`, or exclude specific elements with `dragIgnoreFrom`. See [Drag allow/ignore elements](/vue/examples/drag-allow-ignore-elements/) and [Custom drag handle](/vue/examples/custom-drag-handle-close-button/).
+- **Resize from any edge or corner** — top, right, bottom, left, and the diagonals — with optional `preserveAspectRatio` locking.
+- **Min/max size constraints** (`minW`/`maxW`/`minH`/`maxH`) per item.
+- **Bounded dragging** — keep items from being dragged outside the container. See [Bounded drag](/vue/examples/bounded-drag/).
+- **Static items** — lock specific items in place; they ignore dragging/resizing entirely and act as fixed obstacles for compaction. See [Static items](/vue/examples/static-items/).
+- **Per-item `zIndex` override** — pin one item permanently above every other, including while others are mid-resize, regardless of the library's own implicit static/resizing stacking rules.
+- **A separate header region** (`#header` slot) — an optional header area above an item's own main content, its own scrollable region taking whatever space remains.
+- **Per-item `autoHeight`** — a live-resyncing height, driven by a real `ResizeObserver` on the item's own content rather than a one-time measurement. See [Per-item autoHeight](/vue/examples/per-item-auto-height/).
+
+## Layout & collision
+
+- **Automatic compaction.** Items fill gaps vertically by default; other items automatically move out of the way of a drag/resize.
+- **Pluggable compaction strategy** (`compactType`) — five built-in strategies (vertical, horizontal, none, and overlap variants of each), or replace the algorithm entirely with a custom `ICompactor`. See [Pluggable compaction](/vue/examples/pluggable-compaction/).
+- **Horizontal shift mode** — push colliding items left/right instead of down. See [Horizontal shift](/vue/examples/horizontal-shift/).
+- **Prevent collision mode** — block a drag/resize instead of pushing other items, with a `MOVE_BLOCKED_BY_COLLISION` event so a consumer can give feedback the moment that happens. See [Prevent collision](/vue/examples/prevent-collision/) and [Blocked-move feedback](/vue/examples/blocked-move-feedback/).
+- **Magnetic snap-to-grid** (`snapToGrid`/`snapThreshold`) — actually adjusts an item's landing position to align with a neighbor, not just a visual guide. See [Snap to grid](/vue/examples/snap-to-grid/).
+- **Alignment guides** — Figma-style guide lines while dragging or resizing, wherever an item's edges line up with another's. See [Alignment guides while dragging](/vue/examples/alignment-guides/).
+- **`restoreOnDrag`** — keep other items from compacting past their pre-drag position while a drag is in progress. See [Layout bounds & rendering options](/vue/examples/layout-bounds-rendering-options/).
+- **Auto-sizing container** — the grid's height grows/shrinks to fit its content by default (`autoSize`, or the newer `heightMode` prop for finer control including `'scroll'`/`'fit'` modes). See [Auto-size grid on content](/vue/examples/auto-size-grid/).
+- **Spacing indicators** — a labeled distance badge (e.g. "2 cols") in the gap between the active item and its nearest neighbor on each side (`showSpacingGuides`), independently toggleable alongside alignment guides.
+- **Serializable layout.** The `layout` array is a plain, JSON-serializable structure you own — persist it anywhere. See [v-model & save/load layout](/vue/examples/save-load-layout/).
+- **Named layout presets** (`useLayoutPresets`) — save and switch between multiple named arrangements, layered on the same serialize/restore primitives. See [Named layout presets](/vue/examples/named-presets/).
+- **Grid-to-SVG export** (`exportLayoutAsSvg`) — a dependency-free utility producing a standalone SVG snapshot of the current layout. See [Export layout as SVG](/vue/examples/svg-export/).
+- **Undo/redo** (`enableUndoRedo`, capped via `undoHistoryLimit`) — opt-in history at committed-change granularity (drag/resize end, add/remove), not per intermediate frame. See [Undo/redo](/vue/examples/undo-redo/).
+- **Add/remove items freely**, with automatic re-compaction — no manual position math required. See [Add or remove items](/vue/examples/add-remove-items/).
+
+## Multi-select & group operations
+
+- **Select multiple items** — click to select, Shift/Ctrl/Cmd+click to add additively, click empty background to clear.
+- **Group move and resize** — drag or resize any selected item and the rest of the selection moves or resizes by the same delta, from mouse or keyboard alike. See [Multi-select & group move/resize](/vue/examples/multi-select-group-move-resize/).
+
+## Responsive
+
+- **Breakpoint-based column counts**, with sensible defaults (`xxl`/`xl`/`lg`/`md`/`sm`/`xs`/`xxs`) and fully customizable breakpoints/columns. See [Responsive breakpoints](/vue/examples/responsive-breakpoints/).
+- **Pre-defined layouts per breakpoint**, for full control over how content reflows instead of relying on auto-generation. See [Responsive predefined layouts](/vue/examples/responsive-predefined-layouts/).
+
+## Internationalization
+
+- **RTL mirroring** for an entire layout or individual items — positions (and dragging) flip horizontally with a single prop. See [Mirrored (RTL)](/vue/examples/mirrored-rtl/).
+
+## Accessibility
+
+- **Keyboard move & resize.** Every non-static, editable item is keyboard-focusable — arrow keys move it, Shift+arrow keys resize it — without needing any extra configuration. Reuses the exact same events/collision handling the mouse-driven path uses. See [Accessibility scope](/vue/guide/project/accessibility/) for the full scope, including what's deliberately not (yet) covered.
+- **Screen reader support** — interactive items are announced with `role="group"` and a description of the available keyboard controls; visible focus indicator for keyboard users.
+- **Localizable ARIA strings** (`ariaLabels`) — the close button's label, `aria-roledescription`, and the keyboard move/resize instructions are overridable (`GridLayout` grid-wide default, `GridItem` per-item override), rather than hardcoded English literals. See [Localizable ARIA strings](/vue/examples/aria-labels/).
+
+## Cross-grid & external drag-and-drop
+
+- **Drag items from outside the grid** using the browser's native HTML5 drag-and-drop API. See [Drag, drop from outside](/vue/examples/outside-drag-drop/).
+- **Drag items between two independent grids.** See [Drag, drop from grid to grid](/vue/examples/cross-grid-drag-drop/).
+- **Multiple grids on one page** with zero shared state or configuration. See [Multiple grids](/vue/examples/multiple-grids/).
+
+## Styling & customization
+
+- **Unstyled-by-default content** — `GridItem`'s slot holds whatever you put there; the library only handles position/size.
+- **Built-in close button**, or bring your own via the exported `CustomCloseButton`/`CustomDragElement` components. See [Show close button](/vue/examples/close-button/) and [Custom drag handle & close button](/vue/examples/custom-drag-handle-close-button/).
+- **Configurable border radius** per item. See [Border radius](/vue/examples/border-radius/).
+- **Optional grid line guides**, useful while building a layout or as a permanent visual aid. See [Show grid lines](/vue/examples/grid-lines/).
+- **CSS custom properties and SCSS variables** for deeper theming — see [Styling → Variables](/vue/components/styling/css-variables/).
+
+## Developer experience
+
+- **Full TypeScript support.** Every prop, event, enum, and interface is typed and exported from the package's main entry point — see [API](/vue/api/).
+- **Zero runtime dependencies.** The drag/resize engine is built on native Pointer Events, not a third-party library — no `interact.js` or equivalent to audit or update.
+- **A separate, framework-agnostic core entry point** exposing this library's own grid-layout math (collision detection, movement, compaction, and more) with zero Vue dependency and no live-DOM requirement — usable standalone, e.g. for server-side layout validation.
+- **Vue 3 Composition API**, built with `<script setup>` throughout — works equally well with the Options API in consuming projects.
+- **Well-tested.** A full unit, component, and end-to-end test suite backs every release — see [Production readiness](/vue/guide/project/production-readiness/) for the current numbers.

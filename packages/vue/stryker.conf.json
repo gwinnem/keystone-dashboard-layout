@@ -1,6 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/api/schema/stryker-schema.json",
+  "_comment_plugins": "Explicit, not Stryker's own default '@stryker-mutator/*' glob — a real, confirmed bug under this monorepo's pnpm workspace structure, not a stylistic preference: that glob resolves relative to wherever @stryker-mutator/core itself is physically installed, then looks for sibling '@stryker-mutator/*' packages inside *its own* node_modules. Under pnpm's strict, non-hoisting structure, that folder only ever contains core's own direct dependencies (confirmed via a real debug trace against this exact class of failure in the Angular package's own stryker.conf.json: '@stryker-mutator/instrumenter' loaded fine this way, since it *is* one) — never a sibling devDependency of *this* package, like vitest-runner, which lives in a completely separate, isolated part of the pnpm store the glob has no way to see. Naming the plugin explicitly instead makes Stryker resolve it via normal Node module resolution (walking up from this config file's own directory), which correctly finds it.",
+  "_comment_known_limitation": "PAUSED, not resolved — a real run against this config still fails with '[@vue/compiler-sfc] Failed to resolve import source \"@/core/griditem/enums/EGridItemEvents\"' (confirmed via --logLevel debug, not assumed). Root cause: this package's own '@/core' alias reaches into the sibling packages/core workspace package, but Stryker's default sandboxing only copies the current project directory (packages/vue) into its temp sandbox — it has no awareness of a path alias reaching outside that directory, so packages/core is simply absent from the sandbox, even though the import is completely valid in the real project. A `files`-style option to include the sibling directory may exist in principle, but doesn't appear to be a currently-supported option in this Stryker version (not present in v9.6.1's own full config dump); the more structurally reliable fix would be invoking Stryker from the monorepo root instead of this package's own directory, so both packages/vue and packages/core fall inside the sandboxed working tree — not attempted yet. Angular and React almost certainly hit the identical issue, since both also depend on the sibling core package. Deliberately left un-fixed for now rather than guessed at further; revisit this comment before re-attempting.",
   "packageManager": "npm",
+  "plugins": ["@stryker-mutator/vitest-runner"],
   "testRunner": "vitest",
   "reporters": ["clear-text", "progress", "html"],
   "htmlReporter": {
@@ -8,8 +11,8 @@
   },
   "coverageAnalysis": "perTest",
   "timeoutMS": 15000,
+  "_comment_mutate": "'src/core/**/*.ts' removed (a real, confirmed bug, not a stylistic cleanup): this package's own src/ has no core directory at all — @keystone-dashboard-layout/core is a separate workspace package reached via the '@/core' path alias, not a local folder. The glob matched zero files (confirmed via a real stryker run: 'Glob pattern src/core/**/*.ts did not result in any files'), silently excluding those 0 files rather than erroring, which is why this went unnoticed until now.",
   "mutate": [
-    "src/core/**/*.ts",
     "src/components/Grid/composables/*.ts",
     "src/composables/*.ts",
     "src/hooks/*.ts",

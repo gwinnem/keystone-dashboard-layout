@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/karma-spec",
+    "types": ["jasmine", "node"]
+  },
+  "exclude": ["dist", "node_modules"],
+  "files": ["src/test.ts"],
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
+}

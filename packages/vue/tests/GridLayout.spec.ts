@@ -1187,6 +1187,129 @@ describe(`GridLayout`, () => {
       expect(wrapper.vm.selectedItems).toStrictEqual([]);
     });
 
+    describe(`Shift-click range-selection`, () => {
+      // A 4-item layout is what actually distinguishes real
+      // range-selection from a plain additive toggle — the existing
+      // "Should add to the selection additively on Shift+click" test
+      // above only ever uses `basicLayout()`'s own 2 adjacent items, so
+      // range(anchor, target) and a plain toggle happen to produce the
+      // exact same result there by coincidence, not because that test
+      // actually exercises range behavior. These tests use enough items
+      // that only a genuine, layout-order-based range produces the
+      // expected selection.
+      const fourItemLayout = () => [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 2, y: 0 },
+        { h: 2, i: `c`, w: 2, x: 4, y: 0 },
+        { h: 2, i: `d`, w: 2, x: 6, y: 0 },
+      ];
+
+      it(`Should select every item between the anchor and the Shift-clicked target, inclusive`, async () => {
+        const wrapper = mountGrid(fourItemLayout(), { layoutProps: { multiSelect: true } });
+        await nextTick();
+
+        await wrapper.find(`[data-grid-item-id="a"]`).trigger(`click`);
+        await nextTick();
+        await wrapper.find(`[data-grid-item-id="d"]`).trigger(`click`, { shiftKey: true });
+        await nextTick();
+
+        expect(wrapper.vm.selectedItems.sort()).toStrictEqual([`a`, `b`, `c`, `d`]);
+      });
+
+      it(`Should select the same range when Shift-clicking "backwards" toward an earlier item`, async () => {
+        const wrapper = mountGrid(fourItemLayout(), { layoutProps: { multiSelect: true } });
+        await nextTick();
+
+        await wrapper.find(`[data-grid-item-id="d"]`).trigger(`click`);
+        await nextTick();
+        await wrapper.find(`[data-grid-item-id="a"]`).trigger(`click`, { shiftKey: true });
+        await nextTick();
+
+        expect(wrapper.vm.selectedItems.sort()).toStrictEqual([`a`, `b`, `c`, `d`]);
+      });
+
+      it(`Should replace the current selection with the range, not merge into it`, async () => {
+        const wrapper = mountGrid(fourItemLayout(), { layoutProps: { multiSelect: true } });
+        await nextTick();
+
+        // Ctrl-select "d" on its own first — unrelated to the anchor
+        // this Shift-click range below is about to compute.
+        await wrapper.find(`[data-grid-item-id="d"]`).trigger(`click`, { ctrlKey: true });
+        await nextTick();
+        await wrapper.find(`[data-grid-item-id="a"]`).trigger(`click`);
+        await nextTick();
+        await wrapper.find(`[data-grid-item-id="b"]`).trigger(`click`, { shiftKey: true });
+        await nextTick();
+
+        // Only "a" and "b" (the computed range) — "d"'s own earlier,
+        // unrelated Ctrl-selection doesn't survive.
+        expect(wrapper.vm.selectedItems.sort()).toStrictEqual([`a`, `b`]);
+      });
+
+      it(`Should keep re-anchoring to the same fixed point across repeated Shift-clicks, not compounding from the previous Shift-click target`, async () => {
+        const wrapper = mountGrid(fourItemLayout(), { layoutProps: { multiSelect: true } });
+        await nextTick();
+
+        await wrapper.find(`[data-grid-item-id="a"]`).trigger(`click`);
+        await nextTick();
+        await wrapper.find(`[data-grid-item-id="c"]`).trigger(`click`, { shiftKey: true });
+        await nextTick();
+        expect(wrapper.vm.selectedItems.sort()).toStrictEqual([`a`, `b`, `c`]);
+
+        // A second Shift-click, to "b" — ranges from the *original*
+        // anchor "a", not from "c" (the previous Shift-click target).
+        await wrapper.find(`[data-grid-item-id="b"]`).trigger(`click`, { shiftKey: true });
+        await nextTick();
+        expect(wrapper.vm.selectedItems.sort()).toStrictEqual([`a`, `b`]);
+      });
+
+      it(`Should fall back to a plain select when there's no anchor yet (the very first click on a fresh grid is a Shift-click)`, async () => {
+        const wrapper = mountGrid(fourItemLayout(), { layoutProps: { multiSelect: true } });
+        await nextTick();
+
+        await wrapper.find(`[data-grid-item-id="b"]`).trigger(`click`, { shiftKey: true });
+        await nextTick();
+
+        expect(wrapper.vm.selectedItems).toStrictEqual([`b`]);
+      });
+
+      it(`Should reset the anchor after clearSelection, so a later Shift-click falls back to a plain select again`, async () => {
+        const wrapper = mountGrid(fourItemLayout(), { layoutProps: { multiSelect: true } });
+        await nextTick();
+
+        await wrapper.find(`[data-grid-item-id="a"]`).trigger(`click`);
+        await nextTick();
+        wrapper.vm.clearSelection();
+        await nextTick();
+
+        await wrapper.find(`[data-grid-item-id="c"]`).trigger(`click`, { shiftKey: true });
+        await nextTick();
+
+        // No anchor survived the clear — falls back to a plain select
+        // of just "c", not a range from the stale "a" anchor.
+        expect(wrapper.vm.selectedItems).toStrictEqual([`c`]);
+      });
+
+      it(`Should reset the anchor once its own item is removed from the layout (pruneSelection), so a later Shift-click falls back to a plain select`, async () => {
+        const layout = fourItemLayout();
+        const wrapper = mountGrid(layout, { layoutProps: { multiSelect: true } });
+        await nextTick();
+
+        await wrapper.find(`[data-grid-item-id="a"]`).trigger(`click`);
+        await nextTick();
+
+        // Remove "a" (the anchor) from the layout entirely.
+        layout.shift();
+        await wrapper.setProps({ layout });
+        await nextTick();
+
+        await wrapper.find(`[data-grid-item-id="c"]`).trigger(`click`, { shiftKey: true });
+        await nextTick();
+
+        expect(wrapper.vm.selectedItems).toStrictEqual([`c`]);
+      });
+    });
+
     it(`Should expose selectItem/deselectItem/toggleItemSelection/clearSelection directly`, async () => {
       const wrapper = mountGrid(basicLayout(), { layoutProps: { multiSelect: true } });
       await nextTick();

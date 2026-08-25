@@ -1,0 +1,20 @@
+---
+title: compactNow, rearrange & duplicateItem
+description: On-demand layout tidying and item duplication, exposed on the GridLayout instance.
+---
+import CompactNowRearrangeDuplicateItem from '../../../../components/examples/29-compact-now-rearrange-duplicate-item.vue';
+import CompactNowRearrangeDuplicateItemSource from '../../../../components/examples/29-compact-now-rearrange-duplicate-item.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CompactNowRearrangeDuplicateItemSource} filename="compact-now-rearrange-duplicate-item.vue">
+  <CompactNowRearrangeDuplicateItem client:visible />
+</ExampleTryIt>
+
+`compactNow()` always forces compaction, regardless of the ambient
+`verticalCompact`/`compactType` setting — the entire point of a manual
+"tidy up" trigger is that it works even when auto-compaction is
+otherwise disabled. `rearrange()` is the same underlying operation
+under a different name for call sites that read more naturally that
+way. `duplicateItem(id)` clones an existing layout entry into the first
+available free slot — collision-safe, no manual position math needed,
+the same convention `y: Infinity` uses for [adding items](/vue/examples/add-remove-items/).

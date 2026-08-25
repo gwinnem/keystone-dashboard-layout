@@ -1,0 +1,109 @@
+---
+// Overrides Starlight's default TwoColumnContent so /vue/examples/*
+// pages don't reserve space for a right-hand column at all — pairs
+// with the PageSidebar override, which already stops rendering
+// anything inside that column on these same routes. Without this
+// companion change, the column itself (and the narrower --sl-content-width
+// caused by it) still existed, just empty — the actual visible gap this
+// request is about lives here, not in PageSidebar.
+//
+// Real, confirmed reason this needs its own fix rather than relying on
+// Astro.props.toc alone: examples pages DO have real headings (e.g. a
+// "Code" section) and don't set tableOfContents:false in frontmatter,
+// so Astro.props.toc is genuinely truthy for them — the default
+// component would still reserve the right column and narrow the main
+// content accordingly, even though PageSidebar renders nothing inside
+// it. A route check, not a props check, is what actually distinguishes
+// these pages.
+const isExamplesRoute = Astro.url.pathname.includes(`/vue/examples`);
+const showRightColumn = Astro.props.toc && !isExamplesRoute;
+---
+
+<div class:list={[`lg:sl-flex`, { 'full-width-main': isExamplesRoute }]}>
+	{
+		showRightColumn && (
+			<aside class="right-sidebar-container">
+				<div class="right-sidebar">
+					<slot name="right-sidebar" />
+				</div>
+			</aside>
+		)
+	}
+	<div class="main-pane"><slot /></div>
+</div>
+
+<style>
+	.main-pane {
+		isolation: isolate;
+	}
+
+	@media (min-width: 72rem) {
+		.right-sidebar-container {
+			order: 2;
+			position: relative;
+			width: calc(
+				var(--sl-sidebar-width) + (100% - var(--sl-content-width) - var(--sl-sidebar-width)) / 2
+			);
+		}
+
+		.right-sidebar {
+			position: fixed;
+			top: 0;
+			border-inline-start: 1px solid var(--sl-color-gray-6);
+			padding-top: var(--sl-nav-height);
+			width: 100%;
+			height: 100vh;
+			overflow-y: auto;
+			scrollbar-width: none;
+		}
+
+		.main-pane {
+			width: 100%;
+		}
+
+		:global([data-has-sidebar][data-has-toc]) .main-pane {
+			--sl-content-margin-inline: auto 0;
+
+			order: 1;
+			width: calc(
+				var(--sl-content-width) + (100% - var(--sl-content-width) - var(--sl-sidebar-width)) / 2
+			);
+		}
+
+		/* On examples routes specifically: no right column exists at all
+		   (skipped above), so .main-pane should take the full remaining
+		   width instead of the narrower, ToC-reserving formula above.
+		   Selector order matters and was wrong in an earlier version of
+		   this fix: [data-has-sidebar][data-has-toc] lives on <html>, an
+		   ANCESTOR of .full-width-main, not a descendant of it — writing
+		   ".full-width-main [data-has-...]" required the opposite
+		   relationship and could never match anything, confirmed directly
+		   via computed style staying unchanged even with !important added.
+		   :global() wraps only the html-level attribute selector; the
+		   scoped .full-width-main/.main-pane classes stay unwrapped so
+		   Astro's own scope-hash still applies to them correctly. */
+		:global([data-has-sidebar][data-has-toc]) .full-width-main .main-pane {
+			width: 100%;
+			/* The ACTUAL readable/interactive content column isn't .main-pane
+			   itself — it's .sl-container inside Starlight's own
+			   ContentPanel.astro (a different component entirely), which
+			   reads these same two custom properties: `max-width:
+			   var(--sl-content-width)` and `margin-inline:
+			   var(--sl-content-margin-inline, auto)`. Both inherit down from
+			   here since custom properties cascade through the DOM
+			   regardless of component boundaries. Widening just .main-pane
+			   without also touching these two leaves the actual content
+			   column at its original narrow width, pushed flush against the
+			   right edge (the default --sl-content-margin-inline: auto 0,
+			   set on .main-pane by Starlight's own default rule above,
+			   still applies here since [data-has-toc] is still true on
+			   examples pages — only the reserved right *column* is gone,
+			   not this variable). Widened to 70rem (from the 45rem prose
+			   default) since examples pages hold interactive demos, not
+			   long-form reading text — and centered (a single `auto` value
+			   applies to both inline sides) instead of flush-right. */
+			--sl-content-width: 70rem;
+			--sl-content-margin-inline: auto;
+		}
+	}
+</style>

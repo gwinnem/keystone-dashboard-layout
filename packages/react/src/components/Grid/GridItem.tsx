@@ -363,7 +363,7 @@ export function GridItem({ i, header, children, renderResizeHandle, className }:
       return;
     }
     event.stopPropagation();
-    context.onItemClick(i, event.shiftKey || event.ctrlKey || event.metaKey);
+    context.onItemClick(i, { ctrlKey: event.ctrlKey, metaKey: event.metaKey, shiftKey: event.shiftKey });
   };
 
   /**

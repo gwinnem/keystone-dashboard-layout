@@ -1,0 +1,17 @@
+---
+title: Border radius
+description: Setting useBorderRadius/borderRadiusPx on GridLayout cascades to every GridItem that doesn't set its own.
+---
+import BorderRadius from '../../../../components/examples/14-border-radius.vue';
+import BorderRadiusSource from '../../../../components/examples/14-border-radius.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={BorderRadiusSource} filename="border-radius.vue">
+  <BorderRadius client:visible />
+</ExampleTryIt>
+
+Setting `useBorderRadius`/`borderRadiusPx` on `GridLayout` instead works
+too — it cascades to every `GridItem` that doesn't set its own (`null`,
+the default), the same inherit pattern as `isDraggable`/`isResizable`.
+Setting it directly on a `GridItem` overrides that inherited default for
+just that one item.

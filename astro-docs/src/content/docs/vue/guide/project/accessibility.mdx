@@ -1,0 +1,110 @@
+---
+title: Accessibility scope
+description: What keyboard and screen-reader support KeystoneGrid for Vue actually provides — and what it deliberately doesn't (yet).
+---
+
+Before keyboard support was added, there was no way to move or resize a
+`GridItem` other than a mouse or touch drag. For a library whose entire
+purpose is letting end users rearrange a layout, that's a real gap, not a
+nice-to-have.
+
+## What's implemented
+
+### Keyboard move and resize
+
+Every non-static, editable `GridItem` is keyboard-focusable
+(`tabindex="0"`) and operable:
+
+- **Arrow keys** move it by one grid unit, if it's draggable.
+- **Shift + arrow keys** resize it by one grid unit, if it's resizable.
+
+Each keypress is treated as a complete, atomic gesture — there's no
+keyboard equivalent of a continuous drag to preview mid-way through —
+and emits the same event pairs and eventBus messages the mouse-driven
+path already uses, so compaction and collision handling apply
+identically regardless of which input method triggered the change.
+
+**Works with `multiSelect`'s group move/resize too** — arrow-key/
+Shift+arrow movement on a focused, *selected* item moves/resizes every
+other selected item by the same delta, the same as a mouse/touch drag
+already does. See [Multi-select & group move/resize](/vue/examples/multi-select-group-move-resize/).
+
+**Deliberately scoped to single-unit steps**, not a full
+[WAI-ARIA grid](https://www.w3.org/WAI/ARIA/apg/patterns/grid/) or
+[application](https://www.w3.org/WAI/ARIA/apg/patterns/) widget pattern
+(roving `tabindex` between cells, a distinct "move mode" toggle key,
+etc.). This library isn't a traditional data grid — it's a freeform
+draggable canvas — so the full APG grid pattern doesn't map cleanly onto
+it. The goal was closing the actual gap (no keyboard alternative existed
+at all), not redesigning the interaction model.
+
+### Screen reader support
+
+- Each interactive item gets `role="group"` and
+  `aria-roledescription="Draggable, resizable item"`, so a screen reader
+  announces it as something other than a plain, silent `<div>`.
+- `aria-describedby` points to a visually-hidden instructions string
+  ("Press arrow keys to move." / "Press shift plus arrow keys to
+  resize.", each only included if that action actually applies to the
+  item) — discoverable on focus, not a mandatory upfront announcement.
+- A visible focus outline, so a keyboard user can actually see which
+  item currently has focus.
+
+### A deliberate, non-obvious design decision worth calling out
+
+Keyboard move/resize **ignores `dragAllowFrom`/`dragIgnoreFrom`/
+`resizeIgnoreFrom`** entirely — those props restrict which DOM element a
+*mouse* drag/resize gesture can originate from (see
+[Drag allow/ignore elements](/vue/examples/drag-allow-ignore-elements/) and
+[Custom drag handle](/vue/examples/custom-drag-handle-close-button/)),
+which is a concept that doesn't map onto keyboard interaction at all —
+there's no "which element did the keypress originate from" equivalent to
+"which element did the mousedown originate from." A keyboard user who
+focuses the item gets full move/resize access regardless of whether a
+mouse user is restricted to a specific handle. This is intentional, not
+an oversight: restricting keyboard users *further* than mouse users, just
+because a mouse-specific UI affordance (a drag handle) exists, would be
+the wrong direction for an accessibility feature to take.
+
+### Localizable ARIA strings
+
+The close button's label, `aria-roledescription`, and the keyboard
+move/resize instructions are all overridable rather than hardcoded
+English literals — see [Localizable ARIA strings](/vue/examples/aria-labels/).
+
+## What's not covered (tracked, not silently ignored)
+
+- **No roving-tabindex grid navigation.** Tabbing moves through items in
+  DOM order (which usually, but not necessarily, matches visual order),
+  the same as any other focusable elements on a page — there's no
+  arrow-key-based "move focus to the item above/below/left/right"
+  navigation independent of actually moving the focused item. That's part
+  of the full APG grid pattern this deliberately doesn't implement.
+- **No keyboard equivalent for the drag-from-outside / drag-between-grids
+  examples** ([Drag, drop from outside](/vue/examples/outside-drag-drop/),
+  [Drag, drop from grid to grid](/vue/examples/cross-grid-drag-drop/)) —
+  those are consumer-level example code, not library internals, and
+  would need their own keyboard handling written the same way the
+  examples currently write their own mouse handling.
+- **Not independently audited against WCAG success criteria** or run
+  through an automated tool (axe, Lighthouse, etc.) — what's implemented
+  was reasoned through manually against the specific gap found (no
+  keyboard alternative), not verified against a full checklist. A real
+  automated accessibility audit is a reasonable next step, and would
+  likely find things this pass didn't.
+- **Color contrast and the default item styling generally** haven't been
+  reviewed — `GridItem`'s content is unstyled by default (see
+  [Styling → GridItem](/vue/components/styling/css-grid-item/)), so this
+  is mostly a consumer responsibility, but the library's own default
+  close button and focus outline colors haven't been explicitly checked
+  against contrast ratios.
+
+## Verifying this
+
+The component test suite's own "keyboard accessibility" tests cover:
+focus attributes present/absent correctly based on static/edit-mode
+state, arrow-key movement (including bounds clamping and the
+`isDraggable: false` guard), shift+arrow resize (including `minW`/`minH`
+clamping and the `isResizable: false` guard), and that non-arrow keys and
+disabled edit-mode are correctly no-ops. See [Production readiness](/vue/guide/project/production-readiness/)
+for the current test-suite numbers.

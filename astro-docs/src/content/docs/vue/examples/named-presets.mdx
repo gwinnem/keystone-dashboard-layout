@@ -1,0 +1,22 @@
+---
+title: Named layout presets
+description: Save and switch between several named arrangements of the same items.
+---
+import NamedPresets from '../../../../components/examples/35-named-presets.vue';
+import NamedPresetsSource from '../../../../components/examples/35-named-presets.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={NamedPresetsSource} filename="named-presets.vue">
+  <NamedPresets client:visible />
+</ExampleTryIt>
+
+Layers on top of the same `serializeLayout`/`deserializeLayout`
+building blocks [`useLayoutStorage`](/vue/guide/installation/) uses,
+rather than replacing them — reach for `useLayoutStorage` directly for
+the simpler single-saved-layout case, and `useLayoutPresets` when a
+consumer specifically needs several named arrangements of the same
+items (a "compact view" and a "detailed view" of the same dashboard
+widgets, say). Every preset for a given `key` is stored together as one
+object under one storage key — one read/write per operation, not one
+per preset. SSR-safe: every method is a silent no-op during a server
+render rather than throwing.

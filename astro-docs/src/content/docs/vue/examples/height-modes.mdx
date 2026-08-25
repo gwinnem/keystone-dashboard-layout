@@ -1,0 +1,22 @@
+---
+title: Height modes (heightMode)
+description: The modern replacement for autoSize, with two modes ('scroll'/'fit') a boolean couldn't express at all.
+---
+import HeightModes from '../../../../components/examples/50-height-modes.vue';
+import HeightModesSource from '../../../../components/examples/50-height-modes.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={HeightModesSource} filename="height-modes.vue">
+  <HeightModes client:visible />
+</ExampleTryIt>
+
+| Mode | Behavior |
+|---|---|
+| `'auto'` (default when unset) | Grows/shrinks to fit content — same as the older `autoSize: true`. In the demo above, this deliberately overflows the dashed frame, since nothing here constrains it. |
+| `'fixed'` | No explicit height applied at all — the consumer's own CSS decides. Same as `autoSize: false`. |
+| `'scroll'` | Same as `'fixed'`, but also applies an inline `overflow-y: auto`, so content taller than whatever height your own CSS gives it scrolls internally instead of overflowing. |
+| `'fit'` | Height locked to `100%` of the parent container, with the same `overflow-y: auto` as `'scroll'` — for a grid meant to fill a fixed-size panel exactly. |
+
+`null` (the actual prop default) defers entirely to the older `autoSize`
+boolean — set `heightMode` explicitly to opt into any of these, no
+behavior change for existing consumers who only use `autoSize`.

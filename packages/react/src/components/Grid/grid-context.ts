@@ -60,8 +60,16 @@ export interface IGridContextValue {
   onItemResize: (id: string | number, eventType: TGridGestureEventType, x: number, y: number, w: number, h: number) => void;
   /** Reports a close-button click for the item with the given id. `undefined` when the consumer didn't provide `onItemClose` — `GridItem` simply doesn't call it in that case. */
   onItemClose?: (id: string | number) => void;
-  /** Reports a click on the item's own root (`multiSelect`) — `isMultiSelectModifier` is `true` when the click carried Shift/Ctrl/Cmd, `false` for a plain click. A no-op inside `GridLayout` when `multiSelect` is off. */
-  onItemClick: (id: string | number, isMultiSelectModifier: boolean) => void;
+  /**
+   * Reports a click on the item's own root (`multiSelect`) — the raw
+   * modifier keys, not collapsed into a single boolean (a real change
+   * from this field's own earlier shape, needed for Shift-click range-
+   * selection: `GridLayout`'s own handler needs to tell a genuine
+   * Shift-click apart from a Ctrl/Cmd-click specifically, which a
+   * single "was some modifier held" boolean couldn't distinguish at
+   * all). A no-op inside `GridLayout` when `multiSelect` is off.
+   */
+  onItemClick: (id: string | number, modifiers: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void;
 }
 
 export const GridContext = createContext<IGridContextValue | null>(null);

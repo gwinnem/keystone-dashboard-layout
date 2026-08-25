@@ -1,0 +1,22 @@
+---
+title: Custom header slot
+description: The #header slot renders a separate region above an item's own main content.
+---
+import CustomHeaderSlot from '../../../../components/examples/48-custom-header-slot.vue';
+import CustomHeaderSlotSource from '../../../../components/examples/48-custom-header-slot.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CustomHeaderSlotSource} filename="custom-header-slot.vue">
+  <CustomHeaderSlot client:visible />
+</ExampleTryIt>
+
+Only affects layout when actually provided — the no-header case renders
+identically to before this slot existed. When used, `GridItem` switches
+to a vertical flex layout: the header shrinks to fit its own content,
+and the default slot's content (wrapped in its own scrollable region)
+takes whatever space remains, rather than pushing the item's own fixed
+pixel height (which the grid's layout math depends on staying
+accurate).
+
+See [GridItem slots](/vue/components/grid-item/slots/) for the full
+slot reference.

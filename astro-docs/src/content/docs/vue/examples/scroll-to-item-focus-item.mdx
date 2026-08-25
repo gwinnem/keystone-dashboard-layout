@@ -1,0 +1,18 @@
+---
+title: scrollToItem & focusItem
+description: Scroll a possibly off-screen item into view, or move keyboard focus straight to it.
+---
+import ScrollToItemFocusItem from '../../../../components/examples/27-scroll-to-item-focus-item.vue';
+import ScrollToItemFocusItemSource from '../../../../components/examples/27-scroll-to-item-focus-item.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={ScrollToItemFocusItemSource} filename="scroll-to-item-focus-item.vue">
+  <ScrollToItemFocusItem client:visible />
+</ExampleTryIt>
+
+Both methods are exposed on the `GridLayout` instance, reached through
+a template `ref` — the same pattern as `compactNow()`/`rearrange()`/
+`duplicateItem()`. `scrollToItem` scrolls the item's nearest scrollable
+ancestor; `focusItem` additionally moves keyboard focus to it, useful
+for jumping straight into [keyboard move/resize](/vue/guide/project/accessibility/)
+on a specific item without tabbing through everything before it.

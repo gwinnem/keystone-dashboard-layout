@@ -1,0 +1,22 @@
+---
+title: Layout lifecycle events
+description: layout-ready fires once, after every item's size has stabilized; layout-updated fires on mount and after every subsequent change.
+---
+import LayoutLifecycleEvents from '../../../../components/examples/40-layout-lifecycle-events.vue';
+import LayoutLifecycleEventsSource from '../../../../components/examples/40-layout-lifecycle-events.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={LayoutLifecycleEventsSource} filename="layout-lifecycle-events.vue">
+  <LayoutLifecycleEvents client:visible />
+</ExampleTryIt>
+
+`layout-ready` is the one worth knowing about specifically: it fires
+exactly once, after the container's width is actually known and every
+item has had a chance to settle its own size — the first point where
+inspecting final positions/sizes is reliable, rather than reading
+values that are still mid-measurement. `layout-updated` fires more
+often — once during mount, and again after every subsequent mutation
+(drag/resize completion, item add/remove, align/distribute, undo/redo).
+
+See [GridLayout events](/vue/components/grid-layout/vue-events/) for
+the full event reference.

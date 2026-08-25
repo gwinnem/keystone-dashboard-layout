@@ -1,0 +1,31 @@
+/*
+  Design tokens shared across the custom landing page, the Starlight
+  overrides, and the ported Vue example-harness components (ExampleDemo/
+  ExampleToggle/ExampleNumberField/LayoutJsonViewer) — these replace the
+  VitePress `--vp-c-*` variables the harness originally used, per
+  PLAN.md's own note on porting the harness rather than redesigning it.
+  Same palette as the two approved mockups (mockup-landing.html,
+  mockup-vue-docs-home.html) in astro-docs/_design/.
+*/
+:root {
+  --kg-ink: #14171a;
+  --kg-ink-2: #1d2126;
+  --kg-ink-3: #262b31;
+  --kg-paper: #f1f0eb;
+  --kg-paper-2: #ffffff;
+  --kg-panel: #e9e9ea;
+  --kg-paper-3: #e7e6df;
+  --kg-blueprint: #4fb8c9;
+  --kg-blueprint-deep: #2e7a88;
+  --kg-amber: #f2a93b;
+  --kg-amber-deep: #9c6208;
+  --kg-line-dark: rgba(255, 255, 255, 0.1);
+  --kg-line-light: rgba(20, 23, 26, 0.12);
+  --kg-text-hi-dark: #f5f4ef;
+  --kg-text-lo-dark: #9ca6aa;
+  --kg-text-hi-light: #14171a;
+  --kg-text-lo-light: #5b6266;
+  --kg-font-display: 'Space Grotesk', sans-serif;
+  --kg-font-body: 'IBM Plex Sans', sans-serif;
+  --kg-font-mono: 'IBM Plex Mono', monospace;
+}

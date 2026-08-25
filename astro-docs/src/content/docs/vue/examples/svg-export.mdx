@@ -1,0 +1,28 @@
+---
+title: Export layout as SVG
+description: A dependency-free utility producing a standalone SVG snapshot of the current layout.
+---
+import SvgExport from '../../../../components/examples/28-svg-export.vue';
+import SvgExportSource from '../../../../components/examples/28-svg-export.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={SvgExportSource} filename="svg-export.vue">
+  <SvgExport client:visible />
+</ExampleTryIt>
+
+Every option is optional, defaulting to the same values `GridLayout`'s
+own matching props default to (`colNum: 12`, `rowHeight: 150`,
+`margin: [10, 10]`) — with one exception worth knowing: `containerWidth`
+(default `1200`) has to be passed explicitly, since this is a
+standalone function with no real DOM element of its own to measure the
+way `GridLayout` measures its container automatically. Pass the same
+width your actual grid renders at for a matching result.
+
+Deliberately draws each item as a labeled rectangle from the layout
+data alone, not a snapshot of whatever's actually rendered inside each
+`GridItem` — good for a structural thumbnail of the layout itself, not
+a substitute for a real screenshot of custom slot content (a chart, an
+image). The returned string is a complete, standalone `<svg>` document
+— render it directly, download it as a `.svg` file via a `Blob`, or
+draw it onto a `<canvas>` first if a raster PNG/JPEG is specifically
+needed instead.

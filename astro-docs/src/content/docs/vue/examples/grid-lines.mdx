@@ -1,0 +1,15 @@
+---
+title: Show grid lines
+description: Renders visible grid line guides behind the items, useful while building a layout or as a permanent visual aid.
+---
+import GridLines from '../../../../components/examples/16-grid-lines.vue';
+import GridLinesSource from '../../../../components/examples/16-grid-lines.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={GridLinesSource} filename="grid-lines.vue">
+  <GridLines client:visible />
+</ExampleTryIt>
+
+Handy while building a layout in the browser, or as a permanent visual
+aid for dashboard-style grids where users expect to see the underlying
+structure.

@@ -76,7 +76,7 @@
       "import": "./dist/vue-ts-responsive-grid-layout.es.js",
       "require": "./dist/vue-ts-responsive-grid-layout.umd.js"
     },
-    "./style.css": "./dist/vue-ts-responsive-grid-layout.css"
+    "./style.css": "./dist/vue.css"
   },
   "homepage": "https://vue-ts-responsive-grid-layout.winnem.tech",
   "repository": {

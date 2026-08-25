@@ -1,0 +1,17 @@
+---
+title: Per-item autoHeight
+description: A real ResizeObserver on the item's own content, not a one-time measurement.
+---
+import PerItemAutoHeight from '../../../../components/examples/31-per-item-auto-height.vue';
+import PerItemAutoHeightSource from '../../../../components/examples/31-per-item-auto-height.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={PerItemAutoHeightSource} filename="per-item-auto-height.vue">
+  <PerItemAutoHeight client:visible />
+</ExampleTryIt>
+
+Live-resyncing — `autoHeight` keeps watching the slot content via a
+real `ResizeObserver`, so an item grows or shrinks automatically as its
+content changes after mount, not just once when it first renders. Pairs
+naturally with dynamic content whose size isn't known upfront (a
+loaded chart, an expanding text block, an async list).

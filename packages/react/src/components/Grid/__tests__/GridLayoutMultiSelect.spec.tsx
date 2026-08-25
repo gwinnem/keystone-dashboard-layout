@@ -70,7 +70,20 @@ describe(`GridLayout multiSelect`, () => {
     expect(ref.current!.selectedItems.slice().sort()).toStrictEqual([`0`, `1`]);
   });
 
-  it(`Should toggle an already-selected item back out with a Shift+click`, () => {
+  it(`Should compute the same range again (not toggle it back off) on a second, repeated Shift+click to the same target`, () => {
+    // Corrected, not merely renamed: an earlier version of this test
+    // asserted the *opposite* — that a second Shift+click to the same
+    // target toggled the range back off entirely, landing back at just
+    // `['0']`. That was true of Shift-click's own old "treat exactly
+    // like Ctrl/Cmd" behavior, but is actively wrong now that Shift
+    // computes a real, anchored range instead (see `GridLayout.tsx`'s
+    // own `handleItemClick`): the anchor stays fixed at the last
+    // plain/Ctrl click ('0') across repeated Shift-clicks by design
+    // (not updated by a Shift-click itself), so re-clicking the exact
+    // same target with the exact same anchor recomputes the identical
+    // range and *replaces* the selection with it again — idempotent,
+    // not a toggle. See the dedicated `Shift-click range-selection`
+    // suite below for the fuller set of range-specific behaviors.
     const ref = createRef<IGridLayoutHandle>();
     const { container } = render(
       <GridLayout layout={threeItemLayout()} multiSelect ref={ref}>
@@ -83,7 +96,7 @@ describe(`GridLayout multiSelect`, () => {
     click(container.querySelector(`[data-grid-item-id="1"]`) as HTMLElement, { shiftKey: true });
     click(container.querySelector(`[data-grid-item-id="1"]`) as HTMLElement, { shiftKey: true });
 
-    expect(ref.current!.selectedItems).toStrictEqual([`0`]);
+    expect(ref.current!.selectedItems.slice().sort()).toStrictEqual([`0`, `1`]);
   });
 
   it(`Should apply the selected class to a currently-selected item`, () => {
@@ -254,6 +267,167 @@ describe(`GridLayout multiSelect`, () => {
     });
 
     expect(ref.current!.selectedItems).toStrictEqual([`1`]);
+  });
+
+  describe(`Shift-click range-selection`, () => {
+    // A 4-item layout is what actually distinguishes real
+    // range-selection from a plain toggle — every other test in this
+    // file only ever uses 2-3 items, most of them adjacent in layout
+    // order, so a computed range and a plain toggle/additive select
+    // often happen to produce the same result by coincidence. These
+    // tests use enough items that only a genuine, layout-order-based
+    // range produces the expected selection.
+    const fourItemLayout = (): TLayout => [
+      { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `b`, w: 2, x: 2, y: 0 },
+      { h: 2, i: `c`, w: 2, x: 4, y: 0 },
+      { h: 2, i: `d`, w: 2, x: 6, y: 0 },
+    ];
+
+    it(`Should select every item between the anchor and the Shift-clicked target, inclusive`, () => {
+      const ref = createRef<IGridLayoutHandle>();
+      const { container } = render(
+        <GridLayout layout={fourItemLayout()} multiSelect ref={ref}>
+          <GridItem i="a">Item a</GridItem>
+          <GridItem i="b">Item b</GridItem>
+          <GridItem i="c">Item c</GridItem>
+          <GridItem i="d">Item d</GridItem>
+        </GridLayout>,
+      );
+
+      click(container.querySelector(`[data-grid-item-id="a"]`) as HTMLElement);
+      click(container.querySelector(`[data-grid-item-id="d"]`) as HTMLElement, { shiftKey: true });
+
+      expect(ref.current!.selectedItems.slice().sort()).toStrictEqual([`a`, `b`, `c`, `d`]);
+    });
+
+    it(`Should select the same range when Shift-clicking "backwards" toward an earlier item`, () => {
+      const ref = createRef<IGridLayoutHandle>();
+      const { container } = render(
+        <GridLayout layout={fourItemLayout()} multiSelect ref={ref}>
+          <GridItem i="a">Item a</GridItem>
+          <GridItem i="b">Item b</GridItem>
+          <GridItem i="c">Item c</GridItem>
+          <GridItem i="d">Item d</GridItem>
+        </GridLayout>,
+      );
+
+      click(container.querySelector(`[data-grid-item-id="d"]`) as HTMLElement);
+      click(container.querySelector(`[data-grid-item-id="a"]`) as HTMLElement, { shiftKey: true });
+
+      expect(ref.current!.selectedItems.slice().sort()).toStrictEqual([`a`, `b`, `c`, `d`]);
+    });
+
+    it(`Should replace the current selection with the range, not merge into it`, () => {
+      const ref = createRef<IGridLayoutHandle>();
+      const { container } = render(
+        <GridLayout layout={fourItemLayout()} multiSelect ref={ref}>
+          <GridItem i="a">Item a</GridItem>
+          <GridItem i="b">Item b</GridItem>
+          <GridItem i="c">Item c</GridItem>
+          <GridItem i="d">Item d</GridItem>
+        </GridLayout>,
+      );
+
+      // Ctrl-select "d" on its own first — unrelated to the anchor this
+      // Shift-click range below is about to compute.
+      click(container.querySelector(`[data-grid-item-id="d"]`) as HTMLElement, { ctrlKey: true });
+      click(container.querySelector(`[data-grid-item-id="a"]`) as HTMLElement);
+      click(container.querySelector(`[data-grid-item-id="b"]`) as HTMLElement, { shiftKey: true });
+
+      // Only "a" and "b" (the computed range) — "d"'s own earlier,
+      // unrelated Ctrl-selection doesn't survive.
+      expect(ref.current!.selectedItems.slice().sort()).toStrictEqual([`a`, `b`]);
+    });
+
+    it(`Should keep re-anchoring to the same fixed point across repeated Shift-clicks, not compounding from the previous Shift-click target`, () => {
+      const ref = createRef<IGridLayoutHandle>();
+      const { container } = render(
+        <GridLayout layout={fourItemLayout()} multiSelect ref={ref}>
+          <GridItem i="a">Item a</GridItem>
+          <GridItem i="b">Item b</GridItem>
+          <GridItem i="c">Item c</GridItem>
+          <GridItem i="d">Item d</GridItem>
+        </GridLayout>,
+      );
+
+      click(container.querySelector(`[data-grid-item-id="a"]`) as HTMLElement);
+      click(container.querySelector(`[data-grid-item-id="c"]`) as HTMLElement, { shiftKey: true });
+      expect(ref.current!.selectedItems.slice().sort()).toStrictEqual([`a`, `b`, `c`]);
+
+      // A second Shift-click, to "b" — ranges from the *original* anchor
+      // "a", not from "c" (the previous Shift-click target).
+      click(container.querySelector(`[data-grid-item-id="b"]`) as HTMLElement, { shiftKey: true });
+      expect(ref.current!.selectedItems.slice().sort()).toStrictEqual([`a`, `b`]);
+    });
+
+    it(`Should fall back to a plain select when there's no anchor yet (the very first click on a fresh grid is a Shift-click)`, () => {
+      const ref = createRef<IGridLayoutHandle>();
+      const { container } = render(
+        <GridLayout layout={fourItemLayout()} multiSelect ref={ref}>
+          <GridItem i="a">Item a</GridItem>
+          <GridItem i="b">Item b</GridItem>
+          <GridItem i="c">Item c</GridItem>
+          <GridItem i="d">Item d</GridItem>
+        </GridLayout>,
+      );
+
+      click(container.querySelector(`[data-grid-item-id="b"]`) as HTMLElement, { shiftKey: true });
+
+      expect(ref.current!.selectedItems).toStrictEqual([`b`]);
+    });
+
+    it(`Should reset the anchor after clearSelection, so a later Shift-click falls back to a plain select again`, () => {
+      const ref = createRef<IGridLayoutHandle>();
+      const { container } = render(
+        <GridLayout layout={fourItemLayout()} multiSelect ref={ref}>
+          <GridItem i="a">Item a</GridItem>
+          <GridItem i="b">Item b</GridItem>
+          <GridItem i="c">Item c</GridItem>
+          <GridItem i="d">Item d</GridItem>
+        </GridLayout>,
+      );
+
+      click(container.querySelector(`[data-grid-item-id="a"]`) as HTMLElement);
+      act(() => {
+        ref.current!.clearSelection();
+      });
+
+      click(container.querySelector(`[data-grid-item-id="c"]`) as HTMLElement, { shiftKey: true });
+
+      // No anchor survived the clear — falls back to a plain select of
+      // just "c", not a range from the stale "a" anchor.
+      expect(ref.current!.selectedItems).toStrictEqual([`c`]);
+    });
+
+    it(`Should reset the anchor once its own item is removed from the layout, so a later Shift-click falls back to a plain select`, () => {
+      const ref = createRef<IGridLayoutHandle>();
+      const { container, rerender } = render(
+        <GridLayout layout={fourItemLayout()} multiSelect ref={ref}>
+          <GridItem i="a">Item a</GridItem>
+          <GridItem i="b">Item b</GridItem>
+          <GridItem i="c">Item c</GridItem>
+          <GridItem i="d">Item d</GridItem>
+        </GridLayout>,
+      );
+
+      click(container.querySelector(`[data-grid-item-id="a"]`) as HTMLElement);
+
+      // Remove "a" (the anchor) from the layout entirely.
+      act(() => {
+        rerender(
+          <GridLayout layout={fourItemLayout().filter(item => item.i !== `a`)} multiSelect ref={ref}>
+            <GridItem i="b">Item b</GridItem>
+            <GridItem i="c">Item c</GridItem>
+            <GridItem i="d">Item d</GridItem>
+          </GridLayout>,
+        );
+      });
+
+      click(container.querySelector(`[data-grid-item-id="c"]`) as HTMLElement, { shiftKey: true });
+
+      expect(ref.current!.selectedItems).toStrictEqual([`c`]);
+    });
   });
 
   describe(`group move`, () => {

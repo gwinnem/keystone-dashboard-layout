@@ -1,0 +1,69 @@
+/// <reference types="vitest/config" />
+import { defineConfig } from 'vitest/config';
+import angular from '@analogjs/vite-plugin-angular';
+
+/**
+ * Vitest configuration for @keystone-dashboard-layout/angular's own
+ * unit-level tests (components/services/pipes/directives/signals/
+ * standalone components/reactive forms/HTTP mocks) — matching the
+ * Vue/React packages' own Vitest convention, rather than Angular CLI's
+ * traditional Karma+webpack pipeline. `@analogjs/vite-plugin-angular`
+ * (from the Analog.js project) is what makes this possible: it
+ * compiles Angular decorators/templates through Vite's own pipeline,
+ * the same way `@vitejs/plugin-vue` does for the Vue package, so
+ * Vitest can run `TestBed`-based specs directly without Angular CLI's
+ * own build/karma tooling in the loop at all.
+ *
+ * Karma (`karma.conf.js`/`angular.json`, both still present in this
+ * package) is deliberately *not* used for this — kept instead for a
+ * possible future full-app browser-flow e2e layer once this port has
+ * interactive functionality worth e2e-testing (see
+ * `docs/IMPLEMENTATION_PLAN.md`), a decision confirmed directly rather
+ * than assumed, since Karma isn't actually well-suited to that role
+ * either (it's a browser-hosted unit-test runner, not a browser-
+ * automation/navigation tool the way Playwright — what the Vue/React
+ * packages already use for their own e2e — is).
+ */
+export default defineConfig({
+  plugins: [angular()],
+  resolve: {
+    // Same shape as the Vue/React packages' own `@/core` alias, for the
+    // same reason: tests may exercise `core`'s own source (e.g.
+    // `native-interaction.ts`, once Phase 3/4's drag/resize work lands)
+    // directly through this alias rather than only via the published
+    // `@keystone-dashboard-layout/core` package name.
+    alias: {
+      '@/core': new URL('../core/src', import.meta.url).pathname,
+    },
+  },
+  test: {
+    environment: `jsdom`,
+    globals: true,
+    include: [`src/**/*.spec.ts`],
+    passWithNoTests: true,
+    setupFiles: [`src/test-setup.ts`],
+    coverage: {
+      provider: `v8`,
+      reporter: [`text`, `json`, `html`],
+      include: [`src/**/*.ts`],
+      exclude: [
+        // Pure type declarations/interfaces — no JS is emitted for
+        // these, so there's nothing runtime tests could ever cover.
+        // Same rationale as the Vue/React packages' own identical
+        // exclusions.
+        `src/**/*.interface.ts`,
+        // The package's public barrel — pure re-exports; no spec in
+        // this suite imports through it directly. Same rationale as
+        // the Vue/React packages' own equivalent exclusion.
+        `src/index.ts`,
+        `src/test-setup.ts`,
+      ],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        branches: 90,
+        statements: 90,
+      },
+    },
+  },
+});

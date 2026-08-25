@@ -1,0 +1,34 @@
+---
+title: Eventbus (IEventsData)
+description: The payload shape carried on GridLayout and GridItem's internal eventBus.
+---
+
+The payload shape for the eventBus's `dragEvent`/`resizeEvent` messages —
+a `GridItem` reporting its current drag/resize state up to its parent
+`GridLayout`. See [GridLayout's eventbus events](/vue/components/grid-layout/eventbus-events/)
+for how these messages are actually used.
+
+```ts
+interface IEventsData {
+  /** The originating event type, e.g. 'dragstart', 'resizemove', 'resizeend'. */
+  eventType: string | symbol;
+  /** Current height, in grid row units. */
+  h: number;
+  /** The reporting item's id. */
+  i: string | number;
+  /** Current width, in grid column units. */
+  w: number;
+  /** Current horizontal position, in grid column units. */
+  x: number;
+  /** Current vertical position, in grid row units. */
+  y: number;
+  /** The originating pointer event's clientX/clientY — real viewport pixel coordinates, not grid units. Drag events only. */
+  clientX?: number;
+  clientY?: number;
+}
+```
+
+`clientX`/`clientY` exist specifically so cross-grid drag/drop
+(`allowCrossGridDrag`) can check the pointer's position against *other*
+grids' bounding rects, using the exact same coordinates the drag itself
+is already tracking — see [Drag, drop from grid to grid](/vue/examples/cross-grid-drag-drop/).

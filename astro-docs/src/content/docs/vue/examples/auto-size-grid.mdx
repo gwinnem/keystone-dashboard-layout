@@ -1,0 +1,24 @@
+---
+title: Auto-size grid on content
+description: autoSize is true by default — most consumers never need to think about it, but it's worth knowing about for the opposite case.
+---
+import AutoSizeGrid from '../../../../components/examples/20-auto-size-grid.vue';
+import AutoSizeGridSource from '../../../../components/examples/20-auto-size-grid.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={AutoSizeGridSource} filename="auto-size-grid.vue">
+  <AutoSizeGrid client:visible />
+</ExampleTryIt>
+
+`autoSize` is `true` by default — most consumers never need to think
+about it. It's worth knowing about mainly for the opposite case: set
+`:auto-size="false"` if you want a fixed-height scrollable grid instead
+of one that grows to fit its content.
+
+:::tip[Don't confuse this with GridItem's autoSize() method]
+This page is about `GridLayout`'s `autoSize` **prop** (container
+height). `GridItem` separately exposes an `autoSize()` **method** for
+resizing a single item to fit its own slot content — a different
+feature. See [Per-item autoHeight](/vue/examples/per-item-auto-height/)
+for the prop-driven version of that.
+:::

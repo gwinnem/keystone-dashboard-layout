@@ -1,0 +1,16 @@
+---
+title: autoScroll
+description: Dragging or resizing near the edge of a scrollable container scrolls it automatically.
+---
+import AutoScroll from '../../../../components/examples/39-auto-scroll.vue';
+import AutoScrollSource from '../../../../components/examples/39-auto-scroll.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={AutoScrollSource} filename="auto-scroll.vue">
+  <AutoScroll client:visible />
+</ExampleTryIt>
+
+Per-item, not a `GridLayout`-wide prop — scrolls the item's nearest
+scrollable ancestor, not necessarily the whole page. Off by default,
+since a plain page-level grid usually has nothing to scroll; turn it on
+for items living inside a fixed-height, overflow-scrolling container.

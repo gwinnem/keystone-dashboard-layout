@@ -1,0 +1,23 @@
+---
+title: Show close button
+description: Setting showCloseButton on GridLayout controls the default for every item that doesn't set its own.
+---
+import CloseButton from '../../../../components/examples/13-close-button.vue';
+import CloseButtonSource from '../../../../components/examples/13-close-button.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CloseButtonSource} filename="close-button.vue">
+  <CloseButton client:visible />
+</ExampleTryIt>
+
+Setting `showCloseButton` on `GridLayout` (rather than on every
+individual `GridItem`) controls the default for every item that doesn't
+set its own — an item's own `show-close-button` prop always overrides it,
+same as `isDraggable`/`isResizable`/`isBounded`. Toggling the control
+above demonstrates exactly this: no item in this example sets its own
+`show-close-button`, so all three follow the layout's default at once.
+
+Want a custom close button instead of the built-in one? The library
+exports the same `CustomCloseButton` component it uses internally — see
+[Styling → GridItem](/vue/components/styling/css-grid-item/) for how to
+swap it in.

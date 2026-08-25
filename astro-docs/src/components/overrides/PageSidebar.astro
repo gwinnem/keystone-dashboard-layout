@@ -1,0 +1,37 @@
+---
+// Overrides Starlight's default PageSidebar to hide the right-hand
+// Table of Contents entirely while browsing /vue/examples/* — every
+// example page is a single interactive demo plus a short "Code"
+// section, with no real heading structure worth a ToC for.
+//
+// Route-dependent, not per-page frontmatter (tableOfContents: false on
+// each of the 52 example .mdx files individually) — deliberately, so
+// any future example added later gets this automatically without
+// needing to remember to set it each time. Same approach already used
+// for the route-dependent Sidebar override; see that file's own
+// comment for the same rationale.
+//
+// Mirrors the real default PageSidebar.astro's own structure exactly
+// (same virtual component imports, same conditional, same class names)
+// for every route this doesn't apply to — only the examples-route
+// early return is new.
+import MobileTableOfContents from 'virtual:starlight/components/MobileTableOfContents';
+import TableOfContents from 'virtual:starlight/components/TableOfContents';
+
+const isExamplesRoute = Astro.url.pathname.includes(`/vue/examples`);
+---
+
+{
+	!isExamplesRoute && Astro.props.toc && (
+		<>
+			<div class="lg:sl-hidden">
+				<MobileTableOfContents {...Astro.props} />
+			</div>
+			<div class="right-sidebar-panel sl-hidden lg:sl-block">
+				<div class="sl-container">
+					<TableOfContents {...Astro.props} />
+				</div>
+			</div>
+		</>
+	)
+}

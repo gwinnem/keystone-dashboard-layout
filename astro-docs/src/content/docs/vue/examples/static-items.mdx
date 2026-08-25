@@ -1,0 +1,23 @@
+---
+title: Static items
+description: A static item ignores isDraggable/isResizable entirely, is excluded from the drag-collision cascade, and its close button is hidden even if showCloseButton is set.
+---
+import StaticItems from '../../../../components/examples/17-static-items.vue';
+import StaticItemsSource from '../../../../components/examples/17-static-items.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={StaticItemsSource} filename="static-items.vue">
+  <StaticItems client:visible />
+</ExampleTryIt>
+
+`isStatic` can be set per-item in the layout array or as a per-`GridItem`
+prop directly. A static item ignores `isDraggable`/`isResizable`
+entirely, is excluded from the drag-collision cascade (other items
+compact around it as a fixed obstacle), and its close button is hidden
+even if `showCloseButton` is set.
+
+:::tip[Common use case: dashboard "anchors"]
+A common pattern is a static header or KPI card that should never move,
+surrounded by draggable widgets — set `isStatic: true` on just that one
+layout entry.
+:::

@@ -1,0 +1,19 @@
+---
+title: Pluggable compaction (compactType & compactor)
+description: Five built-in strategies via compactType, or replace the algorithm entirely with a custom ICompactor.
+---
+import PluggableCompaction from '../../../../components/examples/42-pluggable-compaction.vue';
+import PluggableCompactionSource from '../../../../components/examples/42-pluggable-compaction.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={PluggableCompactionSource} filename="pluggable-compaction.vue">
+  <PluggableCompaction client:visible />
+</ExampleTryIt>
+
+`compactor` is a purely additive override — `null` (the default) means
+"use whichever built-in strategy `compactType` selects," so the two
+props are never in conflict. A custom compactor's `compact(layout, cols,
+context)` **must return a new array**, never mutate `layout` or its
+items in place. Runs at every trigger point the built-in strategies
+already run at: drag/resize end, item add/remove, mount, breakpoint
+change, and `compactNow()`/`rearrange()`.

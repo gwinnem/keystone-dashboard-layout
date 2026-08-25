@@ -5,6 +5,7 @@ import {
   cloneLayout,
   computeAlignAdjustments,
   computeDistributeAdjustments,
+  computeRangeSelection,
   ECompactType,
   exportLayoutAsSvg as coreExportLayoutAsSvg,
   findAlignmentGuides,
@@ -333,6 +334,16 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   const groupMoveStartPositions = useRef<Map<string | number, { x: number; y: number }>>(new Map());
   const groupResizeStartSizes = useRef<Map<string | number, { h: number; w: number }>>(new Map());
   /**
+   * The anchor for a future Shift-click range — the last item selected
+   * without Shift (a plain click, or a Ctrl/Cmd toggle). See Vue's own
+   * `useMultiSelect.ts` `lastAnchorId` for the full rationale (same
+   * behavior, ported directly): re-anchors on every non-Shift click,
+   * stays fixed across repeated Shift-clicks, and is reset to `null`
+   * both by `clearSelection` and by the selection-pruning effect below
+   * whenever the anchor's own item stops existing in the layout.
+   */
+  const lastAnchorIdRef = useRef<string | number | null>(null);
+  /**
    * `restoreOnDrag`'s own gesture-scoped snapshot — every *other*
    * item's own pre-drag `y` (or `x`, for `ECompactType.HORIZONTAL`),
    * captured at `dragstart` from `workingLayoutRef.current` (see
@@ -441,6 +452,19 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       });
       return changed ? next : prev;
     });
+    // Same pruning rationale, applied to the range anchor: a Shift-click
+    // range computed from an anchor that no longer matches a real item
+    // would silently fall back to `computeRangeSelection`'s own
+    // "anchor not found" case (just the target alone) — resetting it
+    // here means the next Shift-click with no valid anchor instead
+    // falls through to a plain select, the same well-defined "no
+    // anchor yet" behavior a fresh grid starts with. Not itself state
+    // (a ref), so this doesn't need its own separate effect/dependency
+    // wiring — just checked alongside the identical `workingLayout`
+    // dependency the selection-pruning check above already has.
+    if(lastAnchorIdRef.current !== null && !workingLayout.some(item => item.i === lastAnchorIdRef.current)) {
+      lastAnchorIdRef.current = null;
+    }
   }, [workingLayout]);
 
   // `onSelectionChanged` (matching Vue's own `EGridLayoutEvent.
@@ -893,6 +917,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   }, []);
 
   const clearSelection = useCallback((): void => {
+    lastAnchorIdRef.current = null;
     setSelectedItemIds(prev => (prev.size === 0 ? prev : new Set()));
   }, []);
 
@@ -900,10 +925,19 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * A click reported by a `GridItem`'s own root (`multiSelect` only —
    * see `GridItem.tsx`'s own click handler, which no-ops entirely when
    * `context.multiSelect` is off). A plain click selects the item
-   * exclusively; Shift/Ctrl/Cmd toggles it within the existing
-   * selection instead.
+   * exclusively and re-anchors; Ctrl/Cmd toggles it within the existing
+   * selection and re-anchors; Shift extends a contiguous range from
+   * `lastAnchorIdRef` to this item (via `core`'s own
+   * `computeRangeSelection`), *replacing* the current selection rather
+   * than merging into it — matching the standard desktop convention,
+   * and Vue's own identical `itemClickedHandler`. Falls back to a plain
+   * select when there's no anchor yet (the very first click on a fresh
+   * grid) — a range needs two ends to mean anything. Deliberately does
+   * *not* update `lastAnchorIdRef` on a Shift-click itself, so repeated
+   * Shift-clicks keep re-anchoring to the same fixed point rather than
+   * compounding from the previous Shift-click target.
    */
-  const handleItemClick = useCallback((id: string | number, isMultiSelectModifier: boolean): void => {
+  const handleItemClick = useCallback((id: string | number, modifiers: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }): void => {
     // Confirmed unreachable through any real click, not assumed:
     // GridItem.tsx's own handleClick already checks context.multiSelect
     // and returns early before ever calling context.onItemClick (this
@@ -915,11 +949,17 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     if(!multiSelect) {
       return;
     }
-    if(isMultiSelectModifier) {
+    if(modifiers.shiftKey && lastAnchorIdRef.current !== null) {
+      const range = computeRangeSelection(workingLayoutRef.current, lastAnchorIdRef.current, id);
+      setSelectedItemIds(new Set(range));
+      return;
+    }
+    if(modifiers.shiftKey || modifiers.ctrlKey || modifiers.metaKey) {
       toggleItemSelection(id);
     } else {
       setSelectedItemIds(new Set([id]));
     }
+    lastAnchorIdRef.current = id;
   }, [multiSelect, toggleItemSelection]);
 
   /** Clicking the grid's own empty background (not any item — `GridItem`'s own click handler stops propagation for a real item click) clears the selection, matching the Vue package's own `backgroundClickHandler`. */

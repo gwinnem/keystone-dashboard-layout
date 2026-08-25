@@ -1,0 +1,20 @@
+---
+title: Blocked-move feedback
+description: move-blocked-by-collision fires the moment preventCollision blocks a drag or resize.
+---
+import BlockedMoveFeedback from '../../../../components/examples/30-blocked-move-feedback.vue';
+import BlockedMoveFeedbackSource from '../../../../components/examples/30-blocked-move-feedback.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={BlockedMoveFeedbackSource} filename="blocked-move-feedback.vue">
+  <BlockedMoveFeedback client:visible />
+</ExampleTryIt>
+
+Without this event, `preventCollision` alone gives no feedback about
+*why* a drag stopped short — the item just doesn't move, which can look
+like a bug rather than intentional collision blocking. Use the event to
+drive a flash, a shake animation, or a toast, so the block reads as
+deliberate.
+
+See [Prevent collision](/vue/examples/prevent-collision/) for the base
+prop this event pairs with.

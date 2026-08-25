@@ -1,0 +1,20 @@
+---
+title: Basic drag & resize
+description: The simplest possible setup — a GridLayout bound to a layout array, drag and resize on by default.
+---
+import BasicDragResize from '../../../../components/examples/01-basic-drag-resize.vue';
+import BasicDragResizeSource from '../../../../components/examples/01-basic-drag-resize.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+The simplest possible setup: a `GridLayout` bound to a layout array with
+`v-model:layout`, and a `GridItem` for each entry.
+
+<ExampleTryIt code={BasicDragResizeSource} filename="basic-drag-resize.vue">
+  <BasicDragResize client:visible />
+</ExampleTryIt>
+
+:::tip[Every item is draggable and resizable by default]
+`GridLayout`'s `isDraggable`/`isResizable` props (both default `true`)
+apply to every item unless a specific `GridItem` overrides them with its
+own `is-draggable`/`is-resizable` prop. See [Props](/vue/components/grid-layout/props/).
+:::

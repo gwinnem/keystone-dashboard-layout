@@ -1,178 +1,307 @@
-# Parity Gap — Vue vs. Angular
+# Parity Gap — Angular vs. Vue (post-implementation)
 
-The starting scoping document for the Angular port, mirroring the role
-`packages/react/docs/PARITY_GAP_VUE.md` played for the React port —
-except written *before* the port exists, not after, since there's
-nothing to verify against yet. This is the architecture-mapping and
-prop inventory the port should follow; `docs/IMPLEMENTATION_PLAN.md`
-(this same `docs/` folder) tracks phase-by-phase progress against it,
-the same relationship the two React docs have.
+Unlike `PARITY_GAP_ANGULAR.md` (the pre-port planning document, written
+before any Angular component code existed — kept as-is for historical
+record, not updated here), this document compares the two *completed*
+implementations as they actually stand today. Every claim below was
+verified by reading the current source directly — `grid-layout-props.
+interface.ts`, `grid-item-props.interface.ts`, `EGridLayoutEvents.ts`,
+`GridLayout.vue`, `GridItem.vue`, `useGridItemKeyboard.ts` on the Vue
+side; `grid-layout.component.ts`, `grid-item.component.ts` on the
+Angular side — not carried over from memory of the pre-port planning
+document or assumed from the architecture mapping still being
+accurate. Where a claim below couldn't be fully verified this pass, it
+says so explicitly rather than presenting it with false confidence.
 
-**Decisions locked in before writing any component code** (confirmed
-directly with the person maintaining this repo, not assumed):
+The architecture mapping in `PARITY_GAP_ANGULAR.md` (Vue's `provide`/
+`inject` → Angular's `GridEventBusService`, `defineExpose` → public
+class members, etc.) held up and is not re-litigated here — this
+document is about the **feature surface**, not the plumbing.
 
-- **`@Input()`/`@Output()` decorators**, not the newer `input()`/
-  `output()`/`model()` signal-based APIs. More explicit, more familiar
-  to anyone coming from Angular 12–16, and avoids tying this port to
-  Angular's newest (and still-evolving) reactivity primitives before
-  the rest of the port even exists.
-- **Reuse `@keystone-dashboard-layout/core`'s `native-interaction.ts`
-  directly** for the drag/resize/auto-scroll engine — the same
-  Pointer-Events-based implementation Vue and React already share.
-  Zero framework dependency in that file (confirmed: no Vue/React
-  import anywhere in it), so there's no Angular-specific reason to
-  reimplement it.
+## How to read this document
 
-## Why this document exists before any component code
+Each table row is one of:
+- **✅ Match** — same behavior, confirmed by reading both
+  implementations' own source, not just the type signature.
+- **⚠️ Partial** — the feature exists in some form on both sides, but
+  with a real, confirmed behavioral difference worth knowing about.
+- **❌ Gap** — Vue has it; Angular has no equivalent at all.
+- **➖ N/A** — Vue-specific plumbing with no meaningful Angular
+  translation needed (already covered by the architecture mapping).
 
-Vue's `GridLayout.vue`/`GridItem.vue` lean on Vue-specific primitives
-throughout — `ref`/`computed`/`watch`, `provide`/`inject` for the
-`eventBus`, `defineExpose` for the imperative API, scoped `<style>`
-blocks. React's own port had to re-derive an Angular-shaped answer for
-each of these from scratch; getting that mapping wrong early (e.g.
-picking `@Input()` setters where a lifecycle hook was actually needed)
-is exactly the kind of thing that produces the "coverage says 100% but
-a real browser reveals a bug" pattern this whole session's own history
-with the React port ran into more than once (the RTL positioning bug,
-the missing cross-grid z-index boost). Writing the mapping down first,
-and reasoning through *why* each choice is correct for Angular's own
-change-detection model — not just "the Vue-adjacent-sounding Angular
-API" — is meant to avoid re-learning those same lessons a third time.
+## GridLayout-level props
 
-## Architecture mapping
+| Vue prop | Angular equivalent | Status | Notes |
+|---|---|---|---|
+| `layout` (required) | `layout` (required) | ✅ Match | |
+| `autoSize` | `autoSize` | ✅ Match | Angular only has the older boolean form. |
+| `heightMode` | — | ❌ **Gap** | Vue's newer 4-mode height system (`'auto'` \| `'fixed'` \| `'scroll'` \| `'fit'`) — `'scroll'`/`'fit'` add `overflow-y: auto` handling `autoSize` alone can't express. Angular has no equivalent; a consumer wanting scroll-contained grid content has no built-in way to get it. |
+| `allowCrossGridDrag` | `allowCrossGridDrag` | ✅ Match | |
+| `ariaLabels` (grid-wide) | — | ❌ **Gap** | See GridItem-level table — this is one half of a feature that doesn't exist in Angular at all. |
+| `enableEditMode` (grid-wide) | — | ❌ **Gap** | Grid-wide interactivity master switch. Angular has no equivalent at either the grid or item level (see GridItem table). |
+| `disableExternalDrop` | `disableExternalDrop` | ✅ Match | |
+| `layoutId` | `layoutId` | ✅ Match | |
+| `allowOutsideDrop` | `allowOutsideDrop` | ✅ Match | |
+| `outsideDropWidth` | `outsideDropWidth` | ✅ Match | |
+| `outsideDropHeight` | `outsideDropHeight` | ✅ Match | |
+| `outsideDropAccept` | `outsideDropAccept` | ✅ Match | |
+| `borderRadiusPx` (grid-wide) | — | ❌ **Gap** | See GridItem-level table. |
+| `transitionDurationMs` | `transitionDurationMs` | ✅ Match | |
+| `transitionTimingFunction` | `transitionTimingFunction` | ✅ Match | |
+| `showAlignmentGuides` | `showAlignmentGuides` | ✅ Match | |
+| `showSpacingGuides` | `showSpacingGuides` | ✅ Match | |
+| `snapToGrid` | `snapToGrid` | ✅ Match | |
+| `snapThreshold` | `snapThreshold` | ✅ Match | |
+| `breakpoints` | `breakpoints` | ✅ Match | |
+| `colNum` | `colNum` | ✅ Match | |
+| `cols` | `cols` | ✅ Match | |
+| `distributeEvenly` | `distributeEvenly` | ✅ Match | |
+| `horizontalShift` | `horizontalShift` | ✅ Match | |
+| `isBounded` (grid-wide default) | — | ❌ **Gap** | See "Grid-wide cascade" section below — this is a structural gap, not a single missing prop. |
+| `isDraggable` (grid-wide default) | — | ❌ **Gap** | Same as above. |
+| `isMirrored` | `isMirrored` (per-item only — see GridItem table) | ⚠️ **Partial** | Vue's `isMirrored` is grid-wide, cascading to every item (with a per-item override). Angular's `isMirrored` exists **only** as a per-item `@Input()` — there is no grid-wide toggle to mirror an entire grid at once; every item must be set individually. |
+| `isResizable` (grid-wide default) | — | ❌ **Gap** | Same as `isDraggable` above. |
+| `margin` | `margin` | ✅ Match | |
+| `maxRows` (grid-wide) | `maxRows` (per-item only) | ⚠️ **Partial** | Vue's `maxRows` is a single grid-wide value governing the whole layout's own growth. Angular's `maxRows` exists only as a `GridItemComponent` `@Input()` (default `Infinity`), read purely for that one item's own `calcXY`/`calcWH` y-capping — there is no grid-wide `GridLayoutComponent` `maxRows` at all, so nothing enforces it during compaction, collision resolution, or the imperative API (`compactNow`, etc.) the way Vue's grid-level value does. |
+| `multiSelect` | `multiSelect` | ✅ Match | Group move/resize, selection cascade, all confirmed present on both sides. |
+| `preventCollision` | `preventCollision` | ✅ Match | |
+| `responsive` | `responsive` | ✅ Match | |
+| `responsiveLayouts` | `responsiveLayouts` | ✅ Match | |
+| `restoreOnDrag` | `restoreOnDrag` | ✅ Match | |
+| `rowHeight` | `rowHeight` | ✅ Match | |
+| `showCloseButton` (grid-wide default) | — | ❌ **Gap** | See GridItem-level table — the entire close-button feature is absent from Angular. |
+| `showGridLines` | — | ❌ **Gap** | Vue toggles a `grid` CSS class rendering visible grid-line guides behind items. No Angular equivalent at all. |
+| `showResizeHandles` | `showResizeHandles` | ✅ Match | |
+| `resizeHandleColor` | `resizeHandleColor` | ✅ Match | |
+| `resizeHandles` (grid-wide default) | — | ❌ **Gap** | Angular's `resizeHandles` exists only per-item; there is no grid-wide default to restrict every item's own handles at once. |
+| `transformScale` | `transformScale` | ✅ Match | |
+| `useBorderRadius` (grid-wide) | — | ❌ **Gap** | See GridItem-level table. |
+| `useCssTransforms` | `useCssTransforms` | ✅ Match | |
+| `compactor` | `compactor` | ✅ Match | |
+| `enableUndoRedo` | `enableUndoRedo` | ✅ Match | |
+| `undoHistoryLimit` | `undoHistoryLimit` | ✅ Match | |
+| `compactType` | `compactType` | ✅ Match | |
 
-| Vue mechanism | Angular equivalent | Why |
-|---|---|---|
-| `ref`/`computed`/`watch` on props | `@Input()` properties + `ngOnChanges(changes: SimpleChanges)` | Angular's own change detection already re-runs template bindings on every input change; `ngOnChanges` is where side effects *beyond* the template (recomputing `styleObj`, an eventBus-equivalent cascade) belong — the direct analogue of Vue's own per-prop `watch()` callbacks, which is exactly what `GridItem.vue`'s own `createStyle()` call sites are. |
-| `provide('eventBus', ...)` / `inject('eventBus')` | A `GridEventBusService`, provided at the `GridLayoutComponent` level (`providers: [GridEventBusService]` on that component, not root-provided) and injected into each `GridItemComponent` via the constructor | Angular's DI is naturally scoped to a component subtree via `providers` on a component — this reproduces Vue's `provide`/`inject` scoping (one eventBus per `GridLayout` instance, not a singleton) exactly, without needing a manually-managed `Map<GridLayoutComponent, EventBus>` or similar. `GridItemComponent` requires being a *descendant* of a `GridLayoutComponent` in the injector tree for this to resolve — same requirement Vue's own `inject('eventBus')` has via template nesting. |
-| `$parent`/`thisLayout` (GridItem reading GridLayout's exposed state at mount) | Constructor-injected reference to the parent `GridLayoutComponent` itself (`@Optional() @Inject(forwardRef(() => GridLayoutComponent))` or, more simply, since Angular allows injecting a parent component type directly when it's a real ancestor: `constructor(@Optional() private layout: GridLayoutComponent)`) | Angular's DI can resolve an ancestor component instance directly, without the `$parent`-via-render-tree indirection Vue needs — genuinely simpler here, not just a workaround. |
-| `defineExpose({...})` (template-ref imperative API) | Public methods/properties directly on `GridLayoutComponent`, accessed via `@ViewChild(GridLayoutComponent) gridRef!: GridLayoutComponent` in a consumer | Same shape as React's `IGridLayoutHandle` (public class members instead of a `useImperativeHandle` object) — Angular doesn't need an extra indirection layer the way React's ref forwarding does, since a class instance's own public members already are the "handle." |
-| Scoped `<style>` (Vue SFC) | Angular's own `styleUrls`/`ViewEncapsulation.Emulated` (the default) *or* the same global `kdl-`-prefixed stylesheet React already uses | Leaning toward the **shared global stylesheet** (`styles/index.css`, copied/symlinked from the React package or moved to `core` as a shared asset) over Angular's emulated encapsulation — the CSS itself has zero Angular-specific concerns (it's plain CSS classes), and a single shared stylesheet avoids three copies of the same rules silently drifting apart across packages, a real risk this session's own RTL bug investigation showed can happen even *within* one styling concern (the missing `.kdl-grid-item--rtl` anchor was a copy/paste gap between Vue and React's otherwise-identical CSS). Needs a decision on where the canonical copy lives before Phase 1's own styling lands — flagged in the implementation plan, not decided here. |
-| `nextTick()` | `NgZone.onStable` (one-shot: `this.ngZone.onStable.pipe(take(1))`) or, more simply, `Promise.resolve().then(...)`/`queueMicrotask` for a "after this task, before paint" deferral, or `ChangeDetectorRef.detectChanges()` called explicitly when a value needs to be read synchronously post-update | Angular has no single direct equivalent — `nextTick()`'s own callers in Vue fall into two different real needs (deferring a DOM read until *after* a template re-render commits, vs. deferring past the *current* microtask/event handler), and the right Angular tool differs per call site; each port site should pick deliberately, not reach for one blanket substitute. |
-| Vue reactivity primitives generally | `ChangeDetectorRef.markForCheck()` (if `OnPush` is used) or default (`Default`) change detection | **Recommendation: `ChangeDetectionStrategy.OnPush`** on both components, matching the "explicit, not magic" philosophy `@Input()`/`@Output()` already reflects — but every state mutation *not* driven by an `@Input()` change (drag/resize tick updating `styleObj`, for instance) then needs an explicit `markForCheck()` call, the same discipline React's port needed for `setState` calls outside a synthetic event handler. Flagged as a decision to confirm once Phase 1's own drag/resize work starts, not before — `OnPush` has no bearing on the position/size-only Phase 1 scope this document's own plan starts with. |
+### Grid-wide cascade — a structural gap, not four separate missing props
 
-## GridLayout-level props — inventory against Vue's `IGridLayoutProps`
+Vue's `isDraggable`/`isResizable`/`isBounded`/`showCloseButton` (and,
+per the GridItem table below, `useBorderRadius`/`borderRadiusPx`/
+`enableEditMode`/`resizeHandleColor`/`resizeHandles`/`showResizeHandles`)
+all follow one consistent pattern: a grid-wide default on `GridLayout`,
+with each `GridItem`'s own matching prop defaulting to `null` — meaning
+"defer to the grid's own default" — and only overriding it when set to
+an actual `true`/`false`/value.
 
-Every field in Vue's `grid-layout-props.interface.ts`, confirmed by
-reading that file directly (not carried over from memory of the
-React parity table, which is a *different* comparison). All of these
-are plain data (`boolean`/`number`/`string`/array/plain-object types)
-with zero Vue-specific typing — meaning every one of them is a
-straightforward `@Input()` with no translation needed, *unlike* the
-`ICompactor`/callback-prop-shaped ones called out below.
+**Angular has no version of this cascade mechanism at all** for
+`isDraggable`/`isResizable`/`isBounded` specifically. `GridItemComponent`
+does have its own `isDraggable`/`isResizable`/`isBounded` `@Input()`s,
+but:
+- `GridLayoutComponent` itself has no matching `isDraggable`/
+  `isResizable`/`isBounded` `@Input()` to cascade *from* at all.
+- Angular's per-item `isDraggable`/`isResizable` default to `null`, but
+  since there's nothing to inherit, `null` is simply treated as "true"
+  in the native-engine's own `enabled` check (`this.isDraggable !==
+  false`) — a fixed default baked into the component, not a
+  configurable grid-wide one.
+- `isBounded` defaults to a plain `false` directly on the item, with no
+  `null`/inherit state at all.
 
-`autoSize`, `heightMode`, `allowCrossGridDrag`, `ariaLabels`,
-`enableEditMode`, `disableExternalDrop`, `layoutId`, `allowOutsideDrop`,
-`outsideDropWidth`, `outsideDropHeight`, `outsideDropAccept`,
-`borderRadiusPx`, `transitionDurationMs`, `transitionTimingFunction`,
-`showAlignmentGuides`, `showSpacingGuides`, `snapToGrid`,
-`snapThreshold`, `breakpoints`, `colNum`, `cols`, `distributeEvenly`,
-`horizontalShift`, `isBounded`, `isDraggable`, `isMirrored`,
-`isResizable`, `layout` (required), `margin`, `maxRows`, `multiSelect`,
-`preventCollision`, `responsive`, `responsiveLayouts`, `restoreOnDrag`,
-`rowHeight`, `showCloseButton`, `showGridLines`, `showResizeHandles`,
-`resizeHandleColor`, `resizeHandles`, `transformScale`,
-`useBorderRadius`, `useCssTransforms`, `compactor`, `enableUndoRedo`,
-`undoHistoryLimit`, `compactType`.
+Practically: a Vue consumer can set `isDraggable: false` once on
+`GridLayout` to make an entire grid non-draggable, then re-enable
+dragging for one specific item by setting `isDraggable: true` on it. An
+Angular consumer has no such single-prop way to do this — every
+`GridItemComponent` in the template needs its own `[isDraggable]="false"`
+binding individually (or a consumer-side loop generating that binding
+per item), which is a meaningfully different authoring experience for
+what should be the same feature.
 
-Two worth flagging specifically:
+## GridLayout-level events
 
-- **`compactor?: ICompactor | null`** — `ICompactor`'s own `compact()`
-  method is plain data in, plain data out (confirmed: no Vue/React
-  import in `core`'s own `compactor.ts`), so this `@Input()` needs no
-  special handling at all — a consumer passes the same `ICompactor`
-  object shape Vue/React both already accept.
-- **`layout: TLayout`** — the one *required* input, and the one place
-  Angular's own two-way-binding convention (`[(layout)]`, backed by a
-  paired `layout`/`layoutChange` input/output pair, Angular's
-  `[(banana-in-a-box)]` syntax) is worth considering explicitly rather
-  than defaulting to React's fully-controlled `[layout]`+`(layoutChange)`
-  shape out of habit — Angular consumers commonly expect `[(ngModel)]`-
-  style two-way binding for exactly this kind of "the component mutates
-  it, I want my own reference updated" case. Decide in Phase 1 planning,
-  not here; either shape is a small, contained decision once made.
+| Vue event (`EGridLayoutEvent`) | Angular equivalent | Status | Notes |
+|---|---|---|---|
+| `BREAKPOINT_CHANGED` | `breakpointChanged` | ✅ Match | |
+| `CHANGED_DIRECTION` | — | ➖ N/A | Dead in Vue too (declared, never emitted) — confirmed via Vue's own doc comment on the enum member. Not a real gap. |
+| `COLUMNS_CHANGED` | — | ❌ **Gap** | Fired whenever resolved `colNum` changes (prop or responsive breakpoint). Angular resolves `effectiveColNum` internally but never surfaces a change in it as its own event — a consumer would need to infer this from `breakpointChanged` (responsive case only) or simply diff `colNum` themselves (static case), neither of which is the same as a direct signal. |
+| `CONTAINER_RESIZED` | — | ➖ N/A | Dead in Vue too, confirmed via its own doc comment. Not a real gap. |
+| `DRAG_START` / `DRAG_MOVE` / `DRAG_END` | — | ❌ **Gap** | Angular's `GridEventBusService` has internal `itemDrag$` ticks for exactly these three phases, but none of them are re-exposed as public `@Output()`s on `GridLayoutComponent` — a consumer has no way to hook into drag lifecycle directly; only the eventual `layoutChange` (after compaction/commit) is visible externally. |
+| `CROSS_GRID_DROP_REJECTED` | `crossGridDropRejected` | ✅ Match | |
+| `CROSS_GRID_ITEM_DROPPED` | `crossGridItemDropped` | ✅ Match | |
+| `ITEM_DROPPED_FROM_OUTSIDE` | `itemDroppedFromOutside` | ✅ Match | |
+| `LAYOUT_READY` | — | ❌ **Gap** | Fired once, after the container's width is known and every item's size is stable — the "first reliable point to inspect final positions" signal. Angular has nothing equivalent; the closest available signal is the first `layoutChange` emission, which doesn't carry the same "everything has now settled" guarantee Vue's own doc comment describes. |
+| `LAYOUT_UPDATE` (the `v-model:layout` update event) | `layoutChange` | ✅ Match (mechanism differs) | Vue's version exists specifically to power `v-model:layout` template sugar; Angular has no equivalent two-way-binding sugar (per `PARITY_GAP_ANGULAR.md`'s own still-open note on this — confirmed still undecided, not resolved since). `layoutChange` alone covers the same "layout was replaced" signal a plain one-way listener would use either framework. |
+| `LAYOUT_UPDATED` | — | ⚠️ **Partial** | Vue fires this as a *separate* signal from `LAYOUT_UPDATE`, specifically once a mutation has "fully settled" (as distinct from the v-model-wiring-specific event). Angular folds both into the single `layoutChange` emission — functionally similar timing in practice, but a consumer relying on Vue's two-signals-for-two-purposes distinction (e.g. listening to `LAYOUT_UPDATED` without also picking up `v-model`'s own wiring semantics) has no equivalent split in Angular. |
+| `MOVE_BLOCKED_BY_COLLISION` | — | ❌ **Gap** | Fired when `preventCollision` blocks a drag/resize, specifically so a consumer can show a "can't place item here" shake/flash/toast without reimplementing collision detection themselves. Angular's own `preventCollision` handling (in `moveElement`, delegated to `core`) silently reverts the blocked position with no signal at all that a block occurred. |
+| `SELECTION_CHANGED` | `selectionChanged` | ✅ Match | |
 
-## GridLayout-level events — inventory against Vue's `EGridLayoutEvent`
+## GridItem-level props
 
-Every one of these becomes an Angular `@Output() name = new
-EventEmitter<PayloadType>()`, the direct equivalent of React's callback
-props (`onDragStart`, etc.) — Angular's own idiom for "notify a parent
-of something," matching what a template consumer expects
-(`(dragStart)="handler($event)"`).
+| Vue prop | Angular equivalent | Status | Notes |
+|---|---|---|---|
+| `ariaLabels` (per-item) | — | ❌ **Gap** | See "Accessibility" section below. |
+| `autoScroll` | `autoScroll` | ✅ Match | |
+| `autoHeight` | `autoHeight` | ✅ Match | |
+| `borderRadiusPx` | — | ❌ **Gap** | See "Border radius / close button" section below. |
+| `dragAllowFrom` | `dragAllowFrom` | ✅ Match | |
+| `dragActivationDistance` | `dragActivationDistance` | ✅ Match | |
+| `dragIgnoreFrom` | `dragIgnoreFrom` | ✅ Match | |
+| `enableEditMode` | — | ❌ **Gap** | See below. |
+| `h` / `i` / `w` / `x` / `y` (required) | Same, all required | ✅ Match | |
+| `isBounded` | `isBounded` | ⚠️ **Partial** | Present on both, but see the grid-wide cascade note above — Vue's version can inherit a grid default; Angular's cannot. |
+| `isDraggable` | `isDraggable` | ⚠️ **Partial** | Same cascade caveat. |
+| `isMirrored` | `isMirrored` | ✅ Match (as a per-item toggle) | See the grid-wide `isMirrored` gap above for the one real difference — this per-item prop itself behaves the same on both sides. |
+| `isResizable` | `isResizable` | ⚠️ **Partial** | Same cascade caveat. |
+| `isStatic` | `isStatic` | ✅ Match | |
+| `maxW` / `maxH` / `minW` / `minH` | Same | ✅ Match | |
+| `preserveAspectRatio` | `preserveAspectRatio` | ✅ Match | |
+| `resizeIgnoreFrom` | `resizeIgnoreFrom` | ✅ Match | |
+| `resizeHandleColor` | `resizeHandleColor` | ✅ Match (per-item) | Grid-wide default cascade gap already noted above. |
+| `resizeHandles` | `resizeHandles` | ✅ Match (per-item) | Same. |
+| `showResizeHandles` | `showResizeHandles` | ✅ Match (per-item) | Same. |
+| `showCloseButton` | — | ❌ **Gap** | See below. |
+| `useBorderRadius` | — | ❌ **Gap** | See below. |
+| `zIndex` | `zIndex` | ✅ Match | |
 
-`DRAG_START`, `DRAG_MOVE`, `DRAG_END`, `MOVE_BLOCKED_BY_COLLISION`,
-`SELECTION_CHANGED`, `LAYOUT_UPDATE`/`LAYOUT_UPDATED` (React folded
-these into one `onLayoutChange` — worth the same fold here, or two
-separate outputs matching Vue exactly; decide in Phase 1, likely
-folding to match React unless a concrete Angular-specific reason not
-to turns up), `BREAKPOINT_CHANGED`, `CROSS_GRID_ITEM_DROPPED`,
-`CROSS_GRID_DROP_REJECTED`, `ITEM_DROPPED_FROM_OUTSIDE`,
-`LAYOUT_READY`, `COLUMNS_CHANGED`.
+### Close button — entirely absent from Angular
 
-## GridItem-level props — inventory against Vue's `IGridItemProps`
+Vue's `GridItem` renders a real, built-in close button
+(`CustomCloseButton.vue`) when `showCloseButton` resolves to `true`
+(per-item or via the grid-wide default), emitting
+`EGridItemEvent.REMOVE_ITEM` on click — confirmed via direct source
+inspection, not just the prop's own doc comment; `showCloseButton`,
+`closeButtonEnabled`, and the conditional render are all real, wired-up
+code, not a declared-but-inert prop.
 
-Vue's `GridItem` takes ~30 direct component props (unlike React's
-`GridItem`, which takes only `i` plus two render props and reads
-everything else off the matching `ILayoutItem` — see React's own
-`grid-item-props.interface.ts` doc comment for that architecture
-choice). **Angular should follow Vue's shape here, not React's** —
-`@Input()` properties map far more naturally onto Vue's per-component-
-prop model than onto React's per-layout-item-field one, and there's no
-Angular-specific reason to adopt React's narrower surface.
+Angular has **no** `showCloseButton` prop, no equivalent component, and
+no `REMOVE_ITEM`-equivalent output — a consumer wanting a built-in
+remove-item affordance has to build their own from scratch, with no
+help from the library at all. This is one of the larger, clearly
+user-facing feature gaps found in this pass.
 
-Full list, confirmed by reading `grid-item-props.interface.ts`
-directly: `ariaLabels`, `autoScroll`, `autoHeight`, `borderRadiusPx`,
-`dragAllowFrom`, `dragActivationDistance`, `dragIgnoreFrom`,
-`enableEditMode`, `h` (required), `i` (required), `isBounded`,
-`isDraggable`, `isMirrored`, `isResizable`, `isStatic`, `maxW`, `maxH`,
-`minH`, `minW`, `preserveAspectRatio`, `resizeIgnoreFrom`,
-`resizeHandleColor`, `resizeHandles`, `showResizeHandles`,
-`showCloseButton`, `useBorderRadius`, `w` (required), `x` (required),
-`y` (required), `zIndex`.
+### Border radius (`useBorderRadius` / `borderRadiusPx`) — entirely absent
 
-Vue's `#header`/`#resize-handle` named slots map onto Angular's
-**content projection** (`<ng-content select="[header]">`/a structural
-directive for the resize-handle slot, or `@ContentChild`) — a
-closer, more direct match than React's render-prop translation needed,
-since Angular's content projection is itself slot-shaped already.
+Vue applies `border-radius: {borderRadiusPx}px` via an inline style
+when `useBorderRadius` resolves `true` (grid-wide default or per-item
+override), with a companion `--kdl`-style inset calculation for the
+close button's own corner positioning at large radii. Angular has
+neither prop, at either level — no equivalent styling hook exists at
+all.
 
-## What Phase 1 (this session) actually delivers
+### `enableEditMode` — entirely absent
 
-Given the scale of what full parity represents, this session's own
-Phase 1 is deliberately narrow: **basic `GridLayoutComponent`/
-`GridItemComponent` rendering — grid-unit position/size correctly
-computed into pixel styles via `core`'s own `calcPosition`-equivalent
-math, using `@Input()` for `layout`/`colNum`/`rowHeight`/`margin`, no
-drag, no resize, no compaction-on-interaction.** Matches how the React
-port's own `docs/IMPLEMENTATION_PLAN.md` phases were structured
-(basic rendering first, interactivity layered on in later, individually
-testable phases) rather than attempting the whole surface at once.
+Vue's `enableEditMode` (grid-wide default + per-item override) is a
+single master switch disabling dragging/resizing/the close button all
+at once, independent of setting `isDraggable`/`isResizable`/
+`isStatic`/`showCloseButton` individually — confirmed as real,
+functioning logic gating the native-engine `enabled` checks and the
+close button's own render, not just a declared prop. Angular has no
+equivalent at all; the closest available approximation is setting
+`isDraggable`/`isResizable` to `false` individually (which, given the
+missing close-button feature entirely, still leaves no way to disable
+"editing" as a single concept).
 
-See `docs/IMPLEMENTATION_PLAN.md` (same folder) for the phase list this
-feeds into.
+### Accessibility — `ariaLabels` and keyboard-driven move/resize
 
-## Build tooling — the other prerequisite
+Two related, both entirely-missing-from-Angular features:
 
-`packages/angular`'s own `package.json` deliberately omits `dev`/
-`build`/`lint`/`test`/`test:e2e` scripts, with a comment explaining
-why: `ng generate library` hasn't been run yet, so there's no real
-`angular.json`/`ng-package.json`/Karma config backing those scripts.
-This document and Phase 1's own component source can be written
-without that scaffolding existing yet (they're just well-formed
-TypeScript/Angular-decorator source), but the scaffolding itself needs
-a real `ng`/`ng-packagr` CLI run — which needs to happen on a real
-machine with the CLI installed (already present in this package's own
-`node_modules/.bin`, confirmed), not something written by hand file-by-
-file with any confidence it'll actually build correctly. Concretely:
+1. **`ariaLabels`** (grid-wide default + per-item override,
+   `IGridAriaLabels`) — localizable strings for the close button's own
+   label, the item's `aria-roledescription`, and keyboard move/resize
+   instructions, merged (built-in English defaults ← grid default ←
+   per-item override) via `core`'s own `resolveAriaLabels`. Angular has
+   no `ariaLabels` prop at either level, and (per the missing
+   close-button feature above) nothing to apply the close-button-label
+   half of it to even if it existed.
 
-```bash
-cd packages/angular
-npx ng generate library keystone-dashboard-layout-angular --skip-install
-```
+2. **Keyboard-driven move/resize** (`useGridItemKeyboard.ts`) — arrow
+   keys move a focused item by one grid unit if draggable; Shift +
+   arrow keys resize it by one grid unit if resizable; each keypress
+   emits the identical `dragstart`→`dragend` (or `resizestart`→
+   `resizeend`) event-bus sequence a real mouse drag/resize would,
+   including correctly triggering `multiSelect`'s own group-move/
+   resize snapshotting (a real, confirmed bug fix in Vue's own history,
+   per that file's own doc comment — an earlier version skipped
+   straight to a synthetic `dragend` with no `dragstart` first, and
+   group-move silently didn't work from the keyboard as a result).
+   **Angular has no keyboard-driven move/resize at all** — items are
+   focusable (`scrollToItem`/`focusItem`, tabindex on non-static
+   items), but no keydown handler exists to actually move or resize a
+   focused item. For a library whose Vue side treats this as a real
+   accessibility gap worth fixing (see `docs/ACCESSIBILITY.md`
+   referenced in that file), this is a meaningful, confirmed
+   accessibility regression in the Angular port specifically — anyone
+   who cannot use a mouse/touch has no way to reposition or resize a
+   grid item in Angular today.
 
-then move the generated `projects/keystone-dashboard-layout-angular/src/lib/`
-contents to match this package's own existing `src/` layout, and wire
-`@keystone-dashboard-layout/core` in as the generated library's own
-dependency (already present in this package's `package.json`). Flagged
-here rather than attempted blind — this needs a real command run and
-its real output inspected, not guessed at.
+### Header slot
+
+Vue's `GridItem` supports a `#header` named slot (`$slots.header`),
+rendered above the default content when provided, with its own
+`vue-grid-item-has-header` class toggle. Angular's `GridItemComponent`
+has a single `<ng-content>` (plus the separate, always-present
+`autoHeight` wrapper — see that feature's own doc comment in the
+Angular source for why it's structured that way). There is no
+Angular-side equivalent to a distinct, named "header" content region;
+a consumer wanting a header needs to build it into their own single
+projected content block rather than use a library-provided slot for it.
+
+## Imperative API (`defineExpose` vs. public class members)
+
+Confirmed present, with equivalent behavior, on both sides:
+`compactNow`/`rearrange`, `duplicateItem`, `alignSelected`/
+`distributeSelected`, `exportLayoutAsSvg`, `scrollToItem`/`focusItem`,
+`undo`/`redo`/`canUndo`/`canRedo`, `selectItem`/`deselectItem`/
+`toggleItemSelection`/`clearSelection`, the responsive `layouts` cache.
+
+Not verified this pass (flagged, not claimed either way): Vue's own
+`defineExpose` surface may include a few additional read-only exposed
+refs (e.g. `width`, `thisLayout` itself) that exist purely for
+`GridItem`'s own internal `$parent` access rather than as a public API
+surface a normal consumer would call directly — these weren't
+cross-checked against Angular's own public surface in this pass, since
+they're internal plumbing on the Vue side rather than documented
+consumer-facing API.
+
+## Summary — confirmed gaps, roughly by impact
+
+**Larger, clearly user-facing:**
+1. Keyboard-driven move/resize (`useGridItemKeyboard.ts`) — a real
+   accessibility regression, not just a missing convenience prop.
+2. The entire close-button feature (`showCloseButton` + `REMOVE_ITEM`).
+3. The grid-wide `isDraggable`/`isResizable`/`isBounded`/
+   `resizeHandles`/`resizeHandleColor`/`showResizeHandles` cascade —
+   structural, affects authoring ergonomics for every one of those
+   props at once, not a single missing field.
+4. `heightMode`'s `'scroll'`/`'fit'` modes (scroll-contained grid
+   content) — `autoSize` alone can't express this.
+5. `enableEditMode` (single master interactivity switch).
+
+**Smaller, more contained:**
+6. `ariaLabels` (localizable strings).
+7. `useBorderRadius`/`borderRadiusPx`.
+8. `showGridLines`.
+9. `LAYOUT_READY`, `MOVE_BLOCKED_BY_COLLISION`, `COLUMNS_CHANGED`,
+   granular `DRAG_START`/`DRAG_MOVE`/`DRAG_END` events.
+10. Grid-wide `isMirrored`/`maxRows` (both work per-item already;
+    only the grid-wide single-prop version is missing).
+11. The header content slot.
+
+**Not gaps** (confirmed dead code in Vue itself, or Vue-specific
+plumbing with no meaningful Angular translation): `CHANGED_DIRECTION`,
+`CONTAINER_RESIZED` (the `GridLayout`-level one), `useInstance.ts`'s
+own `$parent` access mechanism.
+
+## What this document doesn't cover
+
+This pass focused on the `GridLayout`/`GridItem` prop, event, and
+imperative-API surface specifically, cross-checked against source, not
+documentation claims. It does **not** cover:
+- CSS/styling parity (scoped-style vs. shared-stylesheet differences,
+  per `PARITY_GAP_ANGULAR.md`'s own still-open note on where the
+  canonical stylesheet should live).
+- e2e/browser-level behavior (both packages' own e2e coverage is a
+  separate, already-flagged gap — see `IMPLEMENTATION_PLAN.md`).
+- Bundle size, build tooling, or packaging differences.
+- Test coverage parity between the two packages' own test suites.
+
+Any of the above would need their own dedicated pass, not an
+extension of this one.

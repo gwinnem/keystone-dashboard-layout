@@ -1,0 +1,65 @@
+---
+title: Styling → Variables
+description: The SCSS variables baked into the published stylesheet.
+---
+
+:::caution[These are SCSS variables, not CSS custom properties]
+Everything on this page is a compile-time SCSS `$variable`, baked into
+the published stylesheet at build time — **not** a runtime-overridable
+`--css-custom-property`. You can't change these from your own
+stylesheet the way you would a `:root { --foo: red; }` override. To
+customize them, override the resulting classes directly (see
+[Styling → GridItem](/vue/components/styling/css-grid-item/) and
+[Styling → GridLayout](/vue/components/styling/css-grid-layout/)), which
+is the supported approach today.
+:::
+
+| Variable | Default | Used for |
+|---|---|---|
+| `$grid-item-bg-color` | `#726e6e` | Not currently referenced by any component style — declared but unused. |
+| `$grid-item-border-radius` | `12px` | The "use radius" class's border-radius — note that `GridItem`'s own `borderRadiusPx` prop is applied as an inline style and takes priority over this when `useBorderRadius` is set; see [GridItem props](/vue/components/grid-item/props/). |
+| `$grid-item-text-color` | `white` | Reserved for item text color. |
+| `$grid-item-font-size` | `1rem` | Reserved for item font size. |
+| `$grid-item-static-bg-color` | `#393d42` | Background color for items with `isStatic` set. |
+| `$grid-item-placeholder-bg-color` | `#8f3c3c` | Background color of the drag placeholder shown while dragging/resizing. |
+| `$grid-item-placeholder-opacity` | `.5` | Opacity of the drag placeholder. |
+| `$grid-alignment-guide-color` | `#ff4785` | Color of the alignment guide lines, when `showAlignmentGuides` is enabled. See [Alignment guides while dragging](/vue/examples/alignment-guides/). |
+
+## A genuine exception: `--grid-line-color`
+
+Grid line guides (`showGridLines`) are **not** controlled by a SCSS
+variable at all, despite an earlier version of this page claiming
+otherwise as `$grid-line-color`. Checked directly against
+`GridLayout.vue`'s own `<style>` block: the actual mechanism is a real
+CSS custom property, set with an inline fallback:
+
+```css
+.grid::before {
+  background-image: linear-gradient(to right, var(--grid-line-color, rgb(128 128 128 / 30%)) 1px, transparent 1px), ...;
+}
+```
+
+Unlike every SCSS variable in the table above, `--grid-line-color`
+**is** genuinely runtime-overridable from your own stylesheet, the same
+way any CSS custom property is:
+
+```css
+.vue-grid-layout {
+  --grid-line-color: #38bdf8;
+}
+```
+
+## Overriding styles today
+
+Target the library's classes directly, after its stylesheet is loaded:
+
+```css
+/* After importing '@keystone-dashboard-layout/vue/style.css' */
+.vue-grid-item.vue-static {
+  background-color: #1e293b;
+}
+```
+
+See [Styling → GridItem](/vue/components/styling/css-grid-item/) and
+[Styling → GridLayout](/vue/components/styling/css-grid-layout/) for the
+full class reference.

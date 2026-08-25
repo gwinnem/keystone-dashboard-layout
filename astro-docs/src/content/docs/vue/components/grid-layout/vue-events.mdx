@@ -1,0 +1,33 @@
+---
+title: GridLayout Vue events
+description: Every event GridLayout emits.
+---
+
+Emitted directly on the `<GridLayout>` component — listen with `@event-name`.
+
+| Event | Payload | When |
+|---|---|---|
+| `breakpoint-changed` | `(breakpoint: string, layout: TLayout)` | Responsive mode picks a different breakpoint than before. See [Responsive breakpoints](/vue/examples/responsive-breakpoints/). |
+| `columns-changed` | `(colNum: number)` | The resolved column count changes. See [Layout lifecycle events](/vue/examples/layout-lifecycle-events/). |
+| `cross-grid-drop-rejected` | `({ itemId, sourceLayoutId })`, typed `ICrossGridDropRejected` | Fired on the *target* grid when a cross-grid drop is attempted but rejected because this grid has `disableExternalDrop` set. See [Cross-grid drop restrictions](/vue/examples/cross-grid-drop-restrictions/). |
+| `cross-grid-item-dropped` | `({ item, sourceLayoutId })`, typed `ICrossGridItemDropped` | Fired on the *target* grid when an item is successfully moved into it from another grid. See [Drag, drop from grid to grid](/vue/examples/cross-grid-drag-drop/). |
+| `item-dropped-from-outside` | `({ x, y, w, h, dataTransfer })`, typed `IOutsideItemDropped` | Fired when something is dropped via native HTML5 drag-and-drop from outside the grid system entirely. Doesn't add anything to `layout` on its own. See [Drag, drop from outside](/vue/examples/outside-drag-drop/). |
+| `dragend` | `(id: number)` | A drag ends. See [Layout lifecycle events](/vue/examples/layout-lifecycle-events/). |
+| `dragmove` | — | A drag is in progress. |
+| `dragstart` | `(id: number)` | A drag begins. |
+| `layout-ready` | `(layout: TLayout)` | Fired once, after the container's width is known and every item's size is stable — the first reliable point to inspect final positions/sizes. |
+| `layout-updated` | `(layout: TLayout)` | Fired once during mount (after initial compaction), and again after every subsequent layout mutation — drag/resize completion, item add/remove, align/distribute, undo/redo. |
+| `move-blocked-by-collision` | `(id: string \| number)` | Fired when `preventCollision` blocks a drag or resize. See [Blocked-move feedback](/vue/examples/blocked-move-feedback/). |
+| `selection-changed` | `(selectedItems: (string \| number)[])` | Fired whenever the current `multiSelect` selection changes. See [Multi-select & group move/resize](/vue/examples/multi-select-group-move-resize/). |
+| `update:layout` | `(layout: TLayout)` | The `v-model:layout` update event — wired automatically if you're using `v-model:layout`. |
+
+See [Events](/vue/examples/events/) for a live demo, and
+[`EGridLayoutEvent`](/vue/api/enums/grid-layout-events/) for the enum
+backing these event names.
+
+:::caution[Declared but not currently emitted]
+`EGridLayoutEvent.CHANGED_DIRECTION` and `CONTAINER_RESIZED` exist on the
+enum for backwards compatibility but aren't wired up to any emit call —
+listening for `@changed-direction`/`@container-resized` on `GridLayout`
+won't see anything fire. See [Roadmap](/vue/guide/project/roadmap/).
+:::

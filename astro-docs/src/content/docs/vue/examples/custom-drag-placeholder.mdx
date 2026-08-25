@@ -1,0 +1,17 @@
+---
+title: Custom drag-placeholder content
+description: The #placeholder slot renders custom content inside the internal GridItem the library uses for the drag placeholder.
+---
+import CustomDragPlaceholder from '../../../../components/examples/25-custom-drag-placeholder.vue';
+import CustomDragPlaceholderSource from '../../../../components/examples/25-custom-drag-placeholder.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CustomDragPlaceholderSource} filename="custom-drag-placeholder.vue">
+  <CustomDragPlaceholder client:visible />
+</ExampleTryIt>
+
+The slot is always present in the DOM — `isDragging` (part of the
+slot's own scope props) is what actually controls whether your content
+should render, not whether the slot itself is invoked. See
+[GridLayout slots](/vue/components/grid-layout/slots/) for the full
+scope-prop reference.

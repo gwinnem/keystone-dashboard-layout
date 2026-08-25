@@ -1,0 +1,18 @@
+---
+title: Configurable resize-hint appearance
+description: showResizeHandles renders a visible resize affordance instead of only a cursor change on hover.
+---
+import ResizeHintAppearance from '../../../../components/examples/33-resize-hint-appearance.vue';
+import ResizeHintAppearanceSource from '../../../../components/examples/33-resize-hint-appearance.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={ResizeHintAppearanceSource} filename="resize-hint-appearance.vue">
+  <ResizeHintAppearance client:visible />
+</ExampleTryIt>
+
+Both props cascade from `GridLayout` to every `GridItem` that doesn't
+set its own — the same inherit pattern as `isDraggable`/`showCloseButton`.
+For a fully custom look beyond just a color, see
+[GridItem slots → #resize-handle](/vue/components/grid-item/slots/),
+which renders arbitrary content (an icon, not just a colored dot) per
+handle instead.

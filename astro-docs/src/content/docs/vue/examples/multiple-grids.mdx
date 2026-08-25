@@ -1,0 +1,22 @@
+---
+title: Multiple grids
+description: Each GridLayout creates its own eventBus — grids never share state, so there's nothing to namespace or configure.
+---
+import MultipleGrids from '../../../../components/examples/04-multiple-grids.vue';
+import MultipleGridsSource from '../../../../components/examples/04-multiple-grids.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={MultipleGridsSource} filename="multiple-grids.vue">
+  <MultipleGrids client:visible />
+</ExampleTryIt>
+
+Each `GridLayout` creates its own `eventBus` and provide/inject context
+— grids never share state, so there's nothing to namespace or
+configure.
+
+:::caution[Not the same as dragging between grids]
+This just shows two grids side by side. For actually dragging an item
+*from* one grid *into* another, see [Drag, drop from grid to grid](/vue/examples/cross-grid-drag-drop/)
+— cross-grid dragging works the same way, using the source grid's own
+drag event and the target grid's layout array.
+:::

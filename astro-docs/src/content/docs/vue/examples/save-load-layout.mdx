@@ -1,0 +1,18 @@
+---
+title: v-model & save/load layout
+description: layout is a plain, JSON-serializable array — persist it however you like.
+---
+import SaveLoadLayout from '../../../../components/examples/19-save-load-layout.vue';
+import SaveLoadLayoutSource from '../../../../components/examples/19-save-load-layout.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={SaveLoadLayoutSource} filename="save-load-layout.vue">
+  <SaveLoadLayout client:visible />
+</ExampleTryIt>
+
+No special composable is required for the basic case — `layout` is
+already a plain array of plain objects, so `JSON.stringify`/`JSON.parse`
+round-trips it correctly on its own. The package does ship a
+`useLayoutStorage` composable for the common save/load-against-`Storage`
+pattern shown above, and `useLayoutPresets` for saving/switching between
+several named layouts — see [Named layout presets](/vue/examples/named-presets/).

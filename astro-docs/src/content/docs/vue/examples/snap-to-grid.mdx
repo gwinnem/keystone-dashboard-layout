@@ -1,0 +1,22 @@
+---
+title: Snap to grid
+description: Magnetic snapping during drag — distinct from alignment guides, which never change where an item lands.
+---
+import SnapToGrid from '../../../../components/examples/32-snap-to-grid.vue';
+import SnapToGridSource from '../../../../components/examples/32-snap-to-grid.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={SnapToGridSource} filename="snap-to-grid.vue">
+  <SnapToGrid client:visible />
+</ExampleTryIt>
+
+`snapThreshold` is how close, in grid units, a dragged item's edge needs
+to be to another item's edge before it snaps — default `1`. Unlike
+[alignment guides](/vue/examples/alignment-guides/) (`showAlignmentGuides`,
+purely visual), this actually changes where the item lands: once the
+pointer's dragged-to position is within threshold of an edge alignment,
+the position adjusts to match it exactly, both in the live placeholder
+while dragging and in the final committed position on drop.
+
+Both features can be on at the same time — the visual guide showing
+exactly where the magnetic snap is about to lock to.

@@ -1,0 +1,118 @@
+---
+title: API
+description: Every interface, type, enum, and function exported from the package's main entry point.
+---
+
+Every prop, event, enum, interface, and utility function is exported
+from `@keystone-dashboard-layout/vue`'s own main entry point — nothing
+extra to install or configure for full TypeScript support.
+
+:::note[This page was rebuilt from the real, complete export list]
+Earlier versions of this API section covered only a fraction of what's
+actually exported — confirmed directly by reading `packages/vue/src/components/index.ts`,
+the package's real public entry point, rather than the smaller set of
+source files this section had previously been built from. Everything
+below is checked against that file.
+:::
+
+## Components
+
+`GridLayout`, `GridItem`, `CustomCloseButton`, `CustomDragElement` — see
+[Components](/vue/components/) for full documentation.
+
+Their prop types (`IGridLayoutProps`, `IGridItemProps`,
+`ICustomCloseButtonProps`, `ICustomDragElementProps`) are also directly
+importable — useful for typing a wrapper component's own props, or a
+`ref<InstanceType<typeof GridItem>>()`:
+
+```ts
+import type { IGridLayoutProps, IGridItemProps } from '@keystone-dashboard-layout/vue';
+```
+
+Each prop's own meaning is documented on [GridLayout props](/vue/components/grid-layout/props/)
+and [GridItem props](/vue/components/grid-item/props/) — not repeated
+here as a second, separately-maintained table.
+
+## Interfaces
+
+| Interface | Covers |
+|---|---|
+| [Eventbus (IEventsData)](/vue/api/interfaces/eventbus/) | The internal eventBus's drag/resize payload shape |
+| [Layout (ILayoutItem, ILayoutItemRequired, TLayoutItem)](/vue/api/interfaces/layout/) | One entry in a `GridLayout`'s `layout` array |
+| [ARIA labels (IGridAriaLabels)](/vue/api/interfaces/aria-labels/) | Localizable UI/ARIA strings, plus the exported `DEFAULT_ARIA_LABELS` constant |
+| [Pluggable compaction (ICompactor)](/vue/api/interfaces/compactor/) | The `compactor` prop's interface, its context object, and the five built-in strategies |
+| [Layout persistence](/vue/api/interfaces/layout-persistence/) | `serializeLayout`/`deserializeLayout`, `useLayoutStorage`, `useLayoutPresets`, and their option/return types |
+| [SVG export & outside-drop payload](/vue/api/interfaces/svg-export-and-payload/) | `exportLayoutAsSvg`, `readOutsideDropPayload`, and `IExportLayoutAsSvgOptions` |
+| [Cross-grid & outside-drop event payloads](/vue/api/interfaces/event-payloads/) | `IOutsideItemDropped`, `ICrossGridItemDropped`, `ICrossGridDropRejected` |
+| [Exposed instance state](/vue/api/interfaces/exposed-state/) | `IPlaceholder`, `IAlignmentGuide`, `ISpacingIndicator`, `IGridItemPosition` — reachable via a `GridLayout`/`GridItem` instance ref |
+
+`IBreakpoints`/`IColumns` (the shape of `GridLayout`'s own
+`breakpoints`/`cols` props) are documented on
+[GridLayout props](/vue/components/grid-layout/props/) directly, since
+they're only ever used in that one context.
+
+## Types
+
+- [Layout types](/vue/api/types/layout/) — `TLayout`, `TResponsiveLayout`, `TBreakpoint`, `TBreakpoints`
+
+## Enums
+
+All three are real (value) exports, not type-only — usable for both typing and runtime comparison:
+
+- [EGridLayoutEvent](/vue/api/enums/grid-layout-events/)
+- [EGridItemEvent](/vue/api/enums/grid-item-events/)
+- [ECompactType](/vue/api/enums/compact-type/)
+
+## Functions & composables
+
+| Export | Purpose |
+|---|---|
+| `serializeLayout` / `deserializeLayout` | Pure, storage-agnostic layout persistence — see [Layout persistence](/vue/api/interfaces/layout-persistence/) |
+| `useLayoutStorage` | A composable wrapping the above for the common `Storage`-backed case |
+| `useLayoutPresets` | Save and switch between several named layout arrangements |
+| `exportLayoutAsSvg` | A dependency-free SVG snapshot of a layout — see [SVG export](/vue/api/interfaces/svg-export-and-payload/) |
+| `readOutsideDropPayload` | Reads a typed, JSON payload off a native `DataTransfer` |
+| `getCompactor` | Looks up the built-in `ICompactor` for a given `ECompactType` |
+| `verticalCompactor` / `horizontalCompactor` / `noCompactor` / `verticalOverlapCompactor` / `horizontalOverlapCompactor` | The five built-in compaction strategies, individually — see [Pluggable compaction](/vue/api/interfaces/compactor/) |
+| `DEFAULT_ARIA_LABELS` | The current English ARIA strings, as a real constant — see [ARIA labels](/vue/api/interfaces/aria-labels/) |
+
+## A representative import
+
+```ts
+import {
+  GridLayout,
+  GridItem,
+  CustomCloseButton,
+  CustomDragElement,
+  EGridLayoutEvent,
+  EGridItemEvent,
+  ECompactType,
+  serializeLayout,
+  deserializeLayout,
+  useLayoutStorage,
+  useLayoutPresets,
+  exportLayoutAsSvg,
+  readOutsideDropPayload,
+  getCompactor,
+  DEFAULT_ARIA_LABELS,
+  type IGridLayoutProps,
+  type IGridItemProps,
+  type IEventsData,
+  type ILayoutItem,
+  type TLayout,
+  type TResponsiveLayout,
+  type TBreakpoint,
+  type TBreakpoints,
+  type ICompactor,
+  type ICompactorContext,
+  type IGridAriaLabels,
+  type IExportLayoutAsSvgOptions,
+  type IOutsideItemDropped,
+  type ICrossGridItemDropped,
+  type ICrossGridDropRejected,
+} from '@keystone-dashboard-layout/vue';
+```
+
+For the framework-agnostic grid math these types describe (collision
+detection, compaction, movement — usable with zero Vue dependency), see
+`@keystone-dashboard-layout/core`.

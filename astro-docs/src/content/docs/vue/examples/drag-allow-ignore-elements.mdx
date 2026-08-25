@@ -1,0 +1,23 @@
+---
+title: Drag allow / ignore elements
+description: dragAllowFrom restricts dragging to a specific handle; dragIgnoreFrom excludes specific descendants.
+---
+import DragAllowIgnoreElements from '../../../../components/examples/05-drag-allow-ignore-elements.vue';
+import DragAllowIgnoreElementsSource from '../../../../components/examples/05-drag-allow-ignore-elements.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={DragAllowIgnoreElementsSource} filename="drag-allow-ignore-elements.vue">
+  <DragAllowIgnoreElements client:visible />
+</ExampleTryIt>
+
+`dragAllowFrom` restricts dragging to a specific handle (a CSS
+selector) — `null`, the default, allows dragging from anywhere on the
+item except `dragIgnoreFrom` matches. `dragIgnoreFrom` defaults to
+`` `a, button` ``, so buttons and links inside an item don't
+accidentally start a drag — has no effect at all once `dragAllowFrom`
+is set, since an explicit allow-list already restricts the surface to
+one handle.
+
+See [CustomDragElement](/vue/components/custom-drag-element/) for a
+ready-made drag-handle widget you can drop in instead of building your
+own.

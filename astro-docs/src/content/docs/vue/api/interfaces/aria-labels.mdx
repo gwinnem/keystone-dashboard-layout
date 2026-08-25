@@ -1,0 +1,46 @@
+---
+title: ARIA labels (IGridAriaLabels)
+description: The interface backing localizable ARIA strings, plus the built-in English defaults exported alongside it.
+---
+
+```ts
+interface IGridAriaLabels {
+  closeButton?: string;
+  itemRoleDescription?: string;
+  moveInstruction?: string;
+  resizeInstruction?: string;
+}
+```
+
+| Field | Default | Description |
+|---|---|---|
+| `closeButton` | `'Close'` | Visually-hidden label for the close button. Read by screen readers; the visible button only shows an icon. |
+| `itemRoleDescription` | `'Draggable, resizable item'` | `aria-roledescription` on a draggable/resizable/static-with-neither item's root element. Only applied when the item is actually draggable or resizable — a purely static item has no interactive role to describe. |
+| `moveInstruction` | `'Press arrow keys to move.'` | Keyboard instruction text for moving a draggable item, read via `aria-describedby`. Only included when the item is actually draggable. |
+| `resizeInstruction` | `'Press shift plus arrow keys to resize.'` | Keyboard instruction text for resizing a resizable item, read via `aria-describedby`. Only included when the item is actually resizable. |
+
+## `DEFAULT_ARIA_LABELS`
+
+```ts
+const DEFAULT_ARIA_LABELS: Required<IGridAriaLabels>;
+```
+
+The current English text as a real, importable constant — exported so
+overriding just one key can spread the rest from this rather than
+retyping every default:
+
+```ts
+import { DEFAULT_ARIA_LABELS, type IGridAriaLabels } from '@keystone-dashboard-layout/vue';
+
+const gridAriaLabels: IGridAriaLabels = {
+  ...DEFAULT_ARIA_LABELS,
+  closeButton: 'Supprimer cet élément',
+};
+```
+
+Three layers merge at runtime, each only overriding the keys it
+actually sets: `DEFAULT_ARIA_LABELS` ← `GridLayout`'s own `ariaLabels`
+(grid-wide) ← a specific `GridItem`'s own `ariaLabels` (per-item) — see
+[Localizable ARIA strings](/vue/examples/aria-labels/) for a full
+working example, and [Accessibility scope](/vue/guide/project/accessibility/)
+for the wider keyboard/screen-reader picture this fits into.

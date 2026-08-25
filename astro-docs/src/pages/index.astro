@@ -1,0 +1,505 @@
+---
+// Custom landing page, per PLAN.md section 4.1 — not a Starlight page,
+// a fully custom Astro page reusing the approved mockup
+// (astro-docs/_design/mockup-landing.html) almost verbatim, wired to
+// real routes instead of placeholder hrefs.
+---
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KeystoneGrid — a draggable, resizable dashboard grid for Vue, React &amp; Angular</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    @import '../styles/tokens.css';
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{
+      font-family:var(--kg-font-body);
+      background:var(--kg-paper);
+      color:var(--kg-text-hi-light);
+      -webkit-font-smoothing:antialiased;
+    }
+    a{color:inherit;text-decoration:none;}
+    .wrap{max-width:1180px;margin:0 auto;padding:0 32px;}
+
+    .nav{background:var(--kg-ink);border-bottom:1px solid var(--kg-line-dark);}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;max-width:1180px;margin:0 auto;}
+    .brand{display:flex;align-items:center;gap:10px;}
+    .brand-mark{width:22px;height:22px;flex-shrink:0;}
+    .brand-name{font-family:var(--kg-font-display);font-weight:600;font-size:17px;color:var(--kg-text-hi-dark);letter-spacing:-0.01em;}
+    .nav-links{display:flex;align-items:center;gap:28px;}
+    .nav-link{font-size:14px;color:var(--kg-text-lo-dark);font-weight:500;transition:color .15s ease;}
+    .nav-link:hover{color:var(--kg-text-hi-dark);}
+    .nav-icons{display:flex;align-items:center;gap:18px;}
+    .nav-icons a svg{width:20px;height:20px;display:block;}
+    .nav-icons a{position:relative;}
+    .nav-icon-tooltip{position:absolute;top:calc(100% + 10px);left:50%;transform:translate(-50%, -4px);background:var(--kg-ink-3);border:1px solid var(--kg-line-dark);border-radius:4px;color:var(--kg-text-hi-dark);font-family:var(--kg-font-body);font-size:11px;font-weight:500;padding:4px 8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease, transform .15s ease;z-index:10;}
+    .nav-icons a:hover .nav-icon-tooltip{opacity:1;transform:translate(-50%, 0);}
+    .nav-cta{font-size:13px;font-family:var(--kg-font-mono);color:var(--kg-ink);background:var(--kg-blueprint);padding:8px 14px;border-radius:6px;font-weight:500;}
+
+    .fw-select{position:relative;}
+    .fw-select-trigger{display:flex;align-items:center;gap:6px;background:none;border:none;font-size:14px;color:var(--kg-text-lo-dark);font-weight:500;cursor:pointer;transition:color .15s ease;font-family:inherit;}
+    .fw-select-trigger:hover{color:var(--kg-text-hi-dark);}
+    .fw-select-trigger-icon{width:16px;height:16px;flex-shrink:0;}
+    .fw-select-chevron{width:11px;height:11px;flex-shrink:0;color:var(--kg-text-lo-dark);transition:transform .15s ease;}
+    .fw-select.is-open .fw-select-chevron{transform:rotate(180deg);}
+    .fw-select-menu{position:absolute;top:calc(100% + 14px);left:0;min-width:170px;background:var(--kg-ink-2);border:1px solid var(--kg-line-dark);border-radius:9px;box-shadow:0 12px 28px -8px rgba(0,0,0,0.5);padding:6px;z-index:20;opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .18s ease, transform .18s ease;}
+    .fw-select-menu.is-visible{opacity:1;transform:translateY(0);pointer-events:auto;}
+    .fw-select-option{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:6px;font-family:var(--kg-font-body);font-size:13.5px;font-weight:500;color:var(--kg-text-hi-dark);}
+    .fw-select-option:hover{background:rgba(255,255,255,0.06);}
+    .fw-select-option svg{width:16px;height:16px;flex-shrink:0;}
+    .fw-select-option-status{margin-left:auto;font-family:var(--kg-font-mono);font-size:10px;color:var(--kg-text-lo-dark);}
+    .fw-select-option.is-current .fw-select-option-status{color:var(--kg-amber);}
+
+    .hero{background:var(--kg-ink);background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,0.09) 1px, transparent 0);background-size:26px 26px;padding:88px 0 0;position:relative;overflow:hidden;}
+    .hero-inner{max-width:1180px;margin:0 auto;padding:0 32px 96px;display:grid;grid-template-columns:1.02fr 0.98fr;gap:56px;align-items:center;}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--kg-font-mono);font-size:12px;letter-spacing:0.06em;color:var(--kg-blueprint);border:1px solid var(--kg-blueprint-deep);background:rgba(79,184,201,0.08);padding:6px 12px;border-radius:100px;margin-bottom:24px;}
+    .eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--kg-amber);}
+    h1.headline{font-family:var(--kg-font-display);font-weight:600;font-size:56px;line-height:1.04;letter-spacing:-0.02em;color:var(--kg-text-hi-dark);margin-bottom:22px;}
+    h1.headline .accent{color:var(--kg-amber);}
+    .hero-sub{font-size:17px;line-height:1.65;color:var(--kg-text-lo-dark);max-width:480px;margin-bottom:36px;}
+    .hero-sub code{font-family:var(--kg-font-mono);font-size:15px;color:var(--kg-blueprint);background:rgba(79,184,201,0.1);padding:1px 6px;border-radius:4px;}
+    .fw-inline{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+    .fw-inline svg{width:14px;height:14px;flex-shrink:0;}
+    .cta-row{display:flex;align-items:center;gap:14px;margin-bottom:44px;}
+    .btn{font-family:var(--kg-font-body);font-weight:500;font-size:14px;padding:12px 22px;border-radius:7px;display:inline-flex;align-items:center;gap:8px;transition:transform .12s ease, background .15s ease, border-color .15s ease;}
+    .btn:hover{transform:translateY(-1px);}
+    .btn-primary{background:var(--kg-amber);color:#2B1B02;}
+    .btn-primary:hover{background:#F5B857;}
+    .btn-ghost{border:1px solid var(--kg-line-dark);color:var(--kg-text-hi-dark);}
+    .btn-ghost:hover{border-color:rgba(255,255,255,0.28);background:rgba(255,255,255,0.03);}
+    .hero-meta{display:flex;gap:28px;font-family:var(--kg-font-mono);font-size:12.5px;color:var(--kg-text-lo-dark);}
+    .hero-meta strong{color:var(--kg-text-hi-dark);font-weight:500;}
+
+    .stage{position:relative;height:460px;border-radius:14px;background:var(--kg-ink-2);border:1px solid var(--kg-line-dark);overflow:hidden;}
+    .stage-grid{position:absolute;inset:0;background-image:linear-gradient(to right, var(--kg-line-dark) 1px, transparent 1px),linear-gradient(to bottom, var(--kg-line-dark) 1px, transparent 1px);background-size:44px 44px;opacity:0.7;}
+    .g-item{position:absolute;border-radius:9px;display:flex;flex-direction:column;justify-content:flex-start;padding:12px 14px;}
+    .g-item .label{font-family:var(--kg-font-mono);font-size:11px;font-weight:500;}
+    .g-item .bars span{display:block;height:5px;border-radius:3px;margin-top:5px;}
+    .mini-chart{width:100%;height:auto;margin-top:10px;flex-shrink:0;}
+    .mini-table{margin-top:10px;display:flex;flex-direction:column;gap:5px;}
+    .mini-table-row{display:flex;justify-content:space-between;font-family:var(--kg-font-mono);font-size:10px;color:rgba(255,255,255,0.5);padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.08);}
+    .mini-table-row span:last-child{color:rgba(255,255,255,0.82);}
+    .g-1{top:24px;left:24px;width:150px;height:118px;background:var(--kg-ink-3);border:1px solid var(--kg-line-dark);}
+    .g-1 .label{color:var(--kg-text-lo-dark);}
+    .g-2{top:24px;left:190px;width:150px;height:118px;background:var(--kg-ink-3);border:1px solid var(--kg-line-dark);}
+    .g-2 .label{color:var(--kg-text-lo-dark);}
+    .g-3{top:24px;left:356px;width:112px;height:118px;background:var(--kg-ink-3);border:1px solid var(--kg-line-dark);}
+    .g-3 .label{color:var(--kg-text-lo-dark);}
+    .g-3 .bars span{background:rgba(255,255,255,0.10);}
+    .g-3 .bars span:nth-child(1){width:70%;}
+    .g-3 .bars span:nth-child(2){width:40%;}
+    .g-4{top:158px;left:24px;width:150px;height:150px;background:var(--kg-ink-3);border:1px solid var(--kg-line-dark);}
+    .g-4 .label{color:var(--kg-text-lo-dark);}
+    .g-5{top:158px;left:190px;width:150px;height:98px;background:var(--kg-ink-3);border:1px solid var(--kg-line-dark);}
+    .g-5 .label{color:var(--kg-text-lo-dark);}
+    .g-5 .bars span{background:rgba(255,255,255,0.10);}
+    .g-5 .bars span:nth-child(1){width:55%;}
+    .g-5 .bars span:nth-child(2){width:75%;}
+    .ghost{position:absolute;top:266px;left:190px;width:150px;height:98px;border:1.5px dashed rgba(242,169,59,0.45);border-radius:9px;background:rgba(242,169,59,0.04);}
+    .g-dragged{top:342px;left:250px;width:150px;height:98px;background:var(--kg-paper);color:var(--kg-ink);transform:rotate(-3deg);box-shadow:0 22px 40px -12px rgba(0,0,0,0.55), 0 0 0 1.5px var(--kg-amber);z-index:5;}
+    .g-dragged .label{color:var(--kg-amber-deep);}
+    .g-dragged .bars span{background:rgba(20,23,26,0.14);}
+    .g-dragged .bars span:nth-child(1){width:75%;}
+    .g-dragged .bars span:nth-child(2){width:50%;}
+    .coord-tag{position:absolute;top:294px;left:24px;font-family:var(--kg-font-mono);font-size:11px;color:var(--kg-amber);background:var(--kg-ink);border:1px solid var(--kg-amber-deep);padding:5px 9px;border-radius:6px;white-space:nowrap;display:flex;align-items:center;gap:6px;z-index:6;}
+    .coord-tag svg{width:11px;height:11px;flex-shrink:0;}
+
+    .section{padding:80px 0;}
+    .section-head{margin-bottom:40px;max-width:640px;}
+    .section-eyebrow{font-family:var(--kg-font-mono);font-size:12px;letter-spacing:0.08em;color:var(--kg-blueprint-deep);margin-bottom:12px;display:block;}
+    h2.section-title{font-family:var(--kg-font-display);font-weight:600;font-size:30px;letter-spacing:-0.015em;margin-bottom:12px;color:var(--kg-text-hi-light);}
+    .section-desc{font-size:15.5px;line-height:1.6;color:var(--kg-text-lo-light);}
+
+    .picker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+    .picker-card{border:1px solid var(--kg-line-light);border-radius:12px;padding:26px 24px;background:#fff;display:flex;flex-direction:column;gap:14px;position:relative;}
+    .picker-card.is-live{border:2px solid var(--kg-amber);background:#FFFCF5;}
+    .picker-status{position:absolute;top:20px;right:20px;font-family:var(--kg-font-mono);font-size:10.5px;letter-spacing:0.03em;padding:4px 9px;border-radius:100px;}
+    .status-live{background:rgba(242,169,59,0.16);color:var(--kg-amber-deep);}
+    .status-soon{background:rgba(20,23,26,0.06);color:var(--kg-text-lo-light);}
+    .picker-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;}
+    .picker-icon svg{width:20px;height:20px;}
+    .icon-vue{background:rgba(79,184,201,0.14);}
+    .icon-react{background:rgba(97,218,251,0.14);}
+    .icon-angular{background:rgba(221,0,49,0.09);}
+    .picker-title{font-family:var(--kg-font-display);font-weight:600;font-size:18px;}
+    .picker-desc{font-size:13.5px;line-height:1.55;color:var(--kg-text-lo-light);}
+    .picker-links{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+    .picker-link{font-family:var(--kg-font-mono);font-size:12.5px;display:flex;align-items:center;gap:6px;}
+    .link-live{color:var(--kg-amber-deep);}
+    .link-soon{color:var(--kg-text-lo-light);opacity:0.7;}
+    .link-npm{color:var(--kg-text-lo-light);}
+    .link-npm:hover{color:var(--kg-text-hi-light);}
+    .link-npm svg{width:34px;height:34px;flex-shrink:0;}
+
+    .spec{background:var(--kg-paper-3);border-top:1px solid var(--kg-line-light);border-bottom:1px solid var(--kg-line-light);}
+    .spec-grid{display:grid;grid-template-columns:repeat(4,1fr);}
+    .spec-cell{padding:26px 24px;border-right:1px solid var(--kg-line-light);border-bottom:1px solid var(--kg-line-light);}
+    .spec-cell:nth-child(4n){border-right:none;}
+    .spec-icon{font-family:var(--kg-font-mono);font-size:12px;color:var(--kg-blueprint-deep);margin-bottom:12px;display:block;}
+    .spec-title{font-family:var(--kg-font-display);font-weight:600;font-size:14.5px;margin-bottom:6px;}
+    .spec-desc{font-size:12.8px;line-height:1.5;color:var(--kg-text-lo-light);}
+
+    .footer{background:var(--kg-ink);padding:44px 0;}
+    .footer-inner{display:flex;align-items:center;justify-content:center;}
+    .footer-brand{display:flex;align-items:center;gap:10px;}
+    .footer-links{display:flex;gap:26px;font-size:13px;color:var(--kg-text-lo-dark);}
+
+    @media(max-width:920px){
+      .hero-inner{grid-template-columns:1fr;}
+      .picker-grid{grid-template-columns:1fr;}
+      .spec-grid{grid-template-columns:repeat(2,1fr);}
+      .spec-cell:nth-child(4n){border-right:1px solid var(--kg-line-light);}
+      .spec-cell:nth-child(2n){border-right:none;}
+      h1.headline{font-size:38px;}
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 22 22" fill="none">
+          <rect x="1" y="1" width="9" height="9" rx="2" fill="#4FB8C9"/>
+          <rect x="12" y="1" width="9" height="6" rx="2" fill="#F5F4EF" fill-opacity="0.9"/>
+          <rect x="12" y="9" width="9" height="12" rx="2" fill="#F5F4EF" fill-opacity="0.5"/>
+          <rect x="1" y="12" width="9" height="9" rx="2" fill="#F2A93B"/>
+        </svg>
+        <span class="brand-name">Keystone Dashboard Layout</span>
+      </div>
+      <div class="nav-links">
+        <div
+          class="fw-select">
+          <button
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            class="fw-select-trigger nav-link"
+            type="button">
+            <svg class="fw-select-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
+            <span>Docs</span>
+            <svg class="fw-select-chevron" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <ul
+            class="fw-select-menu"
+            role="listbox">
+            <li>
+              <a
+                class="fw-select-option is-current"
+                href="/vue/"
+                role="option">
+                <svg viewBox="0 0 24 24" fill="#42B883"><path d="M24,1.61H14.06L12,5.16,9.94,1.61H0L12,22.39ZM12,14.08,5.16,2.23H9.59L12,6.41l2.41-4.18h4.43Z"/></svg>
+                <span>Vue</span>
+                <span class="fw-select-option-status">LIVE</span>
+              </a>
+            </li>
+            <li>
+              <a
+                class="fw-select-option"
+                href="/react/"
+                role="option">
+                <svg viewBox="0 0 24 24" fill="#61DAFB"><path d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.345-.034-.46 0-.915.01-1.36.034.44-.572.895-1.096 1.345-1.565zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.345.034.46 0 .915-.01 1.36-.034-.44.572-.895 1.095-1.345 1.565-.455-.47-.91-.993-1.36-1.565z"/></svg>
+                <span>React</span>
+                <span class="fw-select-option-status">SOON</span>
+              </a>
+            </li>
+            <li>
+              <a
+                class="fw-select-option"
+                href="/angular/"
+                role="option">
+                <svg viewBox="0 0 24 24" fill="#DD0031"><path d="M16.712 17.711H7.288l-1.204 2.916L12 24l5.916-3.373-1.204-2.916ZM14.692 0l7.832 16.855.814-12.856L14.692 0ZM9.308 0 .662 3.999l.814 12.856L9.308 0Zm-.405 13.93h6.198L12 6.396 8.903 13.93Z"/></svg>
+                <span>Angular</span>
+                <span class="fw-select-option-status">SOON</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div
+          class="fw-select">
+          <button
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            class="fw-select-trigger nav-link"
+            type="button">
+            <svg class="fw-select-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"/></svg>
+            <span>Examples</span>
+            <svg class="fw-select-chevron" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <ul
+            class="fw-select-menu"
+            role="listbox">
+            <li>
+              <a
+                class="fw-select-option is-current"
+                href="/vue/examples"
+                role="option">
+                <svg viewBox="0 0 24 24" fill="#42B883"><path d="M24,1.61H14.06L12,5.16,9.94,1.61H0L12,22.39ZM12,14.08,5.16,2.23H9.59L12,6.41l2.41-4.18h4.43Z"/></svg>
+                <span>Vue</span>
+                <span class="fw-select-option-status">LIVE</span>
+              </a>
+            </li>
+            <li>
+              <a
+                class="fw-select-option"
+                href="/react/"
+                role="option">
+                <svg viewBox="0 0 24 24" fill="#61DAFB"><path d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.345-.034-.46 0-.915.01-1.36.034.44-.572.895-1.096 1.345-1.565zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.345.034.46 0 .915-.01 1.36-.034-.44.572-.895 1.095-1.345 1.565-.455-.47-.91-.993-1.36-1.565z"/></svg>
+                <span>React</span>
+                <span class="fw-select-option-status">SOON</span>
+              </a>
+            </li>
+            <li>
+              <a
+                class="fw-select-option"
+                href="/angular/"
+                role="option">
+                <svg viewBox="0 0 24 24" fill="#DD0031"><path d="M16.712 17.711H7.288l-1.204 2.916L12 24l5.916-3.373-1.204-2.916ZM14.692 0l7.832 16.855.814-12.856L14.692 0ZM9.308 0 .662 3.999l.814 12.856L9.308 0Zm-.405 13.93h6.198L12 6.396 8.903 13.93Z"/></svg>
+                <span>Angular</span>
+                <span class="fw-select-option-status">SOON</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="nav-icons">
+          <a aria-label="GitHub" class="nav-link" href="https://github.com/gwinnem/keystone-dashboard-layout">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+            <span class="nav-icon-tooltip">GitHub</span>
+          </a>
+          <a aria-label="X (Twitter)" class="nav-link" href="https://twitter.com/">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z"/></svg>
+            <span class="nav-icon-tooltip">X (Twitter)</span>
+          </a>
+          <a aria-label="LinkedIn" class="nav-link" href="https://www.linkedin.com/">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z"/></svg>
+            <span class="nav-icon-tooltip">LinkedIn</span>
+          </a>
+          <a aria-label="Xing" class="nav-link" href="https://www.xing.com/">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.188 0c-.517 0-.741.325-.927.66 0 0-7.455 13.224-7.702 13.657.015.024 4.919 9.023 4.919 9.023.17.308.436.66.967.66h3.454c.211 0 .375-.078.463-.22.089-.151.089-.346-.009-.536l-4.879-8.916c-.004-.006-.004-.016 0-.022L22.139.756c.095-.191.097-.387.006-.535C22.056.078 21.894 0 21.686 0h-3.498zM3.648 4.74c-.211 0-.385.074-.473.216-.09.149-.078.339.02.531l2.34 4.05c.004.01.004.016 0 .021L1.86 16.051c-.099.188-.093.381 0 .529.085.142.239.234.45.234h3.461c.518 0 .766-.348.945-.667l3.734-6.609-2.378-4.155c-.172-.315-.434-.659-.962-.659H3.648v.016z"/></svg>
+            <span class="nav-icon-tooltip">Xing</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1 class="headline">Drag it. Drop it.<br>Make it <span class="accent">yours.</span></h1>
+        <p class="hero-sub">A draggable, resizable grid layout for dashboards — collision handling, breakpoints, and undo/redo built in. One framework-agnostic engine, zero runtime dependencies, with idiomatic components for <span class="fw-inline"><svg viewBox="0 0 24 24" fill="#42B883"><path d="M24,1.61H14.06L12,5.16,9.94,1.61H0L12,22.39ZM12,14.08,5.16,2.23H9.59L12,6.41l2.41-4.18h4.43Z"/></svg>Vue</span>, <span class="fw-inline"><svg viewBox="0 0 24 24" fill="#61DAFB"><path d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.345-.034-.46 0-.915.01-1.36.034.44-.572.895-1.096 1.345-1.565zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.345.034.46 0 .915-.01 1.36-.034-.44.572-.895 1.095-1.345 1.565-.455-.47-.91-.993-1.36-1.565z"/></svg>React</span>, and <span class="fw-inline"><svg viewBox="0 0 24 24" fill="#DD0031"><path d="M16.712 17.711H7.288l-1.204 2.916L12 24l5.916-3.373-1.204-2.916ZM14.692 0l7.832 16.855.814-12.856L14.692 0ZM9.308 0 .662 3.999l.814 12.856L9.308 0Zm-.405 13.93h6.198L12 6.396 8.903 13.93Z"/></svg>Angular</span>.</p>
+        <div class="hero-meta">
+          <span><strong>21.8 KB</strong> gzip</span>
+          <span><strong>0</strong> dependencies</span>
+          <span><strong>99%</strong> statement coverage</span>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-grid"></div>
+        <div class="g-item g-1">
+          <span class="label">revenue</span>
+          <svg class="mini-chart" viewBox="0 0 100 40">
+            <rect x="4" y="20" width="10" height="16" rx="2" fill="var(--kg-blueprint)" opacity="0.85"/>
+            <rect x="20" y="10" width="10" height="26" rx="2" fill="var(--kg-blueprint)" opacity="0.85"/>
+            <rect x="36" y="16" width="10" height="20" rx="2" fill="var(--kg-blueprint)" opacity="0.85"/>
+            <rect x="52" y="4" width="10" height="32" rx="2" fill="var(--kg-amber)" opacity="0.9"/>
+            <rect x="68" y="12" width="10" height="24" rx="2" fill="var(--kg-blueprint)" opacity="0.85"/>
+            <rect x="84" y="18" width="10" height="18" rx="2" fill="var(--kg-blueprint)" opacity="0.85"/>
+          </svg>
+        </div>
+        <div class="g-item g-2">
+          <span class="label">active users</span>
+          <svg class="mini-chart" viewBox="0 0 100 40">
+            <polyline points="2,32 20,24 38,28 56,14 74,18 98,4" fill="none" stroke="var(--kg-blueprint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="98" cy="4" r="3" fill="var(--kg-amber)"/>
+          </svg>
+        </div>
+        <div class="g-item g-3"><span class="label">signups</span><div class="bars"><span></span><span></span></div></div>
+        <div class="g-item g-4">
+          <span class="label">top regions</span>
+          <div class="mini-table">
+            <div class="mini-table-row"><span>US</span><span>42%</span></div>
+            <div class="mini-table-row"><span>EU</span><span>31%</span></div>
+            <div class="mini-table-row"><span>APAC</span><span>18%</span></div>
+          </div>
+        </div>
+        <div class="g-item g-5"><span class="label">conversion</span><div class="bars"><span></span><span></span></div></div>
+        <div class="ghost"></div>
+        <div class="coord-tag">
+          <svg viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="#F2A93B" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          x:2 y:4 → x:1 y:6
+        </div>
+        <div class="g-item g-dragged">
+          <span class="label">churn rate</span>
+          <svg class="mini-chart" viewBox="0 0 100 40">
+            <rect x="4" y="14" width="10" height="22" rx="2" fill="var(--kg-amber-deep)" opacity="0.8"/>
+            <rect x="20" y="20" width="10" height="16" rx="2" fill="var(--kg-amber-deep)" opacity="0.8"/>
+            <rect x="36" y="8" width="10" height="28" rx="2" fill="var(--kg-amber-deep)" opacity="0.8"/>
+            <rect x="52" y="24" width="10" height="12" rx="2" fill="var(--kg-amber-deep)" opacity="0.8"/>
+            <rect x="68" y="18" width="10" height="18" rx="2" fill="var(--kg-amber-deep)" opacity="0.8"/>
+            <rect x="84" y="12" width="10" height="24" rx="2" fill="var(--kg-amber-deep)" opacity="0.8"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="section" id="picker">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-eyebrow">CHOOSE YOUR FRAMEWORK</span>
+        <h2 class="section-title">One grid engine, three frontends</h2>
+        <p class="section-desc">The positioning, collision, and compaction engine is framework-agnostic. Vue ships today; React and Angular reuse the same core.</p>
+      </div>
+      <div class="picker-grid">
+        <div class="picker-card is-live">
+          <span class="picker-status status-live">AVAILABLE</span>
+          <div class="picker-icon icon-vue"><svg viewBox="0 0 24 24" fill="#42B883"><path d="M24,1.61H14.06L12,5.16,9.94,1.61H0L12,22.39ZM12,14.08,5.16,2.23H9.59L12,6.41l2.41-4.18h4.43Z"/></svg></div>
+          <div class="picker-title">Vue 3</div>
+          <p class="picker-desc">Composition API, fully typed, 45 live interactive examples.</p>
+          <div class="picker-links">
+            <a class="picker-link link-live" href="/vue/">Read the docs →</a>
+            <a class="picker-link link-npm" href="https://www.npmjs.com/package/@keystone-dashboard-layout/vue" rel="noopener" target="_blank">View on <svg viewBox="0 0 24 24" fill="#CB3837"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg></a>
+          </div>
+        </div>
+        <div class="picker-card">
+          <span class="picker-status status-soon">IN PROGRESS</span>
+          <div class="picker-icon icon-react"><svg viewBox="0 0 24 24" fill="#61DAFB"><path d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.345-.034-.46 0-.915.01-1.36.034.44-.572.895-1.096 1.345-1.565zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.345.034.46 0 .915-.01 1.36-.034-.44.572-.895 1.095-1.345 1.565-.455-.47-.91-.993-1.36-1.565z"/></svg></div>
+          <div class="picker-title">React</div>
+          <p class="picker-desc">Same core engine, a React-idiomatic component API.</p>
+          <div class="picker-links">
+            <span class="picker-link link-soon">Coming soon</span>
+            <a class="picker-link link-npm" href="https://www.npmjs.com/package/@keystone-dashboard-layout/react" rel="noopener" target="_blank">View on <svg viewBox="0 0 24 24" fill="#CB3837"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg></a>
+          </div>
+        </div>
+        <div class="picker-card">
+          <span class="picker-status status-soon">IN PROGRESS</span>
+          <div class="picker-icon icon-angular"><svg viewBox="0 0 24 24" fill="#DD0031"><path d="M16.712 17.711H7.288l-1.204 2.916L12 24l5.916-3.373-1.204-2.916ZM14.692 0l7.832 16.855.814-12.856L14.692 0ZM9.308 0 .662 3.999l.814 12.856L9.308 0Zm-.405 13.93h6.198L12 6.396 8.903 13.93Z"/></svg></div>
+          <div class="picker-title">Angular</div>
+          <p class="picker-desc">Standalone components, signals-ready.</p>
+          <div class="picker-links">
+            <span class="picker-link link-soon">Coming soon</span>
+            <a class="picker-link link-npm" href="https://www.npmjs.com/package/@keystone-dashboard-layout/angular" rel="noopener" target="_blank">View on <svg viewBox="0 0 24 24" fill="#CB3837"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="spec">
+    <div class="wrap">
+      <div class="section-head" style="padding-top:64px;">
+        <span class="section-eyebrow">SPECIFICATION</span>
+        <h2 class="section-title">Everything the grid does</h2>
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-cell"><span class="spec-icon">01</span><div class="spec-title">Drag &amp; resize</div><p class="spec-desc">Every edge and corner, with min/max size constraints per item.</p></div>
+      <div class="spec-cell"><span class="spec-icon">02</span><div class="spec-title">Responsive breakpoints</div><p class="spec-desc">Auto-generate a layout per breakpoint, or hand it exact ones.</p></div>
+      <div class="spec-cell"><span class="spec-icon">03</span><div class="spec-title">Pluggable compaction</div><p class="spec-desc">Five built-in strategies, or bring your own ICompactor.</p></div>
+      <div class="spec-cell"><span class="spec-icon">04</span><div class="spec-title">Multi-select &amp; group move</div><p class="spec-desc">Select several items, drag one — the rest move by the same delta.</p></div>
+      <div class="spec-cell"><span class="spec-icon">05</span><div class="spec-title">Cross-grid drag</div><p class="spec-desc">Drag items between separate grid instances with accept/reject rules.</p></div>
+      <div class="spec-cell"><span class="spec-icon">06</span><div class="spec-title">Snap &amp; alignment guides</div><p class="spec-desc">Magnetic snapping that adjusts position, not just a visual overlay.</p></div>
+      <div class="spec-cell"><span class="spec-icon">07</span><div class="spec-title">Persistence &amp; presets</div><p class="spec-desc">Serialize a layout, or save and switch between named presets.</p></div>
+      <div class="spec-cell"><span class="spec-icon">08</span><div class="spec-title">Keyboard accessible</div><p class="spec-desc">Arrow keys move, shift+arrow resizes — no mouse required.</p></div>
+      <div class="spec-cell"><span class="spec-icon">09</span><div class="spec-title">TypeScript-first</div><p class="spec-desc">Every prop, event, and enum typed and exported from one entry point.</p></div>
+      <div class="spec-cell"><span class="spec-icon">10</span><div class="spec-title">Undo / redo</div><p class="spec-desc">Opt-in history at committed-change granularity, not per frame.</p></div>
+      <div class="spec-cell"><span class="spec-icon">11</span><div class="spec-title">Zero dependencies</div><p class="spec-desc">Native Pointer Events, no bundled drag library to audit.</p></div>
+      <div class="spec-cell"><span class="spec-icon">12</span><div class="spec-title">SVG export</div><p class="spec-desc">A standalone snapshot of the current layout, no screenshot tooling.</p></div>
+      <div class="spec-cell"><span class="spec-icon">13</span><div class="spec-title">RTL mirroring</div><p class="spec-desc">Anchor edges, resize direction, and drag math all correctly reverse.</p></div>
+      <div class="spec-cell"><span class="spec-icon">14</span><div class="spec-title">Framework-agnostic core</div><p class="spec-desc">Positioning and collision logic usable standalone, no framework needed.</p></div>
+      <div class="spec-cell"><span class="spec-icon">15</span><div class="spec-title">Battle-tested</div><p class="spec-desc">98%+ coverage, Playwright e2e across three browsers, mutation testing.</p></div>
+      <div class="spec-cell"><span class="spec-icon">16</span><div class="spec-title">Static &amp; locked items</div><p class="spec-desc">Pin specific items in place as fixed obstacles for compaction.</p></div>
+      <div class="spec-cell"><span class="spec-icon">17</span><div class="spec-title">Align &amp; distribute</div><p class="spec-desc">Align a multi-selection to an edge, or evenly space what's between.</p></div>
+      <div class="spec-cell"><span class="spec-icon">18</span><div class="spec-title">Spacing indicators</div><p class="spec-desc">A labeled distance badge to the nearest neighbor while dragging.</p></div>
+      <div class="spec-cell"><span class="spec-icon">19</span><div class="spec-title">Custom header slot</div><p class="spec-desc">A separate, own-scrolling header region above an item's own content.</p></div>
+      <div class="spec-cell"><span class="spec-icon">20</span><div class="spec-title">Per-item zIndex</div><p class="spec-desc">Pin one panel permanently above every other, even mid-drag.</p></div>
+      <div class="spec-cell"><span class="spec-icon">21</span><div class="spec-title">Outside drag &amp; drop</div><p class="spec-desc">Accept a native HTML5 drag from entirely outside the grid system.</p></div>
+      <div class="spec-cell"><span class="spec-icon">22</span><div class="spec-title">Localizable ARIA strings</div><p class="spec-desc">Every keyboard/screen-reader string overridable, per grid or per item.</p></div>
+      <div class="spec-cell"><span class="spec-icon">23</span><div class="spec-title">Custom drag handles</div><p class="spec-desc">Restrict dragging to your own handle instead of the whole item.</p></div>
+      <div class="spec-cell"><span class="spec-icon">24</span><div class="spec-title">Configurable height modes</div><p class="spec-desc">Auto, fixed, or scrolling container sizing — not just grow-to-fit.</p></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div class="footer-brand">
+        <svg class="brand-mark" viewBox="0 0 22 22" fill="none">
+          <rect x="1" y="1" width="9" height="9" rx="2" fill="#4FB8C9"/>
+          <rect x="12" y="1" width="9" height="6" rx="2" fill="#F5F4EF" fill-opacity="0.9"/>
+          <rect x="12" y="9" width="9" height="12" rx="2" fill="#F5F4EF" fill-opacity="0.5"/>
+          <rect x="1" y="12" width="9" height="9" rx="2" fill="#F2A93B"/>
+        </svg>
+        <span style="font-family:var(--kg-font-mono);font-size:12.5px;color:var(--kg-text-lo-dark);">© 2026 Geirr Winnem — MIT licensed</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Framework selector dropdowns, attached to both "Docs" and
+    // "Examples" — plain vanilla JS, no framework island needed for a
+    // simple open/close toggle. Handles every .fw-select on the page
+    // independently (not a single hardcoded id), since there are now two
+    // (Docs, Examples) and each needs its own open/closed state. Uses a
+    // class-based opacity/transform toggle (not the `hidden` attribute)
+    // specifically so the CSS transition can actually animate a fade-in
+    // — `hidden` applies `display: none` immediately, which a
+    // transition can never animate from. Each closes on an outside
+    // click or Escape, and opening one closes any other that's already
+    // open. The currently selected option (Vue, the only live one right
+    // now) is marked is-current in each list so it's visually
+    // distinguishable even before React/Angular have their own real
+    // docs/examples to switch to.
+    const fwSelects = Array.from(document.querySelectorAll('.fw-select'));
+
+    const closeMenu = (fwSelect) => {
+      const menu = fwSelect.querySelector('.fw-select-menu');
+      const trigger = fwSelect.querySelector('.fw-select-trigger');
+      menu.classList.remove('is-visible');
+      fwSelect.classList.remove('is-open');
+      trigger.setAttribute('aria-expanded', 'false');
+    };
+
+    const openMenu = (fwSelect) => {
+      fwSelects.forEach((other) => {
+        if (other !== fwSelect) closeMenu(other);
+      });
+      const menu = fwSelect.querySelector('.fw-select-menu');
+      const trigger = fwSelect.querySelector('.fw-select-trigger');
+      menu.classList.add('is-visible');
+      fwSelect.classList.add('is-open');
+      trigger.setAttribute('aria-expanded', 'true');
+    };
+
+    fwSelects.forEach((fwSelect) => {
+      const trigger = fwSelect.querySelector('.fw-select-trigger');
+      const menu = fwSelect.querySelector('.fw-select-menu');
+
+      trigger.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (menu.classList.contains('is-visible')) {
+          closeMenu(fwSelect);
+        } else {
+          openMenu(fwSelect);
+        }
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      fwSelects.forEach((fwSelect) => {
+        if (!fwSelect.contains(event.target)) closeMenu(fwSelect);
+      });
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        fwSelects.forEach((fwSelect) => closeMenu(fwSelect));
+      }
+    });
+  </script>
+
+</body>
+</html>

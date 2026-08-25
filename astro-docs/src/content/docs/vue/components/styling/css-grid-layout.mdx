@@ -1,0 +1,77 @@
+---
+title: Styling → GridLayout
+description: The CSS classes GridLayout's root element uses.
+---
+
+`GridLayout`'s root element gets the class `vue-grid-layout`. It's
+`position: relative` with a 200ms `height` transition (so `autoSize`
+changes animate smoothly) — override either directly:
+
+```css
+.vue-grid-layout {
+  background: #0f172a;
+}
+```
+
+## `.grid` — grid line guides
+
+When `showGridLines` is enabled, `GridLayout` adds a `grid` class and
+renders the guide lines via a `::before` pseudo-element, colored by the
+`--grid-line-color` CSS custom property (a real, runtime-overridable
+property — not a SCSS variable; see [Styling → Variables](/vue/components/styling/css-variables/)
+for why that distinction matters here specifically).
+See [Show grid lines](/vue/examples/grid-lines/) for a live demo.
+
+## `.vue-grid-layout--active-drag`
+
+Applied only while a cross-grid drag (`allowCrossGridDrag`) is in
+progress, bumping this grid's own `z-index` to `1` — a real fix for a
+real bug: with every grid establishing its own CSS stacking context
+(`isolation: isolate`, needed separately so a negative-`z-index` static
+item doesn't escape its own grid's subtree), a dragged item paints
+behind whichever sibling grid happens to come later in the DOM, unless
+its own source grid's stacking context is temporarily raised above its
+siblings during the drag. Not meant to be restyled — documented here so
+an unexpectedly-elevated `z-index` during a cross-grid drag isn't a
+mystery if you notice it in devtools.
+
+## `.vue-grid-alignment-guide` / `.vue-grid-spacing-indicator`
+
+Rendered while `showAlignmentGuides`/`showSpacingGuides` are
+respectively on, positioned absolutely as thin lines (`vue-grid-alignment-guide`)
+or small labeled badges (`vue-grid-spacing-indicator`, e.g. "2 cols").
+Style them directly:
+
+```css
+.vue-grid-alignment-guide {
+  background: #f59e0b;
+}
+.vue-grid-spacing-indicator {
+  background: #1e293b;
+}
+```
+
+See [Alignment guides while dragging](/vue/examples/alignment-guides/)
+for a live demo.
+
+## `.vue-grid-placeholder`
+
+The internal drag placeholder — a hidden `GridItem` shown only while
+`isDragging` is true, marking where the dragged/resized item would
+land. Style it to make the "drop target" more or less visually
+prominent:
+
+```css
+.vue-grid-placeholder {
+  background: rgba(59, 130, 246, 0.3);
+}
+```
+
+## Sizing
+
+`GridLayout`'s height is governed by `heightMode` (the modern prop) or
+`autoSize` (the older, still-supported alias) — see
+[GridLayout props](/vue/components/grid-layout/props/) for the full set
+of modes, including `'scroll'`/`'fit'`, which also apply an inline
+`overflow-y: auto`. There's no dedicated class for any of this; it's
+applied as inline styles.

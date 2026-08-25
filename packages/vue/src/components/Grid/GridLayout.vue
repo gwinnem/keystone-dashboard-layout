@@ -781,10 +781,30 @@
   const needsHorizontalScroll = computed(() => (
     effectiveWidth.value !== null && width.value !== null && effectiveWidth.value > width.value
   ));
+  // `as const` on the truthy branch specifically: without it, TS widens
+  // `position: 'relative'` to a plain `string` (the ternary's other
+  // branch, `{}`, gives the whole expression a union type that forces
+  // this), which Vue's own CSSProperties.position rejects — it wants
+  // the literal union (`'relative' | 'absolute' | ...`), not `string`.
+  // `height`/`width` stay plain `string` either way (their own values
+  // are template literals interpolating a non-literal `effectiveWidth.value`,
+  // which TS already types as `string` regardless of `as const`), so
+  // this only actually narrows the one property that needed it.
   const contentWrapperStyle = computed(() => (
-    needsWidthWrapper.value ? { height: `100%`, position: `relative`, width: `${effectiveWidth.value}px` } : {}
+    needsWidthWrapper.value ? { height: `100%`, position: `relative`, width: `${effectiveWidth.value}px` } as const : {}
   ));
-  const overflowXStyle = computed(() => (needsHorizontalScroll.value ? { 'overflow-x': `auto` } : {}));
+  // Camel-cased (`overflowX`), not kebab-case (`'overflow-x'`) — Vue's
+  // own CSSProperties typing only recognizes kebab-case keys that are
+  // CSS custom properties (the `--`-prefixed ones every other style
+  // computed above returns); an ordinary property name like this one
+  // needs its camelCase form to type-check. `as const` is needed too,
+  // not just the key fix alone — the same widening `contentWrapperStyle`
+  // above needed it for: the ternary's other branch (`{}`) forces a
+  // union across both branches, which widens `auto` to a plain `string`
+  // unless pinned to its literal type, and `OverflowX` (unlike
+  // `height`/`width`) is a literal union, not a plain `string`. Runtime
+  // behavior is unchanged either way — both fixes are type-only.
+  const overflowXStyle = computed(() => (needsHorizontalScroll.value ? { overflowX: `auto` } as const : {}));
 
   /**
    * Converts `alignmentGuides`'s grid-unit positions into pixel offsets

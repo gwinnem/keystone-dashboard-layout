@@ -1,0 +1,60 @@
+---
+title: CustomDragElement
+description: A standalone drag-handle widget, not used internally by the library — pair it with GridItem's dragAllowFrom prop.
+---
+
+A small drag-handle widget, exported for placing inside a `GridItem`'s
+slot content when you want dragging restricted to a single handle rather
+than the whole item — pair it with `GridItem`'s `dragAllowFrom` prop so
+only this element starts a drag.
+
+:::caution[The grab target is a small circle, not the visible button]
+The rendered markup is a labeled `<button>` **plus a separate**, small
+decorative circle element carrying the `vue-draggable-handle` class —
+confirmed directly from the component's own template. `dragAllowFrom`
+matches that circle specifically, not the button/text you actually see
+labeled. Clicking the visible text does **not** start a drag; only the
+small circle (rendered at the widget's own bottom-right corner) does.
+:::
+
+Not used anywhere internally in this library — a standalone, opt-in
+utility component, exported from the package's main entry point
+alongside `CustomCloseButton`.
+
+```vue
+<script setup lang="ts">
+import { CustomDragElement } from '@keystone-dashboard-layout/vue';
+</script>
+
+<template>
+  <GridItem drag-allow-from=".vue-draggable-handle" :h="item.h" :i="item.i" :w="item.w" :x="item.x" :y="item.y">
+    <CustomDragElement text="⠿" />
+    Item content
+  </GridItem>
+</template>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `text` | `string` | `'x'` | Label rendered inside the handle's own button. |
+
+## Pairing with `resizeIgnoreFrom`
+
+If the handle sits near a corner, it can land inside the same
+edge-proximity margin the resize engine already uses to detect a resize
+gesture — meaning grabbing the handle could start a resize instead of
+the drag `dragAllowFrom` was meant to restrict things to. Excluding the
+handle from `resizeIgnoreFrom` as well is what actually stops the two
+from fighting over the same gesture:
+
+```vue
+<GridItem
+  drag-allow-from=".vue-draggable-handle"
+  resize-ignore-from=".vue-draggable-handle"
+  ...>
+```
+
+See [Custom drag handle & close button](/vue/examples/custom-drag-handle-close-button/)
+for a full working example combining this with `CustomCloseButton`.

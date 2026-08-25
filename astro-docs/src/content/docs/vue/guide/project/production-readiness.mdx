@@ -1,0 +1,68 @@
+---
+title: Production readiness
+description: An honest checklist of what's actually verified, what's a known gap, and what's blocking real-world use — not a marketing claim.
+---
+
+:::note[Snapshot, not a permanent guarantee]
+This reflects a specific point in this project's own history — re-running
+the commands it references is the only way to confirm any of this still
+holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
+forever."
+:::
+
+## Code quality
+
+- **Typecheck clean** — `vue-tsc --project tsconfig.json --noEmit`. A real, substantial bug was found and fixed here: the monorepo split had left `tsconfig.json` without an explicit `rootDir`, so every cross-package `@/core/*` import fell outside TypeScript's auto-computed root, cascading into ~50 `TS6059` errors from one root cause. Fixed by setting `rootDir` to the common ancestor of `vue/src` and `core/src`.
+- **Unit/component tests passing** — 353/353 (`@keystone-dashboard-layout/vue`), 296/296 (`@keystone-dashboard-layout/core`).
+- **Test coverage** — `vue`: 99.65% statements / 95.05% branch / 99.64% functions / 99.64% lines. `core`: 99.11% statements / 97.05% branch / 99.27% functions / 99.18% lines. Both comfortably clear each package's own 90% gate.
+- **A real reactivity bug found and fixed**: every item-level prop with the same null-means-inherit pattern (`isDraggable`/`isResizable`/`isBounded`/`showCloseButton`/`enableEditMode`/`useBorderRadius`/`borderRadiusPx`) had a direct watcher re-syncing its resolved value when the prop changed reactively after mount — `resizeHandles` never got one. Found via e2e testing (a demo control toggling it had no visible effect), fixed with the missing watcher plus a regression test.
+- **Lint** — not independently re-verified as of this snapshot; the last confirmed-clean state predates several changes since (the reactivity fix, the typecheck cleanup). Re-run `pnpm lint`/`pnpm lint:style` before trusting either is still clean.
+- **`npm audit`** and **mutation testing (Stryker)** — not re-run as of this snapshot.
+
+## Runtime dependencies
+
+**Zero, genuinely** — not just close. The last remaining one (`mitt`, a ~200-byte event emitter) was removed and replaced with a small hand-rolled typed emitter implementing only the narrow `on`/`off`/`emit` surface actually used.
+
+## Build & packaging
+
+- **Bundle size, library/demo/docs builds, and the pack-and-install smoke test** — not re-measured as of this snapshot; typecheck being clean is a prerequisite for the build but doesn't itself confirm any of these.
+- **Publish status** — not independently verified as of this snapshot. The package publishes as `@keystone-dashboard-layout/vue` (the post-monorepo-split name) — check the current npm registry state directly rather than trusting a prior claim about what's published.
+
+## CI/CD & repository hygiene
+
+- Three GitHub Actions workflows present: `ci.yml`, `mutation-testing.yml`, `release.yml`.
+- Branch protection and an `NPM_TOKEN` secret for `release.yml` to actually publish — both open, and both need a repo admin (not something fixable from source alone).
+- CODEOWNERS and Husky/lint-staged both confirmed wired up correctly.
+
+## Documentation
+
+Kept current and cross-checked as of this snapshot: the project's own running bug-history log, roadmap, feature list, and changelog. Not independently re-checked in this same pass: `README.md`/`INSTALL.md`/`MIGRATION.md`/`SUPPORT.md`/`SECURITY.md` — no known reason to suspect they've gone stale, but that's an inference, not a direct check.
+
+Not yet in place: CI-integrated static analysis (e.g. CodeQL), SBOM generation or npm provenance attestation, and automated accessibility testing (`axe-core` or equivalent) — the claims in [Accessibility scope](/vue/guide/project/accessibility/) are verified by hand-written attribute assertions, not an automated scanner.
+
+## Testing depth
+
+- **A full Playwright e2e suite run against real Chromium, Firefox, and WebKit** — a meaningful milestone versus an earlier state where only a workaround Chromium build was reachable at all, with no genuine cross-browser testing possible.
+- **Two confirmed, named browser-specific limitations**, each skipped with an inline comment recording why: Chromium-only touch-event simulation (a DevTools Protocol limitation, not this library's own gap), and WebKit's lack of a translation layer for simulating native HTML5 drag-and-drop.
+- **One honestly unresolved gap**: an `autoScroll` test fails on Firefox only. Three separate fix attempts ruled out the two most plausible causes (a timing race, a teardown-order race) without finding the actual one — `scrollTop` never advances in Firefox across a full 5-second window despite the drag being confirmed active throughout, and the underlying scroll logic reads as browser-agnostic on inspection. Skipped on Firefox with the investigation history recorded inline, not dressed up as an equivalently-understood platform limitation the way the two above are.
+- Visual regression baselines don't exist yet.
+
+## Accessibility
+
+Keyboard move/resize implemented and tested; `aria-roledescription`/`aria-describedby`/`role="group"` on interactive items; localizable ARIA strings. Deliberately *not* a full WAI-ARIA grid/application widget pattern — see [Accessibility scope](/vue/guide/project/accessibility/) for the intentional scope limit.
+
+## Security
+
+Zero runtime dependencies is the strongest possible position on third-party runtime-dependency risk here. No `eval`/dynamic code execution anywhere in the library's own source. No telemetry, analytics, or network calls of any kind.
+
+## Browser/runtime support
+
+Node engine range (`^18.0.0 || ^20.0.0 || >=22.0.0`) declared and respected. Browser support relies on `ResizeObserver` and modern-but-broadly-supported CSS — no explicit browserslist-driven compatibility test independently confirms the exact minimum supported browser versions beyond what the `browserslist` config declares.
+
+## Known, open, and deliberately deferred
+
+Genuinely unimplemented as of this snapshot — see the [Roadmap](/vue/guide/project/roadmap/) for the fuller, current version of this same list: swap-on-drag collision mode, sub-grid nesting, an open pluggable positioning-strategy interface, spacing guides with distance labels, per-input-type drag-activation thresholds, async persistence backends, a fast/large-layout compactor, a worker-based layout engine, and a Nuxt module with a full SSR audit.
+
+## The short version
+
+**Code quality and the e2e suite**: freshly verified as of this snapshot, in good shape, with one honestly-unresolved Firefox-specific gap recorded rather than hidden. **Build/packaging/publish status, lint, and mutation testing**: not independently confirmed in this same pass — re-run before trusting a specific number. **Feature completeness**: several genuinely large items remain open on the roadmap — see [Roadmap](/vue/guide/project/roadmap/) for the current, accurate list.

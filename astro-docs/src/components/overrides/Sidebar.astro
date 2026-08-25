@@ -1,0 +1,103 @@
+---
+// Overrides Starlight's default Sidebar for VitePress-style,
+// route-dependent sidebars: browsing under /vue/guide/* shows only the
+// Guide subtree, /vue/components/* shows only Components, and so on —
+// instead of one long sidebar with every section expanded at once.
+//
+// Grounded in the ACTUAL installed @astrojs/starlight@0.30.6 source
+// (read directly from node_modules, not assumed from current docs):
+// this version's own Sidebar.astro reads `sidebar` off `Astro.props`
+// (the pre-0.32 route-data mechanism). Starlight's own officially
+// documented "Multiple sidebars" example uses the newer
+// `Astro.locals.starlightRoute.sidebar` API instead, introduced in
+// Starlight 0.32 — that pattern would silently fail (or throw) against
+// this older, currently-installed version, so this file deliberately
+// mirrors the real default Sidebar.astro's own actual structure
+// instead of a newer-version tutorial.
+//
+// Framework isolation (added alongside Vue/React/Angular each getting
+// a real top-level sidebar group in astro.config.mjs): a real,
+// confirmed bug existed before this — browsing /react/ or /angular/
+// (both single placeholder pages, no sidebar entries of their own
+// until just now) fell through every SECTION_SIDEBARS prefix below
+// (all Vue-specific) and landed on the full, unfiltered `sidebar`
+// fallback, meaning the React/Angular placeholder pages showed Vue's
+// *entire* Guide/Components/API/Examples tree in the left sidebar —
+// confirmed directly, not assumed, before this fix. Isolating to the
+// current top-level framework group FIRST, before the existing
+// sub-section narrowing runs, fixes this for all three frameworks at
+// once rather than special-casing React/Angular individually.
+import type { Props } from '@astrojs/starlight/props';
+import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
+import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
+import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
+
+type SidebarEntry = Props['sidebar'][number];
+
+// Maps a URL path prefix to the top-level framework group label —
+// checked first, before any sub-section narrowing, so a framework with
+// no sub-groups of its own (React, Angular — just one flat page each
+// today) still correctly isolates to its own single entry instead of
+// falling through to Vue's tree.
+const FRAMEWORK_SIDEBARS: { prefix: string; groupLabel: string }[] = [
+	{ prefix: `/vue`, groupLabel: `Vue` },
+	{ prefix: `/react`, groupLabel: `React` },
+	{ prefix: `/angular`, groupLabel: `Angular` },
+];
+
+// Maps a URL path prefix to the top-level sidebar group label it should
+// isolate *within* the already-framework-isolated tree. Order matters
+// only in that the first match wins — none of these prefixes currently
+// overlap, so this is mostly future-proofing. Add an entry here for any
+// new top-level section that should get its own dedicated sidebar the
+// same way. Vue-only today since React/Angular have no sub-groups yet;
+// extend this the same way once either framework has real Guide/
+// Components/API/Examples sections of its own.
+const SECTION_SIDEBARS: { prefix: string; groupLabel: string }[] = [
+	{ prefix: `/vue/guide`, groupLabel: `Guide` },
+	{ prefix: `/vue/components`, groupLabel: `Components` },
+	{ prefix: `/vue/api`, groupLabel: `API` },
+	{ prefix: `/vue/examples`, groupLabel: `Examples` },
+];
+
+// Recurses through the sidebar tree looking for a group with the given
+// label, at any depth. Keeps working unchanged if the sidebar's own
+// nesting shape changes, as long as the label itself doesn't.
+function findGroup(entries: SidebarEntry[], groupLabel: string): SidebarEntry[] | null {
+	for (const entry of entries) {
+		if (entry.type !== `group`) continue;
+		if (entry.label === groupLabel) return [entry];
+		const nested = findGroup(entry.entries, groupLabel);
+		if (nested) return nested;
+	}
+	return null;
+}
+
+const { sidebar } = Astro.props;
+
+// Step 1: isolate to the current framework's own top-level group first
+// — this is what actually fixes the React/Angular-showing-Vue's-tree
+// bug. Falls back to the full sidebar only for a route matching none of
+// the three (the landing page itself isn't Starlight-rendered at all,
+// so in practice this fallback is more a safety net than something a
+// real route hits).
+const matchedFramework = FRAMEWORK_SIDEBARS.find(({ prefix }) => Astro.url.pathname.includes(prefix));
+const frameworkSidebar = matchedFramework ? (findGroup(sidebar, matchedFramework.groupLabel) ?? sidebar) : sidebar;
+
+// Step 2: within that already-framework-isolated tree, narrow further
+// to the specific Guide/Components/API/Examples sub-section if the
+// route matches one — a single link like Features has no subtree of
+// its own to isolate, so there's nothing meaningful to narrow down to,
+// and routes with no sub-groups at all (React, Angular today) simply
+// keep whatever Step 1 already produced.
+const matchedSection = SECTION_SIDEBARS.find(({ prefix }) => Astro.url.pathname.includes(prefix));
+const displayedSidebar = matchedSection ? (findGroup(frameworkSidebar, matchedSection.groupLabel) ?? frameworkSidebar) : frameworkSidebar;
+---
+
+<SidebarPersister {...Astro.props}>
+	<SidebarSublist sublist={displayedSidebar} />
+</SidebarPersister>
+
+<div class="md:sl-hidden">
+	<MobileMenuFooter {...Astro.props} />
+</div>

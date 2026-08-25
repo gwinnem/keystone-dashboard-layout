@@ -1,0 +1,43 @@
+---
+title: EGridLayoutEvent
+description: Every event GridLayout emits, as an enum.
+---
+
+Re-exported from the package's main entry point as a real (value)
+export, so you can both type an event handler's parameter and compare
+against these at runtime.
+
+```ts
+enum EGridLayoutEvent {
+  BREAKPOINT_CHANGED = 'breakpoint-changed',
+  CHANGED_DIRECTION = 'changed-direction',
+  COLUMNS_CHANGED = 'columns-changed',
+  CONTAINER_RESIZED = 'container-resized',
+  DRAG_END = 'dragend',
+  DRAG_MOVE = 'dragmove',
+  DRAG_START = 'dragstart',
+  CROSS_GRID_DROP_REJECTED = 'cross-grid-drop-rejected',
+  CROSS_GRID_ITEM_DROPPED = 'cross-grid-item-dropped',
+  ITEM_DROPPED_FROM_OUTSIDE = 'item-dropped-from-outside',
+  LAYOUT_READY = 'layout-ready',
+  LAYOUT_UPDATE = 'update:layout',
+  LAYOUT_UPDATED = 'layout-updated',
+  MOVE_BLOCKED_BY_COLLISION = 'move-blocked-by-collision',
+  SELECTION_CHANGED = 'selection-changed',
+}
+```
+
+See [GridLayout events](/vue/components/grid-layout/vue-events/) for the
+full payload/timing reference for each.
+
+:::caution[Declared but not currently emitted]
+`CHANGED_DIRECTION` and `CONTAINER_RESIZED` exist on the enum for
+backwards compatibility but aren't wired up anywhere in `GridLayout` —
+don't rely on either firing. (`GridItem` has its own, functioning
+`CONTAINER_RESIZED` event — see [`EGridItemEvent`](/vue/api/enums/grid-item-events/)
+— this is a separate, unused one on the layout itself.)
+:::
+
+`LAYOUT_UPDATE`'s value (`'update:layout'`) is Vue's own `v-model`
+naming convention — it's what makes `<GridLayout v-model:layout="layout">`
+work without you needing to listen for it directly.

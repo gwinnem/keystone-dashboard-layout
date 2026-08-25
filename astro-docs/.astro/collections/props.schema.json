@@ -1,0 +1,46 @@
+{
+  "$ref": "#/definitions/props",
+  "definitions": {
+    "props": {
+      "type": "object",
+      "properties": {
+        "component": {
+          "type": "string",
+          "enum": [
+            "GridLayout",
+            "GridItem"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "default": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "relatedExampleSlugs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "component",
+        "name",
+        "type",
+        "description"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -1,0 +1,30 @@
+---
+title: EGridItemEvent
+description: Every event GridItem emits, as an enum.
+---
+
+Re-exported from the package's main entry point as a real (value)
+export, so you can both type an event handler's parameter and compare
+against these at runtime, e.g. `if (eventName === EGridItemEvent.RESIZED) { ... }`.
+
+```ts
+enum EGridItemEvent {
+  CONTAINER_RESIZED = 'container-resized',
+  DRAG = 'drag',
+  DRAGGED = 'dragged',
+  MOVE = 'item-move',
+  MOVED = 'item-moved',
+  REMOVE_ITEM = 'remove-grid-item',
+  RESIZE = 'resize',
+  RESIZED = 'resized',
+  ITEM_CLICKED = 'item-clicked',
+}
+```
+
+See [GridItem events](/vue/components/grid-item/vue-events/) for the
+full payload/timing reference for each.
+
+:::caution[Declared but not currently emitted]
+`DRAG` and `DRAGGED` exist on the enum for backwards compatibility, but
+`GridItem` emits `MOVE`/`MOVED` instead — don't rely on either firing.
+:::

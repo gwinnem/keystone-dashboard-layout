@@ -1,0 +1,17 @@
+---
+title: Configurable transition duration & easing
+description: transitionDurationMs and transitionTimingFunction control the CSS transition applied to position/size changes.
+---
+import TransitionDurationEasing from '../../../../components/examples/24-transition-duration-easing.vue';
+import TransitionDurationEasingSource from '../../../../components/examples/24-transition-duration-easing.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={TransitionDurationEasingSource} filename="transition-duration-easing.vue">
+  <TransitionDurationEasing client:visible />
+</ExampleTryIt>
+
+Applies to item position/size changes and the container's own
+`autoSize`-driven height changes — both default to `200`ms / `'ease'`.
+Set `transitionDurationMs` to `0` to disable transitions entirely
+(useful while dragging live data-driven layouts where every frame's
+position should snap immediately, not animate).

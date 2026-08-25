@@ -1,0 +1,68 @@
+---
+title: Exposed instance state
+description: Types for values reachable through a GridLayout/GridItem instance ref via defineExpose.
+---
+
+These type the values a `ref<InstanceType<typeof GridLayout>>()` (or
+`GridItem`) can read directly, or the scoped props of the
+[`#placeholder`](/vue/components/grid-layout/slots/) slot — most
+consumers never need to import these explicitly, since accessing them
+through a template ref is already correctly typed without it.
+
+```ts
+interface IPlaceholder {
+  h: number;
+  i: number | string;
+  x: number;
+  y: number;
+  w: number;
+}
+```
+
+Grid-unit position/size of `GridLayout`'s internal drag placeholder —
+the hidden `GridItem` shown while a drag or resize is in progress.
+Reachable as `gridRef.value.placeholder`, and as the `placeholder`
+scoped prop on the `#placeholder` slot.
+
+```ts
+interface IAlignmentGuide {
+  axis: 'x' | 'y';
+  position: number;
+}
+```
+
+One entry in `gridRef.value.alignmentGuides` — populated during a
+drag/resize when `showAlignmentGuides` is on. `axis: 'x'` is a vertical
+guide line (a left/right edge alignment) at grid-column `position`;
+`axis: 'y'` is horizontal (a top/bottom alignment) at grid-row
+`position`.
+
+```ts
+interface ISpacingIndicator {
+  axis: 'x' | 'y';
+  gapStart: number;
+  gapEnd: number;
+  distance: number;
+}
+```
+
+One entry in `gridRef.value.spacingIndicators` — the nearest-neighbor
+gap on one side of the active item, labeled with `distance`
+(`gapEnd - gapStart`), when `showSpacingGuides` is on.
+
+```ts
+interface IGridItemPosition {
+  left?: number;
+  right?: number;
+  top: number;
+  width: number;
+  height: number;
+}
+```
+
+Live pixel position/size for a `GridItem` during an active drag
+(`left`/`top`, or `right`/`top` when rendering RTL) or resize
+(`width`/`height`).
+
+See [Alignment guides while dragging](/vue/examples/alignment-guides/)
+for a working example using `showAlignmentGuides`.

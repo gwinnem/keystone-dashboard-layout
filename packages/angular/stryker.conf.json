@@ -1,0 +1,29 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/api/schema/stryker-schema.json",
+  "_comment": "Mirrors packages/vue/stryker.conf.json's own structure/conventions exactly (reporters, coverageAnalysis, timeoutMS, packageManager, htmlReporter output path) — the only real differences are testRunner (jest here, matching this package's own Jest + jest-preset-angular unit-test setup, not Vitest) and the mutate globs (this package's own src/lib/*.ts, not Vue's src/core/composables/hooks layout). See jest.config.ts's own doc comment for why this package uses Jest instead of Vitest at all.",
+  "_comment_plugins": "Explicit, not Stryker's own default '@stryker-mutator/*' glob — a real, confirmed bug under this monorepo's pnpm workspace structure, not a stylistic preference: that glob resolves relative to wherever @stryker-mutator/core itself is physically installed, then looks for sibling '@stryker-mutator/*' packages inside *its own* node_modules. Under pnpm's strict, non-hoisting structure, that folder only ever contains core's own direct dependencies (confirmed via a real debug trace: '@stryker-mutator/instrumenter' loaded fine this way, since it *is* one) — never a sibling devDependency of *this* package, like jest-runner, which lives in a completely separate, isolated part of the pnpm store the glob has no way to see. Naming the plugin explicitly instead makes Stryker resolve it via normal Node module resolution (walking up from this config file's own directory), which correctly finds it.",
+  "packageManager": "npm",
+  "plugins": ["@stryker-mutator/jest-runner"],
+  "testRunner": "jest",
+  "jest": {
+    "configFile": "jest.config.ts"
+  },
+  "reporters": ["clear-text", "progress", "html"],
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  },
+  "coverageAnalysis": "perTest",
+  "timeoutMS": 15000,
+  "mutate": [
+    "src/lib/**/*.ts",
+    "!src/lib/**/*.spec.ts",
+    "!src/**/*.d.ts"
+  ],
+  "ignorePatterns": [
+    ".angular",
+    "coverage",
+    "dist",
+    "docs",
+    "out-tsc"
+  ]
+}

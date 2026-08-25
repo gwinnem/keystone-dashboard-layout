@@ -1,0 +1,28 @@
+---
+title: outsideDropAccept & readOutsideDropPayload
+description: Reject incompatible native drags before the placeholder appears, and read a richer, typed payload than the raw DataTransfer.
+---
+import OutsideDropAcceptPayload from '../../../../components/examples/34-outside-drop-accept-payload.vue';
+import OutsideDropAcceptPayloadSource from '../../../../components/examples/34-outside-drop-accept-payload.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={OutsideDropAcceptPayloadSource} filename="outside-drop-accept-payload.vue">
+  <OutsideDropAcceptPayload client:visible />
+</ExampleTryIt>
+
+`readOutsideDropPayload<T>(dataTransfer, mimeType?)` reads and
+JSON-parses a `DataTransfer` payload by MIME type — never throws;
+a missing MIME type or malformed JSON both return `null` rather than
+propagating a `SyntaxError`. `mimeType` defaults to `'text/plain'`,
+matching `dataTransfer.setData`'s own default.
+
+:::caution[A real gotcha with native drag-and-drop]
+`dataTransfer.getData()` only returns real values during the `drop`
+event itself — not `dragenter`/`dragover`. `outsideDropAccept`'s own
+`dataTransfer` argument is available at the right point for this to
+work; reading it earlier in a custom handler elsewhere wouldn't.
+:::
+
+See [Drag, drop from outside](/vue/examples/outside-drag-drop/) for
+`allowOutsideDrop` itself, and [API → Overview](/vue/api/) for where
+`readOutsideDropPayload` is exported from.

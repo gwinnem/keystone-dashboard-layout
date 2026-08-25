@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KeystoneGrid — mockup: Vue docs home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14171A;
+    --ink-2:#1D2126;
+    --ink-3:#262B31;
+    --paper:#F1F0EB;
+    --paper-2:#FFFFFF;
+    --paper-3:#E7E6DF;
+    --blueprint:#4FB8C9;
+    --blueprint-deep:#2E7A88;
+    --amber:#F2A93B;
+    --amber-deep:#9C6208;
+    --line-dark:rgba(255,255,255,0.10);
+    --line-light:rgba(20,23,26,0.12);
+    --text-hi-dark:#F5F4EF;
+    --text-lo-dark:#9CA6AA;
+    --text-hi-light:#14171A;
+    --text-lo-light:#5B6266;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'IBM Plex Sans',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:var(--font-body);
+    background:var(--paper);
+    color:var(--text-hi-light);
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none;}
+
+  /* ---------- utility bar ---------- */
+  .utilbar{
+    background:var(--ink);
+    border-bottom:1px solid var(--line-dark);
+    padding:12px 28px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .utilbar-left{display:flex;align-items:center;gap:18px;}
+  .brand{display:flex;align-items:center;gap:9px;}
+  .brand-mark{width:19px;height:19px;flex-shrink:0;}
+  .brand-name{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--text-hi-dark);}
+  .fw-switch{
+    display:flex;align-items:center;gap:7px;
+    font-family:var(--font-mono);font-size:12.5px;color:var(--text-hi-dark);
+    background:var(--ink-2);border:1px solid var(--line-dark);
+    padding:6px 11px;border-radius:7px;
+  }
+  .fw-switch .dot{width:6px;height:6px;border-radius:50%;background:var(--blueprint);}
+  .fw-switch svg{width:11px;height:11px;opacity:0.6;}
+  .utilbar-right{display:flex;align-items:center;gap:16px;}
+  .search{
+    display:flex;align-items:center;gap:8px;
+    background:var(--ink-2);border:1px solid var(--line-dark);
+    border-radius:7px;padding:7px 12px;width:220px;
+  }
+  .search svg{width:14px;height:14px;color:var(--text-lo-dark);flex-shrink:0;}
+  .search span{font-size:12.5px;color:var(--text-lo-dark);font-family:var(--font-mono);}
+  .kbd{
+    margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--text-lo-dark);
+    border:1px solid var(--line-dark);border-radius:4px;padding:1px 5px;
+  }
+  .gh-link{width:18px;height:18px;color:var(--text-lo-dark);}
+
+  /* ---------- shell ---------- */
+  .shell{display:grid;grid-template-columns:252px 1fr;max-width:1180px;margin:0 auto;}
+
+  /* ---------- sidebar ---------- */
+  .sidebar{
+    border-right:1px solid var(--line-light);
+    padding:28px 22px;
+  }
+  .side-group{margin-bottom:22px;}
+  .side-label{
+    font-family:var(--font-mono);font-size:11px;letter-spacing:0.05em;
+    color:var(--text-lo-light);text-transform:uppercase;margin-bottom:8px;display:block;
+  }
+  .side-link{
+    display:block;font-size:13.5px;color:var(--text-hi-light);
+    padding:6px 8px;border-radius:6px;margin-bottom:1px;
+  }
+  .side-link:hover{background:var(--paper-3);}
+  .side-link.is-parent{font-weight:500;display:flex;align-items:center;justify-content:space-between;}
+  .side-sub{padding-left:14px;border-left:1px solid var(--line-light);margin-left:8px;}
+  .side-sub .side-link{font-size:13px;color:var(--text-lo-light);padding:5px 8px;}
+
+  /* ---------- main ---------- */
+  .main{padding:40px 40px 80px;}
+  .crumb{
+    font-family:var(--font-mono);font-size:11.5px;color:var(--text-lo-light);
+    margin-bottom:14px;display:flex;align-items:center;gap:6px;
+  }
+  h1.page-title{
+    font-family:var(--font-display);font-weight:600;font-size:36px;
+    letter-spacing:-0.015em;margin-bottom:10px;
+  }
+  .page-tagline{font-size:16px;color:var(--text-lo-light);max-width:560px;line-height:1.6;margin-bottom:26px;}
+
+  .install{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--ink);border-radius:9px;padding:13px 18px;margin-bottom:44px;max-width:460px;
+  }
+  .install code{font-family:var(--font-mono);font-size:13px;color:var(--text-hi-dark);}
+  .install code .dim{color:var(--text-lo-dark);}
+  .copy-icon{width:14px;height:14px;color:var(--text-lo-dark);flex-shrink:0;}
+
+  .quick-head{font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.05em;color:var(--blueprint-deep);margin-bottom:14px;display:block;}
+  .quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:52px;}
+  .quick-card{
+    border:1px solid var(--line-light);border-radius:11px;padding:20px;
+    display:flex;flex-direction:column;gap:10px;background:var(--paper-2);
+    transition:border-color .15s ease;
+  }
+  .quick-card:hover{border-color:var(--blueprint-deep);}
+  .qc-icon{
+    width:32px;height:32px;border-radius:8px;background:rgba(79,184,201,0.12);
+    display:flex;align-items:center;justify-content:center;color:var(--blueprint-deep);
+  }
+  .qc-icon svg{width:16px;height:16px;}
+  .qc-title{font-family:var(--font-display);font-weight:600;font-size:15px;}
+  .qc-desc{font-size:12.8px;line-height:1.5;color:var(--text-lo-light);}
+  .qc-count{font-family:var(--font-mono);font-size:11px;color:var(--amber-deep);margin-top:auto;}
+
+  /* ---------- live example frame ---------- */
+  .example-frame{
+    border:1px solid var(--line-light);border-radius:12px;overflow:hidden;margin-bottom:20px;
+  }
+  .ef-toolbar{
+    background:var(--paper-3);padding:9px 16px;
+    display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid var(--line-light);
+  }
+  .ef-name{font-family:var(--font-mono);font-size:12px;color:var(--text-lo-light);}
+  .ef-tabs{display:flex;gap:4px;}
+  .ef-tab{
+    font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:6px;
+    color:var(--text-lo-light);
+  }
+  .ef-tab.is-active{background:var(--paper-2);color:var(--text-hi-light);border:1px solid var(--line-light);}
+
+  .ef-stage{
+    position:relative;height:230px;background:var(--paper-2);
+    background-image:linear-gradient(to right, var(--line-light) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--line-light) 1px, transparent 1px);
+    background-size:32px 32px;
+  }
+  .ef-item{
+    position:absolute;border-radius:8px;background:#fff;border:1px solid var(--line-light);
+    display:flex;flex-direction:column;justify-content:space-between;padding:10px 12px;
+    box-shadow:0 1px 2px rgba(20,23,26,0.04);
+  }
+  .ef-item .label{font-family:var(--font-mono);font-size:10.5px;color:var(--text-lo-light);}
+  .ef-item .bars span{display:block;height:4px;border-radius:2px;margin-top:4px;background:var(--paper-3);}
+  .ef-1{top:18px;left:18px;width:132px;height:80px;}
+  .ef-1 .bars span:nth-child(1){width:70%;}
+  .ef-2{top:18px;left:166px;width:100px;height:150px;}
+  .ef-2 .bars span:nth-child(1){width:80%;}
+  .ef-2 .bars span:nth-child(2){width:55%;}
+  .ef-3{top:114px;left:18px;width:132px;height:86px;border:1.5px solid var(--amber);box-shadow:0 8px 18px -6px rgba(20,23,26,0.18);}
+  .ef-3 .label{color:var(--amber-deep);}
+  .ef-3 .bars span{background:rgba(242,169,59,0.22);}
+  .ef-handle{
+    position:absolute;bottom:112px;left:142px;width:8px;height:8px;border-radius:50%;
+    background:var(--amber);border:2px solid #fff;
+  }
+
+  .ef-footer{
+    padding:11px 16px;background:var(--paper-2);border-top:1px solid var(--line-light);
+    font-family:var(--font-mono);font-size:11px;color:var(--text-lo-light);
+    display:flex;align-items:center;gap:8px;
+  }
+  .ef-footer svg{width:12px;height:12px;color:var(--blueprint-deep);}
+
+  @media(max-width:880px){
+    .shell{grid-template-columns:1fr;}
+    .sidebar{display:none;}
+    .quick-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="utilbar">
+    <div class="utilbar-left">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 22 22" fill="none">
+          <rect x="1" y="1" width="9" height="9" rx="2" fill="#4FB8C9"/>
+          <rect x="12" y="1" width="9" height="6" rx="2" fill="#F5F4EF" fill-opacity="0.9"/>
+          <rect x="12" y="9" width="9" height="12" rx="2" fill="#F5F4EF" fill-opacity="0.5"/>
+          <rect x="1" y="12" width="9" height="9" rx="2" fill="#F2A93B"/>
+        </svg>
+        <span class="brand-name">KeystoneGrid</span>
+      </div>
+      <div class="fw-switch">
+        <span class="dot"></span> Vue
+        <svg viewBox="0 0 12 12" fill="none"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="utilbar-right">
+      <div class="search">
+        <svg viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.3" stroke="currentColor" stroke-width="1.3"/><path d="M12.5 12.5L9.5 9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <span>Search docs…</span>
+        <span class="kbd">⌘K</span>
+      </div>
+      <svg class="gh-link" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.79-.25.79-.55v-2.14c-3.2.7-3.87-1.36-3.87-1.36-.53-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.2 1.18a11 11 0 0 1 5.82 0c2.22-1.49 3.19-1.18 3.19-1.18.63 1.59.23 2.77.12 3.06.74.8 1.18 1.83 1.18 3.09 0 4.43-2.69 5.41-5.26 5.69.42.36.78 1.07.78 2.15v3.19c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+    </div>
+  </div>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="side-group">
+        <span class="side-label">Guide</span>
+        <a class="side-link" href="#">Introduction</a>
+        <a class="side-link" href="#">Installation</a>
+        <a class="side-link" href="#">Project</a>
+        <a class="side-link" href="#">Changelog</a>
+        <a class="side-link" href="#">Test coverage</a>
+      </div>
+      <div class="side-group">
+        <span class="side-label">Features</span>
+        <a class="side-link" href="#">Overview</a>
+      </div>
+      <div class="side-group">
+        <span class="side-label">Components</span>
+        <a class="side-link" href="#">Overview</a>
+        <a class="side-link is-parent" href="#">GridLayout
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <div class="side-sub">
+          <a class="side-link" href="#">Props</a>
+          <a class="side-link" href="#">Vue events</a>
+          <a class="side-link" href="#">Eventbus events</a>
+          <a class="side-link" href="#">Slots</a>
+        </div>
+        <a class="side-link" href="#">GridItem</a>
+        <a class="side-link" href="#">Styling</a>
+      </div>
+      <div class="side-group">
+        <span class="side-label">API</span>
+        <a class="side-link" href="#">Overview</a>
+      </div>
+      <div class="side-group">
+        <span class="side-label">Examples</span>
+        <a class="side-link" href="#">Gallery (45)</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="crumb">KEYSTONEGRID <span style="opacity:.5;">/</span> VUE</div>
+      <h1 class="page-title">Vue</h1>
+      <p class="page-tagline">A draggable, resizable dashboard grid built on the Composition API — drag, resize, multi-select, and breakpoint-aware layouts, zero runtime dependencies.</p>
+
+      <div class="install">
+        <code><span class="dim">$</span> npm i @keystone-dashboard-layout/vue</code>
+        <svg class="copy-icon" viewBox="0 0 14 14" fill="none"><rect x="4.5" y="4.5" width="8" height="8" rx="1.3" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 9.5v-7A1 1 0 0 1 2.5 1.5h7" stroke="currentColor" stroke-width="1.2"/></svg>
+      </div>
+
+      <span class="quick-head">JUMP IN</span>
+      <div class="quick-grid">
+        <a class="quick-card" href="#">
+          <div class="qc-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M2 13l4-10 2 6 2-6 4 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="qc-title">Guide</div>
+          <p class="qc-desc">Install the package and render your first grid in under five minutes.</p>
+          <span class="qc-count">5 pages</span>
+        </a>
+        <a class="quick-card" href="#">
+          <div class="qc-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg></div>
+          <div class="qc-title">Features</div>
+          <p class="qc-desc">Everything the grid does, grouped by category, linked to a live example.</p>
+          <span class="qc-count">9 categories</span>
+        </a>
+        <a class="quick-card" href="#">
+          <div class="qc-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1l6.5 3.75v6.5L8 15l-6.5-3.75v-6.5L8 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></div>
+          <div class="qc-title">Components</div>
+          <p class="qc-desc">GridLayout and GridItem — every prop, event, and slot.</p>
+          <span class="qc-count">2 components</span>
+        </a>
+        <a class="quick-card" href="#">
+          <div class="qc-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M5 3L2 8l3 5M11 3l3 5-3 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="qc-title">API reference</div>
+          <p class="qc-desc">Interfaces, types, and enums exported from the package root.</p>
+          <span class="qc-count">5 entries</span>
+        </a>
+        <a class="quick-card" href="#">
+          <div class="qc-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M4 2l9 6-9 6V2z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></div>
+          <div class="qc-title">Examples</div>
+          <p class="qc-desc">45 interactive, live-running examples — try before you copy.</p>
+          <span class="qc-count">45 examples</span>
+        </a>
+        <a class="quick-card" href="#">
+          <div class="qc-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2v12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+          <div class="qc-title">Core engine</div>
+          <p class="qc-desc">Collision, compaction, and movement math with zero Vue dependency.</p>
+          <span class="qc-count">standalone</span>
+        </a>
+      </div>
+
+      <span class="quick-head">TRY IT</span>
+      <div class="example-frame">
+        <div class="ef-toolbar">
+          <span class="ef-name">bounded-drag.vue</span>
+          <div class="ef-tabs">
+            <span class="ef-tab is-active">Preview</span>
+            <span class="ef-tab">Source</span>
+          </div>
+        </div>
+        <div class="ef-stage">
+          <div class="ef-item ef-1"><span class="label">panel a</span><div class="bars"><span></span></div></div>
+          <div class="ef-item ef-2"><span class="label">panel b</span><div class="bars"><span></span><span></span></div></div>
+          <div class="ef-item ef-3"><span class="label">panel c</span><div class="bars"><span></span></div></div>
+          <div class="ef-handle"></div>
+        </div>
+        <div class="ef-footer">
+          <svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v3l2 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Live, hydrated component — not a screenshot. Drag a panel to try it.
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+</body>
+</html>

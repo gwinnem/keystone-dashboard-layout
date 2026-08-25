@@ -1,0 +1,22 @@
+---
+title: Drag, drop from outside into multiple grids
+description: Each grid independently decides whether to accept a native drag released over it.
+---
+import OutsideDragDropMultipleGrids from '../../../../components/examples/23-outside-drag-drop-multiple-grids.vue';
+import OutsideDragDropMultipleGridsSource from '../../../../components/examples/23-outside-drag-drop-multiple-grids.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={OutsideDragDropMultipleGridsSource} filename="outside-drag-drop-multiple-grids.vue">
+  <OutsideDragDropMultipleGrids client:visible />
+</ExampleTryIt>
+
+No coordination is needed between the two grids — each independently
+listens for a drop over its own root element and fires its own
+`item-dropped-from-outside` only if the release actually happened over
+it. Releasing between them, or over neither, drops nothing on either
+side.
+
+See [Drag, drop from outside](/vue/examples/outside-drag-drop/) for the
+single-grid version, and
+[outsideDropAccept & readOutsideDropPayload](/vue/examples/outside-drop-accept-payload/)
+for filtering which drags a specific grid accepts.

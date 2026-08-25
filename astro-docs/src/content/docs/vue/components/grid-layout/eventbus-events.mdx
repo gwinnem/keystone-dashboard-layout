@@ -1,0 +1,59 @@
+---
+title: GridLayout Eventbus events
+description: The internal event bus GridLayout and GridItem use to talk to each other.
+---
+
+`GridLayout` and every `GridItem` communicate through a shared,
+named-event bus — `GridLayout` creates it (via an in-house
+`createEventEmitter()` helper, not a third-party library) and provides
+it; every `GridItem` injects it. This is internal plumbing, not part of
+the public component API, but understanding it helps when debugging why
+a prop change on `GridLayout` did or didn't reach an item.
+
+:::tip[Most consumers never need this page]
+Everything here happens automatically based on the props/events already
+documented for [GridLayout](/vue/components/grid-layout/props/) and
+[GridItem](/vue/components/grid-item/props/). This page exists for anyone
+digging into the library's internals or filing a detailed bug report.
+:::
+
+## GridLayout → GridItem
+
+Pushed down whenever the corresponding `GridLayout` prop changes, so
+every item can react without `GridLayout` needing to re-render each one
+individually.
+
+| Message | Payload | Purpose |
+|---|---|---|
+| `changeDirection` | `boolean` (isMirrored) | RTL toggle. |
+| `compact` | — | "Recompute your style, something upstream changed." |
+| `setBounded` | `boolean` | Cascades `isBounded` — only applied by items whose own `isBounded` prop is `null`. |
+| `setBorderRadiusPx` | `number` | Cascades `borderRadiusPx` — only applied when the item's own prop is `null`. |
+| `setColNum` | `number` | Cascades the resolved column count. |
+| `setDraggable` | `boolean` | Cascades `isDraggable` — only applied when the item's own prop is `null`. |
+| `setEnableEditMode` | `boolean` | Cascades `enableEditMode` — only applied when the item's own prop is `null`. |
+| `setMargin` | `number[]` | Cascades `[horizontal, vertical]` margin. |
+| `setMaxRows` | `number` | Cascades `maxRows`. |
+| `setResizable` | `boolean` | Cascades `isResizable` — only applied when the item's own prop is `null`. |
+| `setResizeHandles` | `TResizeHandle[]` | Cascades the default resize-hint span set — only applied when the item's own `resizeHandles` prop is `null`. |
+| `setRowHeight` | `number` | Cascades `rowHeight`. |
+| `setShowCloseButton` | `boolean` | Cascades `showCloseButton` — only applied by items whose own prop is `null`. |
+| `setTransformScale` | `number` | Cascades `transformScale`. |
+| `setUseBorderRadius` | `boolean` | Cascades `useBorderRadius` — only applied when the item's own prop is `null`. |
+| `setUseCssTransforms` | `boolean` | Cascades `useCssTransforms` — applied unconditionally to every item (no per-item override exists for this one). |
+| `updateWidth` | `number` | Cascades the container's measured (or min/maxW-adjusted effective) pixel width. |
+
+## GridItem → GridLayout
+
+An item reporting its own drag/resize progress, or a genuine click, up
+to the parent.
+
+| Message | Payload | Purpose |
+|---|---|---|
+| `dragEvent` | `IEventsData` | A drag is starting, in progress, or ending — lets `GridLayout` resolve collisions against every *other* item and update the drag placeholder. |
+| `resizeEvent` | `IEventsData` | Same, for a resize. |
+| `itemClicked` | `IItemClickedData` | A genuine click/tap (drag/resize trailing clicks already suppressed) — backs `GridLayout`'s own `multiSelect` selection handling. |
+
+See [Architecture](/vue/guide/project/architecture/) for the full
+internal picture, including why `$parent` access (not props) is used
+for the initial state a `GridItem` reads at mount.

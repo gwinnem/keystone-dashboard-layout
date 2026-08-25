@@ -1,0 +1,135 @@
+---
+title: Architecture
+description: How GridLayout and GridItem talk to each other, and how the codebase is organized.
+---
+
+The map worth knowing before digging deeper into how the library is
+built — `GridLayout` and `GridItem` carry almost the entire
+implementation, and their relationship isn't obvious from reading either
+file in isolation.
+
+## Two entry points
+
+The main package entry (`GridLayout`, `GridItem`, and everything that
+needs a live component instance or DOM) is one thing; a separate
+`/core` subpath export is the pure grid-layout math those components are
+built on — collision detection, compaction, movement, alignment guides,
+breakpoint resolution, serialization, and validation — with zero Vue
+dependency and no live DOM required. Useful standalone, e.g. for
+validating a layout server-side.
+
+`/core` ships as its own build (`es`/`cjs` only), separate from the main
+library's build (which still needs a UMD output for script-tag/CDN
+consumers, and Vite doesn't support multiple entry points when `umd` is
+one of the output formats).
+
+## Pluggable compaction
+
+Every compaction call (drag end, resize end, mount, breakpoint change,
+`compactNow()`) routes through one internal helper, which checks the
+`compactor` prop first, falling back to whichever of the five built-in
+strategies `compactType` selects. `compactor: null` (the default) means
+"use whichever built-in strategy `compactType` selects" — a purely
+additive override, not a replacement for that prop. All five built-in
+strategies are exported from both the main entry and `/core`, as a
+starting point for writing a custom one. See [Pluggable compaction](/vue/examples/pluggable-compaction/).
+
+## Undo/redo
+
+Opt-in, snapshot-at-committed-change granularity, not per intermediate
+drag-move frame. The pre-mutation layout is captured explicitly at
+`dragstart`/`resizestart` and committed at `dragend`/`resizeend` — after
+the position update and compaction have already run — rather than
+reading a single shared "last known state" implicitly at commit time,
+which would only ever see "nothing's changed yet" if read too early in
+the gesture. See [Undo/redo](/vue/examples/undo-redo/).
+
+## How GridLayout and GridItem talk to each other
+
+A consumer renders `GridItem`s themselves, inside `GridLayout`'s default
+slot — `GridLayout` doesn't create your items for you. It creates
+exactly one extra, hidden `GridItem` internally: the drag placeholder
+shown while dragging or resizing.
+
+Communication runs two ways:
+
+### `$parent`
+
+`GridItem` reads its parent instance directly, which works because it's
+always rendered as a direct child of `GridLayout`'s template. This is a
+**one-time snapshot at mount**, not a live reactive reference — a later
+change to a `GridLayout` prop won't be reflected through this path no
+matter how many times it's read. Anything that needs to reach an
+already-mounted `GridItem` after the fact uses the eventBus below
+instead.
+
+### The eventBus
+
+`GridLayout` provides an event emitter that every `GridItem` injects —
+the direction for `GridLayout` pushing targeted updates down to
+potentially many items at once (rather than re-rendering every item on
+every relevant change), and for items reporting drag/resize activity
+back up. Cascading settings like `isDraggable`/`isResizable`/`isBounded`/
+`showCloseButton` propagate this way — each only applied by an item
+whose own prop is left at its inherit-from-parent default.
+
+## Inside GridItem: composable split
+
+`GridItem`'s own drag, resize, and keyboard-interaction logic each live
+in their own composable rather than one large file — genuinely coupled
+(drag/resize act on the same DOM element via the same native
+pointer-driven engine; keyboard deliberately reuses drag/resize's own
+resolved state and event paths, so the same collision/compaction
+handling already tested against the mouse path applies to keyboard
+input with no separate handling needed on `GridLayout`'s side at all),
+but each still gets its own file, name, and test surface.
+
+## Native drag/resize engine
+
+Both drag and resize wire up a native, Pointer Events-based engine once
+per `GridItem` — no third-party drag/resize library at all. Unlike an
+approach that needs re-invoking on every relevant prop/state change to
+reconfigure, this engine reads its own current options fresh on every
+`pointerdown`, so the wiring only needs to happen once. Each gesture is
+guarded to one pointer at a time per element, so a second concurrent
+pointer (two fingers, an accidental palm touch mid-drag) can't silently
+hijack tracking.
+
+## Cross-grid drag/drop
+
+`allowCrossGridDrag` needs separate `GridLayout` instances — frequently
+with no Vue ancestor/descendant relationship to each other at all — to
+find one another. A plain, module-level registry (not Vue reactive
+state, not provide/inject) is the answer: every participating grid
+registers itself on mount and deregisters on unmount; the only lookup
+either side needs is a scan over whatever's currently registered, fine
+at the scale this feature operates at. See [Drag, drop from grid to grid](/vue/examples/cross-grid-drag-drop/).
+
+## Outside drag/drop
+
+Architecturally the simplest of the three drag-related features, since
+it's the only one that never needs to coordinate with anything else — a
+grid with `allowOutsideDrop` set only cares about drags happening
+directly over its own root element, from a source it has no ongoing
+relationship with before or after the drop. Reuses the same
+placeholder/dragging state a normal in-grid drag already drives, rather
+than a second, parallel preview mechanism. See [Drag, drop from outside](/vue/examples/outside-drag-drop/).
+
+## Responsive breakpoints and alignment guides
+
+The per-breakpoint layout cache, the currently active breakpoint, and
+the function that finds or generates the right layout for the current
+container width all live together, since the coupling there is narrow.
+Alignment guides are simpler still — a pure function (given the active
+item's live position/size and the rest of the layout, returns which
+edges align) called from the existing drag/resize hook points, not a
+separate composable or watcher of its own.
+
+## Testing implications
+
+`GridLayout` and `GridItem` are tested together, mounting a real
+`GridLayout` with real `GridItem` children in its slot — the only way to
+exercise the `$parent`/eventBus contract the way production actually
+uses it. Testing `GridItem` with a hand-rolled fake parent would
+validate a contract that might not match what `GridLayout` actually
+provides. See [Testing philosophy](/vue/guide/project/testing/) for the fuller picture.

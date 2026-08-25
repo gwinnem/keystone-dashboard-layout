@@ -58,23 +58,5 @@
   },
   "engines": {
     "node": "^18.0.0 || ^20.0.0 || >=22.0.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "qs": "6.15.3",
-      "esbuild": "0.25.12",
-      "@commitlint/load": "20.5.3",
-      "@commitlint/types": "20.5.0",
-      "@commitlint/execute-rule": "20.0.0",
-      "@commitlint/resolve-extends": "20.5.3",
-      "@commitlint/config-validator": "20.5.0"
-    },
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "esbuild",
-      "lmdb",
-      "msgpackr-extract",
-      "vue-demi"
-    ]
   }
 }

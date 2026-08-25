@@ -1,0 +1,84 @@
+---
+title: GridLayout Props
+description: Every prop GridLayout accepts, with defaults and links to live examples.
+---
+
+Only `layout` is required — everything else has a default. Most
+boolean/number props here have a matching prop on [`GridItem`](/vue/components/grid-item/props/)
+that can override it per-item; see each prop's note.
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `layout` | `TLayout` (required) | — | The layout array — one entry per `GridItem` rendered in the default slot, matched by `i`. See [Layout types](/vue/api/types/layout/). |
+| `autoSize` | `boolean` | `true` | Deprecated — prefer `heightMode`. Grows/shrinks the container's height to fit the layout's content. Ignored once `heightMode` is set explicitly. |
+| `heightMode` | `'auto' \| 'fixed' \| 'scroll' \| 'fit' \| null` | `null` | How the container's height is determined. `null` defers to `autoSize` (no behavior change for existing consumers). `'auto'`: grows/shrinks to fit content — today's `autoSize: true`. `'fixed'`: no explicit height applied — today's `autoSize: false`. `'scroll'`: same as `'fixed'`, but adds `overflow-y: auto` so tall content scrolls internally. `'fit'`: height locked to `100%` of the parent, with the same `overflow-y: auto` as `'scroll'` — for filling a fixed-size panel and scrolling its own content. |
+| `ariaLabels` | `IGridAriaLabels` | `{}` | Grid-wide overrides for localizable UI/ARIA strings — the close button's visually-hidden label, keyboard move/resize instructions, and the item's `aria-roledescription`. Only the keys actually set here override the built-in English defaults; a specific `GridItem` can further override any of these for just itself via its own `ariaLabels` prop. See [Localizable ARIA strings](/vue/examples/aria-labels/). |
+| `allowCrossGridDrag` | `boolean` | `false` | Lets this grid's items be dragged into any other `GridLayout` that also has this set, and (unless `disableExternalDrop` is set) accept drops from them. **Must be set on both the source and the target grid** — a drop onto a grid that doesn't have this set is indistinguishable from dropping on empty space. See [Drag, drop from grid to grid](/vue/examples/cross-grid-drag-drop/) and [Cross-grid drop restrictions](/vue/examples/cross-grid-drop-restrictions/). |
+| `disableExternalDrop` | `boolean` | `false` | When `true`, this grid never accepts an incoming cross-grid drop — its own items can still be dragged *out* to other grids if `allowCrossGridDrag` is set, but nothing can be dropped *into* it. Has no effect if `allowCrossGridDrag` is `false`. |
+| `layoutId` | `string` | auto-generated | A stable identifier for this grid, used in cross-grid event payloads to say which grid an item came from or was rejected by. Only meaningful with `allowCrossGridDrag`. |
+| `allowOutsideDrop` | `boolean` | `false` | Accepts native HTML5 drag-and-drop from *outside* the grid system entirely — a plain `draggable="true"` element that's neither a `GridItem` nor another `GridLayout`. Distinct from `allowCrossGridDrag`/`disableExternalDrop`, which are both about dragging *between* grids. See [Drag, drop from outside](/vue/examples/outside-drag-drop/) and [into multiple grids](/vue/examples/outside-drag-drop-multiple-grids/). |
+| `outsideDropWidth` | `number` | `2` | Width, in grid columns, of the live placeholder. Ignored when `allowOutsideDrop` is `false`. |
+| `outsideDropHeight` | `number` | `2` | Height, in grid rows, of the live placeholder. Ignored when `allowOutsideDrop` is `false`. |
+| `outsideDropAccept` | `((dataTransfer: DataTransfer \| null) => boolean) \| null` | `null` | A predicate rejecting incompatible native drags before the placeholder appears. `null` accepts everything. See [outsideDropAccept & readOutsideDropPayload](/vue/examples/outside-drop-accept-payload/). |
+| `borderRadiusPx` | `number` | `10` | Border radius, in pixels, applied when `useBorderRadius` is on — cascades to every `GridItem` that doesn't set its own. See [Border radius](/vue/examples/border-radius/). |
+| `breakpoints` | `IBreakpoints` | `{ xxl: 1600, xl: 1400, lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }` | Container-width thresholds per breakpoint, used when `responsive` is enabled. |
+| `colNum` | `number` | `12` | Maximum number of columns — caps whatever `cols`/breakpoint resolution would otherwise produce. |
+| `cols` | `IColumns` | `{ xxl: 12, xl: 12, lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }` | Column count per breakpoint, used when `responsive` is true. |
+| `compactor` | `ICompactor \| null` | `null` | Replaces the built-in compaction algorithm entirely — `null` keeps whichever built-in strategy `compactType` selects. See [Pluggable compaction](/vue/examples/pluggable-compaction/). |
+| `compactType` | `ECompactType` | `ECompactType.VERTICAL` | Selects one of five built-in compaction strategies: `VERTICAL`, `HORIZONTAL`, `NONE`, `VERTICAL_OVERLAP`/`HORIZONTAL_OVERLAP`. See [Pluggable compaction](/vue/examples/pluggable-compaction/). |
+| `distributeEvenly` | `boolean` | `false` | Spread items that would overflow the right edge evenly across available columns, instead of just clamping. See [Layout bounds & rendering options](/vue/examples/layout-bounds-rendering-options/). |
+| `horizontalShift` | `boolean` | `false` | Push colliding items left/right instead of down, during an active drag/resize. See [Horizontal shift](/vue/examples/horizontal-shift/). |
+| `isBounded` | `boolean` | `false` | Default `isBounded` for items that don't set their own. |
+| `isDraggable` | `boolean` | `true` | Default `isDraggable` for items that don't set their own. |
+| `isMirrored` | `boolean` | `false` | Enables RTL layout mirroring. See [Mirrored (RTL)](/vue/examples/mirrored-rtl/). |
+| `isResizable` | `boolean` | `true` | Default `isResizable` for items that don't set their own. |
+| `margin` | `number[]` | `[10, 10]` | `[horizontal, vertical]` spacing between items, in pixels. |
+| `maxRows` | `number` | `Infinity` | Maximum number of rows the layout may grow to. See [Layout bounds & rendering options](/vue/examples/layout-bounds-rendering-options/). |
+| `multiSelect` | `boolean` | `false` | Opt-in multi-select and group move/resize. See [Multi-select & group move/resize](/vue/examples/multi-select-group-move-resize/). |
+| `enableEditMode` | `boolean` | `true` | Grid-wide default for `enableEditMode` on every `GridItem` that doesn't set its own. See [Edit mode toggle](/vue/examples/edit-mode-toggle/). |
+| `enableUndoRedo` | `boolean` | `false` | Opts into `undo()`/`redo()` history, at committed-change granularity. See [Undo/redo](/vue/examples/undo-redo/). |
+| `preventCollision` | `boolean` | `false` | Block a drag/resize that would collide, instead of pushing the other item. See [Prevent collision](/vue/examples/prevent-collision/). |
+| `responsive` | `boolean` | `false` | Enables breakpoint switching. See [Responsive breakpoints](/vue/examples/responsive-breakpoints/). |
+| `responsiveLayouts` | `TResponsiveLayout` | `{}` | Pre-defined layouts per breakpoint, instead of auto-generating one. See [Responsive predefined layouts](/vue/examples/responsive-predefined-layouts/). |
+| `restoreOnDrag` | `boolean` | `false` | While dragging, don't let other items compact past their pre-drag position until the drag ends. |
+| `rowHeight` | `number` | `150` | Height of one grid row, in pixels. |
+| `showCloseButton` | `boolean` | `false` | Default `showCloseButton` for items that don't set their own. See [Show close button](/vue/examples/close-button/). |
+| `showGridLines` | `boolean` | `false` | Renders visible grid line guides behind the items. See [Show grid lines](/vue/examples/grid-lines/). |
+| `showAlignmentGuides` | `boolean` | `false` | Shows Figma-style alignment guide lines while dragging or resizing. See [Alignment guides while dragging](/vue/examples/alignment-guides/). |
+| `showSpacingGuides` | `boolean` | `false` | Shows a labeled distance badge (e.g. "2 cols"/"1 row") in the gap between the active item and its nearest neighbor on each side — an independently toggleable sibling to `showAlignmentGuides`, not a variant of it: that one visualizes edges lining up, this one labels a gap's size. |
+| `showResizeHandles` | `boolean` | `false` | Default `showResizeHandles` for items that don't set their own. See [Configurable resize-hint appearance](/vue/examples/resize-hint-appearance/). |
+| `resizeHandles` | `TResizeHandle[]` | all 8 (`['n','s','e','w','ne','nw','se','sw']`) | Default set of resize-hint spans for items that don't set their own `resizeHandles` — restricts resizing to specific edges/corners grid-wide instead of every item getting all 8. |
+| `resizeHandleColor` | `string` | `'rgb(94 94 94 / 45%)'` | CSS color for the visible resize handle, when `showResizeHandles` is on. |
+| `snapToGrid` | `boolean` | `false` | Magnetic snapping during drag — distinct from `showAlignmentGuides`, which never changes where an item lands. See [Snap to grid](/vue/examples/snap-to-grid/). |
+| `snapThreshold` | `number` | `1` | How close, in grid units, a dragged item's edge needs to be to another item's edge to snap to it. |
+| `transformScale` | `number` | `1` | CSS transform scale factor to compensate for, when this grid renders inside a scaled ancestor. |
+| `transitionDurationMs` | `number` | `200` | Duration, in milliseconds, of the transition applied to item position/size changes and this grid's own auto-height resizing. |
+| `transitionTimingFunction` | `string` | `'ease'` | CSS `transition-timing-function` for the same transitions. |
+| `useBorderRadius` | `boolean` | `false` | Applies `borderRadiusPx` as a border radius — cascades to every `GridItem` that doesn't set its own. |
+| `useCssTransforms` | `boolean` | `true` | Position items via CSS `transform` instead of `top`/`left`. |
+| `undoHistoryLimit` | `number` | `50` | Caps how many snapshots `undo()` can step back through when `enableUndoRedo` is on. See [Undo/redo](/vue/examples/undo-redo/). |
+
+## Breakpoint object shapes
+
+```ts
+interface IBreakpoints {
+  xxl: number; xl: number; lg: number; md: number; sm: number; xs: number; xxs: number;
+}
+
+interface IColumns {
+  xxl: number; xl: number; lg: number; md: number; sm: number; xs: number; xxs: number;
+}
+```
+
+Both are exported from the package if you want to type your own
+breakpoint/column configuration objects.
+
+## v-model
+
+`layout` supports `v-model:layout`, which is exactly sugar for:
+
+```vue
+<GridLayout :layout="layout" @update:layout="(newLayout) => layout = newLayout">
+```
+
+See [v-model & save/load layout](/vue/examples/save-load-layout/) for a full example.
