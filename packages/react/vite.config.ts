@@ -33,17 +33,16 @@ export default defineConfig({
       entryRoot: 'src',
       outDir: 'dist/types',
       // Uses the dedicated build-types config, not the plain
-      // `tsconfig.json` — that plain config's own `rootDir` is
-      // deliberately widened to `.` (this package's own root, covering
-      // both `src/` and `tests/`) to silence an editor/`tsc --noEmit`
-      // diagnostic caused by `tests/setup.ts` being reachable from
-      // `src/components/Grid/__tests__/test-helpers.ts`. Using that
-      // same widened root for the *real* declaration build would
-      // reproduce the exact "emitted .d.ts lands one directory too
-      // deep" bug already found and fixed once in `packages/core`'s
-      // own `vite.config.ts` (see that file's matching comment) — this
-      // dedicated config keeps `rootDir` at `src` specifically for the
-      // real build, unaffected by the editor-only widening.
+      // `tsconfig.json`, purely to exclude test files from the real
+      // declaration build (see that config's own `exclude` list) —
+      // both configs now share the same `rootDir: '..'` (inherited from
+      // `tsconfig.json`, not re-narrowed), matching the Vue package's
+      // own resolution of the identical TS6059 cross-package rootDir
+      // issue. `entryRoot: 'src'` here (a vite-plugin-dts option, not a
+      // TypeScript compiler option) is what actually controls where
+      // emitted `.d.ts` files land, independent of either tsconfig's
+      // own `rootDir` — so the shared, widened `rootDir` doesn't shift
+      // output paths.
       tsconfigPath: './tsconfig.build-types.json',
     }),
   ],
@@ -55,9 +54,33 @@ export default defineConfig({
       formats: ['es', 'umd'],
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      // 'react/jsx-runtime' (and its dev-mode counterpart) must be
+      // externalized explicitly — they're separate import specifiers
+      // from plain 'react', so listing only 'react'/'react-dom' here
+      // left the JSX runtime's own source bundled directly into the
+      // output instead. That inlined copy contains a genuine
+      // `require('react')` call (baked into React's own jsx-runtime
+      // internals), which rolldown/Rollup wraps in a CJS-interop shim
+      // that throws in any pure-ESM environment with no real
+      // `require` available (confirmed directly: Astro's SSR module
+      // runner failed with exactly this error before this fix).
+      external: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
       output: {
-        globals: { react: 'React', 'react-dom': 'ReactDOM' },
+        // Explicit names for all four externals, including the two
+        // JSX-runtime entries added above — without these, Rollup can't
+        // guess a global variable name for a bare `<script>`-tag/UMD
+        // consumer and emits a [MISSING_GLOBAL_NAME] build warning
+        // (confirmed directly, not assumed). These two specifically are
+        // unlikely to ever be reached in practice for a raw-script-tag
+        // consumer (JSX requires a build step regardless of module
+        // format), but naming them keeps the build warning-free rather
+        // than leaving a guessed fallback name in place.
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
+          'react/jsx-runtime': 'ReactJSXRuntime',
+          'react/jsx-dev-runtime': 'ReactJSXDevRuntime',
+        },
       },
     },
   },

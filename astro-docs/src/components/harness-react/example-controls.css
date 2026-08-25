@@ -1,0 +1,92 @@
+/*
+ * Shared styles for the React example harness controls
+ * (ExampleToggle, ExampleNumberField) — a direct visual port of the
+ * Vue harness's own ExampleToggle.vue/ExampleNumberField.vue <style
+ * scoped> blocks. Vue's SFC compiler scopes those automatically;
+ * React has no equivalent mechanism, so this is a plain, imported-once
+ * stylesheet instead. Same --kg-* tokens, same class names, same
+ * markup shape — only the scoping mechanism differs.
+ */
+
+.toggle {
+  align-items: center;
+  color: var(--kg-text-hi-light);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  gap: 8px;
+  user-select: none;
+}
+
+.toggle input {
+  height: 0;
+  opacity: 0;
+  position: absolute;
+  width: 0;
+}
+
+.toggle__track {
+  background: var(--kg-paper-3);
+  border-radius: 999px;
+  flex-shrink: 0;
+  height: 20px;
+  position: relative;
+  transition: background-color 0.15s ease;
+  width: 34px;
+}
+
+.toggle__thumb {
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
+  height: 16px;
+  left: 2px;
+  position: absolute;
+  top: 2px;
+  transition: transform 0.15s ease;
+  width: 16px;
+}
+
+.toggle input:checked + .toggle__track {
+  background: var(--kg-amber);
+}
+
+.toggle input:checked + .toggle__track .toggle__thumb {
+  transform: translateX(14px);
+}
+
+.toggle input:focus-visible + .toggle__track {
+  outline: 2px solid var(--kg-blueprint-deep);
+  outline-offset: 2px;
+}
+
+.toggle__label {
+  white-space: nowrap;
+}
+
+.number-field {
+  align-items: center;
+  color: var(--kg-text-hi-light);
+  display: inline-flex;
+  font-size: 13px;
+  gap: 8px;
+}
+
+.number-field__label {
+  white-space: nowrap;
+}
+
+.number-field__input {
+  background: var(--kg-paper);
+  border: 1px solid var(--kg-line-light);
+  border-radius: 6px;
+  color: var(--kg-text-hi-light);
+  font-size: 13px;
+  padding: 3px 8px;
+  width: 64px;
+}
+
+.number-field__input:focus {
+  outline: 2px solid var(--kg-blueprint-deep);
+  outline-offset: -1px;
+}

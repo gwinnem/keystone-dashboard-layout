@@ -1,0 +1,24 @@
+.demo-input {
+  border: 1px solid var(--kg-line-light);
+  border-radius: 6px;
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  padding: 5px 8px;
+}
+
+.demo-btn {
+  background: var(--kg-blueprint);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.demo-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--kg-line-light);
+  color: var(--kg-text-hi-light);
+}

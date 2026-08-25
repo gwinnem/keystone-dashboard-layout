@@ -1,9 +1,9 @@
 ---
-title: React
-description: KeystoneGrid for React — in progress, reusing the same framework-agnostic core as the Vue package.
+title: Angular
+description: Keystone Dashboard Layout for Angular — in progress, reusing the same framework-agnostic core as the Vue package.
 ---
 
-React support isn't published yet — this page exists so the landing
+Angular support isn't published yet — this page exists so the landing
 page's own framework picker doesn't link to a dead page while that's
 in progress.
 
@@ -11,7 +11,7 @@ in progress.
 
 The positioning, collision, and compaction engine
 (`@keystone-dashboard-layout/core`) is framework-agnostic by design —
-built with zero Vue dependency specifically so a React (and Angular)
+built with zero Vue dependency specifically so an Angular (and React)
 package could reuse it rather than reimplementing the same grid math
 from scratch. See [Framework-agnostic core](/vue/features/#developer-experience)
 on the Vue Features page for what that engine already provides.

@@ -1,0 +1,16 @@
+---
+title: Mirrored (RTL)
+description: isMirrored flips the entire grid for right-to-left locales — anchor edges, resize direction, and drag math all reverse together.
+---
+import MirroredRtl from '../../../../components/examples-react/06-mirrored-rtl.tsx';
+import MirroredRtlSource from '../../../../components/examples-react/06-mirrored-rtl.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={MirroredRtlSource} filename="mirrored-rtl.tsx" lang="tsx">
+  <MirroredRtl client:visible />
+</ExampleTryIt>
+
+A layout item can also opt out individually with its own `isMirrored`
+field (default `true`, meaning it participates), if you want most of a
+layout mirrored but a specific item to stay pinned to its literal `x`
+position.

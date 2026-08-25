@@ -1,0 +1,198 @@
+---
+title: Installation
+description: Add Keystone Dashboard Layout for Angular to your project.
+---
+
+## Add the package
+
+```sh
+npm install @keystone-dashboard-layout/angular
+```
+
+`@angular/common`/`@angular/core` (`^17.0.0 || ^18.0.0 || ^19.0.0`) and
+`rxjs` (`^7.8.0`) are peer dependencies — the package doesn't bundle
+its own copies.
+
+:::caution[No stylesheet is currently published]
+Unlike the Vue and React packages, `@keystone-dashboard-layout/angular`
+doesn't ship a `style.css` (or any CSS at all, checked directly against
+the package's own source) — its own `package.json` has no `exports`
+map or CSS entry point. The components' host bindings apply the exact
+same class names the Vue/React CSS already targets (`kdl-grid-layout`,
+`kdl-grid-item`, `kdl-grid-item--dragging`, `kdl-resize-hint--n`, and so
+on), so importing the React package's own stylesheet as a stand-in
+currently works in practice:
+
+```ts
+import '@keystone-dashboard-layout/react/style.css';
+```
+
+This isn't the intended, permanent path — pulling in an unrelated
+package purely for its CSS is a real gap in the Angular package
+itself, not a documented workaround — but it's the most accurate
+option available today. Confirm this hasn't changed in whichever
+version you've actually installed before relying on it.
+:::
+
+## Use the components
+
+The package has **no default export** — import
+`GridLayoutComponent`/`GridItemComponent` (and anything else you need)
+as named imports. Both are **standalone components** — add them to your
+own component's `imports` array directly, no `NgModule` required.
+`GridLayoutComponent` is fully controlled: pass it `layout` and handle
+changes via `(layoutChange)`, the same way you'd control any other
+Angular form-like input.
+
+```ts
+import { Component } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
+import type { TLayout } from '@keystone-dashboard-layout/core';
+
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [GridLayoutComponent, GridItemComponent],
+  template: `
+    <kdl-grid-layout [layout]="layout" (layoutChange)="layout = $event">
+      @for (item of layout; track item.i) {
+        <kdl-grid-item [i]="item.i" [x]="item.x" [y]="item.y" [w]="item.w" [h]="item.h">
+          Item {{ item.i }}
+        </kdl-grid-item>
+      }
+    </kdl-grid-layout>
+  `,
+})
+export class DashboardComponent {
+  layout: TLayout = [
+    { i: '0', x: 0, y: 0, w: 2, h: 2 },
+    { i: '1', x: 2, y: 0, w: 2, h: 2 },
+  ];
+}
+```
+
+That's the whole setup — see the [Guide's own example](/angular/guide/introduction/#how-it-fits-together)
+for the same shape, or [Components](/angular/components/) for the full
+`@Input()`/`@Output()` reference once that page lands.
+
+## A more complete example: drag, resize, and remove
+
+A slightly larger example showing the props most people reach for
+early — `colNum`/`rowHeight`/`margin` for sizing, `isBounded` to keep
+items inside the container, and a close button:
+
+```ts
+import { Component } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
+import type { TLayout } from '@keystone-dashboard-layout/core';
+
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [GridLayoutComponent, GridItemComponent],
+  template: `
+    <kdl-grid-layout
+      [layout]="layout"
+      (layoutChange)="layout = $event"
+      [colNum]="12"
+      [rowHeight]="60"
+      [margin]="[10, 10]"
+      [isBounded]="true"
+      [showCloseButton]="true"
+    >
+      @for (item of layout; track item.i) {
+        <kdl-grid-item
+          [i]="item.i"
+          [x]="item.x"
+          [y]="item.y"
+          [w]="item.w"
+          [h]="item.h"
+          [isStatic]="!!item.isStatic"
+          (removeItem)="removeItem($event)"
+        >
+          Item {{ item.i }}{{ item.isStatic ? ' (locked)' : '' }}
+        </kdl-grid-item>
+      }
+    </kdl-grid-layout>
+  `,
+})
+export class DashboardComponent {
+  layout: TLayout = [
+    { i: '0', x: 0, y: 0, w: 2, h: 2 },
+    { i: '1', x: 2, y: 0, w: 2, h: 2 },
+    { i: '2', x: 4, y: 0, w: 2, h: 2, isStatic: true },
+  ];
+
+  removeItem(id: string | number): void {
+    this.layout = this.layout.filter((item) => item.i !== id);
+  }
+}
+```
+
+`isStatic: true` on item `2` locks it in place — it won't drag, resize,
+or show a close button, regardless of the grid-wide defaults above it.
+
+## TypeScript
+
+Every component, directive, and service is exported from the same
+entry point — there's nothing extra to install or configure for full
+type support:
+
+```ts
+import {
+  GridLayoutComponent,
+  GridItemComponent,
+  GridItemHeaderDirective,
+  GridLayoutStorageService,
+  GridLayoutPresetsService,
+} from '@keystone-dashboard-layout/angular';
+```
+
+Layout-level types (`TLayout`, `ILayoutItem`, and so on) come from the
+shared `@keystone-dashboard-layout/core` package instead — see
+[API](/angular/api/) once that page lands for the complete list.
+
+## Requirements
+
+| | |
+|---|---|
+| `@angular/core`/`@angular/common` | `^17.0.0 \|\| ^18.0.0 \|\| ^19.0.0` (peer dependency) |
+| `rxjs` | `^7.8.0` (peer dependency) |
+| Node (for building your app) | `^18.0.0 \|\| ^20.0.0 \|\| >=22.0.0` |
+| Browser support | Any browser with native `ResizeObserver` support — all current evergreen browsers |
+
+## Persisting a layout
+
+`layout` is a plain array you control — persist it however you like.
+The library ships `GridLayoutStorageService` (`providedIn: 'root'`)
+for the common single-layout case (save/load against `localStorage` or
+any `Storage`-compatible backend), and `GridLayoutPresetsService` for
+switching between several named layouts:
+
+```ts
+import { Component, inject } from '@angular/core';
+import { GridLayoutStorageService } from '@keystone-dashboard-layout/angular';
+import type { TLayout } from '@keystone-dashboard-layout/core';
+
+@Component({ /* ... */ })
+export class DashboardComponent {
+  private readonly storage = inject(GridLayoutStorageService);
+  layout: TLayout = [];
+
+  save(): void {
+    this.storage.save('my-dashboard', this.layout);
+  }
+
+  loadSaved(): void {
+    const loaded = this.storage.load('my-dashboard');
+    if (loaded) {
+      this.layout = loaded;
+    }
+  }
+}
+```
+
+Both services take/return a plain `TLayout` value directly rather than
+binding to a reactive value they own — call `save()`/`load()` from
+wherever you already hold your own `layout` state (typically
+`ngOnInit`, or a debounced call from your own `layoutChange` handler).

@@ -1,0 +1,6 @@
+.example-item--pinned {
+  background: var(--kg-amber);
+  border-color: var(--kg-amber-deep);
+  color: #2b1b02;
+  font-weight: 600;
+}

@@ -50,14 +50,19 @@ const FRAMEWORK_SIDEBARS: { prefix: string; groupLabel: string }[] = [
 // only in that the first match wins — none of these prefixes currently
 // overlap, so this is mostly future-proofing. Add an entry here for any
 // new top-level section that should get its own dedicated sidebar the
-// same way. Vue-only today since React/Angular have no sub-groups yet;
-// extend this the same way once either framework has real Guide/
-// Components/API/Examples sections of its own.
+// same way. React's own Components/API entries were added once those
+// sections had more than one page each — before that, Step 1's own
+// framework isolation alone was already enough (a single-page section
+// has no subtree worth narrowing further).
 const SECTION_SIDEBARS: { prefix: string; groupLabel: string }[] = [
 	{ prefix: `/vue/guide`, groupLabel: `Guide` },
 	{ prefix: `/vue/components`, groupLabel: `Components` },
 	{ prefix: `/vue/api`, groupLabel: `API` },
 	{ prefix: `/vue/examples`, groupLabel: `Examples` },
+	{ prefix: `/react/guide`, groupLabel: `Guide` },
+	{ prefix: `/react/components`, groupLabel: `Components` },
+	{ prefix: `/react/api`, groupLabel: `API` },
+	{ prefix: `/react/examples`, groupLabel: `Examples` },
 ];
 
 // Recurses through the sidebar tree looking for a group with the given

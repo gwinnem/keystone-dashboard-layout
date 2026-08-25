@@ -1,0 +1,12 @@
+.demo-select {
+  border: 1px solid var(--kg-line-light);
+  border-radius: 6px;
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.fixed-frame {
+  border: 1px dashed var(--kg-line-light);
+  height: 260px;
+}

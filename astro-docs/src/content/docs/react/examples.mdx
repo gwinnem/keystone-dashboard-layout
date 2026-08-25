@@ -1,0 +1,88 @@
+---
+title: Examples
+description: All 52 live, interactive examples of Keystone Dashboard Layout for React, grouped by category.
+---
+
+Every example below renders the real, published component — not a
+screenshot — via an Astro/React island. All 52 are ported; grouped the
+same way [Features](/react/features/) groups its own categories, so a
+bullet there and an example here always mean the same thing.
+
+## Drag & resize
+
+- **[Basic drag & resize](/react/examples/basic-drag-resize/)** — the simplest possible setup.
+- **[Bounded drag to container](/react/examples/bounded-drag/)** — keep items inside the grid's own edges.
+- **[Drag allow / ignore elements](/react/examples/drag-allow-ignore-elements/)** — restrict dragging to a handle, or exclude specific elements.
+- **[Static items](/react/examples/static-items/)** — lock an item in place as a fixed obstacle.
+- **[Custom drag handle & close button](/react/examples/custom-drag-handle-close-button/)** — any element can be a handle or close button.
+- **[Per-item autoHeight](/react/examples/per-item-auto-height/)** — a live-resyncing height driven by the item's own content.
+- **[Size constraints & aspect ratio](/react/examples/size-constraints-aspect-ratio/)** — clamp resize bounds; lock the width/height ratio.
+- **[autoScroll](/react/examples/auto-scroll/)** — scroll a container automatically near its edge during drag/resize.
+- **[Drag activation distance](/react/examples/drag-activation-distance/)** — minimum pointer movement before a pointerdown becomes a drag.
+- **[Restricting resize handles to specific edges](/react/examples/restrict-resize-handles/)** — resize only from the edges/corners you choose.
+- **[Per-item zIndex override](/react/examples/per-item-z-index/)** — pin one item permanently above every other.
+
+## Layout & collision
+
+- **[Prevent collision](/react/examples/prevent-collision/)** — block a drag/resize instead of pushing other items.
+- **[Add or remove items](/react/examples/add-remove-items/)** — the grid re-compacts automatically, no manual position math.
+- **[Horizontal shift](/react/examples/horizontal-shift/)** — push colliding items left/right instead of down.
+- **[Save/load layout](/react/examples/save-load-layout/)** — `layout` is a plain, JSON-serializable array.
+- **[Auto-size grid on content](/react/examples/auto-size-grid/)** — the container's own height grows/shrinks to fit.
+- **[Alignment guides while dragging](/react/examples/alignment-guides/)** — Figma-style guide lines, purely visual.
+- **[Export layout as SVG](/react/examples/svg-export/)** — a dependency-free standalone SVG snapshot.
+- **[compactNow, rearrange & duplicateItem](/react/examples/compact-now-rearrange-duplicate-item/)** — on-demand tidying and item duplication.
+- **[Blocked-move feedback](/react/examples/blocked-move-feedback/)** — a real callback the moment `preventCollision` blocks a move.
+- **[Snap to grid](/react/examples/snap-to-grid/)** — magnetic snapping that actually adjusts where an item lands.
+- **[Named layout presets](/react/examples/named-presets/)** — save and switch between several named arrangements.
+- **[Layout bounds & rendering options](/react/examples/layout-bounds-rendering-options/)** — `maxRows`, `distributeEvenly`, `useCssTransforms`.
+- **[Pluggable compaction](/react/examples/pluggable-compaction/)** — five built-in strategies, or a genuinely custom `ICompactor`.
+- **[Undo/redo](/react/examples/undo-redo/)** — opt-in history at committed-change granularity.
+- **[Spacing indicators](/react/examples/spacing-indicators/)** — a labeled distance badge in the gap to the nearest neighbor.
+- **[Height modes (heightMode)](/react/examples/height-modes/)** — the modern replacement for `autoSize`, including `'scroll'`/`'fit'` modes.
+
+## Multi-select & group operations
+
+- **[Multi-select & group move/resize](/react/examples/multi-select-group-move-resize/)** — select several items, move one, the rest follow.
+- **[Align & distribute selected items](/react/examples/align-distribute-selected/)** — align a multi-selection to an edge, or evenly space the ones between the outermost two.
+
+## Responsive
+
+- **[Responsive breakpoints](/react/examples/responsive-breakpoints/)** — auto-generate a layout per breakpoint.
+- **[Responsive predefined layouts](/react/examples/responsive-predefined-layouts/)** — full control over what each breakpoint looks like.
+
+## Internationalization
+
+- **[Mirrored (RTL)](/react/examples/mirrored-rtl/)** — flip the entire grid for right-to-left locales.
+
+## Accessibility
+
+- **[scrollToItem & focusItem](/react/examples/scroll-to-item-focus-item/)** — scroll an off-screen item into view, or move keyboard focus to it.
+- **[Localizable ARIA strings](/react/examples/aria-labels/)** — override every user-facing string, not just read the English default.
+
+## Cross-grid & external drag-and-drop
+
+- **[Multiple grids](/react/examples/multiple-grids/)** — independent `GridLayout`s on one page, nothing shared.
+- **[Drag, drop from outside](/react/examples/outside-drag-drop/)** — native HTML5 drag-and-drop into the grid.
+- **[Drag, drop from grid to grid](/react/examples/cross-grid-drag-drop/)** — drag an item between two independent grid instances.
+- **[Cross-grid drop restrictions](/react/examples/cross-grid-drop-restrictions/)** — reject an incoming drop with `disableExternalDrop`.
+- **[Drag, drop from outside into multiple grids](/react/examples/outside-drag-drop-multiple-grids/)** — each grid decides independently whether to accept.
+- **[outsideDropAccept & readOutsideDropPayload](/react/examples/outside-drop-accept-payload/)** — reject incompatible drags; read a richer, typed payload.
+
+## Styling & customization
+
+- **[Show close button](/react/examples/close-button/)** — a built-in per-item close affordance.
+- **[Border radius](/react/examples/border-radius/)** — cascades from `GridLayout` to every item that doesn't set its own.
+- **[Show grid lines](/react/examples/grid-lines/)** — visible guide lines behind the items.
+- **[Edit mode toggle](/react/examples/edit-mode-toggle/)** — a master switch for a view-only dashboard mode.
+- **[Configurable transition duration & easing](/react/examples/transition-duration-easing/)** — the CSS transition applied to position/size changes.
+- **[Custom drag-placeholder content](/react/examples/custom-drag-placeholder/)** — a genuine architectural difference from Vue, explained.
+- **[Configurable resize-hint appearance](/react/examples/resize-hint-appearance/)** — a visible resize handle instead of only a cursor change.
+- **[Grid dimensions](/react/examples/grid-dimensions/)** — `rowHeight`, `colNum`, `margin`, live-reactive.
+- **[Custom header](/react/examples/custom-header-slot/)** — a separate region above an item's own main content.
+
+## Developer experience
+
+- **[Events](/react/examples/events/)** — the callback props available for logging drag and layout changes.
+- **[Layout lifecycle events](/react/examples/layout-lifecycle-events/)** — `onLayoutReady`/`onLayoutChange`, in the order they actually fire.
+- **[Switching layouts & forcing a remount](/react/examples/switching-layouts-remount/)** — a plain `setState` vs. a genuine `key`-forced remount.

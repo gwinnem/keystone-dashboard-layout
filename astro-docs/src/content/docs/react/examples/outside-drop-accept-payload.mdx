@@ -1,0 +1,52 @@
+---
+title: outsideDropAccept & readOutsideDropPayload
+description: Reject incompatible native drags before the placeholder appears, and read a richer, typed payload than the raw DataTransfer.
+---
+import OutsideDropAcceptPayload from '../../../../components/examples-react/34-outside-drop-accept-payload.tsx';
+import OutsideDropAcceptPayloadSource from '../../../../components/examples-react/34-outside-drop-accept-payload.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={OutsideDropAcceptPayloadSource} filename="outside-drop-accept-payload.tsx" lang="tsx">
+  <OutsideDropAcceptPayload client:visible />
+</ExampleTryIt>
+
+`readOutsideDropPayload<T>(dataTransfer, mimeType?)` reads and
+JSON-parses a `DataTransfer` payload by MIME type — never throws; a
+missing MIME type or malformed JSON both return `null` rather than
+propagating a `SyntaxError`. `mimeType` defaults to `'text/plain'`,
+matching `dataTransfer.setData`'s own default. Imported from
+`@keystone-dashboard-layout/core` directly — this package doesn't
+re-export it through its own barrel.
+
+:::note[Why this one starts inside a fixed-height frame]
+`layout` starts empty, and `GridLayout`'s own `autoSize` (default
+`true`) sizes the container to fit its content — with zero items, that
+collapses to almost nothing, leaving no visible area to drop onto at
+all. `heightMode="fit"` inside a `.drop-zone-frame` with a real CSS
+`height` fixes this: the grid fills that frame regardless of how many
+items it currently holds, so there's always a genuine drop target.
+:::
+
+:::caution[A real gotcha with native drag-and-drop]
+`dataTransfer.getData()` only returns real values during the `drop`
+event itself — during `dragenter`/`dragover` (when `outsideDropAccept`
+is actually called) it always returns an empty string, regardless of
+what the source set. This is a genuine, confirmed bug this example
+had at first: `outsideDropAccept` tried to parse the full JSON payload
+to check its `kind` field, which silently rejected every drag — real
+widget or not — since the payload was never readable at that point.
+The browser showed a "not a valid drop target" cursor and the drop
+never fired.
+
+The fix: only `dataTransfer.types` (the list of MIME types present,
+not their values) is reliably readable during `dragenter`/`dragover`.
+This example's drag source now sets a second, value-less MIME type
+(`'application/x-widget'`) only on the real widget, and
+`outsideDropAccept` checks `dataTransfer.types.includes('application/x-widget')`
+instead of trying to read the actual payload. The full JSON payload is
+still read via `readOutsideDropPayload` — just at `drop` time, in
+`onOutsideDrop`, where `.getData()` genuinely works.
+:::
+
+See [Drag, drop from outside](/react/examples/outside-drag-drop/) for
+`allowOutsideDrop` itself.

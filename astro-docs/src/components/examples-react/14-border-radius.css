@@ -1,0 +1,12 @@
+.example-item {
+  align-items: center;
+  background: var(--kg-panel);
+  border: 1px solid var(--kg-line-light);
+  border-radius: inherit;
+  color: var(--kg-text-hi-light);
+  display: flex;
+  font-family: var(--kg-font-mono);
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}

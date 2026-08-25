@@ -1,0 +1,23 @@
+---
+title: Named layout presets
+description: Save and switch between several named arrangements of the same items.
+---
+import NamedPresets from '../../../../components/examples-react/35-named-presets.tsx';
+import NamedPresetsSource from '../../../../components/examples-react/35-named-presets.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={NamedPresetsSource} filename="named-presets.tsx" lang="tsx">
+  <NamedPresets client:visible />
+</ExampleTryIt>
+
+Layers on top of the same `serializeLayout`/`deserializeLayout`
+building blocks [`useLayoutStorage`](/react/api/interfaces/layout-persistence/)
+uses, rather than replacing them — reach for `useLayoutStorage` directly
+for the simpler single-saved-layout case, and `useLayoutPresets` when a
+consumer specifically needs several named arrangements of the same
+items. Unlike the Vue package's own version (which mutates a
+`Ref<TLayout>` directly), `loadPreset` here returns the loaded layout
+for you to apply via your own `setState`, matching this package's own
+"plain values in and out" convention. Every preset for a given `key` is
+stored together as one object under one storage key — one read/write
+per operation, not one per preset.

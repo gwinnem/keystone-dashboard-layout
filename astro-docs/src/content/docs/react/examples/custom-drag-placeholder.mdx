@@ -1,0 +1,25 @@
+---
+title: Custom drag-placeholder content
+description: A genuine architectural difference — React has no separate placeholder concept to customize.
+---
+
+Vue's own version of this example customizes the `#placeholder` named
+slot — a separate, hidden `GridItem` Vue shows at the drop target while
+a drag or resize is in progress, with the real item staying at its own
+last-committed position until the gesture ends.
+
+**This package doesn't have an equivalent to port**, confirmed directly
+from its own source rather than assumed missing: `GridLayout.tsx`'s own
+code comment states plainly that "this package doesn't render a
+separate placeholder `GridItem`, so the live values already in hand are
+the whole picture." Instead, the dragged/resized item *itself* moves
+live to its in-progress position on every tick — there's no second,
+separate element standing in for it, and so nothing to attach custom
+content to.
+
+If you want a visual indicator of where an item will land, reach for
+[`showAlignmentGuides`](/react/components/grid-layout/props/) (edge-alignment
+guide lines) or [`showSpacingGuides`](/react/components/grid-layout/props/)
+(labeled distance badges) instead — both are real, working features on
+this package, just built on a different visual approach than a
+customizable placeholder.

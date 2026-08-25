@@ -1,0 +1,18 @@
+---
+title: Size constraints & aspect ratio
+description: minW/maxW/minH/maxH clamp resize bounds; preserveAspectRatio locks the width/height ratio while resizing.
+---
+import SizeConstraintsAspectRatio from '../../../../components/examples-react/38-size-constraints-aspect-ratio.tsx';
+import SizeConstraintsAspectRatioSource from '../../../../components/examples-react/38-size-constraints-aspect-ratio.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={SizeConstraintsAspectRatioSource} filename="size-constraints-aspect-ratio.tsx" lang="tsx">
+  <SizeConstraintsAspectRatio client:visible />
+</ExampleTryIt>
+
+All four size-constraint fields (set on the layout item, not as
+`GridItem` props) default to `1`/`Infinity` respectively (effectively
+unconstrained) and apply during both mouse/touch resize and keyboard
+resize. `preserveAspectRatio` locks the width/height ratio at whatever
+it was when the resize started — resizing from any handle keeps that
+ratio, not just the corner handles.

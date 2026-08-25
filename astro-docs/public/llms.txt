@@ -1,8 +1,8 @@
-# KeystoneGrid
+# Keystone Dashboard Layout
 
 > A draggable, resizable dashboard grid layout library for Vue, React, and Angular — Vue ships today; React and Angular reuse the same framework-agnostic core. Zero runtime dependencies, TypeScript-first, native Pointer Events (no bundled drag library), 99%+ statement coverage.
 
-KeystoneGrid provides two components — `GridLayout` (the container) and
+Keystone Dashboard Layout provides two components — `GridLayout` (the container) and
 `GridItem` (a single draggable/resizable cell) — for building
 customizable dashboards: drag, resize, responsive breakpoints,
 collision handling, undo/redo, cross-grid drag-and-drop, and more, all
@@ -15,7 +15,7 @@ live, interactive instance of the real published component.
 
 ## Guide
 
-- [Introduction](/vue/guide/introduction/): what KeystoneGrid is, what you get, and where to go next
+- [Introduction](/vue/guide/introduction/): what Keystone Dashboard Layout is, what you get, and where to go next
 - [Installation](/vue/guide/installation/): adding the package, styles, and basic usage
 - [Architecture](/vue/guide/project/architecture/): how GridLayout and GridItem communicate internally
 - [Testing philosophy](/vue/guide/project/testing/): unit/component/e2e layers and what each covers

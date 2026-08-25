@@ -1,0 +1,21 @@
+---
+title: Restricting resize handles to specific edges
+description: resizeHandles restricts which of the 8 edges/corners actually resize — distinct from showResizeHandles's show/hide visibility toggle.
+---
+import RestrictResizeHandles from '../../../../components/examples-react/52-restrict-resize-handles.tsx';
+import RestrictResizeHandlesSource from '../../../../components/examples-react/52-restrict-resize-handles.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={RestrictResizeHandlesSource} filename="restrict-resize-handles.tsx" lang="tsx">
+  <RestrictResizeHandles client:visible />
+</ExampleTryIt>
+
+Distinct from [Configurable resize-hint appearance](/react/examples/resize-hint-appearance/)
+(`showResizeHandles`, an all-or-nothing show/hide toggle for the
+*visible* affordance): this restricts which handles actually
+*activate* at all, grid-wide (`GridLayout`'s own `resizeHandles` prop)
+or per-item (the layout item's own `resizeHandles` field). Default all
+8 (`'n'`/`'s'`/`'e'`/`'w'`/`'ne'`/`'nw'`/`'se'`/`'sw'`). An empty array
+(`[]`) is a deliberate, valid "no handle-driven resize for this item"
+value, distinct from `isResizable: false` — keyboard arrow-key resize
+still works with `[]`; it doesn't with `isResizable: false`.

@@ -1,0 +1,20 @@
+---
+title: Basic drag & resize
+description: The simplest possible setup — a GridLayout bound to a layout array, drag and resize on by default.
+---
+import BasicDragResize from '../../../../components/examples-react/01-basic-drag-resize.tsx';
+import BasicDragResizeSource from '../../../../components/examples-react/01-basic-drag-resize.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+The simplest possible setup: a `GridLayout` bound to a `layout` array
+via `layout`/`onLayoutChange`, and a `GridItem` for each entry.
+
+<ExampleTryIt code={BasicDragResizeSource} filename="basic-drag-resize.tsx" lang="tsx">
+  <BasicDragResize client:visible />
+</ExampleTryIt>
+
+:::tip[Every item is draggable and resizable by default]
+`GridLayout`'s `isDraggable`/`isResizable` props (both default `true`)
+apply to every item unless a specific layout entry overrides them with
+its own `isDraggable`/`isResizable` field. See [Props](/react/components/grid-layout/props/).
+:::

@@ -1,0 +1,25 @@
+.demo-btn {
+  background: var(--kg-blueprint);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.example-item {
+  background: var(--kg-panel);
+  border: 1px solid var(--kg-line-light);
+  border-radius: 8px;
+  color: var(--kg-text-hi-light);
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+.example-item p {
+  margin: 0 0 4px;
+}

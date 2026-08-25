@@ -1,0 +1,35 @@
+---
+title: Angular
+description: A draggable, resizable dashboard grid for Angular, built on the same shared core as the Vue and React packages.
+tableOfContents: false
+---
+
+A draggable, resizable dashboard grid, built as standalone components
+(`layout` `@Input()` + `layoutChange` `@Output()`) on the same shared
+`@keystone-dashboard-layout/core` engine the Vue and React packages
+use — drag, resize, multi-select, undo/redo, and breakpoint-aware
+layouts, zero runtime dependencies beyond Angular itself and RxJS.
+
+```sh
+npm i @keystone-dashboard-layout/angular
+```
+
+## Jump in
+
+- **[Guide](/angular/guide/introduction/)** — what you get, how it fits together, and where to go next.
+
+:::note[Status]
+The `@keystone-dashboard-layout/angular` package itself has reached
+full feature parity with Vue and React — every item in its own prop
+inventory is implemented, with a real, extensive unit/component test
+suite (Jest) and mutation testing (Stryker) configured. Documentation
+is being written incrementally, starting with the Guide; Features,
+Components, API reference, and a full set of live examples follow the
+same phase order the Vue and React docs did. See
+**[Vue documentation](/vue/)** or **[React documentation](/react/)**
+for the complete reference in the meantime — most of the same concepts
+apply, expressed the idiomatic Angular way (standalone components,
+`@Input()`/`@Output()`, a DI-scoped event bus, `providedIn: 'root'`
+services) rather than Vue's `v-model`/composables or React's hooks/
+imperative handle.
+:::

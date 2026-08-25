@@ -1,0 +1,26 @@
+---
+title: Layout lifecycle events
+description: onLayoutReady fires once, after every item's size has stabilized; onLayoutChange fires on every subsequent change.
+---
+import LayoutLifecycleEvents from '../../../../components/examples-react/40-layout-lifecycle-events.tsx';
+import LayoutLifecycleEventsSource from '../../../../components/examples-react/40-layout-lifecycle-events.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={LayoutLifecycleEventsSource} filename="layout-lifecycle-events.tsx" lang="tsx">
+  <LayoutLifecycleEvents client:visible />
+</ExampleTryIt>
+
+`onLayoutReady` is the one worth knowing about specifically: it fires
+exactly once, after the container's width is actually known and every
+item has had a chance to settle its own size — the first point where
+inspecting final positions/sizes is reliable, rather than reading
+values that are still mid-measurement. Unlike Vue's own separate
+`layout-updated` event (which fires on mount and after every
+subsequent mutation), this package reports every change through the
+same `onLayoutChange` callback used everywhere else — there's no
+separate "mount" event to distinguish it from an ordinary update, since
+`onLayoutChange` itself isn't called at all until something actually
+changes.
+
+See [GridLayout props](/react/components/grid-layout/props/) for the
+full callback reference, including `onColumnsChanged`.

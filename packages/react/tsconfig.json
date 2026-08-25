@@ -12,12 +12,17 @@
     // sibling `../core/src` package — a genuine cross-package boundary,
     // the same reason the Vue package's own tsconfig.json widens its
     // own `rootDir` to `".."` too (see that file's matching comment).
-    // Only ever used for `tsc --noEmit` (typecheck) and the editor's own
-    // language server, never for real declaration emission —
-    // `vite.config.ts` points its `dts` plugin at the separate
-    // `tsconfig.build-types.json` instead specifically to keep this
-    // widening from affecting the real build's own output paths (see
-    // that file's matching comment).
+    // `tsconfig.build-types.json` (used by `vite-plugin-dts` for the
+    // real declaration build) inherits this same value rather than
+    // re-narrowing it back to `"src"` — confirmed via a real `pnpm
+    // build` run reproducing a TS6059 cascade when it once did
+    // re-narrow, the identical bug the Vue package's own tsconfig.json
+    // documents finding and fixing the same way. `vite.config.ts`'s own
+    // separate `entryRoot: 'src'` option on the `dts` plugin is what
+    // actually controls the *output* path structure, independent of
+    // this compiler-level `rootDir` (which only affects type-checking
+    // and TS6059 enforcement) — so widening this doesn't shift where
+    // declaration files land.
     "rootDir": "..",
     "types": ["node", "vite/client", "vitest/globals"]
   },

@@ -1,0 +1,18 @@
+---
+title: scrollToItem & focusItem
+description: Scroll a possibly off-screen item into view, or move keyboard focus straight to it.
+---
+import ScrollToItemFocusItem from '../../../../components/examples-react/27-scroll-to-item-focus-item.tsx';
+import ScrollToItemFocusItemSource from '../../../../components/examples-react/27-scroll-to-item-focus-item.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={ScrollToItemFocusItemSource} filename="scroll-to-item-focus-item.tsx" lang="tsx">
+  <ScrollToItemFocusItem client:visible />
+</ExampleTryIt>
+
+Both methods are exposed on the [imperative handle](/react/api/interfaces/imperative-handle/),
+reached through a `ref` — the same pattern as `compactNow()`/
+`rearrange()`/`duplicateItem()`. `scrollToItem` scrolls the item's
+nearest scrollable ancestor; `focusItem` additionally moves keyboard
+focus to it, useful for jumping straight into keyboard move/resize on a
+specific item without tabbing through everything before it.

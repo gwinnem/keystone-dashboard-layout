@@ -1,0 +1,16 @@
+---
+title: Layout bounds & rendering options
+description: maxRows caps growth; distributeEvenly spreads overflow items instead of clamping; useCssTransforms toggles the positioning strategy.
+---
+import LayoutBoundsRenderingOptions from '../../../../components/examples-react/41-layout-bounds-rendering-options.tsx';
+import LayoutBoundsRenderingOptionsSource from '../../../../components/examples-react/41-layout-bounds-rendering-options.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={LayoutBoundsRenderingOptionsSource} filename="layout-bounds-rendering-options.tsx" lang="tsx">
+  <LayoutBoundsRenderingOptions client:visible />
+</ExampleTryIt>
+
+`useCssTransforms` (default `true`) positions items via CSS `transform`
+instead of `top`/`left` — reactive after mount, toggling it live
+re-applies to every already-mounted item, not just ones rendered after
+the change.

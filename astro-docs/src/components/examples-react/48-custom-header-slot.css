@@ -1,0 +1,19 @@
+.item-header {
+  background: var(--kg-blueprint);
+  color: white;
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+}
+
+.item-body {
+  background: var(--kg-panel);
+  color: var(--kg-text-hi-light);
+  font-size: 11px;
+  padding: 8px 12px;
+}
+
+.item-body p {
+  margin: 0 0 6px;
+}

@@ -1,20 +1,25 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import vue from '@astrojs/vue';
+import react from '@astrojs/react';
 
 // Standalone Astro + Starlight site. Not part of the pnpm workspace on
 // purpose (see package.json's own description) — installs/runs
 // independently of the monorepo's turbo pipeline.
 //
-// Only the Vue section has real sidebar entries today. React and
-// Angular get a single placeholder page each until those docs exist —
-// see astro-docs/PLAN.md (section 6, "Phase 6") for the sequencing
-// this was scoped against.
+// Vue, React, and Angular all have real sidebar entries now. Each
+// underlying package (packages/vue, packages/react, packages/angular)
+// was confirmed directly (not assumed) to be a complete, tested,
+// full-parity implementation before its docs began — every phase in
+// each one's own docs/IMPLEMENTATION_PLAN.md is marked done — so each
+// is being built out for real, the same incremental way (Guide first,
+// then Features/Components/API/Examples).
 export default defineConfig({
   integrations: [
     vue(),
+    react(),
     starlight({
-      title: 'KeystoneGrid',
+      title: 'Keystone Dashboard Layout',
       favicon: '/favicon.svg',
       // Site-wide --kg-* design tokens (colors, fonts) used throughout
       // every ported example's own harness/decorative CSS. Without this,
@@ -197,23 +202,135 @@ export default defineConfig({
             },
           ],
         },
-        // React and Angular don't have real docs yet (see PLAN.md,
-        // Phase 6) — each gets a real top-level sidebar group of its
-        // own, matching Vue's structure, so the framework-aware Sidebar
-        // override below has something genuine to isolate to instead of
-        // falling back to Vue's full tree while browsing a different
-        // framework's placeholder page. Deliberately just the one real
-        // page each has today — no invented sub-sections.
+        // React docs, begun for real (packages/react is a complete,
+        // tested, full-parity implementation, confirmed directly —
+        // see astro.config.mjs's own top comment). Built out
+        // incrementally, the same phase order Vue's own docs followed:
+        // Guide first, then Features/Components/API/Examples.
         {
           label: 'React',
           items: [
-            { label: 'Coming soon', slug: 'react' },
+            {
+              label: 'Guide',
+              items: [
+                { label: 'Introduction', slug: 'react/guide/introduction' },
+                { label: 'Installation', slug: 'react/guide/installation' },
+              ],
+            },
+            { label: 'Features', slug: 'react/features' },
+            {
+              label: 'Components',
+              items: [
+                { label: 'Overview', slug: 'react/components' },
+                { label: 'GridLayout props', slug: 'react/components/grid-layout/props' },
+                { label: 'GridItem props', slug: 'react/components/grid-item/props' },
+                { label: 'Styling', slug: 'react/components/styling' },
+              ],
+            },
+            {
+              label: 'API',
+              items: [
+                { label: 'Overview', slug: 'react/api' },
+                { label: 'Imperative handle (IGridLayoutHandle)', slug: 'react/api/interfaces/imperative-handle' },
+                { label: 'Layout persistence', slug: 'react/api/interfaces/layout-persistence' },
+                { label: 'Cross-grid & outside-drop event payloads', slug: 'react/api/interfaces/event-payloads' },
+              ],
+            },
+            {
+              label: 'Examples',
+              items: [
+                { label: 'Gallery', slug: 'react/examples' },
+                { label: '01 — Basic drag & resize', slug: 'react/examples/basic-drag-resize' },
+                { label: '02 — Bounded drag to container', slug: 'react/examples/bounded-drag' },
+                { label: '03 — Events', slug: 'react/examples/events' },
+                { label: '04 — Multiple grids', slug: 'react/examples/multiple-grids' },
+                { label: '05 — Drag allow / ignore elements', slug: 'react/examples/drag-allow-ignore-elements' },
+                { label: '06 — Mirrored (RTL)', slug: 'react/examples/mirrored-rtl' },
+                { label: '07 — Responsive breakpoints', slug: 'react/examples/responsive-breakpoints' },
+                { label: '08 — Prevent collision', slug: 'react/examples/prevent-collision' },
+                { label: '09 — Responsive predefined layouts', slug: 'react/examples/responsive-predefined-layouts' },
+                { label: '10 — Add or remove items', slug: 'react/examples/add-remove-items' },
+                { label: '11 — Drag, drop from outside', slug: 'react/examples/outside-drag-drop' },
+                { label: '12 — Drag, drop from grid to grid', slug: 'react/examples/cross-grid-drag-drop' },
+                { label: '13 — Show close button', slug: 'react/examples/close-button' },
+                { label: '14 — Border radius', slug: 'react/examples/border-radius' },
+                { label: '15 — Horizontal shift', slug: 'react/examples/horizontal-shift' },
+                { label: '16 — Show grid lines', slug: 'react/examples/grid-lines' },
+                { label: '17 — Static items', slug: 'react/examples/static-items' },
+                { label: '18 — Custom drag handle & close button', slug: 'react/examples/custom-drag-handle-close-button' },
+                { label: '19 — Save/load layout', slug: 'react/examples/save-load-layout' },
+                { label: '20 — Auto-size grid on content', slug: 'react/examples/auto-size-grid' },
+                { label: '21 — Edit mode toggle', slug: 'react/examples/edit-mode-toggle' },
+                { label: '22 — Cross-grid drop restrictions', slug: 'react/examples/cross-grid-drop-restrictions' },
+                { label: '23 — Drag, drop from outside into multiple grids', slug: 'react/examples/outside-drag-drop-multiple-grids' },
+                { label: '24 — Configurable transition duration & easing', slug: 'react/examples/transition-duration-easing' },
+                { label: '25 — Custom drag-placeholder content', slug: 'react/examples/custom-drag-placeholder' },
+                { label: '26 — Alignment guides while dragging', slug: 'react/examples/alignment-guides' },
+                { label: '27 — scrollToItem & focusItem', slug: 'react/examples/scroll-to-item-focus-item' },
+                { label: '28 — Export layout as SVG', slug: 'react/examples/svg-export' },
+                { label: '29 — compactNow, rearrange & duplicateItem', slug: 'react/examples/compact-now-rearrange-duplicate-item' },
+                { label: '30 — Blocked-move feedback', slug: 'react/examples/blocked-move-feedback' },
+                { label: '31 — Per-item autoHeight', slug: 'react/examples/per-item-auto-height' },
+                { label: '32 — Snap to grid', slug: 'react/examples/snap-to-grid' },
+                { label: '33 — Configurable resize-hint appearance', slug: 'react/examples/resize-hint-appearance' },
+                { label: '34 — outsideDropAccept & readOutsideDropPayload', slug: 'react/examples/outside-drop-accept-payload' },
+                { label: '35 — Named layout presets', slug: 'react/examples/named-presets' },
+                { label: '36 — Localizable ARIA strings', slug: 'react/examples/aria-labels' },
+                { label: '37 — Multi-select & group move/resize', slug: 'react/examples/multi-select-group-move-resize' },
+                { label: '38 — Size constraints & aspect ratio', slug: 'react/examples/size-constraints-aspect-ratio' },
+                { label: '39 — autoScroll', slug: 'react/examples/auto-scroll' },
+                { label: '40 — Layout lifecycle events', slug: 'react/examples/layout-lifecycle-events' },
+                { label: '41 — Layout bounds & rendering options', slug: 'react/examples/layout-bounds-rendering-options' },
+                { label: '42 — Pluggable compaction', slug: 'react/examples/pluggable-compaction' },
+                { label: '43 — Undo/redo', slug: 'react/examples/undo-redo' },
+                { label: '44 — Grid dimensions', slug: 'react/examples/grid-dimensions' },
+                { label: '45 — Switching layouts & forcing a remount', slug: 'react/examples/switching-layouts-remount' },
+                { label: '46 — Align & distribute selected items', slug: 'react/examples/align-distribute-selected' },
+                { label: '47 — Spacing indicators', slug: 'react/examples/spacing-indicators' },
+                { label: '48 — Custom header', slug: 'react/examples/custom-header-slot' },
+                { label: '49 — Per-item zIndex override', slug: 'react/examples/per-item-z-index' },
+                { label: '50 — Height modes (heightMode)', slug: 'react/examples/height-modes' },
+                { label: '51 — Drag activation distance', slug: 'react/examples/drag-activation-distance' },
+                { label: '52 — Restricting resize handles to specific edges', slug: 'react/examples/restrict-resize-handles' },
+              ],
+            },
           ],
         },
+        // Angular docs, begun for real (packages/angular was
+        // confirmed directly — via its own docs/IMPLEMENTATION_PLAN.md
+        // and a full read of grid-layout.component.ts/grid-item.
+        // component.ts — to be a complete, full-parity implementation,
+        // matching Vue/React). Built out incrementally, the same phase
+        // order Vue/React's own docs followed: Guide first, then
+        // Features/Components/API/Examples.
         {
           label: 'Angular',
           items: [
-            { label: 'Coming soon', slug: 'angular' },
+            {
+              label: 'Guide',
+              items: [
+                { label: 'Introduction', slug: 'angular/guide/introduction' },
+                { label: 'Installation', slug: 'angular/guide/installation' },
+              ],
+            },
+            { label: 'Features', slug: 'angular/features' },
+            {
+              label: 'Components',
+              items: [
+                { label: 'Overview', slug: 'angular/components' },
+                { label: 'GridLayoutComponent props', slug: 'angular/components/grid-layout/props' },
+                { label: 'GridItemComponent props', slug: 'angular/components/grid-item/props' },
+              ],
+            },
+            {
+              label: 'API',
+              items: [
+                { label: 'Overview', slug: 'angular/api' },
+                { label: 'Public members (GridLayoutComponent)', slug: 'angular/api/interfaces/public-members' },
+                { label: 'Layout persistence', slug: 'angular/api/interfaces/layout-persistence' },
+                { label: 'Cross-grid & outside-drop event payloads', slug: 'angular/api/interfaces/event-payloads' },
+              ],
+            },
           ],
         },
       ],

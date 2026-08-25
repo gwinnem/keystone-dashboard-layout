@@ -1,0 +1,118 @@
+---
+title: Layout persistence
+description: useLayoutStorage and useLayoutPresets — hooks for saving and loading a layout.
+---
+
+Unlike the Vue package, this package doesn't re-export
+`serializeLayout`/`deserializeLayout` as standalone functions — import
+those from `@keystone-dashboard-layout/core` directly if you need the
+raw building blocks for a backend other than `Storage` (a remote API,
+IndexedDB, anything else). Both hooks below already use them internally.
+
+Also unlike the Vue package's own versions (which operate on a
+`Ref<TLayout>` you pass in and mutate directly), both hooks here follow
+this package's own "you own the state, plain values in and out" shape —
+`load()`/`loadPreset()` return the loaded layout for you to apply via
+your own `setState`, and `save()`/`savePreset()` take the layout to
+persist as an explicit argument, rather than reading/writing a ref.
+
+## `useLayoutStorage`
+
+```ts
+function useLayoutStorage(
+  key: string,
+  options?: IUseLayoutStorageOptions,
+): IUseLayoutStorageReturn;
+```
+
+```ts
+interface IUseLayoutStorageOptions {
+  storage?: Storage;   // default: window.localStorage
+  autoSave?: boolean;  // default: false
+  layout?: TLayout;     // the current layout to auto-save — required for autoSave to do anything
+  debounceMs?: number;  // default: 500 — only relevant when autoSave is true
+}
+
+interface IUseLayoutStorageReturn {
+  load: () => TLayout | null;
+  save: (layout: TLayout) => void;
+  clear: () => void;
+  hasSaved: () => boolean; // whether *anything* is stored — not whether it's valid
+}
+```
+
+SSR-safe — every storage access is guarded behind a `typeof window`
+check; `autoSave` is a silent no-op during a server render rather than
+throwing.
+
+```tsx
+function Dashboard() {
+  const { load, save } = useLayoutStorage('my-dashboard-layout');
+  const [layout, setLayout] = useState<TLayout>(() => load() ?? defaultLayout);
+
+  function handleLayoutChange(next: TLayout): void {
+    setLayout(next);
+    save(next);
+  }
+
+  return <GridLayout layout={layout} onLayoutChange={handleLayoutChange}>{/* ... */}</GridLayout>;
+}
+```
+
+Or with `autoSave` instead of an explicit `save()` call on every change:
+
+```tsx
+function Dashboard() {
+  const [layout, setLayout] = useState<TLayout>(defaultLayout);
+  const { load } = useLayoutStorage('my-dashboard-layout', { autoSave: true, layout });
+  // ...
+}
+```
+
+## `useLayoutPresets`
+
+```ts
+function useLayoutPresets(
+  key: string,
+  options?: IUseLayoutPresetsOptions,
+): IUseLayoutPresetsReturn;
+```
+
+```ts
+interface IUseLayoutPresetsOptions {
+  storage?: Storage; // default: window.localStorage
+}
+
+interface IUseLayoutPresetsReturn {
+  savePreset: (name: string, layout: TLayout) => void;
+  loadPreset: (name: string) => TLayout | null;
+  deletePreset: (name: string) => void;
+  listPresets: () => string[];
+  hasPreset: (name: string) => boolean;
+}
+```
+
+Layers on top of the same `serializeLayout`/`deserializeLayout`
+building blocks, for saving and switching between **several named**
+arrangements of the same items, rather than one single saved layout.
+Every preset for a given `key` is stored together as one object under
+one storage key — one read/write per operation, not one per preset.
+SSR-safe, same guard as `useLayoutStorage`.
+
+```tsx
+function Dashboard() {
+  const [layout, setLayout] = useState<TLayout>(defaultLayout);
+  const { savePreset, loadPreset } = useLayoutPresets('my-dashboard');
+
+  return (
+    <>
+      <button onClick={() => savePreset('compact', layout)}>Save as "compact"</button>
+      <button onClick={() => {
+        const loaded = loadPreset('compact');
+        if (loaded) setLayout(loaded);
+      }}>Load "compact"</button>
+      <GridLayout layout={layout} onLayoutChange={setLayout}>{/* ... */}</GridLayout>
+    </>
+  );
+}
+```

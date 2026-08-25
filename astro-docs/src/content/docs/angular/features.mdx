@@ -1,0 +1,88 @@
+---
+title: Features
+description: Everything Keystone Dashboard Layout for Angular does, grouped by category.
+---
+
+:::note[Examples not yet ported]
+Angular has reached full feature parity with Vue and React (every item
+in its own prop/behavior inventory is implemented), but the interactive
+example pages themselves haven't been ported yet — this page describes
+what's real and shipping today, without linking to example pages that
+don't exist yet. See [Vue's own Examples](/vue/examples/) or
+[React's own Examples](/react/examples/) for the same features
+demonstrated live in the meantime; the underlying behavior is identical.
+:::
+
+## Drag & resize
+
+- **Drag anywhere, or from a handle.** Every item is draggable by default; restrict it to a specific handle with `dragAllowFrom`, or exclude specific elements with `dragIgnoreFrom` (and `resizeIgnoreFrom` for resize specifically).
+- **Resize from any edge or corner** — top, right, bottom, left, and the diagonals — with optional `preserveAspectRatio` locking.
+- **Min/max size constraints** (`minW`/`maxW`/`minH`/`maxH`) per item.
+- **Bounded dragging** (`isBounded`) — keep items from being dragged outside the container.
+- **Static items** — lock specific items in place; they ignore dragging/resizing entirely and act as fixed obstacles for compaction.
+- **Per-item `zIndex` override** — pin one item permanently above every other, including while others are mid-resize, regardless of the library's own implicit static/resizing stacking rules.
+- **A separate header region** — a `GridItemHeaderDirective` marker directive (`[kdlGridItemHeader]`) applied to your own header content, projected into `GridItemComponent`'s own dedicated header region instead of its plain default content. Angular's equivalent of Vue's named slot or React's `header` render prop, expressed as a queryable content-projection marker instead.
+- **Per-item `autoHeight`** — a live-resyncing height, driven by a real `ResizeObserver` on the item's own content rather than a one-time measurement.
+- **`dragActivationDistance`** — a per-pointer-type drag-start threshold, so a small accidental movement doesn't immediately start a drag.
+
+## Layout & collision
+
+- **Automatic compaction.** Items fill gaps vertically by default; other items automatically move out of the way of a drag/resize.
+- **Pluggable compaction strategy** (`compactType`) — five built-in strategies (vertical, horizontal, none, and overlap variants of each), or replace the algorithm entirely with a custom `compactor` `@Input()`.
+- **Horizontal shift mode** (`horizontalShift`) — push colliding items left/right instead of down.
+- **Prevent collision mode** (`preventCollision`) — block a drag/resize instead of pushing other items, with a `moveBlockedByCollision` `@Output()` so a consumer can give feedback the moment that happens.
+- **Magnetic snap-to-grid** (`snapToGrid`/`snapThreshold`) — actually adjusts an item's landing position to align with a neighbor, not just a visual guide.
+- **Alignment guides** (`showAlignmentGuides`) — Figma-style guide lines while dragging or resizing, wherever an item's edges line up with another's.
+- **`restoreOnDrag`** — keep other items from compacting past their pre-drag position while a drag is in progress.
+- **Auto-sizing container** — the grid's height grows/shrinks to fit its content by default (`autoSize`, or the newer `heightMode` `@Input()` for finer control including `'scroll'`/`'fit'` modes).
+- **Spacing indicators** (`showSpacingGuides`) — a labeled distance badge (e.g. "2 cols") in the gap between the active item and its nearest neighbor on each side, independently toggleable alongside alignment guides.
+- **Serializable layout.** The `layout` array is a plain, JSON-serializable structure you own — persist it anywhere.
+- **Named layout presets** (`GridLayoutPresetsService`) — save and switch between multiple named arrangements, layered on the same serialize/restore primitives `GridLayoutStorageService` uses.
+- **Grid-to-SVG export** (`exportLayoutAsSvg()`, a public method on `GridLayoutComponent`) — a dependency-free utility producing a standalone SVG snapshot of the current layout.
+- **Undo/redo** (`enableUndoRedo`, capped via `undoHistoryLimit`) — opt-in history at committed-change granularity (drag/resize end, add/remove), not per intermediate frame. Reach `undo()`/`redo()` and the `canUndo`/`canRedo` flags via a template reference variable on `GridLayoutComponent`.
+- **Add/remove items freely**, with automatic re-compaction — no manual position math required. `duplicateItem(id)` (also a public method) clones an existing item into a collision-safe spot below it.
+- **`distributeEvenly`** — spreads an out-of-bounds item to the next available slot on a responsive breakpoint change, instead of clamping it to the right edge.
+
+## Multi-select & group operations
+
+- **Select multiple items** (`multiSelect`) — click to select, Ctrl/Cmd+click to add additively, click empty background to clear, and **Shift-click to select a contiguous range** from the last-clicked anchor.
+- **Group move and resize** — drag or resize any selected item and the rest of the selection moves or resizes by the same delta, from mouse or keyboard alike.
+- **Align/distribute commands** (`alignSelected(edge)`/`distributeSelected(axis)`, public methods on `GridLayoutComponent`) — align a selection to an edge, or evenly space what's between.
+
+## Responsive
+
+- **Breakpoint-based column counts**, with sensible defaults and fully customizable `breakpoints`/`cols`.
+- **Pre-defined layouts per breakpoint** (`responsiveLayouts`), for full control over how content reflows instead of relying on auto-generation.
+
+## Internationalization
+
+- **RTL mirroring** (`isMirrored`) for an entire layout or individual items — positions (and dragging) flip horizontally with a single `@Input()`. The resize-specific edge-swap math for RTL is a direct analogy to the LTR case rather than exhaustively verified against a real browser — the same "best-effort" caveat this package's own source carries for that one corner.
+
+## Accessibility
+
+- **Keyboard move & resize.** Every non-static, editable item is keyboard-focusable — arrow keys move it, Shift+arrow keys resize it — without needing any extra configuration, including RTL-aware key direction and `multiSelect` group-move/resize engagement.
+- **Screen reader support** — interactive items are announced with an item-role description and a description of the available keyboard controls; visible focus indicator for keyboard users.
+- **Localizable ARIA strings** (`ariaLabels`) — the close button's label, role description, and the keyboard move/resize instructions are overridable (`GridLayoutComponent` grid-wide default, `GridItemComponent` per-item override), rather than hardcoded English literals.
+
+## Cross-grid & external drag-and-drop
+
+- **Drag items from outside the grid** (`allowOutsideDrop`) using the browser's native HTML5 drag-and-drop API, with a live drop-position placeholder while dragging over the grid.
+- **Drag items between two independent grids** (`allowCrossGridDrag`/`disableExternalDrop`/`layoutId`) via a real first-fit bin-pack, not a naive placement then compaction sorts out.
+- **Multiple grids on one page** with zero shared state — each `GridLayoutComponent` provides its own, independent `GridEventBusService` instance — beyond an optional `layoutId`.
+
+## Styling & customization
+
+- **Unstyled-by-default content** — `GridItemComponent`'s projected content holds whatever you put there; the library only handles position/size.
+- **Built-in close button** (`showCloseButton` + a `removeItem` `@Output()` you handle yourself), and any part of an item is a drag handle by default, restrictable via `dragAllowFrom`/`dragIgnoreFrom` — there's no separate exported close-button or drag-handle component to import.
+- **Configurable border radius** per item (`borderRadiusPx`/`useBorderRadius`, grid-wide default + per-item override).
+- **Optional grid line guides** (`showGridLines`), useful while building a layout or as a permanent visual aid.
+- **Configurable transition duration/easing** (`transitionDurationMs`/`transitionTimingFunction`), applied via CSS custom properties.
+- **Configurable resize-hint appearance** (`showResizeHandles`/`resizeHandleColor`, grid-wide default + per-item override), plus a per-item `resizeHandles` `@Input()` restricting which of the 8 edges/corners actually activate.
+
+## Developer experience
+
+- **Full TypeScript support.** Every component, directive, service, and interface is typed and exported from the package's main entry point — see [API](/angular/api/) once that page lands.
+- **Zero runtime dependencies beyond Angular and RxJS.** The drag/resize engine is built on native Pointer Events, not a third-party library — the same shared engine the Vue and React packages use.
+- **The same framework-agnostic core** (`@keystone-dashboard-layout/core`) Vue and React use for their own grid-layout math (collision detection, movement, compaction, and more) — all three packages share one implementation of the hard, easy-to-get-subtly-wrong parts.
+- **Idiomatic Angular.** Standalone components (no `NgModule` required), a DI-scoped `GridEventBusService` instead of Vue's `provide`/`inject` or React's Context, `providedIn: 'root'` services instead of ref-bound composables/hooks, and a marker directive queried via `@ContentChild` instead of a named slot or render prop — the same underlying behavior, expressed the way Angular actually works.
+- **Tested, with one real gap.** A genuine unit/component test suite (Jest + `jest-preset-angular`) backs every phase, and Stryker mutation testing is configured — see the package's own `docs/IMPLEMENTATION_PLAN.md` for the phase-by-phase history. Unlike Vue and React, this package doesn't yet have a real end-to-end browser test layer (Karma is present but reserved for a possible future one, not currently used for anything) — a genuine, open gap rather than an oversight this page should paper over.

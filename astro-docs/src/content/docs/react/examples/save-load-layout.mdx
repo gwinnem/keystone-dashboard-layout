@@ -1,0 +1,21 @@
+---
+title: Save/load layout
+description: layout is a plain, JSON-serializable array — persist it however you like.
+---
+import SaveLoadLayout from '../../../../components/examples-react/19-save-load-layout.tsx';
+import SaveLoadLayoutSource from '../../../../components/examples-react/19-save-load-layout.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={SaveLoadLayoutSource} filename="save-load-layout.tsx" lang="tsx">
+  <SaveLoadLayout client:visible />
+</ExampleTryIt>
+
+`layout` is already a plain array of plain objects, so
+`JSON.stringify`/`JSON.parse` would round-trip it correctly on its own
+— no special hook required for the basic case. This example uses the
+package's own `useLayoutStorage` hook instead, which wraps that same
+pattern (plus the internal `moved` field stripped, and shape
+validation on load) behind `load()`/`save()` calls. See [Layout
+persistence](/react/api/interfaces/layout-persistence/) for the full
+reference, including `useLayoutPresets` for saving/switching between
+several named layouts.

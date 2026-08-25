@@ -1,0 +1,19 @@
+---
+title: Events
+description: The callback props GridLayout exposes for logging drag and layout changes.
+---
+import Events from '../../../../components/examples-react/03-events.tsx';
+import EventsSource from '../../../../components/examples-react/03-events.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={EventsSource} filename="events.tsx" lang="tsx">
+  <Events client:visible />
+</ExampleTryIt>
+
+Unlike the Vue package, there's no separate per-item eventBus — every
+change is reported through `GridLayout`'s own callback props
+(`onLayoutChange`, `onDragStart`/`onDragMove`/`onDragEnd`, and more).
+This example diffs each `onLayoutChange` call against the previous
+layout to detect moves and resizes; see [GridLayout props](/react/components/grid-layout/props/)
+for the complete callback list, including the granular per-phase drag
+events (`onDragStart`/`onDragMove`/`onDragEnd`) used alongside it here.

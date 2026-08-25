@@ -1,0 +1,15 @@
+.demo-color-field {
+  align-items: center;
+  color: var(--kg-text-lo-light);
+  display: flex;
+  font-size: 13px;
+  gap: 6px;
+}
+
+.demo-color-field input {
+  border: none;
+  border-radius: 4px;
+  height: 22px;
+  padding: 0;
+  width: 28px;
+}

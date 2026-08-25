@@ -1,0 +1,19 @@
+---
+title: Custom drag handle & close button
+description: Any element can be a drag handle via dragAllowFrom; any element can be a close button via a plain onClick calling your own remove handler.
+---
+import CustomDragHandleCloseButton from '../../../../components/examples-react/18-custom-drag-handle-close-button.tsx';
+import CustomDragHandleCloseButtonSource from '../../../../components/examples-react/18-custom-drag-handle-close-button.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CustomDragHandleCloseButtonSource} filename="custom-drag-handle-close-button.tsx" lang="tsx">
+  <CustomDragHandleCloseButton client:visible />
+</ExampleTryIt>
+
+Unlike the Vue package, there's no separate exported `CustomDragElement`/`CustomCloseButton`
+component to import — since any element can already be a drag handle
+or a close button, a plain `<span>`/`<button>` styled however you like
+is the whole mechanism. Pairing `dragAllowFrom` with `resizeIgnoreFrom`
+on the same selector matters here too: without it, the handle can end
+up fighting the resize engine's own edge-proximity detection near a
+corner.

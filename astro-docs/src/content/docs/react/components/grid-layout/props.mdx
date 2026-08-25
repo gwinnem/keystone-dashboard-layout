@@ -1,0 +1,128 @@
+---
+title: GridLayout Props
+description: Every prop GridLayout accepts, including callbacks, with defaults.
+---
+
+Only `layout` is required — everything else has a default.
+`GridLayout` is a **fully controlled** component: it never mutates
+`layout` in place. Callbacks are ordinary props here (there's no
+separate "events" mechanism the way Vue emits — this table includes
+them alongside the setter-style props). Most boolean/number props here
+have a matching field on [`ILayoutItem`](/react/api/) that can override
+it per-item; see each prop's note.
+
+## Core
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `layout` | `TLayout` (required) | — | The layout array — one entry per rendered `GridItem`, matched by `i`. Position, size, and `isDraggable`/`isResizable`/`isStatic`/`minW`/`maxW`/`minH`/`maxH`/`zIndex`/`showCloseButton` all live directly on each entry — there's no separate per-item prop the way Vue's `GridItem` component has, since a `GridItem` here only takes `i` and looks its own data up from this array. |
+| `onLayoutChange` | `(layout: TLayout) => void` | — | Called with a brand-new layout array whenever a drag end, resize end, or the compaction that follows either changes it. The input `layout` prop itself is never mutated. |
+| `children` | `ReactNode` | — | The `GridItem` elements to render — one per `layout` entry, each needing only a matching `i` prop and a `key`. |
+| `className` | `string` | — | Applied to the root element, alongside the library's own `kdl-grid-layout` class. |
+
+## Sizing & columns
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `colNum` | `number` | `12` | Maximum number of columns. |
+| `rowHeight` | `number` | `150` | Height of one grid row, in pixels. |
+| `margin` | `[number, number]` | `[10, 10]` | `[horizontal, vertical]` spacing between items, in pixels. |
+| `maxRows` | `number` | `Infinity` | Maximum number of rows the layout may grow to. |
+| `autoSize` | `boolean` | `true` | Deprecated — prefer `heightMode`. Grows/shrinks the container's height to fit the layout's content. Ignored once `heightMode` is set to anything other than `null`. |
+| `heightMode` | `'auto' \| 'fixed' \| 'scroll' \| 'fit' \| null` | `null` | How the container's height is determined. `null` defers to `autoSize`. `'auto'`: today's `autoSize: true` behavior. `'fixed'`: no explicit height — today's `autoSize: false`. `'scroll'`: same as `'fixed'`, plus `overflow-y: auto`. `'fit'`: height locked to `100%` of the parent, with the same `overflow-y: auto` as `'scroll'`. |
+| `useCssTransforms` | `boolean` | `true` | Positions items via CSS `transform: translate3d(...)` instead of `top`/`left`. |
+| `transformScale` | `number` | `1` | Compensates drag/resize pixel math for a scaled ancestor (e.g. a zoomed-out canvas view). |
+
+## Drag & resize defaults
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `isDraggable` | `boolean` | `true` | Default for items that don't set their own `isDraggable`. |
+| `isResizable` | `boolean` | `true` | Default for items that don't set their own `isResizable`. |
+| `isBounded` | `boolean` | `false` | Restricts dragging to within the container's bounds. A per-item `isBounded` overrides this. |
+| `enableEditMode` | `boolean` | `true` | Grid-wide master interactivity switch — `false` disables dragging, resizing, and the close button across the whole grid at once. A per-item `enableEditMode` overrides this. |
+| `dragActivationDistance` | — | — | Per-pointer-type drag-start threshold, forwarded to the shared `core` engine. |
+| `resizeHandles` | `TResizeHandle[]` | all 8 | Restricts which resize-hint spans render/activate, grid-wide. A per-item `resizeHandles` overrides this (an empty array is a valid "no handle-driven resize" value). |
+| `showResizeHandles` | `boolean` | `false` | Renders a visible resize-handle affordance instead of the default invisible hit-zone. A per-item override exists. |
+| `resizeHandleColor` | `string` | `'rgb(94 94 94 / 45%)'` | CSS color for the visible resize-handle affordance. A per-item override exists. |
+| `preserveAspectRatio` | `boolean` | `false` | Grid-wide default for whether resizing preserves an item's current width/height ratio. A per-item override exists. |
+| `autoScroll` | `boolean` | `false` | Grid-wide default for whether native auto-scroll runs near a container edge during drag/resize. A per-item override exists. |
+
+## Collision & compaction
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `preventCollision` | `boolean` | `false` | Blocks a drag/resize that would collide, instead of pushing the other item. |
+| `compactType` | `ECompactType` | `ECompactType.VERTICAL` | Selects one of five built-in compaction strategies. Ignored when `compactor` is set. |
+| `compactor` | `ICompactor \| null` | `null` | Overrides the built-in compaction algorithm entirely. Purely additive — `compactType` keeps working normally when this isn't set. |
+| `horizontalShift` | `boolean` | `false` | Pushes colliding items left/right instead of down, during an active drag. |
+| `restoreOnDrag` | `boolean` | `false` | While dragging, keeps other items from compacting past their pre-drag position until the drag ends. |
+| `distributeEvenly` | `boolean` | `false` | On a responsive breakpoint change that shrinks `colNum`, spreads an out-of-bounds item to the next available slot instead of clamping it to the right edge. |
+| `snapToGrid` | `boolean` | `false` | Magnetically snaps a dragged item's edge to another item's edge — changes where the item lands, unlike `showAlignmentGuides`. |
+| `snapThreshold` | `number` | `1` | How close (in grid units) an edge needs to be to snap, when `snapToGrid` is on. `0` disables snapping. |
+| `showAlignmentGuides` | `boolean` | `false` | Shows guide lines while dragging/resizing wherever edges line up — visual only. |
+| `showSpacingGuides` | `boolean` | `false` | Shows a labeled distance badge between the active item and its nearest neighbor. |
+| `onMoveBlockedByCollision` | `(id: string \| number) => void` | — | Called when `preventCollision` actually constrained a drag or resize. |
+
+## Multi-select & undo/redo
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `multiSelect` | `boolean` | `false` | Enables click/Shift-click/Ctrl-click multi-item selection, and group move/resize for the selection. |
+| `onSelectionChanged` | `(selectedItems: (string \| number)[]) => void` | — | Called with the full, current selection whenever it changes. Not called on initial mount. |
+| `enableUndoRedo` | `boolean` | `false` | Enables `undo()`/`redo()` via the imperative handle. Snapshots are taken at drag start, resize start, `duplicateItem`, `compactNow`, and any externally-driven `layout` length change. |
+| `undoHistoryLimit` | `number` | `50` | Maximum number of snapshots kept for `undo()`. |
+
+## Responsive
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `responsive` | `boolean` | `false` | Enables breakpoint switching — `colNum` becomes derived instead of the plain prop. |
+| `breakpoints` | `IBreakpoints` | `{ xxl: 1600, xl: 1400, lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }` | Container-width thresholds per breakpoint. All 7 standard keys required. |
+| `cols` | `IColumns` | `{ xxl: 12, xl: 12, lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }` | Column count per breakpoint. |
+| `responsiveLayouts` | `TResponsiveLayout` | — | Pre-defined layouts keyed by breakpoint name, instead of auto-generating one. Every key optional. |
+| `onBreakpointChange` | `(breakpoint: TBreakpoint, cols: number) => void` | — | Called whenever the active breakpoint changes. |
+| `onColumnsChanged` | `(colNum: number) => void` | — | Called whenever the grid-wide `colNum` prop itself changes — distinct from `onBreakpointChange`. Not called on initial mount. |
+
+## Internationalization & accessibility
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `isMirrored` | `boolean` | `false` | Mirrors the entire grid right-to-left. A per-item `isMirrored` (default `true`) can opt just that item out. |
+| `ariaLabels` | `IGridAriaLabels` | — | Instruction/label strings announced to assistive technology — merged with built-in English defaults. A per-item `ariaLabels` overrides this, merged the same way. |
+
+## Styling
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `showGridLines` | `boolean` | `false` | Renders visible grid line guides behind the items. |
+| `showCloseButton` | `boolean` | `false` | Grid-wide default for whether each item renders a close button. A per-item override exists. Clicking it calls `onItemClose`. |
+| `onItemClose` | `(id: string \| number) => void` | — | Called when an item's close button is clicked. Does not itself remove anything from `layout` — your own handler decides. |
+| `borderRadiusPx` | `number` | `10` | Grid-wide default border radius, applied when `useBorderRadius` is on. A per-item override exists. |
+| `useBorderRadius` | `boolean` | `false` | Whether `borderRadiusPx` is actually applied. A per-item override exists. |
+| `transitionDurationMs` | `number` | `200` | Duration, in milliseconds, of the CSS transition applied to item position/size changes. |
+| `transitionTimingFunction` | `string` | `'ease'` | CSS `transition-timing-function` for the same transitions. |
+
+## Cross-grid & outside drag-and-drop
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `allowCrossGridDrag` | `boolean` | `false` | Enables dragging an item between two `GridLayout` instances that both have this set, via a real first-fit bin-pack. |
+| `disableExternalDrop` | `boolean` | `false` | This grid rejects incoming cross-grid drops. Its own items can still be dragged out. Only relevant when `allowCrossGridDrag` is on. |
+| `layoutId` | `string` | auto-generated | This grid's own identifier for the cross-grid registry and event payloads. |
+| `onCrossGridItemDropped` | `(payload: ICrossGridItemDropped) => void` | — | Called on the target grid when another grid's item is dropped and accepted. |
+| `onCrossGridDropRejected` | `(payload: ICrossGridDropRejected) => void` | — | Called on the target grid when it rejects an incoming drop. |
+| `allowOutsideDrop` | `boolean` | `false` | Accepts a native HTML5 drag-and-drop from outside the grid system entirely (e.g. a plain `draggable="true"` element). |
+| `outsideDropWidth` | `number` | `2` | Width, in grid units, of the live drop-position placeholder. |
+| `outsideDropHeight` | `number` | `2` | Height, in grid units, of the live drop-position placeholder. |
+| `outsideDropAccept` | `(dataTransfer: DataTransfer \| null) => boolean` | accepts everything | Predicate deciding whether a given native drag qualifies for `allowOutsideDrop` at all. |
+| `onOutsideDrop` | `(payload: { x, y, w, h, dataTransfer }) => void` | — | Called when an accepted native drag is dropped. Does not itself add anything to `layout` — use `readOutsideDropPayload` from `core` to parse `dataTransfer` if needed. |
+
+## Granular drag events
+
+| Prop | Type | Description |
+|---|---|---|
+| `onDragStart` | `(id: string \| number) => void` | Called at the start of a drag gesture, before any position change. |
+| `onDragMove` | `(id: string \| number) => void` | Called on every intermediate tick of an in-progress drag. |
+| `onDragEnd` | `(id: string \| number) => void` | Called once a drag gesture ends. |
+| `onLayoutReady` | `(layout: TLayout) => void` | Called once, the first time this grid's container width is successfully measured. Never called again after that. |

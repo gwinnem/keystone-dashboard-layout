@@ -1,0 +1,20 @@
+---
+title: Blocked-move feedback
+description: onMoveBlockedByCollision fires the moment preventCollision blocks a drag or resize.
+---
+import BlockedMoveFeedback from '../../../../components/examples-react/30-blocked-move-feedback.tsx';
+import BlockedMoveFeedbackSource from '../../../../components/examples-react/30-blocked-move-feedback.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={BlockedMoveFeedbackSource} filename="blocked-move-feedback.tsx" lang="tsx">
+  <BlockedMoveFeedback client:visible />
+</ExampleTryIt>
+
+Without this callback, `preventCollision` alone gives no feedback about
+*why* a drag stopped short — the item just doesn't move, which can look
+like a bug rather than intentional collision blocking. Use it to drive
+a flash, a shake animation, or a toast, so the block reads as
+deliberate.
+
+See [Prevent collision](/react/examples/prevent-collision/) for the
+base prop this callback pairs with.

@@ -27,10 +27,12 @@ import config from 'virtual:starlight/user-config';
 // were hardcoded to Vue's own routes and shown unconditionally on every
 // page, including the React/Angular placeholder pages, which have none
 // of Guide/Features/Components/API/Examples/Changelog as real pages at
-// all. React and Angular deliberately get an empty array rather than
-// invented links to pages that don't exist yet — extend either array
-// the same way Vue's is once that framework has real sections of its
-// own to link to.
+// all. React's own package (packages/react) was later confirmed to be
+// a complete, tested, full-parity implementation — its docs are now
+// being built out for real, starting with Guide, so it gets real links
+// as each section lands rather than staying empty. Angular's own
+// package (packages/angular) was confirmed the same way and its docs
+// have now also begun, starting with Guide — same incremental approach.
 const VUE_NAV_LINKS: { label: string; href: string }[] = [
 	{ label: `Guide`, href: `/vue/guide/introduction/` },
 	{ label: `Features`, href: `/vue/features/` },
@@ -39,8 +41,19 @@ const VUE_NAV_LINKS: { label: string; href: string }[] = [
 	{ label: `Examples`, href: `/vue/examples/` },
 	{ label: `Changelog`, href: `/vue/guide/changelog/` },
 ];
-const REACT_NAV_LINKS: { label: string; href: string }[] = [];
-const ANGULAR_NAV_LINKS: { label: string; href: string }[] = [];
+const REACT_NAV_LINKS: { label: string; href: string }[] = [
+	{ label: `Guide`, href: `/react/guide/introduction/` },
+	{ label: `Features`, href: `/react/features/` },
+	{ label: `Components`, href: `/react/components/` },
+	{ label: `API`, href: `/react/api/` },
+	{ label: `Examples`, href: `/react/examples/` },
+];
+const ANGULAR_NAV_LINKS: { label: string; href: string }[] = [
+	{ label: `Guide`, href: `/angular/guide/introduction/` },
+	{ label: `Features`, href: `/angular/features/` },
+	{ label: `Components`, href: `/angular/components/` },
+	{ label: `API`, href: `/angular/api/` },
+];
 
 const navLinks: { label: string; href: string }[] = Astro.url.pathname.includes(`/react`)
 	? REACT_NAV_LINKS

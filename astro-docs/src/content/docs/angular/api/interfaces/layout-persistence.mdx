@@ -1,0 +1,106 @@
+---
+title: Layout persistence
+description: "GridLayoutStorageService and GridLayoutPresetsService — providedIn: 'root' services for saving and loading a layout."
+---
+
+Unlike the Vue package, this package doesn't re-export
+`serializeLayout`/`deserializeLayout` as standalone functions — import
+those from `@keystone-dashboard-layout/core` directly if you need the
+raw building blocks for a backend other than `Storage` (a remote API,
+IndexedDB, anything else). Both services below already use them
+internally.
+
+Also unlike the Vue package's own composables (which operate on a
+`Ref<TLayout>` you pass in and mutate directly), both services here
+follow this package's own "you own the state, plain values in and out"
+shape — `load()`/`loadPreset()` return the loaded layout for you to
+apply via your own field assignment, and `save()`/`savePreset()` take
+the layout to persist as an explicit argument, rather than reading/
+writing a bound reference. No `autoLoad`/`autoSave` option either, for
+the same reason: an automatic side effect tied to a value the service
+doesn't itself own isn't a good fit for a stateless, `providedIn: 'root'`
+service.
+
+## `GridLayoutStorageService`
+
+```ts
+@Injectable({ providedIn: 'root' })
+export class GridLayoutStorageService {
+  save(key: string, layout: TLayout, storage?: Storage): void;
+  load(key: string, storage?: Storage): TLayout | null;
+  clear(key: string, storage?: Storage): void;
+  hasSaved(key: string, storage?: Storage): boolean; // whether *anything* is stored — not whether it's valid
+}
+```
+
+`storage` defaults to `window.localStorage` when omitted. SSR-safe —
+every storage access is guarded behind a `typeof window` check; every
+method is a silent no-op (`false`, or leaving storage untouched) during
+a server render rather than throwing.
+
+```ts
+import { Component, inject } from '@angular/core';
+import { GridLayoutStorageService } from '@keystone-dashboard-layout/angular';
+import type { TLayout } from '@keystone-dashboard-layout/core';
+
+@Component({ /* ... */ })
+export class DashboardComponent {
+  private readonly storage = inject(GridLayoutStorageService);
+  layout: TLayout;
+
+  constructor() {
+    this.layout = this.storage.load('my-dashboard-layout') ?? defaultLayout;
+  }
+
+  onLayoutChange(next: TLayout): void {
+    this.layout = next;
+    this.storage.save('my-dashboard-layout', next);
+  }
+}
+```
+
+## `GridLayoutPresetsService`
+
+```ts
+@Injectable({ providedIn: 'root' })
+export class GridLayoutPresetsService {
+  savePreset(key: string, name: string, layout: TLayout, storage?: Storage): void;
+  loadPreset(key: string, name: string, storage?: Storage): TLayout | null;
+  deletePreset(key: string, name: string, storage?: Storage): void;
+  listPresets(key: string, storage?: Storage): string[];
+  hasPreset(key: string, name: string, storage?: Storage): boolean;
+}
+```
+
+Layers on top of the same `serializeLayout`/`deserializeLayout`
+building blocks `GridLayoutStorageService` uses, for saving and
+switching between **several named** arrangements of the same items,
+rather than one single saved layout. Every preset for a given `key` is
+stored together as one object under one storage key — one read/write
+per operation, not one per preset. Matches Vue's own storage shape
+exactly, so presets saved by one framework's package are readable by
+another's, given the same `key`. SSR-safe, same guard as
+`GridLayoutStorageService`.
+
+```ts
+import { Component, inject } from '@angular/core';
+import { GridLayoutPresetsService } from '@keystone-dashboard-layout/angular';
+import type { TLayout } from '@keystone-dashboard-layout/core';
+
+@Component({ /* ... */ })
+export class DashboardComponent {
+  private readonly presets = inject(GridLayoutPresetsService);
+  layout: TLayout = defaultLayout;
+
+  saveAsCompact(): void {
+    this.presets.savePreset('my-dashboard', 'compact', this.layout);
+  }
+
+  loadCompact(): void {
+    const loaded = this.presets.loadPreset('my-dashboard', 'compact');
+    if (loaded) {
+      this.layout = loaded;
+    }
+  }
+}
+```

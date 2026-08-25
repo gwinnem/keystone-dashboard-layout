@@ -1,0 +1,68 @@
+---
+title: Imperative handle (IGridLayoutHandle)
+description: The ref-based API GridLayout exposes — the React equivalent of Vue's defineExpose template-ref methods.
+---
+
+Attach a `ref` to `GridLayout` to reach these — the React equivalent of
+Vue's own `defineExpose`'d template-ref methods, via `forwardRef`/
+`useImperativeHandle` instead.
+
+```tsx
+import { useRef } from 'react';
+import { GridLayout, type IGridLayoutHandle } from '@keystone-dashboard-layout/react';
+
+function Dashboard() {
+  const gridRef = useRef<IGridLayoutHandle>(null);
+
+  return (
+    <>
+      <button onClick={() => gridRef.current?.compactNow()}>Tidy up</button>
+      <GridLayout ref={gridRef} layout={layout} onLayoutChange={setLayout}>
+        {/* ... */}
+      </GridLayout>
+    </>
+  );
+}
+```
+
+## Compaction
+
+| Member | Type | Description |
+|---|---|---|
+| `compactNow` | `() => void` | Re-runs compaction on demand — forces real compaction even when `compactType` is `NONE`, unlike the automatic per-tick compaction. |
+| `rearrange` | `() => void` | Alias for `compactNow()`. |
+
+## Items
+
+| Member | Type | Description |
+|---|---|---|
+| `duplicateItem` | `(id: string \| number) => string \| number \| null` | Clones the item, placing the copy directly below the source. Returns the new item's id, or `null` if `id` doesn't match. |
+| `scrollToItem` | `(id: string \| number) => Promise<void>` | Scrolls the item into view, if currently rendered. A no-op (not a throw) on a missing id. |
+| `focusItem` | `(id: string \| number) => Promise<void>` | Moves keyboard focus to the item, if currently rendered and focusable. |
+
+## Selection (`multiSelect`)
+
+| Member | Type | Description |
+|---|---|---|
+| `selectedItems` | `(string \| number)[]` | The currently-selected item ids, in selection order. |
+| `selectItem` | `(id: string \| number) => void` | Adds an item to the selection. A no-op when `multiSelect` is off. |
+| `deselectItem` | `(id: string \| number) => void` | Removes an item from the selection, if present. |
+| `toggleItemSelection` | `(id: string \| number) => void` | Adds if absent, removes if present. |
+| `clearSelection` | `() => void` | Empties the selection entirely. |
+| `alignSelected` | `(edge: TAlignEdge) => void` | Aligns every selected item to the given edge/center of the anchor (the first-selected item, which never moves). A no-op with fewer than 2 items selected. |
+| `distributeSelected` | `(axis: TDistributeAxis) => void` | Evenly spaces selected items along the given axis; the two outermost stay fixed. A no-op with fewer than 3 items selected. |
+
+## Undo/redo (`enableUndoRedo`)
+
+| Member | Type | Description |
+|---|---|---|
+| `undo` | `() => void` | Reverts to the layout before the most recent undo-tracked action. A no-op when nothing is available to undo. |
+| `redo` | `() => void` | Re-applies the most recently undone action. Redo history clears the moment a fresh action is committed. |
+| `canUndo` | `boolean` | Whether `undo()` would currently do anything. |
+| `canRedo` | `boolean` | Whether `redo()` would currently do anything. |
+
+## Export
+
+| Member | Type | Description |
+|---|---|---|
+| `exportLayoutAsSvg` | `(options?: IExportLayoutAsSvgOptions) => string` | Renders the current layout as a standalone SVG string, pre-filled with this grid's own `colNum`/`rowHeight`/`margin`/measured width. |

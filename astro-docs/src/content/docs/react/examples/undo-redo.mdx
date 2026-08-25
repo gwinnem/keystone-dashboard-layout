@@ -1,0 +1,26 @@
+---
+title: Undo/redo (enableUndoRedo)
+description: Opt-in history at committed-change granularity, not per intermediate drag-move frame.
+---
+import UndoRedo from '../../../../components/examples-react/43-undo-redo.tsx';
+import UndoRedoSource from '../../../../components/examples-react/43-undo-redo.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={UndoRedoSource} filename="undo-redo.tsx" lang="tsx">
+  <UndoRedo client:visible />
+</ExampleTryIt>
+
+`undo()`/`redo()`/`canUndo`/`canRedo` are all exposed on the
+[imperative handle](/react/api/interfaces/imperative-handle/), the
+same `ref`-based pattern as `compactNow()`/`scrollToItem()`. A snapshot
+is captured at the *start* of a drag/resize and committed at its
+*end* — not per intermediate frame — so one undo reverts a whole
+gesture at once. `undoHistoryLimit` (default `50`) caps how many
+snapshots `undo()` can step back through.
+
+:::note[canUndo/canRedo are a snapshot, not reactive]
+Unlike a piece of React state, reading `gridRef.current?.canUndo`
+directly in JSX won't re-render when it changes on its own. This
+example forces a re-render (via a small tick counter) on every layout
+change, undo, or redo, so the buttons' `disabled` state stays accurate.
+:::

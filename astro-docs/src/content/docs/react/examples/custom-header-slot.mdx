@@ -1,0 +1,22 @@
+---
+title: Custom header
+description: The header prop renders a separate region above an item's own main content.
+---
+import CustomHeaderSlot from '../../../../components/examples-react/48-custom-header-slot.tsx';
+import CustomHeaderSlotSource from '../../../../components/examples-react/48-custom-header-slot.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CustomHeaderSlotSource} filename="custom-header-slot.tsx" lang="tsx">
+  <CustomHeaderSlot client:visible />
+</ExampleTryIt>
+
+Only affects layout when actually provided — the no-`header` case
+renders identically to before this prop existed. When used, `GridItem`
+switches to a vertical flex layout: the header shrinks to fit its own
+content, and `children` (wrapped in its own scrollable region) takes
+whatever space remains, rather than pushing the item's own fixed pixel
+height (which the grid's layout math depends on staying accurate).
+
+Unlike the Vue package's named `#header` slot, this is a plain `header`
+prop taking a `ReactNode` — the render-prop equivalent, matching how
+this package handles every other slot-like customization point.

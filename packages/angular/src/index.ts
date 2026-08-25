@@ -5,8 +5,12 @@
 // reactive refs/watchers/eventBus/defineExpose -> Angular's
 // @Input()/ngOnChanges/DI-scoped service/public class members) and
 // docs/IMPLEMENTATION_PLAN.md for the phase-by-phase build order this
-// follows. Phase 1 (basic position/size rendering, no drag/resize/
-// compaction yet) is implemented; everything else is still pending.
+// follows. Every item in the original prop inventory is implemented as
+// of Phase 13 (see IMPLEMENTATION_PLAN.md's own closing note) — this
+// comment previously read "Phase 1... is implemented; everything else
+// is still pending", which was stale by the time of a full re-read of
+// this package's own docs/IMPLEMENTATION_PLAN.md, not an accurate
+// reflection of the package's real state.
 //
 // The framework-agnostic algorithms (bin-packing, collision detection,
 // compaction, responsive breakpoints, alignment guides/snapping,
@@ -20,3 +24,14 @@
 
 export { GridLayoutComponent } from './lib/grid-layout.component';
 export { GridItemComponent } from './lib/grid-item.component';
+// A real, confirmed gap fixed here, not a stale-comment-only issue:
+// these three were fully implemented (Phase 9/22 respectively, see
+// each file's own doc comment) but never actually exported from this
+// barrel — meaning no consumer could ever import them from
+// '@keystone-dashboard-layout/angular' at all, despite being real,
+// documented parts of the public API surface every other doc
+// (IMPLEMENTATION_PLAN.md, each file's own doc comment) already
+// describes them as.
+export { GridItemHeaderDirective } from './lib/grid-item-header.directive';
+export { GridLayoutStorageService } from './lib/grid-layout-storage.service';
+export { GridLayoutPresetsService } from './lib/grid-layout-presets.service';

@@ -14,27 +14,30 @@
     </div>
   </div>
 
-  <GridLayout
-    v-model:layout="layout"
-    allow-outside-drop
-    :col-num="12"
-    :outside-drop-accept="outsideDropAccept"
-    :row-height="60"
-    show-grid-lines
-    @item-dropped-from-outside="onDropped">
-    <GridItem
-      v-for="item in layout"
-      :key="item.i"
-      :h="item.h"
-      :i="item.i"
-      :w="item.w"
-      :x="item.x"
-      :y="item.y">
-      <div class="example-item">
-        {{ item.i }}
-      </div>
-    </GridItem>
-  </GridLayout>
+  <div class="drop-zone-frame">
+    <GridLayout
+      v-model:layout="layout"
+      allow-outside-drop
+      :col-num="12"
+      height-mode="fit"
+      :outside-drop-accept="outsideDropAccept"
+      :row-height="60"
+      show-grid-lines
+      @item-dropped-from-outside="onDropped">
+      <GridItem
+        v-for="item in layout"
+        :key="item.i"
+        :h="item.h"
+        :i="item.i"
+        :w="item.w"
+        :x="item.x"
+        :y="item.y">
+        <div class="example-item">
+          {{ item.i }}
+        </div>
+      </GridItem>
+    </GridLayout>
+  </div>
 
   <p class="demo-description">Last payload: {{ lastPayload ?? 'none yet' }}</p>
 </template>
@@ -58,11 +61,22 @@
       ? { kind: 'widget', label: 'A real widget' }
       : { kind: 'not-a-widget', label: 'Should be rejected' };
     event?.dataTransfer?.setData('application/json', JSON.stringify(payload));
+    // A second, marker-only MIME type carrying no value of its own —
+    // `dataTransfer.types` (unlike `.getData()`) is readable during
+    // dragenter/dragover, so this is what `outsideDropAccept` below
+    // actually checks. Only the real widget sets it.
+    if (isWidget) {
+      event?.dataTransfer?.setData('application/x-widget', '');
+    }
   }
 
   function outsideDropAccept(dataTransfer: DataTransfer | null): boolean {
-    const payload = readOutsideDropPayload<IWidgetPayload>(dataTransfer, 'application/json');
-    return payload?.kind === 'widget';
+    // Deliberately checks `.types`, not the payload itself — reading
+    // `.getData()`'s actual value only works at `drop` time; during
+    // dragenter/dragover (when this is called) it always returns an
+    // empty string, so a payload-parsing check here would silently
+    // reject every drag, real widget or not.
+    return !!dataTransfer?.types.includes('application/x-widget');
   }
 
   function onDropped({ x, y, w, h, dataTransfer }: { x: number; y: number; w: number; h: number; dataTransfer: DataTransfer }): void {
@@ -76,6 +90,11 @@
 <style scoped>
 .demo-controls {
   margin-bottom: 16px;
+}
+
+.drop-zone-frame {
+  border: 1px dashed var(--kg-line-light);
+  height: 200px;
 }
 
 .outside-source {

@@ -1,0 +1,21 @@
+---
+title: Localizable ARIA strings
+description: Every user-facing string — the close button's label, aria-roledescription, and keyboard instructions — is overridable.
+---
+import AriaLabels from '../../../../components/examples-react/36-aria-labels.tsx';
+import AriaLabelsSource from '../../../../components/examples-react/36-aria-labels.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={AriaLabelsSource} filename="aria-labels.tsx" lang="tsx">
+  <AriaLabels client:visible />
+</ExampleTryIt>
+
+Deliberately a small, fixed set of overridable strings, not a full i18n
+system — no pluralization, no locale negotiation. Wire your own
+translation function's output into `ariaLabels` for real i18n
+integration; this just makes the strings *reachable* instead of a
+hardcoded English literal. Three layers merge, each only overriding the
+keys it actually sets: built-in English defaults ← `GridLayout`'s own
+`ariaLabels` (grid-wide) ← a specific layout item's own `ariaLabels`
+field (per-item) — override just one string grid-wide, or just one
+string on one item, without re-supplying every other key.

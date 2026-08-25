@@ -1,0 +1,15 @@
+---
+title: Grid dimensions (rowHeight, colNum, margin)
+description: The three core sizing props every grid uses, adjustable live.
+---
+import GridDimensions from '../../../../components/examples-react/44-grid-dimensions.tsx';
+import GridDimensionsSource from '../../../../components/examples-react/44-grid-dimensions.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={GridDimensionsSource} filename="grid-dimensions.tsx" lang="tsx">
+  <GridDimensions client:visible />
+</ExampleTryIt>
+
+All three are fully reactive after mount — changing any of them
+recomputes every item's pixel position/size live, not just for items
+added afterward. `margin` is `[horizontal, vertical]`, both in pixels.

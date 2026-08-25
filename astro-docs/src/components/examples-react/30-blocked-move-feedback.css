@@ -1,0 +1,10 @@
+.demo-status {
+  color: var(--kg-text-lo-light);
+  font-size: 13px;
+  transition: color 0.15s ease;
+}
+
+.demo-status--active {
+  color: var(--kg-amber-deep);
+  font-weight: 600;
+}

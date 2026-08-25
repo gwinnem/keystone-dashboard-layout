@@ -1,0 +1,24 @@
+---
+title: Auto-size grid on content
+description: autoSize is true by default — most consumers never need to think about it, but it's worth knowing about for the opposite case.
+---
+import AutoSizeGrid from '../../../../components/examples-react/20-auto-size-grid.tsx';
+import AutoSizeGridSource from '../../../../components/examples-react/20-auto-size-grid.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={AutoSizeGridSource} filename="auto-size-grid.tsx" lang="tsx">
+  <AutoSizeGrid client:visible />
+</ExampleTryIt>
+
+`autoSize` is `true` by default — most consumers never need to think
+about it. It's worth knowing about mainly for the opposite case: set
+`autoSize={false}` if you want a fixed-height scrollable grid instead
+of one that grows to fit its content.
+
+:::tip[Prefer heightMode for finer control]
+`autoSize` is the original boolean toggle; `heightMode` is the newer,
+more expressive replacement (`'auto'`/`'fixed'`/`'scroll'`/`'fit'`) —
+see [GridLayout props](/react/components/grid-layout/props/) for the
+full set of modes, including the `'scroll'`/`'fit'` options this
+boolean toggle can't express on its own.
+:::

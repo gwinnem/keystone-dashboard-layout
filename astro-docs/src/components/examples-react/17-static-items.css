@@ -1,0 +1,5 @@
+.example-item--static {
+  background: var(--kg-paper-3);
+  border-color: var(--kg-blueprint-deep);
+  color: var(--kg-blueprint-deep);
+}

@@ -1,0 +1,17 @@
+---
+title: Bounded drag to container
+description: With isBounded enabled, items can't be dragged past the edges of the grid container.
+---
+import BoundedDrag from '../../../../components/examples-react/02-bounded-drag.tsx';
+import BoundedDragSource from '../../../../components/examples-react/02-bounded-drag.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={BoundedDragSource} filename="bounded-drag.tsx" lang="tsx">
+  <BoundedDrag client:visible />
+</ExampleTryIt>
+
+:::tip[Per-item override]
+`isBounded` can also be set on an individual layout item's own
+`isBounded` field to bound just that item regardless of `GridLayout`'s
+own default — leave it unset (the default) to inherit from `GridLayout`.
+:::

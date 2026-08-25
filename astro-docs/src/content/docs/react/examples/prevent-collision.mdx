@@ -1,0 +1,17 @@
+---
+title: Prevent collision
+description: Blocks a drag/resize from overlapping another item entirely, rather than pushing it out of the way.
+---
+import PreventCollision from '../../../../components/examples-react/08-prevent-collision.tsx';
+import PreventCollisionSource from '../../../../components/examples-react/08-prevent-collision.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={PreventCollisionSource} filename="prevent-collision.tsx" lang="tsx">
+  <PreventCollision client:visible />
+</ExampleTryIt>
+
+:::caution[Interacts with compaction]
+`preventCollision` stops an item from overlapping another — it doesn't
+disable compaction. If you want items to stay exactly where they're put
+with no automatic repositioning at all, also set `compactType={ECompactType.NONE}`.
+:::

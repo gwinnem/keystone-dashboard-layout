@@ -1,0 +1,15 @@
+.demo-btn {
+  background: var(--kg-blueprint);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.demo-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}

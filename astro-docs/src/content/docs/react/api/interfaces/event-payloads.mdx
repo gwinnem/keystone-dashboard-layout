@@ -1,0 +1,65 @@
+---
+title: Cross-grid & outside-drop event payloads
+description: The typed payloads for GridLayout's cross-grid and outside-drop callbacks.
+---
+
+Shared with the Vue package via `@keystone-dashboard-layout/core` for
+the cross-grid shapes — import them from `core` directly, since this
+package doesn't re-export them through its own barrel.
+
+## `onOutsideDrop`
+
+Unlike the Vue package, there's no separate named interface for this
+payload — the shape is inlined directly in the callback's own type
+signature:
+
+```ts
+onOutsideDrop?: (payload: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  dataTransfer: DataTransfer | null;
+}) => void;
+```
+
+`w`/`h` always echo `outsideDropWidth`/`outsideDropHeight` back, so a
+handler doesn't need to separately track what it configured.
+`dataTransfer` is the native object from the browser's own `drop`
+event — read whatever the dragged element attached to it (e.g. via
+`core`'s own `readOutsideDropPayload`) to decide what this drop
+actually represents; the library has no way to know on its own, so
+nothing is added to `layout` automatically.
+
+## `onCrossGridItemDropped`
+
+```ts
+import type { ICrossGridItemDropped } from '@keystone-dashboard-layout/core';
+
+interface ICrossGridItemDropped {
+  item: ILayoutItem;
+  sourceLayoutId: string;
+}
+```
+
+Payload passed to `onCrossGridItemDropped`, called on the **target**
+grid — the moved layout item (already inserted into this grid's
+`layout`) and the source grid's `layoutId`.
+
+## `onCrossGridDropRejected`
+
+```ts
+import type { ICrossGridDropRejected } from '@keystone-dashboard-layout/core';
+
+interface ICrossGridDropRejected {
+  itemId: string | number;
+  sourceLayoutId: string;
+}
+```
+
+Payload passed to `onCrossGridDropRejected`, called on the **target**
+grid when it has `disableExternalDrop` set — the item stays in its
+source grid; nothing about either grid's `layout` changes.
+
+See [GridLayout props](/react/components/grid-layout/props/) for when
+each of these callbacks actually fires.

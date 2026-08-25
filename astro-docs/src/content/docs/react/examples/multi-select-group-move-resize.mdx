@@ -1,0 +1,66 @@
+---
+title: Multi-select & group move/resize
+description: Select multiple items and drag or resize any of them — the rest of the selection moves or resizes by the same delta.
+---
+import MultiSelect from '../../../../components/examples-react/37-multi-select-group-move-resize.tsx';
+import MultiSelectSource from '../../../../components/examples-react/37-multi-select-group-move-resize.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={MultiSelectSource} filename="multi-select-group-move-resize.tsx" lang="tsx">
+  <MultiSelect client:visible />
+</ExampleTryIt>
+
+```ts
+gridRef.current.selectItem('a');           // adds 'a' to the selection
+gridRef.current.toggleItemSelection('b');  // toggles 'b' in/out
+gridRef.current.deselectItem('a');
+gridRef.current.clearSelection();
+gridRef.current.selectedItems;             // a snapshot, not reactive — see note below
+```
+
+## Multi-select
+
+Off by default (`multiSelect: false`) — every prior behavior is
+completely unaffected when this stays off. When on:
+
+- **Click** an item — selects only it, replacing any prior selection.
+- **Shift+click or Ctrl/Cmd+click** — adds/removes that item from the
+  current selection additively.
+- **Click empty grid background** — clears the selection entirely.
+
+Dragging or resizing any *selected* item while more than one item is
+selected moves/resizes every other selected item by the same delta —
+also works from the keyboard (arrow keys/Shift+arrow on a focused,
+selected item), not just mouse/touch drag.
+
+A passenger that's static, or has `isDraggable`/`isResizable`
+explicitly `false` on its own layout entry, never moves or resizes as
+part of a group gesture. A passenger's own `minW`/`maxW`/`minH`/`maxH`
+are also respected individually during group resize — see item "d" in
+the demo above, which stops at its own `maxW` of 3 even while the
+other, unconstrained items keep growing.
+
+:::caution[Deliberately scoped, not fully collision-aware]
+The delta is applied directly to every other selected item's position
+or size — there's no per-passenger collision detection against
+*non-selected* items during the gesture itself. Compaction (per
+`compactType`) still runs normally once the gesture ends.
+:::
+
+:::note[selectedItems is a snapshot, not reactive state]
+Unlike Vue's own template ref (whose `selectedItems` is genuinely
+reactive), the imperative handle's `selectedItems` here is a plain
+snapshot — reading it directly in JSX won't re-render when selection
+changes. Use `onSelectionChanged` (as this example does) to mirror the
+current selection into your own React state instead.
+:::
+
+## Custom resize-handle rendering (`renderResizeHandle` prop)
+
+A render prop on `GridItem` — receives the edge identifier (`'n'`,
+`'s'`, `'e'`, `'w'`, `'ne'`, `'nw'`, `'se'`, `'sw'`) as its argument,
+letting you render different content per edge/corner. Renders inside
+the same small hit-area `showResizeHandles`/`resizeHandleColor` already
+use for the color/visibility toggle — both can be combined, or the
+render prop used on its own for a fully custom icon instead of a plain
+colored dot.

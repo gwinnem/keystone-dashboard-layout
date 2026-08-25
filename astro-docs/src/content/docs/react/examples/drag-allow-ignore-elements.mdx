@@ -1,0 +1,22 @@
+---
+title: Drag allow / ignore elements
+description: dragAllowFrom restricts dragging to a specific handle; dragIgnoreFrom excludes specific descendants.
+---
+import DragAllowIgnoreElements from '../../../../components/examples-react/05-drag-allow-ignore-elements.tsx';
+import DragAllowIgnoreElementsSource from '../../../../components/examples-react/05-drag-allow-ignore-elements.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={DragAllowIgnoreElementsSource} filename="drag-allow-ignore-elements.tsx" lang="tsx">
+  <DragAllowIgnoreElements client:visible />
+</ExampleTryIt>
+
+Unlike the Vue package, `dragAllowFrom`/`dragIgnoreFrom` live on the
+layout item itself (an `ILayoutItem` field), not as a `GridItem` prop —
+`GridItem` only takes `i` and reads everything else from its matching
+layout entry. `dragAllowFrom` restricts dragging to a specific handle
+(a CSS selector) — unset, the default, allows dragging from anywhere on
+the item except `dragIgnoreFrom` matches. `dragIgnoreFrom` defaults to
+`` `a, button` ``, so buttons and links inside an item don't
+accidentally start a drag — has no effect at all once `dragAllowFrom`
+is set, since an explicit allow-list already restricts the surface to
+one handle.

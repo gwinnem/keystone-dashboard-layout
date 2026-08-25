@@ -1,0 +1,68 @@
+---
+title: Styling
+description: CSS custom properties and class names for customizing the grid's appearance.
+---
+
+Unlike the Vue package (which bakes most of its own defaults into
+compile-time SCSS variables, mostly not runtime-overridable), this
+package's stylesheet uses real, runtime-overridable CSS custom
+properties throughout, under a consistent `kdl-` prefix on every class
+name — confirmed directly from `packages/react/src/styles/index.css`.
+
+## CSS custom properties
+
+All of these are genuinely overridable from your own stylesheet after
+importing `@keystone-dashboard-layout/react/style.css`:
+
+| Property | Default | Set by |
+|---|---|---|
+| `--kdl-transition-duration` | `200ms` | `transitionDurationMs` prop |
+| `--kdl-transition-timing` | `ease` | `transitionTimingFunction` prop |
+| `--kdl-grid-line-column-size` | `1px` | Computed from `colNum`/margin when `showGridLines` is on |
+| `--kdl-grid-line-row-size` | `1px` | Computed from `rowHeight`/margin when `showGridLines` is on |
+| `--kdl-resize-handle-color` | `rgb(94 94 94 / 45%)` | `resizeHandleColor` prop |
+
+```css
+/* After importing '@keystone-dashboard-layout/react/style.css' */
+.kdl-grid-layout {
+  --kdl-resize-handle-color: #38bdf8;
+}
+```
+
+## Key class names
+
+The library only ever sets/removes these classes — it never applies
+inline styles for anything covered here, so overriding the class is
+enough; there's no competing inline style to fight.
+
+| Class | Applied when |
+|---|---|
+| `.kdl-grid-layout` | Always, on the root element. |
+| `.kdl-grid-layout--active-drag` | While any item in this grid has an active drag (raises this grid's own stacking context, relevant for `allowCrossGridDrag`). |
+| `.kdl-grid-layout--grid-lines` | `showGridLines` is on. |
+| `.kdl-grid-item` | Always, on each item's own root element. |
+| `.kdl-grid-item--draggable` | The resolved `isDraggable` is `true` for this item. |
+| `.kdl-grid-item--dragging` | This item has an active drag in progress. |
+| `.kdl-grid-item--resizing` | This item has an active resize in progress. |
+| `.kdl-grid-item--static` | This item's `isStatic` is `true`. |
+| `.kdl-grid-item--selected` | This item is part of the current `multiSelect` selection. |
+| `.kdl-grid-item--has-header` | The `header` prop was provided. |
+| `.kdl-grid-item--rtl` | This item participates in `isMirrored` (RTL). |
+| `.kdl-grid-item--show-resize-handles` | The resolved `showResizeHandles` is `true` for this item. |
+| `.kdl-grid-item-header` / `.kdl-grid-item-body` | The two regions created when `header` is provided. |
+| `.kdl-grid-item-close-button` | The built-in close button, when `showCloseButton` is on. |
+| `.kdl-resize-hint--n` / `--s` / `--e` / `--w` / `--ne` / `--nw` / `--se` / `--sw` | The (always-present, invisible-by-default) hit zone for each resize edge/corner actually rendered — see `resizeHandles`. |
+
+```css
+/* After importing '@keystone-dashboard-layout/react/style.css' */
+.kdl-grid-item.kdl-grid-item--static {
+  background-color: #1e293b;
+}
+```
+
+## Border radius
+
+Unlike every class above, `borderRadiusPx` is applied as an **inline
+style** (not a class), so it always wins over any CSS you write for it
+— use the `borderRadiusPx`/`useBorderRadius` props themselves rather
+than trying to override this one via CSS.

@@ -1,0 +1,17 @@
+---
+title: Border radius
+description: Setting useBorderRadius/borderRadiusPx on GridLayout cascades to every item that doesn't set its own.
+---
+import BorderRadius from '../../../../components/examples-react/14-border-radius.tsx';
+import BorderRadiusSource from '../../../../components/examples-react/14-border-radius.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={BorderRadiusSource} filename="border-radius.tsx" lang="tsx">
+  <BorderRadius client:visible />
+</ExampleTryIt>
+
+Setting `useBorderRadius`/`borderRadiusPx` on `GridLayout` cascades to
+every layout item that doesn't set its own (unset, the default), the
+same inherit pattern as `isDraggable`/`isResizable`. Setting either
+field directly on a layout item overrides that inherited default for
+just that one item.

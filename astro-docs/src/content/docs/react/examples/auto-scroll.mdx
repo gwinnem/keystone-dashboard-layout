@@ -1,0 +1,19 @@
+---
+title: autoScroll
+description: Dragging or resizing near the edge of a scrollable container scrolls it automatically.
+---
+import AutoScroll from '../../../../components/examples-react/39-auto-scroll.tsx';
+import AutoScrollSource from '../../../../components/examples-react/39-auto-scroll.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={AutoScrollSource} filename="auto-scroll.tsx" lang="tsx">
+  <AutoScroll client:visible />
+</ExampleTryIt>
+
+Unlike the Vue package (whose own docs describe this as per-item only),
+this package's `autoScroll` is both a `GridLayout`-wide default *and* a
+per-item override field on the layout item — the same inherit pattern
+`isDraggable`/`isResizable` use. Scrolls the item's nearest scrollable
+ancestor, not necessarily the whole page. Off by default, since a
+plain page-level grid usually has nothing to scroll; turn it on for
+items living inside a fixed-height, overflow-scrolling container.

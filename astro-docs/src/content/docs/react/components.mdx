@@ -1,0 +1,39 @@
+---
+title: Components
+description: GridLayout and GridItem — the two components this package exports.
+---
+
+The package exports these from its main entry point:
+
+| Component | Purpose |
+|---|---|
+| [`GridLayout`](/react/components/grid-layout/props/) | The grid container — owns the layout array, breakpoints, and collision/compaction logic. A fully controlled component (`layout`/`onLayoutChange`). |
+| [`GridItem`](/react/components/grid-item/props/) | A single draggable/resizable cell, rendered as a child of `GridLayout`. |
+
+See [Styling](/react/components/styling/) for the CSS custom properties
+and class names used throughout.
+
+```ts
+import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
+```
+
+There's no default export — always import by name. See [Installation](/react/guide/installation/)
+if you haven't added the package yet.
+
+Unlike the Vue package, there's no separate exported close-button or
+drag-handle component. A close button is a built-in, per-item opt-in
+(`showCloseButton` on `GridLayout`/`ILayoutItem` + an `onItemClose`
+callback you handle yourself), and any part of an item is a drag handle
+by default — restrict it via `dragAllowFrom`/`dragIgnoreFrom` on the
+layout item instead of swapping in a different component.
+
+## The imperative handle
+
+`GridLayout` also exposes an imperative API via `ref` —
+`compactNow()`, `duplicateItem(id)`, `undo()`/`redo()`,
+`selectItem()`/`clearSelection()`, `alignSelected(edge)`/
+`distributeSelected(axis)`, `exportLayoutAsSvg()`, and
+`scrollToItem(id)`/`focusItem(id)` — the React equivalent of Vue's own
+`defineExpose`'d template-ref methods, reached via `forwardRef`/
+`useImperativeHandle` instead. See [Imperative handle](/react/api/interfaces/imperative-handle/)
+once that page lands for the full reference.

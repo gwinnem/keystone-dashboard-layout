@@ -1,0 +1,16 @@
+---
+title: Horizontal shift
+description: Pushes colliding items left/right instead of down, during an active drag/resize.
+---
+import HorizontalShift from '../../../../components/examples-react/15-horizontal-shift.tsx';
+import HorizontalShiftSource from '../../../../components/examples-react/15-horizontal-shift.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={HorizontalShiftSource} filename="horizontal-shift.tsx" lang="tsx">
+  <HorizontalShift client:visible />
+</ExampleTryIt>
+
+The default collision behavior compacts vertically (colliding items get
+pushed down). `horizontalShift` changes that to push left/right instead
+— useful for layouts that read more naturally as a single row or a
+small number of rows.

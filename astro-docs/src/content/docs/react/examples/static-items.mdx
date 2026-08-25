@@ -1,0 +1,23 @@
+---
+title: Static items
+description: A static item ignores isDraggable/isResizable entirely and is excluded from the drag-collision cascade.
+---
+import StaticItems from '../../../../components/examples-react/17-static-items.tsx';
+import StaticItemsSource from '../../../../components/examples-react/17-static-items.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={StaticItemsSource} filename="static-items.tsx" lang="tsx">
+  <StaticItems client:visible />
+</ExampleTryIt>
+
+`isStatic` is set on the layout item itself, not as a `GridItem` prop —
+`GridItem` only takes `i` and reads everything else from its matching
+layout entry. A static item ignores `isDraggable`/`isResizable`
+entirely and is excluded from the drag-collision cascade (other items
+compact around it as a fixed obstacle).
+
+:::tip[Common use case: dashboard "anchors"]
+A common pattern is a static header or KPI card that should never move,
+surrounded by draggable widgets — set `isStatic: true` on just that one
+layout entry.
+:::

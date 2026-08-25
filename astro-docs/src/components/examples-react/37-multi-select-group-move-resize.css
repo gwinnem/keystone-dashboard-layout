@@ -1,0 +1,11 @@
+.demo-description {
+  color: var(--kg-text-lo-light);
+  font-size: 13px;
+}
+
+.resize-dot {
+  color: var(--kg-amber-deep);
+  font-size: 12px;
+  pointer-events: none;
+  user-select: none;
+}

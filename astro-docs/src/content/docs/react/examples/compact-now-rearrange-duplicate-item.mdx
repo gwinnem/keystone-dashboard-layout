@@ -1,0 +1,23 @@
+---
+title: compactNow, rearrange & duplicateItem
+description: On-demand layout tidying and item duplication, exposed on the imperative handle.
+---
+import CompactNowRearrangeDuplicateItem from '../../../../components/examples-react/29-compact-now-rearrange-duplicate-item.tsx';
+import CompactNowRearrangeDuplicateItemSource from '../../../../components/examples-react/29-compact-now-rearrange-duplicate-item.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CompactNowRearrangeDuplicateItemSource} filename="compact-now-rearrange-duplicate-item.tsx" lang="tsx">
+  <CompactNowRearrangeDuplicateItem client:visible />
+</ExampleTryIt>
+
+`compactNow()` always forces compaction, regardless of the ambient
+`compactType` setting — the entire point of a manual "tidy up" trigger
+is that it works even when auto-compaction is otherwise disabled.
+`rearrange()` is the same underlying operation under a different name
+for call sites that read more naturally that way. `duplicateItem(id)`
+clones an existing layout entry into the first available free slot —
+collision-safe, no manual position math needed, the same convention
+`y: Infinity` uses for [adding items](/react/examples/add-remove-items/).
+Both `compactNow`/`duplicateItem` report their result through the same
+`onLayoutChange` callback used everywhere else — no extra glue needed
+to keep local state in sync.

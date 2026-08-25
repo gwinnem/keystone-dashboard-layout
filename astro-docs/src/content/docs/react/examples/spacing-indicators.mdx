@@ -1,0 +1,22 @@
+---
+title: Spacing indicators
+description: A labeled distance badge in the gap to the nearest neighbor on each side — an independently toggleable sibling to alignment guides.
+---
+import SpacingIndicators from '../../../../components/examples-react/47-spacing-indicators.tsx';
+import SpacingIndicatorsSource from '../../../../components/examples-react/47-spacing-indicators.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={SpacingIndicatorsSource} filename="spacing-indicators.tsx" lang="tsx">
+  <SpacingIndicators client:visible />
+</ExampleTryIt>
+
+Distinct from [alignment guides](/react/examples/alignment-guides/):
+that feature visualizes edges lining up between two items, purely
+visually. This one labels the *size* of a gap (e.g. "2 cols") between
+the item currently being dragged/resized and its nearest neighbor on
+each side — a different concept, independently toggleable, and can be
+combined with alignment guides at the same time.
+
+Only the nearest neighbor per side is labeled, not every item on that
+side — a distance label to everything nearby would be visual noise, not
+useful feedback.

@@ -16,13 +16,15 @@
 import { Code } from 'astro:components';
 
 interface Props {
-  /** The .vue filename shown in the toolbar, e.g. "basic-drag-resize.vue". */
+  /** The filename shown in the toolbar, e.g. "basic-drag-resize.vue" or "basic-drag-resize.tsx". */
   filename: string;
   /** Raw source, from a `?raw` import in the consuming .mdx page. */
   code: string;
+  /** Shiki language for the Source panel's syntax highlighting. Defaults to 'vue' so every existing Vue example call site (which doesn't pass this) keeps its exact current behavior unchanged. */
+  lang?: string;
 }
 
-const { filename, code } = Astro.props as Props;
+const { filename, code, lang = `vue` } = Astro.props as Props;
 ---
 
 <div class="try-it not-content">
@@ -82,7 +84,7 @@ const { filename, code } = Astro.props as Props;
       </button>
       <Code
         code={code}
-        lang="vue"
+        lang={lang}
         theme="github-dark"
         wrap />
       <div

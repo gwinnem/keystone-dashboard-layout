@@ -1,0 +1,18 @@
+.demo-select {
+  border: 1px solid var(--kg-line-light);
+  border-radius: 6px;
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.demo-btn {
+  background: var(--kg-blueprint);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  padding: 6px 12px;
+}

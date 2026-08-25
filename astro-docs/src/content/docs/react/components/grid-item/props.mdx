@@ -1,0 +1,57 @@
+---
+title: GridItem Props
+description: Every prop GridItem accepts, and where per-item configuration actually lives.
+---
+
+`GridItem` itself is deliberately minimal — only `i` is required.
+Everything Vue's own `GridItem` takes as a component prop
+(`isDraggable`, `minW`, `zIndex`, and so on) instead lives directly on
+the matching entry in `GridLayout`'s own `layout` array (an
+`ILayoutItem`, from `@keystone-dashboard-layout/core`) — set those
+fields on your layout data instead of on this component.
+
+## Component props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `i` | `string \| number` (required) | — | Matches this item to its entry in the parent `GridLayout`'s `layout` array. |
+| `header` | `ReactNode` | — | Optional header content, rendered above `children` in a fixed-size row — `children` becomes a scrollable body below it. Omitting this prop entirely renders `children` exactly as before, unaffected. The render-prop equivalent of Vue's own `#header` slot. |
+| `children` | `ReactNode` | — | The item's own content — becomes the scrollable body region when `header` is also provided. |
+| `renderResizeHandle` | `(edge: TResizeHandle) => ReactNode` | — | Customizes a resize-hint span's own content (an icon, typically) — called once per actually-rendered edge/corner, with that edge's identifier. `undefined` renders each span empty. The render-prop equivalent of Vue's own `#resize-handle` slot. |
+| `className` | `string` | — | Applied to the item's own root element, alongside the library's own positioning/interaction classes. |
+
+## Per-item configuration (`ILayoutItem`)
+
+These fields live on the layout item itself — the object in `GridLayout`'s
+`layout` array whose `i` matches this `GridItem`'s own `i` prop — not on
+`GridItem`. Most mirror a same-named `GridLayout` prop as a per-item
+override; `undefined`/`null` defers to that grid-wide default.
+
+| Field | Type | Description |
+|---|---|---|
+| `isDraggable` | `boolean` | Overrides the grid-wide default for this item. |
+| `isResizable` | `boolean` | Overrides the grid-wide default for this item. |
+| `isStatic` | `boolean` | Excludes this item from dragging, resizing, and collision cascades entirely. |
+| `minW` / `maxW` / `minH` / `maxH` | `number` | Size constraints, in grid units. |
+| `isBounded` | `boolean \| null` | Overrides the grid-wide `isBounded` default for this item. |
+| `zIndex` | `number \| null` | CSS `z-index` override, always winning over the static/dragging/resizing CSS-class-based defaults when set. |
+| `showCloseButton` | `boolean` | Overrides the grid-wide default for this item. |
+| `autoScroll` | `boolean` | Overrides the grid-wide default for this item. |
+| `preserveAspectRatio` | `boolean` | Overrides the grid-wide default for this item. |
+| `ariaLabels` | `IGridAriaLabels` | Merged over the grid-wide `ariaLabels` prop (and that, in turn, over the built-in English defaults). |
+| `dragAllowFrom` | `string \| null` | CSS selector restricting which descendant elements can start a drag. |
+| `dragIgnoreFrom` | `string` | CSS selector for elements that should *not* start a drag. Has no effect when `dragAllowFrom` is also set. Defaults to `` `a, button` `` when left unset, matching Vue. |
+| `resizeIgnoreFrom` | `string \| null` | CSS selector for elements that should *not* start a resize. |
+| `dragActivationDistance` | `TDragActivationDistance \| null` | Per-pointer-type drag-start threshold for this item. |
+| `resizeHandles` | `TResizeHandle[] \| null` | Overrides the grid-wide default for this item. An empty array is a valid "no handle-driven resize for this item" value, distinct from `isResizable: false`. |
+| `isMirrored` | `boolean` | Whether this item participates in the grid's own RTL mirroring. Default `true`. |
+| `enableEditMode` | `boolean` | Overrides the grid-wide master interactivity switch for this item. |
+| `borderRadiusPx` | `number` | Overrides the grid-wide default for this item. |
+| `useBorderRadius` | `boolean` | Overrides the grid-wide default for this item. |
+| `showResizeHandles` | `boolean` | Overrides the grid-wide default for this item. |
+| `resizeHandleColor` | `string` | Overrides the grid-wide default for this item. |
+| `autoHeight` | `boolean` | Automatically re-measures this item's own height/width whenever its rendered content changes size, via a `ResizeObserver` — independent of the whole grid being `autoSize`d. |
+| `data` | your own type | Optional, consumer-defined payload — never read or written by the library itself. Attach a widget's config or dataset reference directly here instead of maintaining a parallel lookup keyed by `i`. |
+
+See [API](/react/api/) once that page lands for the full `ILayoutItem`
+reference, shared with the Vue package via `@keystone-dashboard-layout/core`.

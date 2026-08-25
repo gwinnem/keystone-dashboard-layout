@@ -1,0 +1,23 @@
+---
+title: Drag, drop from grid to grid
+description: Both grids set allowCrossGridDrag — drag an item from one into the other.
+---
+import CrossGridDragDrop from '../../../../components/examples-react/12-cross-grid-drag-drop.tsx';
+import CrossGridDragDropSource from '../../../../components/examples-react/12-cross-grid-drag-drop.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={CrossGridDragDropSource} filename="cross-grid-drag-drop.tsx" lang="tsx">
+  <CrossGridDragDrop client:visible />
+</ExampleTryIt>
+
+**Must be set on both grids** — a drop onto a grid that doesn't have
+`allowCrossGridDrag` set is indistinguishable from dropping on empty
+space. `layoutId` gives each grid a stable identifier used in the
+`onCrossGridItemDropped`/`onCrossGridDropRejected` payloads to say
+which grid an item came from — omit it and one is auto-generated. Each
+grid removes/inserts the moved item from its own `layout` state
+internally — no extra glue code needed on either side beyond the
+props shown here.
+
+See [Multiple grids](/react/examples/multiple-grids/) if you only need
+two independent grids on the same page without dragging between them.

@@ -1,0 +1,160 @@
+---
+title: Installation
+description: Add Keystone Dashboard Layout for React to your project.
+---
+
+## Add the package
+
+```sh
+npm install @keystone-dashboard-layout/react
+```
+
+`react` and `react-dom` (^18.0.0 || ^19.0.0) are peer dependencies — the
+package doesn't bundle its own copy of React.
+
+## Import the styles
+
+The components ship with their own base styling (positioning, drag/resize
+cursors, the default close button). Import it once, anywhere it'll be
+loaded application-wide — typically your app's entry point:
+
+```ts
+import '@keystone-dashboard-layout/react/style.css';
+```
+
+## Use the components
+
+The package has **no default export** — import `GridLayout`/`GridItem`
+(and anything else you need) as named imports. `GridLayout` is a fully
+controlled component: pass it `layout` and handle changes via
+`onLayoutChange`, the same way you'd control any other React input.
+
+```tsx
+import { useState } from 'react';
+import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
+import type { TLayout } from '@keystone-dashboard-layout/core';
+
+function Dashboard() {
+  const [layout, setLayout] = useState<TLayout>([
+    { i: '0', x: 0, y: 0, w: 2, h: 2 },
+    { i: '1', x: 2, y: 0, w: 2, h: 2 },
+  ]);
+
+  return (
+    <GridLayout layout={layout} onLayoutChange={setLayout}>
+      {layout.map((item) => (
+        <GridItem key={item.i} i={item.i}>
+          Item {item.i}
+        </GridItem>
+      ))}
+    </GridLayout>
+  );
+}
+```
+
+That's the whole setup — see the [Guide's own example](/react/guide/introduction/#how-it-fits-together)
+for the same shape, or [Components](/react/components/) for the full
+prop/callback reference once that page lands.
+
+## A more complete example: drag, resize, and remove
+
+A slightly larger example showing the props most people reach for early —
+`colNum`/`rowHeight`/`margin` for sizing, `isBounded` to keep items inside
+the container, and a close button:
+
+```tsx
+import { useState } from 'react';
+import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
+import type { TLayout } from '@keystone-dashboard-layout/core';
+
+function Dashboard() {
+  const [layout, setLayout] = useState<TLayout>([
+    { i: '0', x: 0, y: 0, w: 2, h: 2 },
+    { i: '1', x: 2, y: 0, w: 2, h: 2 },
+    { i: '2', x: 4, y: 0, w: 2, h: 2, isStatic: true },
+  ]);
+
+  function removeItem(id: string | number): void {
+    setLayout((current) => current.filter((item) => item.i !== id));
+  }
+
+  return (
+    <GridLayout
+      layout={layout}
+      onLayoutChange={setLayout}
+      colNum={12}
+      rowHeight={60}
+      margin={[10, 10]}
+      isBounded
+      showCloseButton
+      onItemClose={removeItem}
+    >
+      {layout.map((item) => (
+        <GridItem key={item.i} i={item.i}>
+          Item {item.i}
+          {item.isStatic ? ' (locked)' : null}
+        </GridItem>
+      ))}
+    </GridLayout>
+  );
+}
+```
+
+`isStatic: true` on item `2` locks it in place — it won't drag, resize, or
+show a close button, regardless of the layout-level defaults above it.
+
+## TypeScript
+
+Every prop, callback, and interface is exported from the same entry
+point — there's nothing extra to install or configure for full type
+support:
+
+```ts
+import {
+  GridLayout,
+  GridItem,
+  useLayoutStorage,
+  useLayoutPresets,
+  type IGridLayoutProps,
+  type IGridItemProps,
+  type IGridLayoutHandle,
+  type IUseLayoutStorageReturn,
+  type IUseLayoutPresetsOptions,
+  type IUseLayoutPresetsReturn,
+} from '@keystone-dashboard-layout/react';
+```
+
+Layout-level types (`TLayout`, `ILayoutItem`, and so on) come from the
+shared `@keystone-dashboard-layout/core` package instead — see
+[API](/react/api/) once that page lands for the complete list.
+
+## Requirements
+
+| | |
+|---|---|
+| React | ^18.0.0 \|\| ^19.0.0 (peer dependency) |
+| react-dom | ^18.0.0 \|\| ^19.0.0 (peer dependency) |
+| Node (for building your app) | ^18.0.0 \|\| ^20.0.0 \|\| >=22.0.0 |
+| Browser support | Any browser with native `ResizeObserver` support — all current evergreen browsers |
+
+## Verifying the install
+
+If `import '@keystone-dashboard-layout/react/style.css'` or the named
+component imports fail to resolve, first confirm the installed version
+actually declares an `exports` map for both:
+
+```sh
+npm ls @keystone-dashboard-layout/react
+node -e "console.log(require.resolve('@keystone-dashboard-layout/react/style.css'))"
+```
+
+The second command should print a path ending in `style.css`. If it
+throws instead, you're likely on an older published version — update to
+the latest and try again.
+
+## Persisting a layout
+
+`layout` is a plain array you control — persist it however you like. The
+library ships a `useLayoutStorage` hook for the common case (save/load
+against `localStorage` or any `Storage`-compatible backend), and a
+`useLayoutPresets` hook for switching between several named layouts.

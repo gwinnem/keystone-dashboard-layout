@@ -1,0 +1,87 @@
+---
+title: GridItemComponent Props
+description: Every @Input()/@Output() GridItemComponent accepts.
+---
+
+Unlike the React package (where `GridItem` only takes `i`, reading
+everything else off the matching `layout` entry), `GridItemComponent`
+takes position/size and most per-item behavior directly as its **own**
+`@Input()`s — the same shape Vue's `GridItem` uses. Bind each one
+explicitly per item in your own template's `@for` loop.
+
+## Required
+
+| Input | Type | Description |
+|---|---|---|
+| `i` | `string \| number` (required) | Unique identifier matching this item's entry in the parent `layout` array. |
+| `x` | `number` (required) | Horizontal position, in grid column units. |
+| `y` | `number` (required) | Vertical position, in grid row units. |
+| `w` | `number` (required) | Width, in grid column units. |
+| `h` | `number` (required) | Height, in grid row units. |
+
+## Drag & resize
+
+| Input/Output | Type | Default | Description |
+|---|---|---|---|
+| `isDraggable` | `boolean \| null` | `null` | `null` inherits the grid-wide cascaded default (`true` with no parent `GridLayoutComponent`/event bus at all — standalone usage). |
+| `isResizable` | `boolean \| null` | `null` | Same cascade as `isDraggable`. |
+| `isStatic` | `boolean` | `false` | Excludes this item from dragging, resizing, and collision entirely. |
+| `isBounded` | `boolean \| null` | `null` | Same cascade as `isDraggable` — restricts dragging to within the container's own bounds. |
+| `minW` / `maxW` / `minH` / `maxH` | `number` | `1` / `Infinity` / `1` / `Infinity` | Size constraints, in grid units. |
+| `isMirrored` | `boolean \| null` | `null` | Same cascade as `isDraggable` — whether this item renders right-to-left. The resize-specific edge-swap math for RTL is a direct analogy to the LTR case, not exhaustively verified against a real browser. |
+| `zIndex` | `number \| null` | `null` | CSS `z-index` override, always winning over the static/dragging/resizing CSS-class-based defaults when set. |
+| `autoScroll` | `boolean` | `false` | Scrolls the nearest scrollable ancestor while dragging/resizing near its edge. |
+| `dragAllowFrom` | `string \| null` | `null` | CSS selector restricting which descendant can start a drag. `null` means anywhere on the item. |
+| `dragIgnoreFrom` | `string` | `'a, button'` | CSS selector excluding descendants that should *not* start a drag. |
+| `resizeIgnoreFrom` | `string \| null` | `null` | CSS selector excluding descendants of a resize handle that shouldn't themselves start a resize. |
+| `dragActivationDistance` | `TDragActivationDistance \| null` | `null` | Per-pointer-type drag-start threshold. `null` uses the native engine's own built-in threshold. |
+| `showResizeHandles` | `boolean \| null` | `null` | `null` inherits whatever the surrounding stylesheet already applies; explicit `true`/`false` sets `--kdl-resize-handle-color` directly on this item. |
+| `resizeHandleColor` | `string \| null` | `null` | Falls back to the same default color Vue/React both use, when `showResizeHandles` resolves on. |
+| `resizeHandles` | `TResizeHandle[] \| null` | `null` (all 8) | Restricts which of the 8 resize-hint spans actually render/activate. An empty array is a deliberate "no handle-driven resize for this item" value, distinct from `isResizable: false`. |
+| `preserveAspectRatio` | `boolean` | `false` | Derives whichever resize dimension isn't directly driven by the active edge(s) from the one that is, using the ratio captured at resize-start. |
+| `autoHeight` | `boolean` | `false` | Automatically re-measures this item's own height/width whenever its own projected content changes size, via a `ResizeObserver` on a dedicated wrapper element. |
+| `removeItem` | `EventEmitter<string \| number>` | — | Emits this item's own `i` when the built-in close button is clicked. A plain, local `@Output()` — `GridLayoutComponent` does nothing with it on its own; you handle removal yourself, typically by filtering your own `layout` array. |
+
+## Styling & accessibility
+
+| Input | Type | Default | Description |
+|---|---|---|---|
+| `useBorderRadius` | `boolean \| null` | `null` | Same cascade as `isDraggable`. |
+| `borderRadiusPx` | `number \| null` | `null` | Applied only when `useBorderRadius` resolves `true`. Same cascade as `isDraggable`. |
+| `showCloseButton` | `boolean \| null` | `null` | Same cascade as `isDraggable`. Ignored entirely while `isStatic` is `true`. |
+| `enableEditMode` | `boolean \| null` | `null` | Same cascade as `isDraggable` — see `GridLayoutComponent`'s own `enableEditMode` row for exactly what this gates. |
+| `ariaLabels` | `IGridAriaLabels` | `{}` | Merged over the grid-wide `ariaLabels` `@Input()` (and that, in turn, over the built-in English defaults). Not `null`-cascaded like the others — an empty object already means "nothing to override here." |
+
+## Header content
+
+Angular has no direct equivalent of Vue's own reactive named-slot
+check, so a dedicated marker directive exists purely so
+`GridItemComponent` can detect whether anything was actually projected:
+
+```html
+<kdl-grid-item [i]="item.i" [x]="item.x" [y]="item.y" [w]="item.w" [h]="item.h">
+  <div kdlGridItemHeader>My header</div>
+  <p>The scrollable body content.</p>
+</kdl-grid-item>
+```
+
+Content marked with `[kdlGridItemHeader]` (the `GridItemHeaderDirective`
+selector) projects into a dedicated, fixed-size header region above the
+rest — everything else becomes a scrollable body below it. Omitting the
+directive entirely renders your content exactly as before, unaffected.
+
+## Standalone-usage-only inputs
+
+These four exist so `GridItemComponent` can be used with no parent
+`GridLayoutComponent`/event bus at all (e.g. in isolation, or in a unit
+test) — a real, nested usage inside `<kdl-grid-layout>` gets these from
+the injected event bus instead and never needs to set them directly.
+
+| Input | Type | Default |
+|---|---|---|
+| `containerWidth` | `number` | `0` |
+| `colNum` | `number` | `12` |
+| `rowHeight` | `number` | `150` |
+| `margin` | `[number, number]` | `[10, 10]` |
+| `useCssTransforms` | `boolean` | `true` |
+| `maxRows` | `number` | `Infinity` |

@@ -1,0 +1,20 @@
+---
+title: Switching layouts & forcing a remount
+description: A plain setState handles switching layouts — a key change forces a genuine remount when internal state needs resetting too.
+---
+import SwitchingLayoutsRemount from '../../../../components/examples-react/45-switching-layouts-remount.tsx';
+import SwitchingLayoutsRemountSource from '../../../../components/examples-react/45-switching-layouts-remount.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={SwitchingLayoutsRemountSource} filename="switching-layouts-remount.tsx" lang="tsx">
+  <SwitchingLayoutsRemount client:visible />
+</ExampleTryIt>
+
+Switching between entirely different layouts is just a normal
+`setLayout` call — no remount needed, and the component correctly
+reacts to the wholesale replacement. A `key` change forcing a real
+remount (React's own equivalent of Vue's `:key`) is a different,
+narrower tool: useful for resetting *internal* component state (an
+in-progress drag, measured width, undo history) that a data change
+alone wouldn't touch, not something to reach for by default just to
+change what's displayed.

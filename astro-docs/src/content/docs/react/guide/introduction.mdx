@@ -1,0 +1,101 @@
+---
+title: Introduction
+description: What Keystone Dashboard Layout for React is, what you get, and where to go next.
+---
+
+Keystone Dashboard Layout for React is a React component library for building
+draggable, resizable, responsive dashboard grids — the kind of UI you'd
+use for a customizable analytics dashboard, a widget board, or any screen
+where users rearrange content themselves.
+
+It's a TypeScript-first library built on the exact same shared
+`@keystone-dashboard-layout/core` algorithms and native, Pointer
+Events-based drag/resize engine the Vue package uses — both frameworks
+share one implementation of the hard, easy-to-get-subtly-wrong parts
+(collision, compaction, responsive breakpoint math) rather than each
+maintaining their own copy. React has reached full feature parity with
+the Vue package.
+
+## What you get
+
+- **`GridLayout`** — the container. A **fully controlled** component: it
+  never mutates the `layout` array (or any item in it) you pass in —
+  every drag/resize tick (and the compaction that follows it) is
+  reported via `onLayoutChange` with a brand-new array. This is the same
+  `layout`/`onLayoutChange` contract `react-grid-layout` itself uses,
+  the idiomatic React pattern here rather than Vue's own two-way
+  `v-model:layout` binding.
+- **`GridItem`** — a single draggable/resizable cell. It only needs an
+  `i` matching one of `layout`'s own entries — position, size, and
+  `isDraggable`/`isResizable`/`isStatic`/`minW`/`maxW`/`minH`/`maxH` all
+  live directly on that layout item, not as separate props on this
+  component.
+- **An imperative handle via `ref`** — `compactNow()`, `rearrange()`,
+  `duplicateItem(id)`, `undo()`/`redo()`, `selectItem()`/
+  `clearSelection()`, `alignSelected(edge)`/`distributeSelected(axis)`,
+  `exportLayoutAsSvg()`, `scrollToItem(id)`/`focusItem(id)`, and more —
+  the React equivalent of Vue's own `defineExpose`'d template-ref
+  methods, reached via `forwardRef`/`useImperativeHandle` instead.
+- **`useLayoutStorage`** and **`useLayoutPresets`** — hooks wrapping
+  layout persistence (serializing to/from `localStorage`) and named
+  layout presets.
+
+There's no separate exported close-button or drag-handle component here
+— a close button is a built-in, per-item opt-in (`showCloseButton` +
+an `onItemClose` callback you handle yourself), and any part of an item
+is a drag handle by default, restrictable via `dragAllowFrom`/
+`dragIgnoreFrom`.
+
+## How it fits together
+
+```tsx
+import { useState } from 'react';
+import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
+import '@keystone-dashboard-layout/react/style.css';
+import type { TLayout } from '@keystone-dashboard-layout/core';
+
+function Dashboard() {
+  const [layout, setLayout] = useState<TLayout>([
+    { i: 'a', x: 0, y: 0, w: 2, h: 2 },
+    { i: 'b', x: 2, y: 0, w: 2, h: 2 },
+  ]);
+
+  return (
+    <GridLayout layout={layout} onLayoutChange={setLayout}>
+      <GridItem i="a">A</GridItem>
+      <GridItem i="b">B</GridItem>
+    </GridLayout>
+  );
+}
+```
+
+`layout` is a plain array of `{ i, x, y, w, h, ... }` objects — one per
+`GridItem`. You own that array; `onLayoutChange` hands you a new one
+every time the user drags or resizes something, and you decide what to
+do with it (usually just `setLayout`). Everything else (collision
+resolution, compaction, responsive breakpoint switching) happens
+automatically based on the props you set.
+
+## Where to go next
+
+- [Features](/react/features/) — the full feature list, grouped by area.
+- [Components](/react/components/) — full prop/callback reference for `GridLayout` and `GridItem`.
+- [API](/react/api/) — exported TypeScript types, interfaces, and enums.
+
+## Design goals
+
+A few decisions that shape how the library behaves, worth knowing up
+front:
+
+- **You own the data.** `layout` is a plain, serializable array you
+  control — the library never mutates it in place, only ever hands you
+  a new one via `onLayoutChange`.
+- **Sensible defaults, explicit overrides.** Most behavior (draggable,
+  resizable, bounded, etc.) can be set once on `GridLayout` and
+  inherited by every item, or overridden per-item when needed.
+- **Idiomatic React, not a literal Vue-to-React transliteration.**
+  Vue's `provide`/`inject` eventBus becomes React Context, its
+  composables become hooks, its named slots become render props
+  (`header`, `renderResizeHandle`), and its two-way `v-model` binding
+  becomes the standard controlled-component pattern — the same
+  underlying behavior, expressed the way each framework actually works.

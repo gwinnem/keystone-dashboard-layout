@@ -1,0 +1,28 @@
+---
+title: Align & distribute selected items
+description: alignSelected/distributeSelected — align a multi-selection to an edge, or evenly distribute the ones between the outermost two.
+---
+import AlignDistributeSelected from '../../../../components/examples-react/46-align-distribute-selected.tsx';
+import AlignDistributeSelectedSource from '../../../../components/examples-react/46-align-distribute-selected.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={AlignDistributeSelectedSource} filename="align-distribute-selected.tsx" lang="tsx">
+  <AlignDistributeSelected client:visible />
+</ExampleTryIt>
+
+Both are exposed on the [imperative handle](/react/api/interfaces/imperative-handle/),
+only meaningful with `multiSelect` on. `alignSelected` treats the
+**first-selected item** (insertion order, not an arbitrary one) as the
+anchor — it never moves; every other selected item aligns to its edge
+or center. Needs at least 2 selected items to do anything.
+
+`distributeSelected` needs at least 3 — the two outermost items (by
+actual position, not selection order) stay exactly where they are, and
+only what's "in between" spaces out evenly across the span those two
+already define, the standard design-tool "distribute" behavior.
+
+Both respect `preventCollision` when it's on — an adjustment that would
+land an item on top of a *non-selected* item is skipped for that one
+item; landing on another item that's *also* part of the same
+align/distribute batch isn't treated as a collision at all, since
+that's frequently the whole point of the command.

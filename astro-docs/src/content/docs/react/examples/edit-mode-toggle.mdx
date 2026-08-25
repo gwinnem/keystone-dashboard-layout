@@ -1,0 +1,18 @@
+---
+title: Edit mode toggle (view-only dashboard)
+description: enableEditMode is a master switch — off, an item can't be dragged, resized, or closed regardless of its own props.
+---
+import EditModeToggle from '../../../../components/examples-react/21-edit-mode-toggle.tsx';
+import EditModeToggleSource from '../../../../components/examples-react/21-edit-mode-toggle.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={EditModeToggleSource} filename="edit-mode-toggle.tsx" lang="tsx">
+  <EditModeToggle client:visible />
+</ExampleTryIt>
+
+`enableEditMode` cascades to every layout item that doesn't set its own
+override — a "view mode" toggle for the whole grid without needing to
+set the field on every item individually. A layout item can still set
+its own `enableEditMode` field to override the grid-wide default for
+just itself, the same inherit pattern `isDraggable`/`isResizable`/`showCloseButton`
+use.

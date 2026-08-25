@@ -1,0 +1,55 @@
+---
+title: Components
+description: GridLayoutComponent and GridItemComponent — the two standalone components this package exports.
+---
+
+The package exports these from its main entry point — both are
+**standalone components**, added directly to your own component's
+`imports` array, no `NgModule` required:
+
+| Component | Selector | Purpose |
+|---|---|---|
+| [`GridLayoutComponent`](/angular/components/grid-layout/props/) | `kdl-grid-layout` | The grid container — owns the layout array, breakpoints, and collision/compaction logic. A fully controlled component (`layout` `@Input()` + `layoutChange` `@Output()`). |
+| [`GridItemComponent`](/angular/components/grid-item/props/) | `kdl-grid-item` | A single draggable/resizable cell, projected as content of `GridLayoutComponent`. |
+
+See [Styling](/angular/components/styling/) once that page lands for
+the CSS custom properties and class names used throughout.
+
+```ts
+import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
+```
+
+There's no default export — always import by name. See
+[Installation](/angular/guide/installation/) if you haven't added the
+package yet.
+
+Unlike the Vue and React packages, there's no separate exported
+close-button or drag-handle component here either. A close button is a
+built-in, per-item opt-in (`showCloseButton` on `GridItemComponent` +
+a `removeItem` `@Output()` you handle yourself), and any part of an
+item is a drag handle by default — restrict it via `dragAllowFrom`/
+`dragIgnoreFrom`, also directly on `GridItemComponent`.
+
+## A real, notable difference from React
+
+Unlike the React package (where `GridItem` only takes `i`, reading
+everything else — position, size, `isDraggable`, and so on — off the
+matching entry in `GridLayout`'s own `layout` array), `GridItemComponent`
+here takes `i`/`x`/`y`/`w`/`h` as its **own, direct, required
+`@Input()`s** — the same shape Vue's `GridItem` uses. You bind each one
+explicitly per item in your own template's `@for` loop; this component
+doesn't read them off `layout` automatically.
+
+## The imperative API
+
+`GridLayoutComponent` also exposes public methods, reached via a
+template reference variable (`#grid` + `@ViewChild` in your own
+component, or a plain template variable for a direct template call) —
+`compactNow()`/`rearrange()`, `duplicateItem(id)`, `undo()`/`redo()`
+(plus the `canUndo`/`canRedo` public fields), `selectItem()`/
+`deselectItem()`/`toggleItemSelection()`/`clearSelection()`,
+`alignSelected(edge)`/`distributeSelected(axis)`, `exportLayoutAsSvg()`,
+and `scrollToItem(id)`/`focusItem(id)` — the Angular equivalent of
+Vue's own `defineExpose`'d template-ref methods, or React's `ref`-based
+imperative handle. See [Public members](/angular/api/) once that page
+lands for the full reference.

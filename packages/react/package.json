@@ -16,7 +16,7 @@
       "import": "./dist/keystone-dashboard-layout-react.es.js",
       "require": "./dist/keystone-dashboard-layout-react.umd.js"
     },
-    "./style.css": "./dist/keystone-dashboard-layout-react.css"
+    "./style.css": "./dist/react.css"
   },
   "repository": {
     "type": "git",

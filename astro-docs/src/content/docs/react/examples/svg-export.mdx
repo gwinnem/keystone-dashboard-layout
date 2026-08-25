@@ -1,0 +1,27 @@
+---
+title: Export layout as SVG
+description: A dependency-free utility producing a standalone SVG snapshot of the current layout.
+---
+import SvgExport from '../../../../components/examples-react/28-svg-export.tsx';
+import SvgExportSource from '../../../../components/examples-react/28-svg-export.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={SvgExportSource} filename="svg-export.tsx" lang="tsx">
+  <SvgExport client:visible />
+</ExampleTryIt>
+
+Unlike the Vue package, this isn't a standalone importable function —
+it's a method on the [imperative handle](/react/api/interfaces/imperative-handle/),
+reached through a `ref`, pre-filled with this grid's own actual
+`colNum`/`rowHeight`/`margin`/measured width, so there's nothing to
+re-supply for the common case. Any field in the options object you pass
+still overrides its corresponding pre-filled one.
+
+Deliberately draws each item as a labeled rectangle from the layout
+data alone, not a snapshot of whatever's actually rendered inside each
+`GridItem` — good for a structural thumbnail of the layout itself, not
+a substitute for a real screenshot of custom content (a chart, an
+image). The returned string is a complete, standalone `<svg>` document
+— render it directly, download it as a `.svg` file via a `Blob`, or
+draw it onto a `<canvas>` first if a raster PNG/JPEG is specifically
+needed instead.

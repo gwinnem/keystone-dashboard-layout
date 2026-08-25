@@ -1,0 +1,30 @@
+/*
+ * Shared styles for React examples using the plain, default
+ * "example-item" look (a simple bordered box showing the item's own
+ * id) rather than a bespoke design like example 01's "panel" style.
+ * Matches the Vue examples' own repeated <style scoped> block byte for
+ * byte — Vue duplicates this per-file since scoped styles can't be
+ * shared across single-file components; React has no such
+ * restriction, so this is imported once by every example that uses
+ * the plain look instead of copy-pasted per file.
+ */
+
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 16px;
+}
+
+.example-item {
+  align-items: center;
+  background: var(--kg-panel);
+  border: 1px solid var(--kg-line-light);
+  border-radius: 8px;
+  color: var(--kg-text-hi-light);
+  display: flex;
+  font-family: var(--kg-font-mono);
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}

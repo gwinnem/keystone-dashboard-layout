@@ -1,0 +1,18 @@
+---
+title: Configurable resize-hint appearance
+description: showResizeHandles renders a visible resize affordance instead of only a cursor change on hover.
+---
+import ResizeHintAppearance from '../../../../components/examples-react/33-resize-hint-appearance.tsx';
+import ResizeHintAppearanceSource from '../../../../components/examples-react/33-resize-hint-appearance.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={ResizeHintAppearanceSource} filename="resize-hint-appearance.tsx" lang="tsx">
+  <ResizeHintAppearance client:visible />
+</ExampleTryIt>
+
+Both props cascade from `GridLayout` to every layout item that doesn't
+set its own — the same inherit pattern as `isDraggable`/`showCloseButton`.
+For a fully custom look beyond just a color, see the `renderResizeHandle`
+render prop on [GridItem props](/react/components/grid-item/props/),
+which renders arbitrary content (an icon, not just a colored dot) per
+handle instead.

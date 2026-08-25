@@ -1,0 +1,32 @@
+.outside-source {
+  border-radius: 6px;
+  cursor: grab;
+  display: inline-block;
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.drop-zone-frame {
+  border: 1px dashed var(--kg-line-light);
+  height: 200px;
+}
+
+.outside-source--accepted {
+  background: var(--kg-amber);
+  color: #2b1b02;
+}
+
+.outside-source--rejected {
+  background: var(--kg-paper-3);
+  border: 1px dashed var(--kg-line-light);
+  color: var(--kg-text-lo-light);
+  margin-left: 8px;
+}
+
+.demo-description {
+  color: var(--kg-text-lo-light);
+  font-size: 12.5px;
+  font-family: var(--kg-font-mono);
+  margin-top: 12px;
+}
