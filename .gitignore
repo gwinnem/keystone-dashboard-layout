@@ -47,7 +47,7 @@ yarn-error.log*
 *.tgz
 
 # Angular
-2
 .angular/
-3
+**/.angular/
 dist/
+node_modules/
