@@ -45,3 +45,9 @@ yarn-error.log*
 
 # npm/pnpm packages
 *.tgz
+
+# Angular
+2
+.angular/
+3
+dist/
