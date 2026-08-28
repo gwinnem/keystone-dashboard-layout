@@ -18,6 +18,8 @@ fields on your layout data instead of on this component.
 | `header` | `ReactNode` | — | Optional header content, rendered above `children` in a fixed-size row — `children` becomes a scrollable body below it. Omitting this prop entirely renders `children` exactly as before, unaffected. The render-prop equivalent of Vue's own `#header` slot. |
 | `children` | `ReactNode` | — | The item's own content — becomes the scrollable body region when `header` is also provided. |
 | `renderResizeHandle` | `(edge: TResizeHandle) => ReactNode` | — | Customizes a resize-hint span's own content (an icon, typically) — called once per actually-rendered edge/corner, with that edge's identifier. `undefined` renders each span empty. The render-prop equivalent of Vue's own `#resize-handle` slot. |
+| `onItemMoved` | `(payload: { i: string \| number; x: number; y: number }) => void` | — | Fired when this item's own drag gesture ends, with its own final grid-unit `x`/`y` — a direct per-item alternative to reading the same information out of `GridLayout`'s own broader `onLayoutChange`. Matches Vue's own `@item-moved`. Reports this item's own locally-computed, pre-compaction value — `onLayoutChange` remains the source of truth for the fully-compacted result. |
+| `onItemResized` | `(payload: { i: string \| number; h: number; w: number; height: number; width: number }) => void` | — | Fired when this item's own resize gesture ends, with its own final grid-unit `h`/`w` *and* pixel `height`/`width` together. Matches Vue's own `@resized`. Same pre-compaction-value timing note as `onItemMoved`. |
 | `className` | `string` | — | Applied to the item's own root element, alongside the library's own positioning/interaction classes. |
 
 ## Per-item configuration (`ILayoutItem`)

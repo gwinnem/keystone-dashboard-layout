@@ -20,6 +20,9 @@
       label="margin[1]"
       :max="40"
       :min="0" />
+    <ExampleToggle
+      v-model="showGridLines"
+      label="showGridLines" />
   </div>
 
   <GridLayout
@@ -27,7 +30,7 @@
     :col-num="colNum"
     :margin="[marginX, marginY]"
     :row-height="rowHeight"
-    show-grid-lines>
+    :show-grid-lines="showGridLines">
     <GridItem
       v-for="item in layout"
       :key="item.i"
@@ -41,6 +44,8 @@
       </div>
     </GridItem>
   </GridLayout>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
@@ -48,6 +53,10 @@
   import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
   import ExampleNumberField from '../harness/ExampleNumberField.vue';
+  import ExampleToggle from '../harness/ExampleToggle.vue';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
+
+  const showGridLines = ref(true);
 
   const rowHeight = ref(60);
   const colNum = ref(12);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
 import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import './38-size-constraints-aspect-ratio.css';
 
 const initialLayout: TLayout = [
@@ -19,12 +20,16 @@ export default function SizeConstraintsAspectRatio() {
   const [layout, setLayout] = useState<TLayout>(initialLayout);
 
   return (
-    <GridLayout colNum={12} layout={layout} onLayoutChange={setLayout} rowHeight={60} showGridLines>
-      {layout.map((item) => (
-        <GridItem i={item.i} key={item.i}>
-          <div className="example-item">{labels[item.i] ?? item.i}</div>
-        </GridItem>
-      ))}
-    </GridLayout>
+    <>
+      <GridLayout colNum={12} layout={layout} onLayoutChange={setLayout} rowHeight={60} showGridLines>
+        {layout.map((item) => (
+          <GridItem i={item.i} key={item.i}>
+            <div className="example-item">{labels[item.i] ?? item.i}</div>
+          </GridItem>
+        ))}
+      </GridLayout>
+
+      <LayoutJsonViewer layout={layout} />
+    </>
   );
 }

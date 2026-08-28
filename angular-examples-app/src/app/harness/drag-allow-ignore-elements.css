@@ -1,0 +1,39 @@
+.example-item {
+  background: var(--kg-panel);
+  border: 1px solid var(--kg-line-light);
+  border-radius: 8px;
+  color: var(--kg-text-hi-light);
+  font-family: var(--kg-font-mono);
+  height: 100%;
+  overflow: hidden;
+  width: 100%;
+}
+
+.drag-handle {
+  align-items: center;
+  background: var(--kg-blueprint);
+  color: white;
+  cursor: grab;
+  display: flex;
+  font-size: 11px;
+  height: 24px;
+  justify-content: center;
+}
+
+.item-body {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: calc(100% - 24px);
+  justify-content: center;
+}
+
+.no-drag-btn {
+  background: var(--kg-paper-3);
+  border: 1px solid var(--kg-line-light);
+  border-radius: 4px;
+  cursor: default;
+  font-size: 10px;
+  padding: 2px 6px;
+}

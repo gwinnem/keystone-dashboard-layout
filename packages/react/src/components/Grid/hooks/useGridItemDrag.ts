@@ -40,6 +40,15 @@ export interface IUseGridItemDragOptions {
   margin: [number, number];
   maxRows: number;
   onDrag: (id: string | number, eventType: TGridGestureEventType, x: number, y: number, w: number, h: number, clientX?: number, clientY?: number) => void;
+  /**
+   * Fired directly on `dragend`, with this item's own final grid-unit
+   * `x`/`y` — the React port of Vue's own `GridItem` `@item-moved`.
+   * Optional and purely additive: unset, this hook's own behavior is
+   * completely unaffected. See `IGridItemProps.onItemMoved`'s own doc
+   * comment for the full rationale (pre-compaction value, not a
+   * replacement for `GridLayout`'s own `onLayoutChange`).
+   */
+  onItemMoved?: (payload: { i: string | number; x: number; y: number }) => void;
   rowHeight: number;
   transformScale: number;
   w: number;
@@ -131,7 +140,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
   }, []);
 
   const handleDrag = useCallback((event: INativeDragEvent): void => {
-    const { h, i, isBounded, isMirrored, margin, cols, containerWidth, rowHeight, transformScale, w, onDrag, autoScroll } = optionsRef.current;
+    const { h, i, isBounded, isMirrored, margin, cols, containerWidth, rowHeight, transformScale, w, onDrag, onItemMoved, autoScroll } = optionsRef.current;
 
     const position = offsetXYFromParentOf(event);
     const { x, y } = position;
@@ -209,6 +218,10 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     const pos = calcXY(newPosition.top, newPosition.left);
     lastX.current = x;
     lastY.current = y;
+
+    if(event.type === `dragend`) {
+      onItemMoved?.({ i, x: pos.x, y: pos.y });
+    }
 
     onDrag(i, event.type, pos.x, pos.y, w, h, event.clientX, event.clientY);
   }, [calcXY]);

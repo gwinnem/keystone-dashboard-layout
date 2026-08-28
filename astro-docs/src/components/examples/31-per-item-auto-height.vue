@@ -2,7 +2,10 @@
   <div class="demo-controls">
     <button
       class="demo-btn"
-      @click="addLine">Add a line of text</button>
+      @click="addLine">+ Add a line</button>
+    <button
+      class="demo-btn demo-btn--ghost"
+      @click="removeLine">- Remove a line</button>
   </div>
 
   <GridLayout
@@ -26,12 +29,15 @@
       </div>
     </GridItem>
   </GridLayout>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
   import { ref } from 'vue';
   import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   const layout = ref<TLayout>([
     { h: 2, i: '0', w: 4, x: 0, y: 0 },
@@ -41,6 +47,12 @@
 
   function addLine(): void {
     lines.value = [...lines.value, `Line ${lines.value.length + 1} of content.`];
+  }
+
+  function removeLine(): void {
+    if (lines.value.length > 1) {
+      lines.value = lines.value.slice(0, -1);
+    }
   }
 </script>
 
@@ -58,6 +70,12 @@
   font-family: var(--kg-font-mono);
   font-size: 12px;
   padding: 6px 12px;
+}
+
+.demo-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--kg-line-light);
+  color: var(--kg-text-hi-light);
 }
 
 .example-item {

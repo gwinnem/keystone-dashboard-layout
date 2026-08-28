@@ -1,0 +1,31 @@
+.grids-row--triple {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.drop-log {
+  border-top: 1px solid var(--kg-line-light);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+
+.drop-log__empty {
+  color: var(--kg-text-lo-light);
+  font-size: 13px;
+}
+
+.drop-log__entry {
+  border-radius: 4px;
+  font-family: var(--kg-font-mono);
+  font-size: 13px;
+  margin-bottom: 4px;
+  padding: 6px 10px;
+}
+
+.drop-log__entry--dropped {
+  background-color: var(--kg-panel);
+}
+
+.drop-log__entry--rejected {
+  background-color: rgb(220 38 38 / 12%);
+  color: rgb(220 38 38);
+}

@@ -18,8 +18,11 @@ export default function OutsideDragDrop() {
   }
 
   function handleOutsideDrop({ x, y, w, h }: { x: number; y: number; w: number; h: number }): void {
-    setLayout((current) => [...current, { h, i: String(nextId.current), w, x, y }]);
-    nextId.current += 1;
+    setLayout((current) => {
+      const newItem = { h, i: String(nextId.current), w, x, y };
+      nextId.current += 1;
+      return [...current, newItem];
+    });
   }
 
   return (

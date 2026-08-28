@@ -1,5 +1,16 @@
-.fixed-frame--scroll {
-  border: 1px dashed var(--kg-line-light);
-  height: 220px;
-  overflow-y: auto;
+.demo-btn {
+  background: var(--kg-blueprint);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.demo-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--kg-line-light);
+  color: var(--kg-text-hi-light);
 }

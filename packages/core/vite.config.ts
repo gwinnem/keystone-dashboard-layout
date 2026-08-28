@@ -25,8 +25,35 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'),
-      fileName: format => `keystone-dashboard-layout-core.${format}.js`,
+      // A real, confirmed limitation this addresses: ng-packagr's own
+      // Ivy partial-compilation pipeline (packages/angular's own build)
+      // fails to resolve this package's own "exports" subpaths when
+      // they point directly at raw, uncompiled .ts source — a TS2307
+      // "Cannot find module" error, even with matching tsconfig `paths`
+      // entries added on the Angular package's own side (confirmed not
+      // the fix: the error persisted unchanged after that attempt, and
+      // again after an explicit `baseUrl` was added too). Vue's and
+      // React's own Vite-based builds tolerate the raw-source subpath
+      // fine — this is specific to ng-packagr's own, stricter,
+      // publish-oriented module resolution, which expects a dependency's
+      // own exports to already be compiled artifacts, the same as every
+      // other subpath here already is. Adding these two files as their
+      // own real library entry points (compiled to real .js + .d.ts
+      // output, exactly like the main `index` entry already is) is the
+      // actual fix, matching the pattern this package's own `exports`
+      // map already uses everywhere else — not another workaround on
+      // the consuming (Angular) package's own side.
+      entry: {
+        'cross-grid-interfaces': path.resolve(__dirname, 'src/gridlayout/interfaces/cross-grid.interfaces.ts'),
+        'cross-grid-registry': path.resolve(__dirname, 'src/gridlayout/helpers/cross-grid-registry.ts'),
+        index: path.resolve(__dirname, 'src/index.ts'),
+      },
+      // Preserves the main `index` entry's own existing, already-
+      // published filename exactly (`keystone-dashboard-layout-core.
+      // {format}.js`) — Vue and React both already depend on this exact
+      // name. The two new entries get their own, predictable names
+      // instead, matched by `package.json`'s own updated `exports` map.
+      fileName: (format, entryName) => (entryName === `index` ? `keystone-dashboard-layout-core.${format}.js` : `${entryName}.${format}.js`),
       formats: ['es', 'cjs'],
       name: 'KeystoneDashboardLayoutCore',
     },

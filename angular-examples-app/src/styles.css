@@ -1,0 +1,159 @@
+/* @import rules must come before any other CSS rule (including
+   :root), or the browser silently ignores them — a real, confirmed
+   CSS ordering rule, not an Angular/build quirk. Base styles for the
+   grid components, imported directly from the library's own source
+   (packages/angular has no built dist/ yet — see this app's own
+   README for why it reaches into source the same way, via the
+   tsconfig `paths` alias for the TypeScript side). */
+@import '../../packages/angular/src/styles/index.css';
+@import './app/harness/example-controls.css';
+@import './app/harness/try-it.css';
+@import './app/harness/shared-example-item.css';
+@import './app/harness/event-log.css';
+@import './app/harness/multiple-grids.css';
+@import './app/harness/drag-allow-ignore-elements.css';
+
+/*
+ * Same --kg-* design tokens astro-docs itself uses
+ * (astro-docs/src/styles/tokens.css) — duplicated here rather than
+ * imported across the app boundary, since this is a genuinely separate
+ * project (see this app's own README for why). Keep these two files in
+ * sync by hand if the palette ever changes.
+ */
+:root {
+  --kg-ink: #14171a;
+  --kg-ink-2: #1d2126;
+  --kg-ink-3: #262b31;
+  --kg-paper: #f1f0eb;
+  --kg-paper-2: #ffffff;
+  --kg-panel: #e9e9ea;
+  --kg-paper-3: #e7e6df;
+  --kg-blueprint: #4fb8c9;
+  --kg-blueprint-deep: #2e7a88;
+  --kg-amber: #f2a93b;
+  --kg-amber-deep: #9c6208;
+  --kg-line-dark: rgba(255, 255, 255, 0.1);
+  --kg-line-light: rgba(20, 23, 26, 0.12);
+  --kg-text-hi-dark: #f5f4ef;
+  --kg-text-lo-dark: #9ca6aa;
+  --kg-text-hi-light: #14171a;
+  --kg-text-lo-light: #5b6266;
+  --kg-font-display: 'Space Grotesk', sans-serif;
+  --kg-font-body: 'IBM Plex Sans', sans-serif;
+  --kg-font-mono: 'IBM Plex Mono', monospace;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--kg-ink);
+  color: var(--kg-text-hi-dark);
+  font-family: var(--kg-font-body);
+  margin: 0;
+}
+
+a {
+  color: var(--kg-blueprint);
+}
+
+.app-shell {
+  display: flex;
+  height: 100vh;
+}
+
+.app-sidebar {
+  background: var(--kg-ink-2);
+  border-right: 1px solid var(--kg-line-dark);
+  flex-shrink: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 24px 16px;
+  scrollbar-color: var(--kg-line-dark) transparent;
+  scrollbar-width: thin;
+  width: 260px;
+}
+
+.app-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.app-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb {
+  background: var(--kg-line-dark);
+  border-radius: 4px;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--kg-text-lo-dark);
+}
+
+.app-sidebar h1 {
+  font-family: var(--kg-font-display);
+  font-size: 15px;
+  margin: 0 0 20px;
+}
+
+.app-sidebar-section-label {
+  color: var(--kg-text-lo-dark);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+.example-list {
+  display: grid;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.example-list a {
+  border-radius: 6px;
+  color: var(--kg-text-hi-dark);
+  display: block;
+  font-size: 13px;
+  padding: 6px 10px;
+  text-decoration: none;
+}
+
+.example-list a:hover {
+  background: var(--kg-ink-3);
+}
+
+.example-list a.is-active {
+  background: var(--kg-blueprint-deep);
+  color: white;
+}
+
+.app-main {
+  flex: 1 1 auto;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 40px 48px;
+}
+
+.app-main-inner {
+  margin: 0 auto;
+  max-width: 760px;
+}
+
+.app-main h1 {
+  font-family: var(--kg-font-display);
+  font-size: 28px;
+  margin: 0 0 16px;
+}
+
+.app-main p {
+  color: var(--kg-text-lo-dark);
+  font-size: 15px;
+  line-height: 1.6;
+}

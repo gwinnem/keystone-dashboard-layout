@@ -3,6 +3,7 @@ import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
 import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
 import ExampleToggle from '../harness-react/ExampleToggle';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import '../examples-react/shared-example-item.css';
 import './39-auto-scroll.css';
 
@@ -31,6 +32,8 @@ export default function AutoScroll() {
           ))}
         </GridLayout>
       </div>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

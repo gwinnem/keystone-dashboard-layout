@@ -4,6 +4,7 @@
   "private": true,
   "description": "Multi-framework (Vue/React/Angular) responsive dashboard grid layout monorepo.",
   "license": "MIT",
+  "packageManager": "pnpm@11.22.0",
   "author": "Geirr Winnem <geirr@winnem.tech>",
   "repository": {
     "type": "git",
@@ -53,8 +54,7 @@
     "prettier": "^3.5.3",
     "semantic-release": "^25.0.8",
     "turbo": "^2.3.0",
-    "typescript": "^6.0.3",
-    "vitepress": "1.6.3"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": "^18.0.0 || ^20.0.0 || >=22.0.0"

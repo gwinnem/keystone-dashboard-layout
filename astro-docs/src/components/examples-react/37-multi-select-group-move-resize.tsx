@@ -4,6 +4,7 @@ import '@keystone-dashboard-layout/react/style.css';
 import { ECompactType } from '@keystone-dashboard-layout/core';
 import type { TLayout } from '@keystone-dashboard-layout/core';
 import '../examples-react/shared-example-item.css';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import './37-multi-select-group-move-resize.css';
 
 const initialLayout: TLayout = [
@@ -50,6 +51,8 @@ export default function MultiSelectGroupMoveResize() {
           </GridItem>
         ))}
       </GridLayout>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

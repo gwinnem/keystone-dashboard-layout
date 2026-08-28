@@ -47,6 +47,35 @@ const DEFAULT_COLS: IColumns = { lg: 12, md: 10, sm: 6, xl: 12, xs: 4, xxl: 12, 
 /** Same reference-stability rationale as `DEFAULT_MARGIN` above. */
 const DEFAULT_RESPONSIVE_LAYOUTS: TResponsiveLayout = {};
 
+/**
+ * Whether every item's own `x`/`y`/`w`/`h` in `a` matches its
+ * same-`i` counterpart in `b` — used by the controlled-component sync
+ * below to detect whether compacting a freshly-synced external
+ * `layout` prop actually changed anything (e.g. resolved a
+ * newly-appended item's own sentinel `y: Infinity`), so `onLayoutChange`
+ * only fires when the consumer's own `layout` genuinely no longer
+ * matches what's actually rendered — not on every sync, which would
+ * otherwise notify the consumer even when compaction was a pure no-op
+ * against an already-settled layout. Deliberately a targeted
+ * field-by-field comparison, not `JSON.stringify(a) === JSON.stringify(b)`
+ * — `ILayoutItem.data` is an arbitrary, consumer-defined payload
+ * ("never read or written by the library itself", per its own doc
+ * comment) that could contain something `JSON.stringify` can't safely
+ * round-trip (a function, a circular reference), so comparing only the
+ * fields compaction can actually touch avoids depending on the shape
+ * of data this component never looks at otherwise.
+ */
+function layoutPositionsEqual(a: TLayout, b: TLayout): boolean {
+  if(a.length !== b.length) {
+    return false;
+  }
+  const byId = new Map(b.map(item => [item.i, item]));
+  return a.every(item => {
+    const match = byId.get(item.i);
+    return match !== undefined && match.x === item.x && match.y === item.y && match.w === item.w && match.h === item.h;
+  });
+}
+
 /** A single rendered alignment-guide line — pixel-converted from `core`'s own grid-unit `IAlignmentGuide`. */
 interface IAlignmentGuideStyle {
   height: string;
@@ -151,6 +180,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   outsideDropHeight = 2,
   outsideDropAccept,
   onOutsideDrop,
+  renderPlaceholder,
   children,
   className,
 }: IGridLayoutProps, ref): JSX.Element {
@@ -208,6 +238,19 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * `elementFromPoint` check, not theorized).
    */
   const [isAnyItemDragging, setIsAnyItemDragging] = useState(false);
+  /**
+   * The live, in-progress target grid-unit position/size for a *regular*
+   * in-grid drag or resize — a separate, general-purpose tracker from
+   * `outsideDropPlaceholder` below (which only ever covers native HTML5
+   * drag-and-drop from outside the grid). Populated at dragstart/
+   * dragmove/resizestart/resizemove, cleared at dragend/resizeend (and
+   * the cross-grid-accepted early-return path in `handleItemDrag`,
+   * which never reaches a normal dragend at all). Feeds `renderPlaceholder`/
+   * the default placeholder box below — the React equivalent of Vue's
+   * own `#placeholder` scoped slot rendering during any drag, not just
+   * outside-drop.
+   */
+  const [itemGesturePlaceholder, setItemGesturePlaceholder] = useState<{ h: number; w: number; x: number; y: number } | null>(null);
   // Not state: which breakpoint a layout belongs to has no bearing on
   // this component's own visual output beyond `workingLayout`/
   // `currentBreakpoint` (both already tracked separately as state) —
@@ -331,6 +374,20 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   const historyRef = useRef<TLayout[]>([]);
   const futureRef = useRef<TLayout[]>([]);
   const pendingUndoSnapshotRef = useRef<TLayout | null>(null);
+  /**
+   * Queues an `onLayoutChange` call for the effect below whenever the
+   * controlled-component sync's own compaction pass (see that block's
+   * own doc comment) actually changed something relative to what the
+   * consumer passed in — e.g. resolved a freshly-appended item's own
+   * sentinel `y: Infinity` to a real position. Not called directly
+   * from the sync itself: that runs during render, and `onLayoutChange`
+   * is the consumer's own callback, which may itself trigger a state
+   * update in a different component — something React disallows
+   * synchronously during this component's own render (same category
+   * of render-vs-effect split as `pendingUndoSnapshotRef` itself, just
+   * for a different downstream effect).
+   */
+  const pendingCompactionNotifyRef = useRef<TLayout | null>(null);
   const groupMoveStartPositions = useRef<Map<string | number, { x: number; y: number }>>(new Map());
   const groupResizeStartSizes = useRef<Map<string | number, { h: number; w: number }>>(new Map());
   /**
@@ -411,8 +468,33 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     if(cloned.length !== workingLayoutRef.current.length) {
       pendingUndoSnapshotRef.current = workingLayoutRef.current;
     }
-    workingLayoutRef.current = cloned;
-    setWorkingLayout(cloned);
+    // Bug fix: an externally-supplied `layout` can contain
+    // not-yet-resolved sentinel positions — most commonly a freshly
+    // appended item's own `y: Infinity` ("append it, let compaction
+    // figure out where it actually goes" is a documented, encouraged
+    // pattern for exactly this "add a new item" case, e.g. this
+    // package's own "Add or remove items" example). Every *internal*
+    // mutation path (`handleItemDrag`/`handleItemResize`/`compactNow`/
+    // `duplicateItem`/the responsive-breakpoint effect/etc.) already
+    // runs the layout through compaction before it ever reaches
+    // `workingLayout` — this sync, for an *externally*-driven change,
+    // was the one path that didn't, so a raw `Infinity` value reached
+    // `GridItem`'s own context on this same render (the whole reason
+    // this sync runs synchronously during render at all — see this
+    // block's own doc comment above). `calcPosition` then produced an
+    // invalid position from that `Infinity`, the resulting CSS
+    // transform was malformed, and the browser silently dropped it —
+    // leaving the new item rendered at the untransformed default
+    // position, permanently overlapping whatever already occupied that
+    // spot. Confirmed directly via a real, reproduced case: a
+    // freshly-added item's own `.style.transform` measured as an empty
+    // string, sitting exactly on top of the grid's own first item.
+    const compacted = (compactor ?? getCompactor(compactType)).compact(cloned, colNum, { compactType });
+    if(!layoutPositionsEqual(compacted, cloned)) {
+      pendingCompactionNotifyRef.current = compacted;
+    }
+    workingLayoutRef.current = compacted;
+    setWorkingLayout(compacted);
   }
 
   // Actually commits whatever `pendingUndoSnapshotRef` above queued —
@@ -422,12 +504,19 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   // run more than once for the same commit (e.g. under React Strict
   // Mode's dev-only double-render behavior) — an effect only fires once
   // per actual commit, which mutation-based logic like this needs.
+  // Also fires whatever `pendingCompactionNotifyRef` above queued — see
+  // that ref's own doc comment for why `onLayoutChange` itself can't be
+  // called synchronously from the render-phase sync block that sets it.
   useEffect(() => {
     if(pendingUndoSnapshotRef.current) {
       commitUndoPoint(pendingUndoSnapshotRef.current);
       pendingUndoSnapshotRef.current = null;
     }
-  }, [workingLayout, commitUndoPoint]);
+    if(pendingCompactionNotifyRef.current) {
+      onLayoutChange?.(pendingCompactionNotifyRef.current);
+      pendingCompactionNotifyRef.current = null;
+    }
+  }, [workingLayout, commitUndoPoint, onLayoutChange]);
 
   // Prunes any selected id that no longer matches a real item — e.g.
   // after an external removal via the `layout` prop. Returns the same
@@ -1186,6 +1275,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       clearGuidesAndIndicators();
       dragMinPositionsRef.current = undefined;
       setIsAnyItemDragging(false);
+      setItemGesturePlaceholder(null);
       commitLayout(withoutItem);
       return;
     }
@@ -1215,6 +1305,17 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       updateGuidesAndIndicators(id, resolvedX, resolvedY, w, h);
     }
 
+    // Regular in-grid drag placeholder — the React equivalent of Vue's
+    // own #placeholder scoped slot rendering during any in-grid drag,
+    // not just outside-drop (which `outsideDropPlaceholder` below
+    // already covers separately). Uses the same, already-computed
+    // `resolvedX`/`resolvedY` (post-snap, pre-collision-resolution) as
+    // the "where is this drag currently heading" position — the same
+    // value `moveElement` below is about to resolve against collisions.
+    if(eventType === `dragstart` || eventType === `dragmove`) {
+      setItemGesturePlaceholder({ h, w, x: resolvedX, y: resolvedY });
+    }
+
     const preMoveX = item.x;
     const preMoveY = item.y;
 
@@ -1238,6 +1339,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     if(eventType === `dragend`) {
       dragMinPositionsRef.current = undefined;
       setIsAnyItemDragging(false);
+      setItemGesturePlaceholder(null);
     }
   }, [commitUndoPoint, crossGridDrag, onDragStart, onDragMove, onDragEnd, onMoveBlockedByCollision, restoreOnDrag, compactType, clearGuidesAndIndicators, commitLayout, snapToGrid, snapThreshold, applyGroupMove, horizontalShift, preventCollision, updateGuidesAndIndicators]);
 
@@ -1285,8 +1387,14 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
 
     if(eventType === `resizeend`) {
       clearGuidesAndIndicators();
+      setItemGesturePlaceholder(null);
     } else {
       updateGuidesAndIndicators(id, x, y, clampedW, clampedH);
+      // Regular in-grid resize placeholder — same rationale as
+      // handleItemDrag's own identical addition above. Uses the
+      // resize's own in-progress x/y/w/h directly, matching the same
+      // "where is this gesture currently heading" semantics.
+      setItemGesturePlaceholder({ h: clampedH, w: clampedW, x, y });
     }
 
     item.w = clampedW;
@@ -1426,6 +1534,33 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     };
   }, [outsideDropPlaceholder, effectiveContainerWidth, margin, colNum, rowHeight]);
 
+  /** Same pixel-conversion formula as `outsideDropPlaceholderStyle` above, applied to the regular in-grid drag/resize tracker instead. */
+  const itemGesturePlaceholderStyle = useMemo((): CSSProperties | null => {
+    if(!itemGesturePlaceholder) {
+      return null;
+    }
+    const colWidth = calcColWidth(effectiveContainerWidth, margin[0], colNum);
+    return {
+      height: `${Math.round(rowHeight * itemGesturePlaceholder.h + Math.max(0, itemGesturePlaceholder.h - 1) * margin[1])}px`,
+      left: `${Math.round(colWidth * itemGesturePlaceholder.x + (itemGesturePlaceholder.x + 1) * margin[0])}px`,
+      top: `${Math.round(rowHeight * itemGesturePlaceholder.y + (itemGesturePlaceholder.y + 1) * margin[1])}px`,
+      width: `${Math.round(colWidth * itemGesturePlaceholder.w + Math.max(0, itemGesturePlaceholder.w - 1) * margin[0])}px`,
+    };
+  }, [itemGesturePlaceholder, effectiveContainerWidth, margin, colNum, rowHeight]);
+
+  /**
+   * Unifies `itemGesturePlaceholder` (regular in-grid drag/resize) and
+   * `outsideDropPlaceholder` (native HTML5 drag-and-drop) into a single
+   * active placeholder + style pair, since the two are mutually
+   * exclusive — a native outside-drop and a pointer-driven in-grid
+   * gesture can't both be in progress on the same grid at the same
+   * time. Feeds `renderPlaceholder` (when provided) with the same
+   * `(placeholder, isDragging)` shape regardless of which of the two
+   * gesture types is actually active.
+   */
+  const activePlaceholder = itemGesturePlaceholder ?? outsideDropPlaceholder;
+  const activePlaceholderStyle = itemGesturePlaceholderStyle ?? outsideDropPlaceholderStyle;
+
   /**
    * `heightMode`'s own precedence rule: an explicit `heightMode` always
    * wins outright; `null` (its own default) defers entirely to
@@ -1513,8 +1648,16 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
           {indicator.label}
         </div>
       ))}
-      {outsideDropPlaceholderStyle && (
+      {outsideDropPlaceholderStyle && !renderPlaceholder && (
         <div className="kdl-grid-outside-drop-placeholder" style={outsideDropPlaceholderStyle} />
+      )}
+      {itemGesturePlaceholderStyle && !renderPlaceholder && (
+        <div className="kdl-grid-placeholder" style={itemGesturePlaceholderStyle} />
+      )}
+      {renderPlaceholder && activePlaceholderStyle && (
+        <div style={activePlaceholderStyle}>
+          {renderPlaceholder(activePlaceholder, activePlaceholder !== null)}
+        </div>
       )}
     </>
   );

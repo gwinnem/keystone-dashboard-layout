@@ -1,0 +1,491 @@
+/**
+ * Base styles for `@keystone-dashboard-layout/angular` — adapted from
+ * the React package's own `src/styles/index.css` (a plain global
+ * stylesheet under the same `kdl-` class prefix; Angular has no
+ * first-party CSS-scoping mechanism that would make sense to use for
+ * a *published library's* own base styles either), with selectors
+ * corrected to match this package's own actual, confirmed host-class
+ * bindings — checked directly against `grid-layout.component.ts`/
+ * `grid-item.component.ts`, not assumed identical to React's. Three
+ * real naming differences found this way: this package's grid-lines
+ * toggle is `.kdl-grid-lines` (not React's `.kdl-grid-layout--grid-lines`),
+ * its outside-drop placeholder is `.kdl-grid-placeholder` (not React's
+ * `.kdl-grid-outside-drop-placeholder`), and its close-button icon is a
+ * separate, empty `.kdl-grid-item-close-button-icon` span needing its
+ * own CSS-drawn glyph (React's own button holds an inline "×" character
+ * directly, needing no separate icon element at all).
+ *
+ * Import this once, wherever you import `GridLayoutComponent`/
+ * `GridItemComponent` from — e.g. in your app's global styles, or via
+ * `angular.json`'s own `styles` array:
+ * `import '@keystone-dashboard-layout/angular/style.css';`.
+ */
+
+/** Phase 9's own keyboard-instructions span (`aria-describedby`) — clips to a 1x1 box instead of `display: none`, which would also hide it from screen readers, defeating the purpose. Same standard "visually hidden" pattern the Vue/React packages both use. */
+.kdl-visually-hidden {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/**
+ * `isolation: isolate` — keeps every item's own z-index (dragging/
+ * resizing/static/selected states) contained within this grid,
+ * regardless of what a sibling element outside it does with its own
+ * z-index — matches the Vue/React packages' own identical fix for a
+ * real, confirmed bug in each (an oversized simulated-width grid area
+ * could otherwise visually cover an unrelated sibling column despite
+ * being a later DOM sibling).
+ */
+.kdl-grid-layout {
+  display: block;
+  isolation: isolate;
+  position: relative;
+}
+
+/*
+ * allowCrossGridDrag — the dragged item stays a DOM child of its own
+ * *source* grid the entire time it's being dragged, including while
+ * the pointer is visually hovering over a completely different,
+ * sibling grid. `isolation: isolate` above means every
+ * `.kdl-grid-layout` is its own stacking context, so without this, the
+ * dragged item could never actually paint above a sibling grid it's
+ * currently being dragged over. Bumping the *source* grid's own
+ * z-index only while it has an active drag in progress is enough —
+ * matches the Vue/React packages' own identical fix.
+ */
+.kdl-grid-layout--active-drag {
+  z-index: 1;
+}
+
+.kdl-grid-item {
+  box-sizing: border-box;
+  transition:
+    left var(--grid-transition-duration, 200ms) var(--grid-transition-timing, ease),
+    top var(--grid-transition-duration, 200ms) var(--grid-transition-timing, ease),
+    transform var(--grid-transition-duration, 200ms) var(--grid-transition-timing, ease),
+    width var(--grid-transition-duration, 200ms) var(--grid-transition-timing, ease),
+    height var(--grid-transition-duration, 200ms) var(--grid-transition-timing, ease);
+}
+
+.kdl-grid-item--draggable {
+  cursor: move;
+}
+
+.kdl-grid-item--dragging {
+  transition: none;
+  user-select: none;
+  z-index: 3;
+}
+
+.kdl-grid-item--resizing {
+  opacity: 0.9;
+  transition: none;
+  z-index: 3;
+}
+
+.kdl-grid-item:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.kdl-grid-item--static {
+  z-index: -1;
+}
+
+.kdl-grid-item--selected {
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 80%);
+}
+
+/* header content (GridItemHeaderDirective) — only applied when actually projected (see the `kdl-grid-item--has-header` host-class binding), so the no-header case's layout is completely unaffected. The header shrinks to fit its own content; the body (`.kdl-grid-item-body`) takes the remaining space and scrolls internally if its content overflows, rather than pushing the item's own fixed pixel height (which the grid's own layout math depends on staying accurate). */
+.kdl-grid-item--has-header {
+  display: flex;
+  flex-direction: column;
+}
+
+.kdl-grid-item-header {
+  flex-shrink: 0;
+}
+
+.kdl-grid-item-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+/*
+ * The always-present content wrapper directly inside `.kdl-grid-item`
+ * (see this component's own template comment on why it always renders,
+ * even when neither `autoHeight` nor a header are in use). A real,
+ * confirmed bug this port had until now: without a baseline rule
+ * applying *some* height to this element, the plain case (no header,
+ * no autoHeight — neither of the two conditional classes below then
+ * applies at all) left it with zero CSS of its own, collapsing to its
+ * own projected content's height instead of filling the item's actual,
+ * already-correctly-computed positioned height — found by comparing
+ * directly against a live Vue example (a taller item, h:4 vs h:2,
+ * visually rendered as if every item were the same height, despite the
+ * positioning div underneath already correctly reporting a taller
+ * pixel height). `min-height: 0` prevents this from ever forcing the
+ * item taller than its own already-correct height (a plain block
+ * child's intrinsic content height can otherwise still expand a
+ * height:100% parent in some browsers — the same reason `.kdl-grid-item-body`
+ * below already sets it).
+ */
+.kdl-grid-item-content {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+/* autoHeight — the wrapper always renders (needed for a reliable ViewChild query), so this class alone gates the behavior; the no-autoHeight case is completely unaffected. `height: auto` (not a fixed/inherited height) is the whole point — it lets the wrapper grow to its actual content size, which the ResizeObserver watching it needs in order to ever detect a *growing* content size at all. Wins over `.kdl-grid-item-content`'s own `height: 100%` above via normal CSS cascade (same specificity, defined later in this file). */
+.kdl-grid-item-auto-height-wrapper {
+  height: auto;
+  width: 100%;
+}
+
+.kdl-resize-hint {
+  position: absolute;
+  z-index: 15;
+}
+
+.kdl-resize-hint--n,
+.kdl-resize-hint--s {
+  cursor: ns-resize;
+  height: 10px;
+  left: 10px;
+  right: 10px;
+}
+
+.kdl-resize-hint--n {
+  top: 0;
+}
+
+.kdl-resize-hint--s {
+  bottom: 0;
+}
+
+.kdl-resize-hint--e,
+.kdl-resize-hint--w {
+  bottom: 10px;
+  cursor: ew-resize;
+  top: 10px;
+  width: 10px;
+}
+
+.kdl-resize-hint--e {
+  right: 0;
+}
+
+.kdl-resize-hint--w {
+  left: 0;
+}
+
+.kdl-resize-hint--ne,
+.kdl-resize-hint--sw {
+  cursor: nesw-resize;
+  height: 10px;
+  width: 10px;
+}
+
+.kdl-resize-hint--ne {
+  right: 0;
+  top: 0;
+}
+
+.kdl-resize-hint--sw {
+  bottom: 0;
+  left: 0;
+}
+
+.kdl-resize-hint--nw,
+.kdl-resize-hint--se {
+  cursor: nwse-resize;
+  height: 10px;
+  width: 10px;
+}
+
+.kdl-resize-hint--nw {
+  left: 0;
+  top: 0;
+}
+
+.kdl-resize-hint--se {
+  bottom: 0;
+  right: 0;
+}
+
+/* showGridLines — sized via --kdl-grid-line-column-size/--kdl-grid-line-row-size, computed in grid-layout.component.ts from the actual colNum/rowHeight/margin, not a fixed pattern. Note this package's own toggle class is `.kdl-grid-lines`, not `.kdl-grid-layout--grid-lines` (React's own name for the same feature) — confirmed directly against this component's own template. */
+.kdl-grid-lines::before {
+  background-image:
+    linear-gradient(to right, rgb(128 128 128 / 30%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(128 128 128 / 30%) 1px, transparent 1px);
+  background-repeat: repeat;
+  background-size: var(--kdl-grid-line-column-size, 1px) var(--kdl-grid-line-row-size, 1px);
+  content: '';
+  height: calc(100% - 5px);
+  margin: 5px;
+  position: absolute;
+  width: calc(100% - 5px);
+}
+
+/* showCloseButton */
+.kdl-grid-item-close-button {
+  background: rgb(0 0 0 / 10%);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  height: 20px;
+  padding: 0;
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 20px;
+  z-index: 20;
+}
+
+.kdl-grid-item-close-button:hover {
+  background: rgb(0 0 0 / 20%);
+}
+
+/* This package's own close-button icon is a separate, empty, aria-hidden span — unlike the React package (whose button holds an inline "×" character directly) — so the visible "×" glyph itself is drawn here in pure CSS, via two crossed bars, rather than needing a bundled SVG asset. */
+.kdl-grid-item-close-button-icon {
+  display: block;
+  height: 100%;
+  position: relative;
+  width: 100%;
+}
+
+.kdl-grid-item-close-button-icon::before,
+.kdl-grid-item-close-button-icon::after {
+  background: currentcolor;
+  color: #1f2937;
+  content: '';
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  width: 10px;
+}
+
+.kdl-grid-item-close-button-icon::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.kdl-grid-item-close-button-icon::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* isMirrored (RTL) — the close button sits at the item's own leading corner regardless of direction, matching the Vue/React packages' own identical override. */
+.kdl-grid-item--rtl .kdl-grid-item-close-button {
+  left: 4px;
+  right: auto;
+}
+
+/*
+ * isMirrored (RTL) — `setTransformRtl`/`setTopRight`
+ * (`@keystone-dashboard-layout/core`) compute a right-anchored
+ * transform, which is only correct if the item's own *pre-transform*
+ * static position is already anchored to the container's right edge.
+ * Nothing else establishes that anchor — an RTL item's static position
+ * would otherwise default to the same left-anchored (0,0) baseline an
+ * LTR item uses. `right: 0; left: auto;` here gives the transform the
+ * right-anchored baseline it always assumes exists — matches the
+ * Vue/React packages' own identical, confirmed fix for this.
+ */
+.kdl-grid-item--rtl {
+  left: auto;
+  right: 0;
+}
+
+/* showAlignmentGuides — above item drag/resize interaction states (z-index 3), but below the close button/resize handles (20/15), matching the Vue/React packages' own layering. */
+.kdl-grid-alignment-guide {
+  background: rgb(37 99 235 / 60%);
+  pointer-events: none;
+  position: absolute;
+  z-index: 16;
+}
+
+/* showSpacingGuides — one above the alignment guide lines so a label isn't visually cut through by a guide line crossing the same point. `translate(-50%, -50%)` centers the badge on its own left/top point (the gap's own midpoint), rather than that point being the badge's own top-left corner. */
+.kdl-grid-spacing-indicator {
+  background: rgb(37 99 235 / 90%);
+  border-radius: 3px;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 6px;
+  pointer-events: none;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  z-index: 17;
+}
+
+/* allowOutsideDrop/allowCrossGridDrag — the live drop-position preview, tracking the pointer while a native HTML5 drag (or a cross-grid drag) is over the grid. Note this package's own class is `.kdl-grid-placeholder` — not `.kdl-grid-outside-drop-placeholder` (React's own name for the same feature) — confirmed directly against this component's own template. */
+.kdl-grid-placeholder {
+  background: rgb(37 99 235 / 15%);
+  border: 2px dashed rgb(37 99 235 / 60%);
+  border-radius: 4px;
+  pointer-events: none;
+  position: absolute;
+  z-index: 4;
+}
+
+/*
+ * showResizeHandles — a *visible* resize-handle affordance, layered on
+ * top of the existing (always-present, invisible) `.kdl-resize-hint`
+ * hit zones via a `::after` pseudo-element, so the real grabbable area
+ * is completely unchanged either way — only its own visual appearance
+ * differs. `--kdl-resize-handle-color` is applied as an inline style
+ * directly on the item's own host (see `hostStyle`/`GridLayoutComponent`'s
+ * own `updateContainerHeight`, not a class toggle) whenever
+ * `showResizeHandles` resolves on, so no separate gating class is
+ * needed here the way React's own `.kdl-grid-item--show-resize-handles`
+ * modifier provides — the custom property itself being set (to a real
+ * color, not `transparent`) is what makes the handle visible. Edge
+ * handles get a short centered bar; corner handles get a small
+ * square — a common, unobtrusive resize-handle convention, matching
+ * the Vue/React packages' own identical visual treatment.
+ */
+.kdl-resize-hint::after {
+  background: var(--kdl-resize-handle-color, transparent);
+  content: '';
+  position: absolute;
+}
+
+.kdl-resize-hint--n::after,
+.kdl-resize-hint--s::after {
+  border-radius: 2px;
+  height: 4px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+}
+
+.kdl-resize-hint--e::after,
+.kdl-resize-hint--w::after {
+  border-radius: 2px;
+  height: 24px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+}
+
+.kdl-resize-hint--ne::after,
+.kdl-resize-hint--nw::after,
+.kdl-resize-hint--se::after,
+.kdl-resize-hint--sw::after {
+  border-radius: 2px;
+  height: 6px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+}
+
+/*
+ * GridItemDragHandleComponent/GridItemCloseButtonComponent — standalone
+ * utility components ported from Vue's own CustomDragElement.vue/
+ * CustomCloseButton.vue (confirmed via a direct source read). Not used
+ * internally by GridLayoutComponent/GridItemComponent; a consumer opts
+ * in explicitly and places these wherever they like inside their own
+ * projected content.
+ *
+ * Bug fix, found via live browser testing (dragging from the rendered
+ * handle silently did nothing): an earlier version of this rule added
+ * `position: relative` here, which Vue's own equivalent `.text` span
+ * deliberately does not have. That's a real, meaningful difference —
+ * Vue's own `.vue-draggable-handle` (`position: absolute`, `top: 14px`,
+ * `left: 14px`) is written to position relative to the nearest
+ * positioned ancestor being the surrounding `GridItem`/`kdl-grid-item`
+ * host itself (which already establishes one for its own grid
+ * positioning), not this tiny, tightly-fitted inline-flex wrapper.
+ * Adding `position: relative` here creates an unwanted new positioning
+ * context that confines the 20×20px handle to this wrapper's own
+ * ~26×23px bounds instead — confirmed directly via
+ * `getBoundingClientRect()` showing the handle rendering mostly outside
+ * the wrapper's own edges, nowhere near the item's actual visible
+ * button. Removing this property lets the handle position against the
+ * real `GridItemComponent` host instead, exactly matching Vue's own
+ * behavior.
+ */
+.kdl-drag-element-text {
+  align-items: center;
+  display: inline-flex;
+}
+
+/*
+ * The actual draggable hit-area — a real, confirmed structural detail
+ * from Vue's own source, not the visible <button> beside it: an empty,
+ * absolutely-positioned span with a circle-icon background. Positioned
+ * at 14px (not flush against a corner) so it doesn't overlap the native
+ * resize engine's own ~10px edge-proximity margin — matching Vue's own
+ * identical positioning and its own documented rationale for that
+ * specific offset.
+ */
+.kdl-draggable-handle {
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'><circle cx='5' cy='5' r='5' fill='%23999999'/></svg>") no-repeat bottom right;
+  background-origin: content-box;
+  box-sizing: border-box;
+  cursor: pointer;
+  height: 20px;
+  left: 14px;
+  padding: 0 8px 8px 0;
+  position: absolute;
+  top: 14px;
+  width: 20px;
+}
+
+/* Same visual language as the built-in .kdl-grid-item-close-button/-icon above, minus the absolute corner positioning (this is a standalone component a consumer places wherever they like, e.g. inside a custom header, not necessarily pinned to an item's corner). */
+.kdl-custom-close-button {
+  align-items: center;
+  background: rgb(0 0 0 / 10%);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  padding: 0;
+  width: 24px;
+}
+
+.kdl-custom-close-button:hover {
+  background: rgb(0 0 0 / 20%);
+}
+
+.kdl-custom-close-button-icon {
+  display: block;
+  height: 12px;
+  position: relative;
+  width: 12px;
+}
+
+.kdl-custom-close-button-icon::before,
+.kdl-custom-close-button-icon::after {
+  background: currentcolor;
+  color: #1f2937;
+  content: '';
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  width: 12px;
+}
+
+.kdl-custom-close-button-icon::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.kdl-custom-close-button-icon::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}

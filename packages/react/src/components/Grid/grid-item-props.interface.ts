@@ -41,6 +41,31 @@ export interface IGridItemProps {
    * slot (which received the same `edge` value via its own slot prop).
    */
   renderResizeHandle?: (edge: TResizeHandle) => ReactNode;
+  /**
+   * Fired when this item's own drag gesture ends (`dragend`), with its
+   * own final grid-unit `x`/`y` — a direct per-item alternative to
+   * reading the same information out of `GridLayout`'s own broader
+   * `onLayoutChange`. Matches Vue's own `GridItem` `@item-moved`
+   * (`EGridItemEvent.MOVED`), confirmed via a direct read of that
+   * file's own `emit()` call shape. Deliberately reports this item's
+   * own locally-computed, pre-compaction value, matching Vue's exact
+   * timing and semantics — not a "corrected" post-compaction value;
+   * `onLayoutChange` remains the source of truth for the fully-
+   * compacted result (including any knock-on repositioning of other
+   * items). A convenience for "just tell me when *this* item moved,"
+   * not a replacement for `onLayoutChange`.
+   */
+  onItemMoved?: (payload: { i: string | number; x: number; y: number }) => void;
+  /**
+   * Fired when this item's own resize gesture ends (`resizeend`), with
+   * its own final grid-unit `h`/`w` *and* pixel `height`/`width`
+   * together — matches Vue's own `GridItem` `@resized`
+   * (`EGridItemEvent.RESIZED`), which genuinely emits both the
+   * grid-unit and pixel dimensions together (confirmed via a direct
+   * read of that file's own `emit()` call shape). See `onItemMoved`'s
+   * own doc comment for the same pre-compaction-value timing note.
+   */
+  onItemResized?: (payload: { i: string | number; h: number; w: number; height: number; width: number }) => void;
   /** Applied to the item's own root element, alongside the library's own positioning/interaction classes. */
   className?: string;
 }

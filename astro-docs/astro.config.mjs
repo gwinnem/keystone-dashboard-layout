@@ -14,6 +14,18 @@ import react from '@astrojs/react';
 // each one's own docs/IMPLEMENTATION_PLAN.md is marked done — so each
 // is being built out for real, the same incremental way (Guide first,
 // then Features/Components/API/Examples).
+//
+// Angular examples specifically are NOT embedded here as Astro islands
+// — that was tried via the community @analogjs/astro-angular package
+// (there's no official @astrojs/angular) and abandoned after hitting
+// real, unresolved issues (a component that consistently resolved to
+// undefined in Astro's MDX renderer, even after fixing a genuine
+// Angular-version mismatch and a genuine tsconfig scoping gap). Angular
+// examples now live in a real, separate, standalone Angular CLI app
+// instead (../angular-examples-app, outside this workspace too) — see
+// that app's own README for the full rationale. Angular's own Examples
+// sidebar section is deliberately omitted here until that app is
+// deployed somewhere this site can link to (or iframe).
 export default defineConfig({
   integrations: [
     vue(),

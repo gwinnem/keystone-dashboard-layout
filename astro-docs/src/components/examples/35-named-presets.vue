@@ -32,12 +32,19 @@
       </div>
     </GridItem>
   </GridLayout>
+
+  <p class="demo-description">
+    Saved presets: {{ presetNames.length ? presetNames.join(', ') : 'none yet' }}
+  </p>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
   import { ref } from 'vue';
   import { GridLayout, GridItem, useLayoutPresets, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   const layout = ref<TLayout>([
     { h: 2, i: '0', w: 3, x: 0, y: 0 },
@@ -92,6 +99,11 @@
   background: transparent;
   border: 1px solid var(--kg-line-light);
   color: var(--kg-text-hi-light);
+}
+
+.demo-description {
+  color: var(--kg-text-lo-light);
+  font-size: 13px;
 }
 
 .example-item {

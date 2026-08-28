@@ -2,13 +2,13 @@
   <div class="demo-controls">
     <button
       class="demo-btn"
-      @click="exportSvg">Export as SVG</button>
+      @click="showExport = !showExport">{{ showExport ? 'Hide' : 'Show' }} exported SVG</button>
   </div>
 
   <GridLayout
     v-model:layout="layout"
     :col-num="12"
-    :row-height="60"
+    :row-height="80"
     show-grid-lines>
     <GridItem
       v-for="item in layout"
@@ -24,31 +24,52 @@
     </GridItem>
   </GridLayout>
 
-  <div
-    v-if="svgMarkup"
-    class="svg-preview"
-    v-html="svgMarkup"></div>
-  <p
-    v-else
-    class="demo-description">Click "Export as SVG" to see the output rendered here.</p>
+  <template v-if="showExport">
+    <p class="demo-description">
+      Exported SVG (rendered below as a data URL — no <code>v-html</code>
+      needed, since the raw markup never touches the DOM directly):
+    </p>
+    <div class="svg-preview">
+      <img
+        alt="Exported grid layout, rendered as SVG"
+        :src="dataUrl" />
+    </div>
+    <p class="demo-description">
+      <a
+        download="layout.svg"
+        :href="dataUrl">Download layout.svg</a>
+    </p>
+  </template>
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue';
+  import { computed, ref } from 'vue';
   import { GridLayout, GridItem, exportLayoutAsSvg, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
 
   const layout = ref<TLayout>([
     { h: 2, i: '0', w: 3, x: 0, y: 0 },
     { h: 2, i: '1', w: 3, x: 3, y: 0 },
-    { h: 2, i: '2', w: 3, x: 6, y: 0 },
+    { h: 2, i: '2', w: 6, x: 0, y: 2 },
   ]);
 
-  const svgMarkup = ref('');
+  const showExport = ref(false);
 
-  function exportSvg(): void {
-    svgMarkup.value = exportLayoutAsSvg(layout.value, { colNum: 12, rowHeight: 60 });
-  }
+  const exportedSvg = computed(() =>
+    exportLayoutAsSvg(layout.value, {
+      backgroundColor: '#f8fafc',
+      colNum: 12,
+      containerWidth: 700,
+      rowHeight: 80,
+    }),
+  );
+
+  // A real data URL, not a placeholder — an <img>'s own src can safely
+  // point at one directly, unlike v-html (which would inject the raw
+  // SVG markup as live DOM), so this needs no rule suppression of any
+  // kind, and the download link below is the exact same string, not a
+  // separate mechanism.
+  const dataUrl = computed(() => `data:image/svg+xml,${encodeURIComponent(exportedSvg.value)}`);
 </script>
 
 <style scoped>
@@ -70,16 +91,18 @@
 .demo-description {
   color: var(--kg-text-lo-light);
   font-size: 13px;
-  font-style: italic;
   margin-top: 16px;
 }
 
 .svg-preview {
-  background: var(--kg-paper-2);
   border: 1px solid var(--kg-line-light);
   border-radius: 8px;
-  margin-top: 16px;
-  padding: 12px;
+  overflow: hidden;
+}
+
+.svg-preview img {
+  display: block;
+  max-width: 100%;
 }
 
 .example-item {

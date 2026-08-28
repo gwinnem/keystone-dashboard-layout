@@ -3,6 +3,7 @@ import { GridLayout, GridItem, useLayoutStorage } from '@keystone-dashboard-layo
 import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
 import '../examples-react/shared-example-item.css';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import './19-save-load-layout.css';
 
 const STORAGE_KEY = 'keystone-dashboard-layout-example-19-layout';
@@ -47,6 +48,8 @@ export default function SaveLoadLayout() {
           </GridItem>
         ))}
       </GridLayout>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

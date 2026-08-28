@@ -3,6 +3,8 @@ import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
 import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
 import ExampleNumberField from '../harness-react/ExampleNumberField';
+import ExampleToggle from '../harness-react/ExampleToggle';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import '../examples-react/shared-example-item.css';
 
 const initialLayout: TLayout = [
@@ -16,6 +18,7 @@ export default function GridDimensions() {
   const [colNum, setColNum] = useState(12);
   const [marginX, setMarginX] = useState(10);
   const [marginY, setMarginY] = useState(10);
+  const [showGridLines, setShowGridLines] = useState(true);
   const [layout, setLayout] = useState<TLayout>(initialLayout);
 
   return (
@@ -25,15 +28,18 @@ export default function GridDimensions() {
         <ExampleNumberField label="colNum" max={24} min={2} onChange={setColNum} value={colNum} />
         <ExampleNumberField label="margin[0]" max={40} min={0} onChange={setMarginX} value={marginX} />
         <ExampleNumberField label="margin[1]" max={40} min={0} onChange={setMarginY} value={marginY} />
+        <ExampleToggle checked={showGridLines} label="showGridLines" onChange={setShowGridLines} />
       </div>
 
-      <GridLayout colNum={colNum} layout={layout} margin={[marginX, marginY]} onLayoutChange={setLayout} rowHeight={rowHeight} showGridLines>
+      <GridLayout colNum={colNum} layout={layout} margin={[marginX, marginY]} onLayoutChange={setLayout} rowHeight={rowHeight} showGridLines={showGridLines}>
         {layout.map((item) => (
           <GridItem i={item.i} key={item.i}>
             <div className="example-item">{item.i}</div>
           </GridItem>
         ))}
       </GridLayout>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

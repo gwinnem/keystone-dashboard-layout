@@ -1,7 +1,9 @@
 {
   "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
-  "dest": "../../dist/keystone-dashboard-layout-angular",
+  "dest": "dist/keystone-dashboard-layout-angular",
   "lib": {
-    "entryFile": "src/public-api.ts"
-  }
+    "entryFile": "src/index.ts"
+  },
+  "assets": ["src/styles/index.css"],
+  "allowedNonPeerDependencies": ["@keystone-dashboard-layout/core"]
 }

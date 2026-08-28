@@ -13,26 +13,15 @@ npm install @keystone-dashboard-layout/angular
 `rxjs` (`^7.8.0`) are peer dependencies — the package doesn't bundle
 its own copies.
 
-:::caution[No stylesheet is currently published]
-Unlike the Vue and React packages, `@keystone-dashboard-layout/angular`
-doesn't ship a `style.css` (or any CSS at all, checked directly against
-the package's own source) — its own `package.json` has no `exports`
-map or CSS entry point. The components' host bindings apply the exact
-same class names the Vue/React CSS already targets (`kdl-grid-layout`,
-`kdl-grid-item`, `kdl-grid-item--dragging`, `kdl-resize-hint--n`, and so
-on), so importing the React package's own stylesheet as a stand-in
-currently works in practice:
+## Import the styles
+
+The components ship with their own base styling (positioning, drag/resize
+cursors, the default close button). Import it once, anywhere it'll be
+loaded application-wide — typically your app's entry point:
 
 ```ts
-import '@keystone-dashboard-layout/react/style.css';
+import '@keystone-dashboard-layout/angular/style.css';
 ```
-
-This isn't the intended, permanent path — pulling in an unrelated
-package purely for its CSS is a real gap in the Angular package
-itself, not a documented workaround — but it's the most accurate
-option available today. Confirm this hasn't changed in whichever
-version you've actually installed before relying on it.
-:::
 
 ## Use the components
 
@@ -145,6 +134,8 @@ import {
   GridItemHeaderDirective,
   GridLayoutStorageService,
   GridLayoutPresetsService,
+  GridItemDragHandleComponent,
+  GridItemCloseButtonComponent,
 } from '@keystone-dashboard-layout/angular';
 ```
 

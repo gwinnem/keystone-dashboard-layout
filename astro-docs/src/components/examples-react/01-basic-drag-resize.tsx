@@ -4,6 +4,7 @@ import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
 import ExampleToggle from '../harness-react/ExampleToggle';
 import ExampleNumberField from '../harness-react/ExampleNumberField';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import './01-basic-drag-resize.css';
 
 const letters = ['a', 'b', 'c', 'd', 'e'];
@@ -51,6 +52,8 @@ export default function BasicDragResize() {
           </GridItem>
         ))}
       </GridLayout>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

@@ -1,0 +1,30 @@
+{
+  "name": "keystone-dashboard-layout-angular-examples",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A real, standalone Angular CLI app (not part of the pnpm workspace, same as astro-docs) hosting live, deployable examples of @keystone-dashboard-layout/angular — the intended replacement for embedding examples inline in astro-docs via @analogjs/astro-angular, which proved too fragile against this monorepo's specific Angular/vite-plugin-angular version combination.",
+  "scripts": {
+    "dev": "ng serve",
+    "start": "ng serve",
+    "build": "ng build"
+  },
+  "dependencies": {
+    "@angular/animations": "^19.0.0",
+    "@angular/common": "^19.0.0",
+    "@angular/compiler": "^19.0.0",
+    "@angular/core": "^19.0.0",
+    "@angular/forms": "^19.0.0",
+    "@angular/platform-browser": "^19.0.0",
+    "@angular/router": "^19.0.0",
+    "rxjs": "^7.8.0",
+    "tslib": "^2.6.0",
+    "zone.js": "^0.15.0",
+    "@keystone-dashboard-layout/core": "link:../packages/core"
+  },
+  "devDependencies": {
+    "@angular/build": "^19.0.0",
+    "@angular/cli": "^19.0.0",
+    "@angular/compiler-cli": "^19.0.0",
+    "typescript": "~5.6.0"
+  }
+}

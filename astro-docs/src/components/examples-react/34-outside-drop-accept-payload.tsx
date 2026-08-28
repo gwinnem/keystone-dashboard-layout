@@ -42,8 +42,11 @@ export default function OutsideDropAcceptPayload() {
   function handleOutsideDrop({ x, y, w, h, dataTransfer }: { x: number; y: number; w: number; h: number; dataTransfer: DataTransfer | null }): void {
     const payload = readOutsideDropPayload<IWidgetPayload>(dataTransfer, 'application/json');
     setLastPayload(JSON.stringify(payload));
-    setLayout((current) => [...current, { h, i: String(nextId.current), w, x, y }]);
-    nextId.current += 1;
+    setLayout((current) => {
+      const newItem = { h, i: String(nextId.current), w, x, y };
+      nextId.current += 1;
+      return [...current, newItem];
+    });
   }
 
   return (

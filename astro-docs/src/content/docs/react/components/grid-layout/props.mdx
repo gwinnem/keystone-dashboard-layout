@@ -96,6 +96,7 @@ it per-item; see each prop's note.
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `showGridLines` | `boolean` | `false` | Renders visible grid line guides behind the items. |
+| `renderPlaceholder` | `(placeholder: { x, y, w, h } \| null, isDragging: boolean) => ReactNode` | — | Renders fully custom content at the drop target during *any* drag or resize — in-grid or outside-drop — instead of the default plain, dashed-outline box. The render-prop equivalent of Vue's own `#placeholder` scoped slot. `undefined` renders the existing plain box, unaffected. Positioning/sizing is still automatic — only the content shown inside the box is customizable. |
 | `showCloseButton` | `boolean` | `false` | Grid-wide default for whether each item renders a close button. A per-item override exists. Clicking it calls `onItemClose`. |
 | `onItemClose` | `(id: string \| number) => void` | — | Called when an item's close button is clicked. Does not itself remove anything from `layout` — your own handler decides. |
 | `borderRadiusPx` | `number` | `10` | Grid-wide default border radius, applied when `useBorderRadius` is on. A per-item override exists. |

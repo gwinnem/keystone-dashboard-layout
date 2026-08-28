@@ -4,6 +4,7 @@ import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
 import '../examples-react/shared-example-item.css';
 import './04-multiple-grids.css';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 
 export default function MultipleGrids() {
   const [layoutA, setLayoutA] = useState<TLayout>([
@@ -16,27 +17,32 @@ export default function MultipleGrids() {
   ]);
 
   return (
-    <div className="grids-row">
-      <div className="grid-column">
-        <p className="grid-label">Grid A</p>
-        <GridLayout colNum={6} layout={layoutA} onLayoutChange={setLayoutA} rowHeight={60} showGridLines>
-          {layoutA.map((item) => (
-            <GridItem i={item.i} key={item.i}>
-              <div className="example-item">{item.i}</div>
-            </GridItem>
-          ))}
-        </GridLayout>
+    <>
+      <div className="grids-row">
+        <div className="grid-column">
+          <p className="grid-label">Grid A</p>
+          <GridLayout colNum={6} layout={layoutA} onLayoutChange={setLayoutA} rowHeight={60} showGridLines>
+            {layoutA.map((item) => (
+              <GridItem i={item.i} key={item.i}>
+                <div className="example-item">{item.i}</div>
+              </GridItem>
+            ))}
+          </GridLayout>
+        </div>
+        <div className="grid-column">
+          <p className="grid-label">Grid B</p>
+          <GridLayout colNum={6} layout={layoutB} onLayoutChange={setLayoutB} rowHeight={60} showGridLines>
+            {layoutB.map((item) => (
+              <GridItem i={item.i} key={item.i}>
+                <div className="example-item">{item.i}</div>
+              </GridItem>
+            ))}
+          </GridLayout>
+        </div>
       </div>
-      <div className="grid-column">
-        <p className="grid-label">Grid B</p>
-        <GridLayout colNum={6} layout={layoutB} onLayoutChange={setLayoutB} rowHeight={60} showGridLines>
-          {layoutB.map((item) => (
-            <GridItem i={item.i} key={item.i}>
-              <div className="example-item">{item.i}</div>
-            </GridItem>
-          ))}
-        </GridLayout>
-      </div>
-    </div>
+
+      <LayoutJsonViewer label="Grid A" layout={layoutA} />
+      <LayoutJsonViewer label="Grid B" layout={layoutB} />
+    </>
   );
 }

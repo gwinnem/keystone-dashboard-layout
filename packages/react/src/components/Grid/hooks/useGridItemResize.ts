@@ -35,6 +35,15 @@ export interface IUseGridItemResizeOptions {
   minH: number;
   minW: number;
   onResize: (id: string | number, eventType: TGridGestureEventType, x: number, y: number, w: number, h: number) => void;
+  /**
+   * Fired directly on `resizeend`, with this item's own final grid-unit
+   * `h`/`w` *and* pixel `height`/`width` together — the React port of
+   * Vue's own `GridItem` `@resized`. Optional and purely additive:
+   * unset, this hook's own behavior is completely unaffected. See
+   * `IGridItemProps.onItemResized`'s own doc comment for the full
+   * rationale.
+   */
+  onItemResized?: (payload: { i: string | number; h: number; w: number; height: number; width: number }) => void;
   preserveAspectRatio: boolean;
   rowHeight: number;
   transformScale: number;
@@ -237,7 +246,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
   }, [calcWH]);
 
   const handleResize = useCallback((event: INativeResizeEvent): void => {
-    const { h, i, innerX, innerY, minW, maxW, minH, maxH, onResize, transformScale, w, isMirrored, preserveAspectRatio, autoScroll } = optionsRef.current;
+    const { h, i, innerX, innerY, minW, maxW, minH, maxH, onResize, onItemResized, transformScale, w, isMirrored, preserveAspectRatio, autoScroll } = optionsRef.current;
 
     const position = offsetXYFromParentOf(event);
     const { x, y } = position;
@@ -385,6 +394,10 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
 
     lastW.current = x;
     lastH.current = y;
+
+    if(event.type === `resizeend`) {
+      onItemResized?.({ h: pos.h, height: newSize.height, i, w: pos.w, width: newSize.width });
+    }
 
     onResize(i, event.type, newX, newY, pos.w, pos.h);
   }, [calcPosition, calcWH, pixelsToGridX, pixelsToGridY]);

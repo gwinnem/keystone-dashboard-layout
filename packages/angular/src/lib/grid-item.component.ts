@@ -15,9 +15,10 @@ import {
   Optional,
   Output,
   SimpleChanges,
+  TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { NgStyle } from '@angular/common';
+import { NgStyle, NgTemplateOutlet } from '@angular/common';
 import { GridItemHeaderDirective } from './grid-item-header.directive';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest } from 'rxjs';
@@ -145,14 +146,16 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
     '[attr.role]': 'isDraggableOrResizableAndNotStatic ? "group" : null',
     '[attr.tabindex]': 'tabindexValue',
     '[class.kdl-grid-item--dragging]': 'isDragging',
+    '[class.kdl-grid-item--draggable]': 'resolvedIsDraggable && !isStatic',
     '[class.kdl-grid-item--has-header]': 'hasHeaderContent',
     '[class.kdl-grid-item--resizing]': 'isResizing',
     '[class.kdl-grid-item--rtl]': 'resolvedIsMirrored',
     '[class.kdl-grid-item--selected]': 'isSelected',
+    '[class.kdl-grid-item--static]': 'isStatic',
     '[class.kdl-grid-item--use-radius]': 'resolvedUseBorderRadius',
     class: `kdl-grid-item`,
   },
-  imports: [NgStyle],
+  imports: [NgStyle, NgTemplateOutlet],
   selector: `kdl-grid-item`,
   standalone: true,
   template: `
@@ -175,30 +178,46 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
         </div>
       }
       @if (resolvedResizeHandles.includes('n')) {
-        <span #nHandle class="kdl-resize-hint kdl-resize-hint--n"></span>
+        <span #nHandle class="kdl-resize-hint kdl-resize-hint--n">
+          <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'n', edge: 'n' }"></ng-container>
+        </span>
       }
       @if (resolvedResizeHandles.includes('s')) {
-        <span #sHandle class="kdl-resize-hint kdl-resize-hint--s"></span>
+        <span #sHandle class="kdl-resize-hint kdl-resize-hint--s">
+          <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 's', edge: 's' }"></ng-container>
+        </span>
       }
       @if (resolvedResizeHandles.includes('e')) {
-        <span #eHandle class="kdl-resize-hint kdl-resize-hint--e"></span>
+        <span #eHandle class="kdl-resize-hint kdl-resize-hint--e">
+          <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'e', edge: 'e' }"></ng-container>
+        </span>
       }
       @if (resolvedResizeHandles.includes('w')) {
-        <span #wHandle class="kdl-resize-hint kdl-resize-hint--w"></span>
+        <span #wHandle class="kdl-resize-hint kdl-resize-hint--w">
+          <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'w', edge: 'w' }"></ng-container>
+        </span>
       }
       @if (resolvedResizeHandles.includes('ne')) {
-        <span #neHandle class="kdl-resize-hint kdl-resize-hint--ne"></span>
+        <span #neHandle class="kdl-resize-hint kdl-resize-hint--ne">
+          <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'ne', edge: 'ne' }"></ng-container>
+        </span>
       }
       @if (resolvedResizeHandles.includes('nw')) {
-        <span #nwHandle class="kdl-resize-hint kdl-resize-hint--nw"></span>
+        <span #nwHandle class="kdl-resize-hint kdl-resize-hint--nw">
+          <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'nw', edge: 'nw' }"></ng-container>
+        </span>
       }
       @if (resolvedResizeHandles.includes('se')) {
-        <span #seHandle class="kdl-resize-hint kdl-resize-hint--se"></span>
+        <span #seHandle class="kdl-resize-hint kdl-resize-hint--se">
+          <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'se', edge: 'se' }"></ng-container>
+        </span>
       }
       @if (resolvedResizeHandles.includes('sw')) {
-        <span #swHandle class="kdl-resize-hint kdl-resize-hint--sw"></span>
+        <span #swHandle class="kdl-resize-hint kdl-resize-hint--sw">
+          <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'sw', edge: 'sw' }"></ng-container>
+        </span>
       }
-      <div #autoHeightWrapper [class.kdl-grid-item-auto-height-wrapper]="autoHeight" [class.kdl-grid-item-body]="hasHeaderContent">
+      <div #autoHeightWrapper class="kdl-grid-item-content" [class.kdl-grid-item-auto-height-wrapper]="autoHeight" [class.kdl-grid-item-body]="hasHeaderContent">
         <ng-content></ng-content>
       </div>
     </div>
@@ -280,6 +299,33 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
    * already apply `layoutChange` back.
    */
   @Output() readonly removeItem = new EventEmitter<string | number>();
+  /**
+   * Emits this item's own final grid-unit x/y the moment its own drag
+   * commits (`dragend`) — a direct per-item alternative to reading the
+   * same information out of `GridLayoutComponent`'s own `layoutChange`.
+   * Matches Vue's own `GridItem` `@item-moved` (`EGridItemEvent.MOVED`),
+   * confirmed via a direct read of `GridItem.vue`'s own `emit()` call
+   * shape, not assumed from the example site alone. Deliberately emits
+   * this item's own locally-computed, pre-compaction value, matching
+   * Vue's exact timing and semantics — not a "corrected" post-compaction
+   * value; `GridLayoutComponent`'s own `layoutChange` remains the source
+   * of truth for the fully-compacted result, and this output is a
+   * convenience for "just tell me when *this* item moved," the same
+   * limited scope Vue's own version has.
+   */
+  @Output() readonly itemMoved = new EventEmitter<{ i: string | number; x: number; y: number }>();
+  /**
+   * Emits this item's own final grid-unit h/w *and* pixel height/width
+   * the moment its own resize commits (`resizeend`) — matches Vue's own
+   * `GridItem` `@resized` (`EGridItemEvent.RESIZED`), which genuinely
+   * emits both the grid-unit and pixel dimensions together (confirmed via
+   * a direct read of `GridItem.vue`'s own `emit()` call shape — not the
+   * `{i, h, w}`-only shape an earlier version of this port's own
+   * implementation plan assumed before that direct read). See
+   * `itemMoved`'s own doc comment for the same pre-compaction-value
+   * timing note.
+   */
+  @Output() readonly itemResized = new EventEmitter<{ i: string | number; h: number; w: number; height: number; width: number }>();
   /** Explicit stacking-order override, applied as an inline `z-index` style, winning over the implicit static/dragging/resizing z-index rules a consumer's own stylesheet may define. `null` (the default) applies no override. */
   @Input() zIndex: number | null = null;
   /** Scrolls the nearest scrollable ancestor while dragging/resizing near its edge. Default `false`, matching Vue/React's own default. */
@@ -391,6 +437,21 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
    */
   hasHeaderContent = false;
   @ContentChild(GridItemHeaderDirective) private readonly headerContentQuery: GridItemHeaderDirective | undefined;
+  /**
+   * Optional template for fully custom per-handle content (an icon, not
+   * just a color) — rendered inside the same small hit-area
+   * `showResizeHandles`/`resizeHandleColor` already use. Falls back to
+   * the existing plain `<span>` markup (empty, styled only via CSS) when
+   * not provided — every existing consumer's rendering is completely
+   * unaffected. Matches Vue's own `#resize-handle` scoped slot / React's
+   * own `renderResizeHandle` render prop, expressed as Angular's own
+   * template-projection idiom (`<ng-template #resizeHandle let-edge>`
+   * inside a `kdl-grid-item`'s own projected content). Queried by the
+   * template reference variable name `resizeHandle`, not by directive
+   * type, since a plain `<ng-template>` has no component/directive of
+   * its own to match against.
+   */
+  @ContentChild('resizeHandle', { read: TemplateRef }) resizeHandleTemplate: TemplateRef<{ $implicit: TResizeHandle; edge: TResizeHandle }> | undefined;
 
   private lastX = NaN;
   private lastY = NaN;
@@ -1110,6 +1171,10 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
     this.style = this.computeStyle();
     this.changeDetectorRef.markForCheck();
 
+    if(event.type === `dragend`) {
+      this.itemMoved.emit({ i: this.i, x: pos.x, y: pos.y });
+    }
+
     this.eventBus?.emitItemDrag({
       clientX: event.clientX,
       clientY: event.clientY,
@@ -1310,6 +1375,10 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
 
     this.style = this.computeStyle();
     this.changeDetectorRef.markForCheck();
+
+    if(event.type === `resizeend`) {
+      this.itemResized.emit({ h: pos.h, height: newSize.height, i: this.i, w: pos.w, width: newSize.width });
+    }
 
     this.eventBus?.emitItemResize({
       eventType: event.type,

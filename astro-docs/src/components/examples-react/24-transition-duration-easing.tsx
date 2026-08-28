@@ -3,10 +3,11 @@ import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
 import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
 import ExampleNumberField from '../harness-react/ExampleNumberField';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import '../examples-react/shared-example-item.css';
 import './24-transition-duration-easing.css';
 
-const initialLayout: TLayout = [
+const INITIAL_LAYOUT: TLayout = [
   { h: 2, i: '0', w: 3, x: 0, y: 0 },
   { h: 2, i: '1', w: 3, x: 3, y: 0 },
   { h: 2, i: '2', w: 3, x: 6, y: 0 },
@@ -16,7 +17,7 @@ const initialLayout: TLayout = [
 export default function TransitionDurationEasing() {
   const [transitionDurationMs, setTransitionDurationMs] = useState(600);
   const [transitionTimingFunction, setTransitionTimingFunction] = useState('ease');
-  const [layout, setLayout] = useState<TLayout>(initialLayout);
+  const [layout, setLayout] = useState<TLayout>(() => INITIAL_LAYOUT.map((item) => ({ ...item })));
 
   function shuffle(): void {
     setLayout((current) =>
@@ -26,10 +27,21 @@ export default function TransitionDurationEasing() {
     );
   }
 
+  // Kept as its own constant (not read back out of `layout` itself) so
+  // "Reset layout" always restores the exact original positions, not
+  // whatever the layout happened to compact/shuffle into after some
+  // interaction — otherwise comparing different duration/easing
+  // settings has no way to get back to a consistent starting point
+  // without reloading the whole page.
+  function resetLayout(): void {
+    setLayout(INITIAL_LAYOUT.map((item) => ({ ...item })));
+  }
+
   return (
     <>
       <div className="demo-controls">
         <button className="demo-btn" onClick={shuffle} type="button">Shuffle</button>
+        <button className="demo-btn demo-btn--ghost" onClick={resetLayout} type="button">Reset layout</button>
         <ExampleNumberField label="transitionDurationMs" max={2000} min={0} onChange={setTransitionDurationMs} value={transitionDurationMs} />
         <select className="demo-select" onChange={(e) => setTransitionTimingFunction(e.target.value)} value={transitionTimingFunction}>
           <option value="ease">ease</option>
@@ -54,6 +66,8 @@ export default function TransitionDurationEasing() {
           </GridItem>
         ))}
       </GridLayout>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

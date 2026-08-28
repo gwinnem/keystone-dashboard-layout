@@ -3,6 +3,9 @@
     <button
       class="demo-btn"
       @click="shuffle">Shuffle</button>
+    <button
+      class="demo-btn demo-btn--ghost"
+      @click="resetLayout">Reset layout</button>
     <ExampleNumberField
       v-model="transitionDurationMs"
       label="transitionDurationMs"
@@ -38,6 +41,8 @@
       </div>
     </GridItem>
   </GridLayout>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
@@ -45,26 +50,40 @@
   import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
   import ExampleNumberField from '../harness/ExampleNumberField.vue';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
-  const transitionDurationMs = ref(600);
-  const transitionTimingFunction = ref('ease');
-
-  const layout = ref<TLayout>([
+  // Kept as its own constant (not read back out of `layout` itself) so
+  // "Reset layout" always restores the exact original positions, not
+  // whatever the layout happened to compact/shuffle into after some
+  // interaction — otherwise comparing different duration/easing
+  // settings has no way to get back to a consistent starting point
+  // without reloading the whole page.
+  const INITIAL_LAYOUT: TLayout = [
     { h: 2, i: '0', w: 3, x: 0, y: 0 },
     { h: 2, i: '1', w: 3, x: 3, y: 0 },
     { h: 2, i: '2', w: 3, x: 6, y: 0 },
     { h: 2, i: '3', w: 3, x: 9, y: 0 },
-  ]);
+  ];
+
+  const layout = ref<TLayout>(INITIAL_LAYOUT.map((item) => ({ ...item })));
+
+  const transitionDurationMs = ref(600);
+  const transitionTimingFunction = ref('ease');
 
   function shuffle(): void {
     layout.value = [...layout.value]
       .sort(() => Math.random() - 0.5)
       .map((item, index) => ({ ...item, x: (index % 4) * 3, y: Math.floor(index / 4) * 2 }));
   }
+
+  function resetLayout(): void {
+    layout.value = INITIAL_LAYOUT.map((item) => ({ ...item }));
+  }
 </script>
 
 <style scoped>
 .demo-controls {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 8px 20px;
@@ -80,6 +99,12 @@
   font-family: var(--kg-font-mono);
   font-size: 12px;
   padding: 6px 12px;
+}
+
+.demo-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--kg-line-light);
+  color: var(--kg-text-hi-light);
 }
 
 .demo-select {

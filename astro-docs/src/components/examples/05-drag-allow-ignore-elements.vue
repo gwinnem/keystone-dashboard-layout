@@ -5,36 +5,43 @@
     :row-height="70"
     show-grid-lines>
     <GridItem
-      v-for="item in layout"
-      :key="item.i"
-      :drag-allow-from="item.i === '0' ? '.drag-handle' : null"
-      :h="item.h"
-      :i="item.i"
-      :w="item.w"
-      :x="item.x"
-      :y="item.y">
+      :drag-allow-from="'.drag-handle'"
+      :h="layout[0].h"
+      :i="layout[0].i"
+      :w="layout[0].w"
+      :x="layout[0].x"
+      :y="layout[0].y">
       <div class="example-item">
-        <div
-          v-if="item.i === '0'"
-          class="drag-handle">
-          drag here
-        </div>
+        <div class="drag-handle">drag here</div>
+      </div>
+    </GridItem>
+    <GridItem
+      :drag-ignore-from="'.no-drag'"
+      :h="layout[1].h"
+      :i="layout[1].i"
+      :w="layout[1].w"
+      :x="layout[1].x"
+      :y="layout[1].y">
+      <div class="example-item">
         <div class="item-body">
-          {{ item.i }}
+          {{ layout[1].i }}
           <button
-            v-if="item.i === '1'"
-            class="no-drag-btn"
+            class="no-drag no-drag-btn"
+            type="button"
             @click.stop>not draggable</button>
         </div>
       </div>
     </GridItem>
   </GridLayout>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
   import { ref } from 'vue';
   import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   const layout = ref<TLayout>([
     { h: 2, i: '0', w: 3, x: 0, y: 0 },
@@ -70,7 +77,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height: calc(100% - 24px);
+  height: 100%;
   justify-content: center;
 }
 

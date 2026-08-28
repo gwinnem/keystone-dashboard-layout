@@ -2804,4 +2804,215 @@ describe(`GridItemComponent`, () => {
       expect(reported.length).toBeGreaterThan(0);
     });
   });
+
+  describe(`itemMoved / itemResized outputs`, () => {
+    // Local copies, matching this file's own established convention of
+    // duplicating test helpers per describe block (see the Phase 19
+    // block's own doc comment on this) rather than sharing them across
+    // the Phase 3/Phase 4 blocks above, which scope their own identical
+    // versions privately to themselves.
+    let createdParent: HTMLElement | undefined;
+
+    const mockRect = (element: HTMLElement, rect: Partial<DOMRect>): void => {
+      element.getBoundingClientRect = () => ({
+        bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0, toJSON: () => ({}), ...rect,
+      });
+    };
+
+    const dragHandlerOf = (element: HTMLElement): (event: { type: string; target: HTMLElement; clientX: number; clientY: number }) => void =>
+      (element as unknown as { __nativeDragHandler: (event: { type: string; target: HTMLElement; clientX: number; clientY: number }) => void }).__nativeDragHandler;
+
+    interface IEdges { bottom: boolean; left: boolean; right: boolean; top: boolean }
+    const NO_EDGES: IEdges = { bottom: false, left: false, right: false, top: false };
+
+    const resizeHandlerOf = (element: HTMLElement): (event: { type: string; target: HTMLElement; clientX: number; clientY: number; edges: IEdges }) => void =>
+      (element as unknown as { __nativeResizeHandler: (event: { type: string; target: HTMLElement; clientX: number; clientY: number; edges: IEdges }) => void }).__nativeResizeHandler;
+
+    const setupItem = (): { item: HTMLElement; parent: HTMLElement } => {
+      setInputsAndDetectChanges({
+        colNum: 12,
+        containerWidth: 1220,
+        h: 2,
+        i: `0`,
+        margin: [10, 10],
+        rowHeight: 100,
+        w: 2,
+        x: 0,
+        y: 0,
+      });
+
+      const item = fixture.nativeElement as HTMLElement;
+      const parent = document.createElement(`div`);
+      document.body.appendChild(parent);
+      parent.appendChild(item);
+      Object.defineProperty(item, `offsetParent`, { configurable: true, get: () => parent });
+      mockRect(parent, { left: 0, top: 0 });
+      createdParent = parent;
+
+      return { item, parent };
+    };
+
+    afterEach(() => {
+      createdParent?.remove();
+      createdParent = undefined;
+    });
+
+    it(`Should emit itemMoved with this item's own final grid-unit x/y on dragend`, () => {
+      const { item } = setupItem();
+      const moved: { i: string | number; x: number; y: number }[] = [];
+      component.itemMoved.subscribe(payload => moved.push(payload));
+
+      dragHandlerOf(item)({ clientX: 0, clientY: 0, target: item, type: `dragstart` });
+      // Move roughly one full column+margin to the right (colWidth
+      // ~90.83 + margin 10 ~= 100.83px) — should resolve to grid x:1.
+      dragHandlerOf(item)({ clientX: 101, clientY: 0, target: item, type: `dragmove` });
+      dragHandlerOf(item)({ clientX: 101, clientY: 0, target: item, type: `dragend` });
+
+      expect(moved).toEqual([{ i: `0`, x: 1, y: 0 }]);
+    });
+
+    it(`Should not emit itemMoved at all on dragstart or dragmove, only on dragend`, () => {
+      const { item } = setupItem();
+      const moved: unknown[] = [];
+      component.itemMoved.subscribe(payload => moved.push(payload));
+
+      dragHandlerOf(item)({ clientX: 0, clientY: 0, target: item, type: `dragstart` });
+      dragHandlerOf(item)({ clientX: 101, clientY: 0, target: item, type: `dragmove` });
+
+      expect(moved.length).toBe(0);
+    });
+
+    it(`Should not emit itemMoved at all when the drag never fires a preceding dragstart (dragend as a no-op)`, () => {
+      const { item } = setupItem();
+      const moved: unknown[] = [];
+      component.itemMoved.subscribe(payload => moved.push(payload));
+
+      dragHandlerOf(item)({ clientX: 0, clientY: 0, target: item, type: `dragend` });
+
+      expect(moved.length).toBe(0);
+    });
+
+    it(`Should emit itemResized with this item's own final grid-unit h/w and pixel height/width on resizeend`, () => {
+      const { item } = setupItem();
+      const resized: { i: string | number; h: number; w: number; height: number; width: number }[] = [];
+      component.itemResized.subscribe(payload => resized.push(payload));
+
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizestart` });
+      resizeHandlerOf(item)({ clientX: 50, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizemove` });
+      resizeHandlerOf(item)({ clientX: 50, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizeend` });
+
+      // Starting width 192 (see Phase 4's own identical resizestart
+      // math) + 50 = 242px; grid-unit w = round((242+10)/(90.8333+10)) =
+      // round(2.4996...) = 2 (below the 2.5 rounding threshold, not above
+      // it as an earlier version of this comment's own arithmetic
+      // mistakenly assumed).
+      expect(resized).toEqual([{ h: 2, height: 210, i: `0`, w: 2, width: 242 }]);
+    });
+
+    it(`Should not emit itemResized at all on resizestart or resizemove, only on resizeend`, () => {
+      const { item } = setupItem();
+      const resized: unknown[] = [];
+      component.itemResized.subscribe(payload => resized.push(payload));
+
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizestart` });
+      resizeHandlerOf(item)({ clientX: 50, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizemove` });
+
+      expect(resized.length).toBe(0);
+    });
+
+    it(`Should not emit itemResized at all when the resize never fires a preceding resizestart (resizeend as a no-op)`, () => {
+      const { item } = setupItem();
+      const resized: unknown[] = [];
+      component.itemResized.subscribe(payload => resized.push(payload));
+
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizeend` });
+
+      expect(resized.length).toBe(0);
+    });
+
+    it(`Should emit itemMoved with the item's own final position via a real pointerdown/pointermove/pointerup gesture, not just the test backdoor`, () => {
+      const { item } = setupItem();
+      const moved: { x: number; y: number }[] = [];
+      component.itemMoved.subscribe(payload => moved.push({ x: payload.x, y: payload.y }));
+      (item as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
+
+      item.dispatchEvent(mockPointerEvent(`pointerdown`, { button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+      item.dispatchEvent(mockPointerEvent(`pointermove`, { clientX: 101, clientY: 0, pointerId: 1 }));
+      item.dispatchEvent(mockPointerEvent(`pointerup`, { clientX: 101, clientY: 0, pointerId: 1 }));
+
+      expect(moved).toEqual([{ x: 1, y: 0 }]);
+    });
+  });
+
+  describe(`resizeHandleTemplate — custom per-handle content`, () => {
+    it(`Should render the template's own content, with the correct edge as both the implicit and named context value, inside each resize-hint span`, () => {
+      @Component({
+        imports: [GridItemComponent],
+        standalone: true,
+        template: `
+          <kdl-grid-item [containerWidth]="1220" [h]="2" i="0" [w]="2" [x]="0" [y]="0">
+            content
+            <ng-template #resizeHandle let-edge let-namedEdge="edge">
+              <span class="custom-handle-marker" [attr.data-implicit]="edge" [attr.data-named]="namedEdge"></span>
+            </ng-template>
+          </kdl-grid-item>
+        `,
+      })
+      class TestHostComponent {}
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ imports: [TestHostComponent] });
+      const hostFixture = TestBed.createComponent(TestHostComponent);
+      hostFixture.detectChanges();
+
+      const nHandle = hostFixture.nativeElement.querySelector(`.kdl-resize-hint--n .custom-handle-marker`) as HTMLElement;
+      expect(nHandle).toBeTruthy();
+      expect(nHandle.getAttribute(`data-implicit`)).toBe(`n`);
+      expect(nHandle.getAttribute(`data-named`)).toBe(`n`);
+
+      const seHandle = hostFixture.nativeElement.querySelector(`.kdl-resize-hint--se .custom-handle-marker`) as HTMLElement;
+      expect(seHandle).toBeTruthy();
+      expect(seHandle.getAttribute(`data-implicit`)).toBe(`se`);
+
+      // All 8 handles get their own instance of the template, not just one.
+      expect(hostFixture.nativeElement.querySelectorAll(`.custom-handle-marker`).length).toBe(8);
+
+      hostFixture.nativeElement.remove();
+    });
+
+    it(`Should render the existing plain, empty resize-hint spans when no resizeHandleTemplate is provided at all — the no-template case is completely unaffected`, () => {
+      setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+
+      const nHandle = fixture.nativeElement.querySelector(`.kdl-resize-hint--n`) as HTMLElement;
+      expect(nHandle).toBeTruthy();
+      expect(nHandle.querySelector(`.custom-handle-marker`)).toBeFalsy();
+      expect(component.resizeHandleTemplate).toBeUndefined();
+    });
+
+    it(`Should only render the template inside the resize handles actually included in resizeHandles, when that's restricted`, () => {
+      @Component({
+        imports: [GridItemComponent],
+        standalone: true,
+        template: `
+          <kdl-grid-item [containerWidth]="1220" [h]="2" i="0" [resizeHandles]="['se']" [w]="2" [x]="0" [y]="0">
+            content
+            <ng-template #resizeHandle let-edge>
+              <span class="custom-handle-marker">{{ edge }}</span>
+            </ng-template>
+          </kdl-grid-item>
+        `,
+      })
+      class TestHostComponent {}
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ imports: [TestHostComponent] });
+      const hostFixture = TestBed.createComponent(TestHostComponent);
+      hostFixture.detectChanges();
+
+      expect(hostFixture.nativeElement.querySelectorAll(`.custom-handle-marker`).length).toBe(1);
+      expect(hostFixture.nativeElement.querySelector(`.kdl-resize-hint--se .custom-handle-marker`)?.textContent).toBe(`se`);
+
+      hostFixture.nativeElement.remove();
+    });
+  });
 });

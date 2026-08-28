@@ -1,0 +1,22 @@
+/*
+ * A custom drag-placeholder — deliberately visually distinct from the
+ * dragged item itself (a solid, dashed-border box with a label showing
+ * the live target grid-unit x/y) so it's obvious which element is the
+ * placeholder versus the item being moved.
+ */
+.custom-placeholder {
+  align-items: center;
+  background: rgb(34 197 94 / 18%);
+  border: 2px dashed rgb(34 197 94 / 70%);
+  border-radius: 8px;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.custom-placeholder-label {
+  color: rgb(21 128 61);
+  font-family: var(--kg-font-mono);
+  font-size: 12px;
+}

@@ -12,9 +12,13 @@
     <button
       class="demo-btn"
       @click="scatter">Scatter</button>
+    <button
+      class="demo-btn demo-btn--ghost"
+      @click="gridRef?.compactNow()">Tidy up (compactNow)</button>
   </div>
 
   <GridLayout
+    ref="gridRef"
     v-model:layout="layout"
     :col-num="12"
     :compact-type="compactType"
@@ -34,12 +38,15 @@
       </div>
     </GridItem>
   </GridLayout>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
   import { computed, ref } from 'vue';
   import { GridLayout, GridItem, ECompactType, type TLayout, type ICompactor } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   type TMode = 'vertical' | 'horizontal' | 'none' | 'vertical-overlap' | 'custom';
 
@@ -72,6 +79,7 @@
 
   const customCompactor = computed(() => (mode.value === 'custom' ? singleColumnCompactor : null));
 
+  const gridRef = ref<InstanceType<typeof GridLayout>>();
   const layout = ref<TLayout>([
     { h: 2, i: '0', w: 3, x: 0, y: 0 },
     { h: 2, i: '1', w: 3, x: 3, y: 0 },
@@ -113,6 +121,12 @@
   font-family: var(--kg-font-mono);
   font-size: 12px;
   padding: 6px 12px;
+}
+
+.demo-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--kg-line-light);
+  color: var(--kg-text-hi-light);
 }
 
 .example-item {

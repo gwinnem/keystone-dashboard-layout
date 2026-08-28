@@ -3,6 +3,7 @@ import { GridLayout, GridItem, useLayoutPresets } from '@keystone-dashboard-layo
 import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
 import '../examples-react/shared-example-item.css';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import './35-named-presets.css';
 
 const initialLayout: TLayout = [
@@ -47,6 +48,12 @@ export default function NamedPresets() {
           </GridItem>
         ))}
       </GridLayout>
+
+      <p className="demo-description">
+        Saved presets: {presetNames.length ? presetNames.join(', ') : 'none yet'}
+      </p>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

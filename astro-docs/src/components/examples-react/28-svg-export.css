@@ -12,14 +12,16 @@
 .demo-description {
   color: var(--kg-text-lo-light);
   font-size: 13px;
-  font-style: italic;
   margin-top: 16px;
 }
 
 .svg-preview {
-  background: var(--kg-paper-2);
   border: 1px solid var(--kg-line-light);
   border-radius: 8px;
-  margin-top: 16px;
-  padding: 12px;
+  overflow: hidden;
+}
+
+.svg-preview img {
+  display: block;
+  max-width: 100%;
 }

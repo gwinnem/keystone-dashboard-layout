@@ -1,25 +1,47 @@
 ---
 title: Custom drag-placeholder content
-description: A genuine architectural difference — React has no separate placeholder concept to customize.
+description: Render fully custom content at the drop target during any drag or resize via renderPlaceholder, instead of the default plain box.
 ---
+import CustomDragPlaceholder from '../../../../components/examples-react/25-custom-drag-placeholder.tsx';
+import CustomDragPlaceholderSource from '../../../../components/examples-react/25-custom-drag-placeholder.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
 
-Vue's own version of this example customizes the `#placeholder` named
-slot — a separate, hidden `GridItem` Vue shows at the drop target while
-a drag or resize is in progress, with the real item staying at its own
-last-committed position until the gesture ends.
+<ExampleTryIt code={CustomDragPlaceholderSource} filename="custom-drag-placeholder.tsx" lang="tsx">
+  <CustomDragPlaceholder client:visible />
+</ExampleTryIt>
 
-**This package doesn't have an equivalent to port**, confirmed directly
-from its own source rather than assumed missing: `GridLayout.tsx`'s own
-code comment states plainly that "this package doesn't render a
-separate placeholder `GridItem`, so the live values already in hand are
-the whole picture." Instead, the dragged/resized item *itself* moves
-live to its in-progress position on every tick — there's no second,
-separate element standing in for it, and so nothing to attach custom
-content to.
+`GridLayout`'s own `renderPlaceholder` prop — the React render-prop
+equivalent of Vue's own `#placeholder` scoped slot — renders fully
+custom content at the drop target during *any* drag or resize, in-grid
+or outside-drop, instead of the default plain, dashed-outline box. The
+dragged/resized item itself still moves live to its in-progress
+position on every tick, exactly as before; `renderPlaceholder` only
+customizes the separate box shown at *where it will land* once the
+gesture ends.
 
-If you want a visual indicator of where an item will land, reach for
-[`showAlignmentGuides`](/react/components/grid-layout/props/) (edge-alignment
-guide lines) or [`showSpacingGuides`](/react/components/grid-layout/props/)
-(labeled distance badges) instead — both are real, working features on
-this package, just built on a different visual approach than a
-customizable placeholder.
+It receives two plain arguments — the live target `{ x, y, w, h }` (or
+`null` when nothing is active) and a boolean `isDragging` — matching
+this package's own `renderResizeHandle` convention of plain function
+arguments over a single context object:
+
+```tsx
+renderPlaceholder={(placeholder, isDragging) => (
+  <div className="custom-placeholder">
+    {isDragging && placeholder && (
+      <span>drop at x:{placeholder.x} y:{placeholder.y}</span>
+    )}
+  </div>
+)}
+```
+
+Positioning and sizing are still handled automatically — the returned
+content is placed inside an already-correctly-positioned wrapper; only
+what's shown *inside* that box is yours to customize. Leaving this prop
+unset renders the existing plain box, exactly as before this prop
+existed.
+
+If you want a visual indicator with a different visual language
+entirely — edge-alignment guide lines or labeled distance badges rather
+than a box at the drop target — see
+[`showAlignmentGuides`](/react/components/grid-layout/props/) and
+[`showSpacingGuides`](/react/components/grid-layout/props/) instead.

@@ -35,3 +35,11 @@ export { GridItemComponent } from './lib/grid-item.component';
 export { GridItemHeaderDirective } from './lib/grid-item-header.directive';
 export { GridLayoutStorageService } from './lib/grid-layout-storage.service';
 export { GridLayoutPresetsService } from './lib/grid-layout-presets.service';
+// Standalone utility components, ported from Vue's own
+// CustomDragElement.vue/CustomCloseButton.vue (confirmed via a direct
+// source read, not assumed) — closing a real, confirmed parity gap:
+// this package previously had no drag-handle/close-button components
+// of its own at all, unlike Vue. Not used internally by
+// GridLayoutComponent/GridItemComponent; a consumer opts in explicitly.
+export { GridItemDragHandleComponent } from './lib/grid-item-drag-handle.component';
+export { GridItemCloseButtonComponent } from './lib/grid-item-close-button.component';

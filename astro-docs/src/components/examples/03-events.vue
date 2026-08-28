@@ -3,7 +3,9 @@
     v-model:layout="layout"
     :col-num="12"
     :row-height="60"
-    show-grid-lines>
+    show-grid-lines
+    @breakpoint-changed="log('breakpoint-changed')"
+    @update:layout="log('update:layout')">
     <GridItem
       v-for="item in layout"
       :key="item.i"
@@ -12,8 +14,9 @@
       :w="item.w"
       :x="item.x"
       :y="item.y"
-      @item-moved="onItemMoved"
-      @resized="onResized">
+      @item-move="log(`moving: ${item.i} -> (${item.x},${item.y})`)"
+      @item-moved="log(`moved: ${item.i} -> (${item.x},${item.y})`)"
+      @resized="log(`resized: ${item.i} -> ${item.w}x${item.h}`)">
       <div class="example-item">
         {{ item.i }}
       </div>
@@ -36,12 +39,15 @@
       </li>
     </ul>
   </div>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
   import { ref } from 'vue';
   import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   const layout = ref<TLayout>([
     { h: 2, i: '0', w: 2, x: 0, y: 0 },
@@ -51,16 +57,8 @@
 
   const events = ref<string[]>([]);
 
-  function pushEvent(message: string): void {
-    events.value = [message, ...events.value].slice(0, 6);
-  }
-
-  function onItemMoved(i: string | number, x: number, y: number): void {
-    pushEvent(`${i} moved to x:${x} y:${y}`);
-  }
-
-  function onResized(i: string | number, h: number, w: number): void {
-    pushEvent(`${i} resized to w:${w} h:${h}`);
+  function log(message: string): void {
+    events.value = [`${new Date().toLocaleTimeString()} — ${message}`, ...events.value].slice(0, 8);
   }
 </script>
 

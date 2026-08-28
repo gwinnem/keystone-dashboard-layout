@@ -8,3 +8,9 @@
   font-size: 12px;
   padding: 6px 12px;
 }
+
+.demo-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--kg-line-light);
+  color: var(--kg-text-hi-light);
+}

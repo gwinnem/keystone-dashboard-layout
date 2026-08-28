@@ -3,12 +3,17 @@ title: Features
 description: Everything Keystone Dashboard Layout for Angular does, grouped by category.
 ---
 
-:::note[Examples not yet ported]
+:::note[Examples exist, just not embedded here yet]
 Angular has reached full feature parity with Vue and React (every item
-in its own prop/behavior inventory is implemented), but the interactive
-example pages themselves haven't been ported yet — this page describes
-what's real and shipping today, without linking to example pages that
-don't exist yet. See [Vue's own Examples](/vue/examples/) or
+in its own prop/behavior inventory is implemented), and all of this
+package's own interactive examples have now been ported and verified
+— but they live in a separate, standalone Angular CLI app rather than
+as embedded Astro islands on this site (the community
+`@analogjs/astro-angular` integration this site's Vue/React examples
+rely on proved too fragile for Angular specifically; see that app's
+own README for the full account). That app isn't publicly deployed
+yet, so this page can't link to it directly. See
+[Vue's own Examples](/vue/examples/) or
 [React's own Examples](/react/examples/) for the same features
 demonstrated live in the meantime; the underlying behavior is identical.
 :::
@@ -73,7 +78,7 @@ demonstrated live in the meantime; the underlying behavior is identical.
 ## Styling & customization
 
 - **Unstyled-by-default content** — `GridItemComponent`'s projected content holds whatever you put there; the library only handles position/size.
-- **Built-in close button** (`showCloseButton` + a `removeItem` `@Output()` you handle yourself), and any part of an item is a drag handle by default, restrictable via `dragAllowFrom`/`dragIgnoreFrom` — there's no separate exported close-button or drag-handle component to import.
+- **Built-in close button** (`showCloseButton` + a `removeItem` `@Output()` you handle yourself), and any part of an item is a drag handle by default, restrictable via `dragAllowFrom`/`dragIgnoreFrom`. Standalone `GridItemCloseButtonComponent`/`GridItemDragHandleComponent` also exist for the same building blocks used outside `GridItemComponent`'s own rendering entirely (e.g. inside a custom header) — see [Components](/angular/components/) for both.
 - **Configurable border radius** per item (`borderRadiusPx`/`useBorderRadius`, grid-wide default + per-item override).
 - **Optional grid line guides** (`showGridLines`), useful while building a layout or as a permanent visual aid.
 - **Configurable transition duration/easing** (`transitionDurationMs`/`transitionTimingFunction`), applied via CSS custom properties.

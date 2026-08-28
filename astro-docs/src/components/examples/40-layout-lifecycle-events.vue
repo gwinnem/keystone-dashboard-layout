@@ -5,6 +5,9 @@
     :row-height="60"
     show-grid-lines
     @columns-changed="logEvent('columns-changed')"
+    @dragend="logEvent(`dragend: ${$event}`)"
+    @dragmove="logEvent('dragmove')"
+    @dragstart="logEvent(`dragstart: ${$event}`)"
     @layout-ready="logEvent('layout-ready')"
     @layout-updated="logEvent('layout-updated')">
     <GridItem
@@ -30,17 +33,20 @@
         class="event-log__entry">{{ entry }}</li>
     </ul>
   </div>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
   import { ref } from 'vue';
   import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   const events = ref<string[]>([]);
 
   function logEvent(name: string): void {
-    events.value = [...events.value, name];
+    events.value = [name, ...events.value].slice(0, 20);
   }
 
   const layout = ref<TLayout>([

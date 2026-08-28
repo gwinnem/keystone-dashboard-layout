@@ -1,0 +1,26 @@
+.aria-readout {
+  margin-top: 16px;
+}
+
+.aria-readout h4 {
+  color: var(--kg-text-lo-light);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+.aria-readout table {
+  border-collapse: collapse;
+  font-family: var(--kg-font-mono);
+  font-size: 0.85em;
+  width: 100%;
+}
+
+.aria-readout th,
+.aria-readout td {
+  border: 1px solid var(--kg-line-light);
+  padding: 6px 10px;
+  text-align: left;
+}

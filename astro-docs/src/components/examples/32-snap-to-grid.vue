@@ -3,18 +3,22 @@
     <ExampleToggle
       v-model="snapToGrid"
       label="snapToGrid" />
+    <ExampleToggle
+      v-model="showGridLines"
+      label="showGridLines" />
     <ExampleNumberField
       v-model="snapThreshold"
       label="snapThreshold"
       :max="4"
-      :min="1" />
+      :min="0" />
   </div>
 
   <GridLayout
     v-model:layout="layout"
     :col-num="12"
+    :compact-type="ECompactType.NONE"
     :row-height="60"
-    show-grid-lines
+    :show-grid-lines="showGridLines"
     :snap-threshold="snapThreshold"
     :snap-to-grid="snapToGrid">
     <GridItem
@@ -30,21 +34,28 @@
       </div>
     </GridItem>
   </GridLayout>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
   import { ref } from 'vue';
-  import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
+  import { GridLayout, GridItem, ECompactType, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
   import ExampleToggle from '../harness/ExampleToggle.vue';
   import ExampleNumberField from '../harness/ExampleNumberField.vue';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   const snapToGrid = ref(true);
-  const snapThreshold = ref(1);
+  const snapThreshold = ref(2);
+  const showGridLines = ref(true);
 
+  // compactType: NONE — without this, automatic vertical compaction
+  // would fight against the snapped position itself, potentially
+  // undoing/shifting the item right after snapToGrid places it.
   const layout = ref<TLayout>([
-    { h: 2, i: '0', w: 3, x: 0, y: 0 },
-    { h: 2, i: '1', w: 3, x: 4, y: 0 },
+    { h: 2, i: '0', w: 2, x: 0, y: 6 },
+    { h: 2, i: '1', w: 8, x: 0, y: 0 },
   ]);
 </script>
 

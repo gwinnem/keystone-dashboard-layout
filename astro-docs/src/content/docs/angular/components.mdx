@@ -23,12 +23,36 @@ There's no default export — always import by name. See
 [Installation](/angular/guide/installation/) if you haven't added the
 package yet.
 
-Unlike the Vue and React packages, there's no separate exported
-close-button or drag-handle component here either. A close button is a
-built-in, per-item opt-in (`showCloseButton` on `GridItemComponent` +
-a `removeItem` `@Output()` you handle yourself), and any part of an
-item is a drag handle by default — restrict it via `dragAllowFrom`/
-`dragIgnoreFrom`, also directly on `GridItemComponent`.
+This package also has real, exported close-button and drag-handle
+components, matching Vue and React — but note that `GridItemComponent`'s
+own built-in close button (`showCloseButton` + a `removeItem`
+`@Output()` you handle yourself) is a separate, simpler path most
+consumers should reach for first; the standalone components below are
+for a consumer who wants the same building blocks rendered somewhere
+else entirely (e.g. inside a custom header). Any part of a
+`GridItemComponent` is already a drag handle by default — restrict it
+via `dragAllowFrom`/`dragIgnoreFrom` directly on `GridItemComponent`,
+without needing the standalone drag-handle component below at all,
+unless you want its specific rendered widget.
+
+## Standalone utility components
+
+Two additional standalone components exist for a consumer who wants
+the same close-button/drag-handle *building blocks* Vue's own
+`CustomCloseButton.vue`/`CustomDragElement.vue` provide, used outside
+`GridItemComponent`'s own built-in rendering entirely — e.g. placed
+inside a custom header region (see `GridItemHeaderDirective` above).
+Neither is used internally by `GridLayoutComponent`/`GridItemComponent`
+themselves; a consumer opts into either explicitly.
+
+| Component | Selector | Purpose |
+|---|---|---|
+| `GridItemCloseButtonComponent` | `kdl-custom-close-button` | A standalone close button. Takes a required `i` — the id of whichever item it should remove — and emits `removeGridItem` with that id on click; wire that output to your own removal logic. |
+| `GridItemDragHandleComponent` | `kdl-custom-drag-element` | A standalone drag-handle widget (a labeled button plus a separate `.kdl-draggable-handle` hit-area — target that class, not the button itself, with `dragAllowFrom`). Takes an optional `text` input (default `'x'`) for the button's own label. |
+
+```ts
+import { GridItemCloseButtonComponent, GridItemDragHandleComponent } from '@keystone-dashboard-layout/angular';
+```
 
 ## A real, notable difference from React
 

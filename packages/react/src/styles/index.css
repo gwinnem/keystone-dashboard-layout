@@ -353,3 +353,96 @@
   transform: translate(-50%, -50%);
   width: 6px;
 }
+
+/*
+ * GridItemDragHandle/GridItemCloseButton — standalone utility
+ * components ported from Vue's own CustomDragElement.vue/
+ * CustomCloseButton.vue (confirmed via a direct source read). Not used
+ * internally by GridLayout/GridItem themselves; a consumer opts in
+ * explicitly and places these wherever they like inside their own
+ * children.
+ *
+ * Deliberately no `position: relative` on `.kdl-drag-element-text` —
+ * confirmed via live browser testing on this same feature's Angular
+ * port that adding it (matching Vue's own `.text` span, which also has
+ * no `position` of its own) creates an unwanted new positioning
+ * context that confines the 20×20px handle below to this small
+ * wrapper's own tightly-fitted bounds, instead of letting it position
+ * relative to the real `.kdl-grid-item` host (which already
+ * establishes one for its own grid positioning) the way Vue's own
+ * version does. Getting this wrong doesn't fail to compile or throw at
+ * runtime — it silently renders a handle nowhere near its own visible
+ * button, so this is worth getting right the first time here rather
+ * than rediscovering the same bug independently.
+ */
+.kdl-drag-element-text {
+  align-items: center;
+  display: inline-flex;
+}
+
+/*
+ * The actual draggable hit-area — a real, confirmed structural detail
+ * from Vue's own source, not the visible <button> beside it: an empty,
+ * absolutely-positioned span with a circle-icon background. Positioned
+ * at 14px (not flush against a corner) so it doesn't overlap the native
+ * resize engine's own ~10px edge-proximity margin — matching Vue's own
+ * identical positioning and its own documented rationale for that
+ * specific offset.
+ */
+.kdl-draggable-handle {
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'><circle cx='5' cy='5' r='5' fill='%23999999'/></svg>") no-repeat bottom right;
+  background-origin: content-box;
+  box-sizing: border-box;
+  cursor: pointer;
+  height: 20px;
+  left: 14px;
+  padding: 0 8px 8px 0;
+  position: absolute;
+  top: 14px;
+  width: 20px;
+}
+
+/* Same visual language as .kdl-grid-item-close-button above, minus the absolute corner positioning (this is a standalone component a consumer places wherever they like, e.g. inside a custom header, not necessarily pinned to an item's corner). */
+.kdl-custom-close-button {
+  align-items: center;
+  background: rgb(0 0 0 / 10%);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  padding: 0;
+  width: 24px;
+}
+
+.kdl-custom-close-button:hover {
+  background: rgb(0 0 0 / 20%);
+}
+
+.kdl-custom-close-button-icon {
+  display: block;
+  height: 12px;
+  position: relative;
+  width: 12px;
+}
+
+.kdl-custom-close-button-icon::before,
+.kdl-custom-close-button-icon::after {
+  background: currentcolor;
+  color: #1f2937;
+  content: '';
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  width: 12px;
+}
+
+.kdl-custom-close-button-icon::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.kdl-custom-close-button-icon::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}

@@ -30,6 +30,8 @@
       </div>
     </GridItem>
   </GridLayout>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
@@ -38,6 +40,7 @@
   import '@keystone-dashboard-layout/vue/style.css';
   import ExampleToggle from '../harness/ExampleToggle.vue';
   import ExampleNumberField from '../harness/ExampleNumberField.vue';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   const useBorderRadius = ref(true);
   const borderRadiusPx = ref(16);

@@ -16,13 +16,19 @@ export default function OutsideDragDropMultipleGrids() {
   }
 
   function handleDroppedA({ x, y, w, h }: { x: number; y: number; w: number; h: number }): void {
-    setLayoutA((current) => [...current, { h, i: `a${nextId.current}`, w, x, y }]);
-    nextId.current += 1;
+    setLayoutA((current) => {
+      const newItem = { h, i: `a${nextId.current}`, w, x, y };
+      nextId.current += 1;
+      return [...current, newItem];
+    });
   }
 
   function handleDroppedB({ x, y, w, h }: { x: number; y: number; w: number; h: number }): void {
-    setLayoutB((current) => [...current, { h, i: `b${nextId.current}`, w, x, y }]);
-    nextId.current += 1;
+    setLayoutB((current) => {
+      const newItem = { h, i: `b${nextId.current}`, w, x, y };
+      nextId.current += 1;
+      return [...current, newItem];
+    });
   }
 
   return (

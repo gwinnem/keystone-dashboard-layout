@@ -1,6 +1,6 @@
 ---
 title: Add or remove items
-description: Push a new entry into (or filter one out of) the layout array — the grid re-compacts automatically.
+description: A real first-fit bin-pack — removing an item from the middle of the grid opens a gap the next added item actually reuses.
 ---
 import AddRemoveItems from '../../../../components/examples/10-add-remove-items.vue';
 import AddRemoveItemsSource from '../../../../components/examples/10-add-remove-items.vue?raw';
@@ -10,8 +10,30 @@ import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
   <AddRemoveItems client:visible />
 </ExampleTryIt>
 
-`y: Infinity` is a common placement convention — the compaction pass
-that runs immediately after settles the new item into the first
-available gap, so there's no need to compute a real starting position
-yourself. `remove-grid-item` fires when the close button is clicked (`showCloseButton`
-is on) — pair it with a `.filter()` the same way as above.
+Where a newly-added item actually lands is entirely up to the
+consumer — the library only places it wherever `x`/`y` say to, then
+compacts around it. Appending with `x:0, y:0` (or `y: Infinity`,
+placed at the very bottom instead) and letting compaction settle it is
+the simplest convention, but it never *reuses a gap* left by a removed
+item — a new item always lands in a fresh row even when there's
+clearly room higher up.
+
+This demo's own `addItem` does a real first-fit bin-pack instead, via
+this package's own exported `findFirstFitSlot`: remove an item from
+the middle of the grid, then add a new one, and it lands in the gap
+left behind. The toggle demonstrates a second placement strategy —
+appending to the end of the first row specifically, falling back to
+the general bin-pack once that row is full.
+
+The two strategies only produce a *visibly different* result once
+there's an actual gap for them to disagree about — on a fresh, packed
+layout, both fill the first row left-to-right and wrap to a new row
+the same way, so toggling it on or off looks identical. To see the
+difference: remove item `1` (opening a gap at `x:3`), leave the toggle
+on, then add an item — it skips that gap and lands past the row's own
+rightmost occupied edge instead, rather than filling it the way the
+general bin-pack would.
+
+`remove-grid-item` fires on `GridItem` (not `GridLayout`) when its own
+close button is clicked (`showCloseButton` is on) — pair it with a
+`.filter()` the same way as above.

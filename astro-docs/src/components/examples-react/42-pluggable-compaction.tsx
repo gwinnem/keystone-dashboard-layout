@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
-import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
+import { useMemo, useRef, useState } from 'react';
+import { GridLayout, GridItem, type IGridLayoutHandle } from '@keystone-dashboard-layout/react';
 import '@keystone-dashboard-layout/react/style.css';
 import { ECompactType } from '@keystone-dashboard-layout/core';
 import type { ICompactor, TLayout } from '@keystone-dashboard-layout/core';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import '../examples-react/shared-example-item.css';
 import './42-pluggable-compaction.css';
 
@@ -34,6 +35,7 @@ const initialLayout: TLayout = [
 export default function PluggableCompaction() {
   const [mode, setMode] = useState<TMode>('vertical');
   const [layout, setLayout] = useState<TLayout>(initialLayout);
+  const gridRef = useRef<IGridLayoutHandle>(null);
 
   const compactType = useMemo(() => {
     switch (mode) {
@@ -67,15 +69,18 @@ export default function PluggableCompaction() {
           <option value="custom">custom compactor: single column</option>
         </select>
         <button className="demo-btn" onClick={scatter} type="button">Scatter</button>
+        <button className="demo-btn demo-btn--ghost" onClick={() => gridRef.current?.compactNow()} type="button">Tidy up (compactNow)</button>
       </div>
 
-      <GridLayout colNum={12} compactor={compactor} compactType={compactType} layout={layout} onLayoutChange={setLayout} rowHeight={60} showGridLines>
+      <GridLayout colNum={12} compactor={compactor} compactType={compactType} layout={layout} onLayoutChange={setLayout} ref={gridRef} rowHeight={60} showGridLines>
         {layout.map((item) => (
           <GridItem i={item.i} key={item.i}>
             <div className="example-item">{item.i}</div>
           </GridItem>
         ))}
       </GridLayout>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

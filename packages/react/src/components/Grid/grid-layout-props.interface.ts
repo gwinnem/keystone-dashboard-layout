@@ -379,6 +379,23 @@ export interface IGridLayoutProps {
    * `x`/`y`/`w`/`h`.
    */
   onOutsideDrop?: (payload: { x: number; y: number; w: number; h: number; dataTransfer: DataTransfer | null }) => void;
+  /**
+   * Renders fully custom content at the drop target during *any* drag
+   * or resize — in-grid or outside-drop — instead of the default
+   * plain, dashed-outline box. The React render-prop equivalent of
+   * Vue's own `#placeholder` scoped slot (confirmed via a direct
+   * source read of `GridLayout.vue`'s own template, not re-derived):
+   * that slot receives `{ placeholder, isDragging }` as its own scope
+   * object; this prop receives the same two values as plain function
+   * arguments instead, matching this package's own `renderResizeHandle`
+   * convention of plain arguments over a single context object.
+   * `undefined` (the default) renders the existing plain box, exactly
+   * as before this prop existed. Positioning/sizing itself is still
+   * handled automatically (the returned content is placed inside the
+   * already-correctly-positioned wrapper); only the content shown
+   * inside that box is customizable.
+   */
+  renderPlaceholder?: (placeholder: { h: number; w: number; x: number; y: number } | null, isDragging: boolean) => ReactNode;
   /** The `GridItem` elements to render — one per `layout` entry, each needing only a matching `i` prop and a `key`. */
   children?: ReactNode;
   /** Applied to the root element, alongside the library's own `vue-grid-layout`-equivalent class (`kdl-grid-layout`). */

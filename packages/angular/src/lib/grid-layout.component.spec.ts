@@ -2652,4 +2652,175 @@ describe(`GridLayoutComponent`, () => {
       expect(ends).toEqual([`0`]);
     });
   });
+
+  describe(`Regular in-grid drag/resize placeholder tracking + placeholderTemplate`, () => {
+    it(`Should populate placeholder and set isDragging on a regular in-grid dragstart, not just outside-drop`, () => {
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout, margin: [10, 10], rowHeight: 100 });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+
+      expect(component.isDragging).toBe(true);
+      expect(component.placeholder).toEqual({ h: 2, w: 2, x: 0, y: 0 });
+    });
+
+    it(`Should update placeholder on each dragmove tick to reflect the in-progress target position`, () => {
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout, margin: [10, 10], rowHeight: 100 });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `0`, w: 2, x: 4, y: 2 });
+
+      expect(component.placeholder).toEqual({ h: 2, w: 2, x: 4, y: 2 });
+    });
+
+    it(`Should clear isDragging and placeholder once the in-grid drag ends`, () => {
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout, margin: [10, 10], rowHeight: 100 });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragend`, h: 2, i: `0`, w: 2, x: 4, y: 2 });
+
+      expect(component.isDragging).toBe(false);
+      expect(component.placeholder).toBeNull();
+    });
+
+    it(`Should populate placeholder and set isDragging on a regular in-grid resizestart/resizemove too, not just drag`, () => {
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout, margin: [10, 10], rowHeight: 100 });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemResize({ eventType: `resizestart`, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+
+      expect(component.isDragging).toBe(true);
+      expect(component.placeholder).toEqual({ h: 2, w: 2, x: 0, y: 0 });
+
+      eventBus.emitItemResize({ eventType: `resizemove`, h: 4, i: `0`, w: 5, x: 0, y: 0 });
+
+      expect(component.placeholder).toEqual({ h: 4, w: 5, x: 0, y: 0 });
+    });
+
+    it(`Should clear isDragging and placeholder once the in-grid resize ends`, () => {
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout, margin: [10, 10], rowHeight: 100 });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemResize({ eventType: `resizestart`, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemResize({ eventType: `resizeend`, h: 4, i: `0`, w: 5, x: 0, y: 0 });
+
+      expect(component.isDragging).toBe(false);
+      expect(component.placeholder).toBeNull();
+    });
+
+    it(`Should reflect a snapToGrid-adjusted target position in the placeholder, matching what moveElement is about to resolve against`, () => {
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 6, y: 4 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout: twoItemLayout, margin: [10, 10], rowHeight: 100, snapThreshold: 1, snapToGrid: true });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      // x:7 is 1 unit shy of "b"'s own left edge (x:6), within snapThreshold
+      // — should snap to x:6, and the placeholder should reflect that
+      // snapped value, not the raw, pre-snap x:7.
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 7, y: 4 });
+
+      expect(component.placeholder?.x).toBe(6);
+    });
+
+    it(`Should clear isDragging and placeholder when a cross-grid drag is accepted by another registered grid`, () => {
+      const mockRect = (element: HTMLElement, rect: Partial<DOMRect>): void => {
+        element.getBoundingClientRect = () => ({
+          bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0, toJSON: () => ({}), ...rect,
+        });
+      };
+      const sourceLayout: TLayout = [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }];
+      setInputsAndDetectChanges({ allowCrossGridDrag: true, colNum: 12, containerWidth: 1220, layout: sourceLayout, layoutId: `source`, margin: [10, 10], rowHeight: 100 });
+      const sourceContainer = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      mockRect(sourceContainer, { bottom: 300, left: 0, right: 300, top: 0 });
+
+      const targetFixture = TestBed.createComponent(GridLayoutComponent);
+      const target = targetFixture.componentInstance;
+      Object.assign(target, { allowCrossGridDrag: true, colNum: 12, layout: [], layoutId: `target` });
+      target.ngOnChanges({ layout: {} } as unknown as SimpleChanges);
+      targetFixture.detectChanges();
+      const targetContainer = targetFixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      mockRect(targetContainer, { bottom: 300, left: 500, right: 800, top: 0 });
+
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+      eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      expect(component.isDragging).toBe(true);
+
+      // Drop point falls inside the target's own rect — accepted, source
+      // takes the early-return path in handleItemDrag.
+      eventBus.emitItemDrag({ clientX: 600, clientY: 100, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+
+      expect(component.isDragging).toBe(false);
+      expect(component.placeholder).toBeNull();
+
+      targetFixture.nativeElement.remove();
+    });
+
+    it(`Should render the custom placeholderTemplate's own content, with the correct placeholder/isDragging context, during a regular in-grid drag`, () => {
+      @Component({
+        imports: [GridLayoutComponent, GridItemComponent],
+        standalone: true,
+        template: `
+          <kdl-grid-layout [colNum]="12" [layout]="layout" [margin]="[10, 10]" [rowHeight]="100">
+            <kdl-grid-item [h]="2" i="0" [w]="2" [x]="0" [y]="0">item</kdl-grid-item>
+            <ng-template #placeholder let-placeholder let-dragging="isDragging">
+              <span class="custom-placeholder-marker" [attr.data-x]="placeholder?.x" [attr.data-y]="placeholder?.y" [attr.data-dragging]="dragging"></span>
+            </ng-template>
+          </kdl-grid-layout>
+        `,
+      })
+      class TestHostComponent {
+        layout: TLayout = [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }];
+      }
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ imports: [TestHostComponent] });
+      const hostFixture = TestBed.createComponent(TestHostComponent);
+      hostFixture.detectChanges();
+
+      const layoutDebugEl = hostFixture.debugElement.query(el => el.componentInstance instanceof GridLayoutComponent);
+      const layoutComponent = layoutDebugEl.componentInstance as GridLayoutComponent;
+      expect(layoutComponent.placeholderTemplate).toBeTruthy();
+
+      // Real measurement, same jsdom limitation and same fix as this
+      // file's own earlier containerWidth tests — GridLayoutComponent has
+      // no `containerWidth` @Input() at all (it's a public field, measured
+      // internally via ResizeObserver); mocking the inner container div's
+      // own offsetWidth and calling ngAfterViewInit() again directly is
+      // what actually populates it here, not a template binding.
+      const containerDiv = layoutDebugEl.nativeElement.querySelector(`div`) as HTMLDivElement;
+      Object.defineProperty(containerDiv, `offsetWidth`, { configurable: true, value: 1220 });
+      layoutComponent.ngAfterViewInit();
+
+      const eventBus = layoutDebugEl.injector.get(GridEventBusService);
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `0`, w: 2, x: 3, y: 1 });
+      hostFixture.detectChanges();
+
+      const marker = hostFixture.nativeElement.querySelector(`.custom-placeholder-marker`) as HTMLElement;
+      expect(marker).toBeTruthy();
+      expect(marker.getAttribute(`data-x`)).toBe(`3`);
+      expect(marker.getAttribute(`data-y`)).toBe(`1`);
+      expect(marker.getAttribute(`data-dragging`)).toBe(`true`);
+      // The fallback plain placeholder div should not also render.
+      expect(hostFixture.nativeElement.querySelector(`.kdl-grid-placeholder`)).toBeFalsy();
+
+      hostFixture.nativeElement.remove();
+    });
+
+    it(`Should fall back to the existing plain .kdl-grid-placeholder div when no placeholderTemplate is provided at all`, () => {
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout, margin: [10, 10], rowHeight: 100 });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+      fixture.detectChanges();
+
+      expect(component.placeholderTemplate).toBeUndefined();
+      expect(fixture.nativeElement.querySelector(`.kdl-grid-placeholder`)).toBeTruthy();
+    });
+  });
 });

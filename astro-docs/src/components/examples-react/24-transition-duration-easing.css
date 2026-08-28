@@ -9,6 +9,12 @@
   padding: 6px 12px;
 }
 
+.demo-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--kg-line-light);
+  color: var(--kg-text-hi-light);
+}
+
 .demo-select {
   border: 1px solid var(--kg-line-light);
   border-radius: 6px;

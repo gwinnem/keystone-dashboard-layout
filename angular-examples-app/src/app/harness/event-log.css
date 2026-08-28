@@ -1,0 +1,37 @@
+.event-log-panel {
+  background: var(--kg-paper-2);
+  border: 1px solid var(--kg-line-light);
+  border-radius: 8px;
+  margin-top: 16px;
+  padding: 12px 14px;
+}
+
+.event-log__label {
+  color: var(--kg-text-lo-light);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+}
+
+.event-log {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.event-log__entry {
+  color: var(--kg-text-hi-light);
+  font-family: var(--kg-font-mono);
+  font-size: 12.5px;
+}
+
+.event-log__empty {
+  color: var(--kg-text-lo-light);
+  font-size: 12.5px;
+  font-style: italic;
+}

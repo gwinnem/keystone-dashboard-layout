@@ -49,11 +49,16 @@ feature parity with both.
   `GridItemComponent` project it into a dedicated header region instead
   of its plain default content.
 
-There's no separate exported close-button or drag-handle component
-here — a close button is a built-in, per-item opt-in (`showCloseButton`
-+ a `removeItem` `@Output()` you handle yourself), and any part of an
-item is a drag handle by default, restrictable via `dragAllowFrom`/
-`dragIgnoreFrom`.
+There's also a real, exported close-button component
+(`GridItemCloseButtonComponent`) and drag-handle component
+(`GridItemDragHandleComponent`), matching Vue and React — useful when
+you want those same building blocks rendered somewhere other than
+`GridItemComponent`'s own built-in rendering (e.g. inside a custom
+header). Most consumers should reach for the simpler, built-in path
+first though: a close button is a built-in, per-item opt-in
+(`showCloseButton` + a `removeItem` `@Output()` you handle yourself),
+and any part of an item is a drag handle by default, restrictable via
+`dragAllowFrom`/`dragIgnoreFrom`.
 
 ## How it fits together
 

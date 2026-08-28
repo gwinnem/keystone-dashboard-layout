@@ -9,7 +9,7 @@
   "main": "dist/keystone-dashboard-layout-core.cjs.js",
   "module": "dist/keystone-dashboard-layout-core.es.js",
   "types": "./dist/types/index.d.ts",
-  "files": ["dist/*", "src/gridlayout/helpers/cross-grid-registry.ts", "src/gridlayout/interfaces/cross-grid.interfaces.ts"],
+  "files": ["dist/*", "LICENSE", "NOTICE.md", "SUPPORT.md"],
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
@@ -17,12 +17,14 @@
       "require": "./dist/keystone-dashboard-layout-core.cjs.js"
     },
     "./gridlayout/helpers/cross-grid-registry": {
-      "types": "./src/gridlayout/helpers/cross-grid-registry.ts",
-      "default": "./src/gridlayout/helpers/cross-grid-registry.ts"
+      "types": "./dist/types/gridlayout/helpers/cross-grid-registry.d.ts",
+      "import": "./dist/cross-grid-registry.es.js",
+      "require": "./dist/cross-grid-registry.cjs.js"
     },
     "./gridlayout/interfaces/cross-grid.interfaces": {
-      "types": "./src/gridlayout/interfaces/cross-grid.interfaces.ts",
-      "default": "./src/gridlayout/interfaces/cross-grid.interfaces.ts"
+      "types": "./dist/types/gridlayout/interfaces/cross-grid.interfaces.d.ts",
+      "import": "./dist/cross-grid-interfaces.es.js",
+      "require": "./dist/cross-grid-interfaces.cjs.js"
     }
   },
   "repository": {

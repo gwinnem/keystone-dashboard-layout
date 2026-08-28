@@ -8,7 +8,7 @@
   "main": "dist/keystone-dashboard-layout-react.umd.js",
   "module": "dist/keystone-dashboard-layout-react.es.js",
   "types": "./dist/types/index.d.ts",
-  "files": ["dist/*"],
+  "files": ["dist/*", "LICENSE", "NOTICE.md", "SUPPORT.md"],
   "sideEffects": false,
   "exports": {
     ".": {

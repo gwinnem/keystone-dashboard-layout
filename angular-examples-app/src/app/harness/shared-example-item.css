@@ -1,0 +1,17 @@
+/*
+ * Shared styles for Angular examples using the plain, default
+ * "example-item" look (a simple bordered box showing the item's own
+ * id) — ported from the React harness's own shared-example-item.css.
+ */
+.example-item {
+  align-items: center;
+  background: var(--kg-panel);
+  border: 1px solid var(--kg-line-light);
+  border-radius: 8px;
+  color: var(--kg-text-hi-light);
+  display: flex;
+  font-family: var(--kg-font-mono);
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}

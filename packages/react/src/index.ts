@@ -10,6 +10,10 @@ import './styles/index.css';
 
 export { GridLayout } from './components/Grid/GridLayout';
 export { GridItem } from './components/Grid/GridItem';
+export { GridItemDragHandle } from './components/Grid/GridItemDragHandle';
+export type { IGridItemDragHandleProps } from './components/Grid/GridItemDragHandle';
+export { GridItemCloseButton } from './components/Grid/GridItemCloseButton';
+export type { IGridItemCloseButtonProps } from './components/Grid/GridItemCloseButton';
 export type { IGridLayoutProps } from './components/Grid/grid-layout-props.interface';
 export type { IGridItemProps } from './components/Grid/grid-item-props.interface';
 export type { IGridLayoutHandle } from './components/Grid/grid-layout-handle.interface';

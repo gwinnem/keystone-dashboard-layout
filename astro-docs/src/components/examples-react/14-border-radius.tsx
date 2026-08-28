@@ -4,6 +4,7 @@ import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
 import ExampleToggle from '../harness-react/ExampleToggle';
 import ExampleNumberField from '../harness-react/ExampleNumberField';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import '../examples-react/shared-example-item.css';
 import './14-border-radius.css';
 
@@ -40,6 +41,8 @@ export default function BorderRadius() {
           </GridItem>
         ))}
       </GridLayout>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

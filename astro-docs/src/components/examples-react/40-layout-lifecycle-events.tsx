@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
 import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import '../examples-react/shared-example-item.css';
 import './40-layout-lifecycle-events.css';
 
@@ -15,7 +16,7 @@ export default function LayoutLifecycleEvents() {
   const [events, setEvents] = useState<string[]>([]);
 
   function logEvent(name: string): void {
-    setEvents((current) => [...current, name]);
+    setEvents((current) => [name, ...current].slice(0, 20));
   }
 
   function handleLayoutChange(next: TLayout): void {
@@ -29,6 +30,9 @@ export default function LayoutLifecycleEvents() {
         colNum={12}
         layout={layout}
         onColumnsChanged={() => logEvent('onColumnsChanged')}
+        onDragEnd={(id) => logEvent(`onDragEnd: ${id}`)}
+        onDragMove={(id) => logEvent(`onDragMove: ${id}`)}
+        onDragStart={(id) => logEvent(`onDragStart: ${id}`)}
         onLayoutChange={handleLayoutChange}
         onLayoutReady={() => logEvent('onLayoutReady')}
         rowHeight={60}
@@ -47,6 +51,8 @@ export default function LayoutLifecycleEvents() {
           {events.map((entry, index) => <li className="event-log__entry" key={index}>{entry}</li>)}
         </ul>
       </div>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

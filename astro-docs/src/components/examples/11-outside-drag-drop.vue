@@ -1,5 +1,8 @@
 <template>
   <div class="demo-controls">
+    <ExampleToggle
+      v-model="verticalCompactEnabled"
+      label="compactType (vertical vs none)" />
     <div
       class="outside-source"
       draggable="true"
@@ -12,6 +15,7 @@
     v-model:layout="layout"
     allow-outside-drop
     :col-num="12"
+    :compact-type="compactType"
     :outside-drop-height="2"
     :outside-drop-width="3"
     :row-height="60"
@@ -30,16 +34,23 @@
       </div>
     </GridItem>
   </GridLayout>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue';
-  import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
+  import { computed, ref } from 'vue';
+  import { GridLayout, GridItem, ECompactType, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
+  import ExampleToggle from '../harness/ExampleToggle.vue';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   const layout = ref<TLayout>([
     { h: 2, i: '0', w: 3, x: 0, y: 0 },
   ]);
+
+  const verticalCompactEnabled = ref(true);
+  const compactType = computed(() => (verticalCompactEnabled.value ? ECompactType.VERTICAL : ECompactType.NONE));
 
   let nextId = 1;
 
@@ -55,6 +66,10 @@
 
 <style scoped>
 .demo-controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 16px;
 }
 

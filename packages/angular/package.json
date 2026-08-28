@@ -6,6 +6,14 @@
   "license": "MIT",
   "main": "dist/keystone-dashboard-layout-angular/index.js",
   "types": "./dist/keystone-dashboard-layout-angular/index.d.ts",
+  "files": ["dist/keystone-dashboard-layout-angular/*", "LICENSE", "NOTICE.md", "SUPPORT.md"],
+  "exports": {
+    ".": {
+      "types": "./dist/keystone-dashboard-layout-angular/index.d.ts",
+      "default": "./dist/keystone-dashboard-layout-angular/index.js"
+    },
+    "./style.css": "./dist/keystone-dashboard-layout-angular/styles/index.css"
+  },
   "sideEffects": false,
   "repository": {
     "type": "git",
@@ -16,12 +24,13 @@
     "url": "https://github.com/gwinnem/keystone-dashboard-layout/issues"
   },
   "scripts": {
+    "build": "ng-packagr -p ng-package.json",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:mutation": "stryker run",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
-  "_comment_scripts": "dev/build/lint/lint:fix/test:e2e intentionally still omitted — see docs/IMPLEMENTATION_PLAN.md. `test`/`test:coverage` now run through Jest + jest-preset-angular (mature, widely used for Angular unit/component testing, and — unlike the Vitest paths tried before it — actually available for this package's Angular ^19.0.0 target: Angular's own first-party Vitest builder, @angular/build:unit-test, only exists from v20 (experimental) / v21 (stable), and the third-party @analogjs/vite-plugin-angular route hit a genuinely unresolved upstream ecosystem bug, analogjs/analog#1502 / angular/angular-cli#31732). Karma (angular.json's own project-scoped `test` architect target + karma.conf.js, both still present) is kept for a possible future full-app browser-flow e2e layer, per the same reasoning as before — not used for unit/component tests at all now. turbo skips tasks a package doesn't define, so CI stays green in the meantime.",
+  "_comment_scripts": "dev/lint/lint:fix/test:e2e intentionally still omitted — see docs/IMPLEMENTATION_PLAN.md. `test`/`test:coverage` now run through Jest + jest-preset-angular (mature, widely used for Angular unit/component testing, and — unlike the Vitest paths tried before it — actually available for this package's Angular ^19.0.0 target: Angular's own first-party Vitest builder, @angular/build:unit-test, only exists from v20 (experimental) / v21 (stable), and the third-party @analogjs/vite-plugin-angular route hit a genuinely unresolved upstream ecosystem bug, analogjs/analog#1502 / angular/angular-cli#31732). Karma (angular.json's own project-scoped `test` architect target + karma.conf.js, both still present) is kept for a possible future full-app browser-flow e2e layer, per the same reasoning as before — not used for unit/component tests at all now. turbo skips tasks a package doesn't define, so CI stays green in the meantime.",
   "dependencies": {
     "@keystone-dashboard-layout/core": "workspace:*",
     "tslib": "^2.6.0"
@@ -49,10 +58,11 @@
     "karma-coverage": "^2.2.1",
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.1.0",
+    "ng-packagr": "^19.0.0",
     "puppeteer": "^24.0.0",
     "rxjs": "^7.8.0",
     "ts-node": "^10.9.0",
-    "typescript": "^6.0.3",
+    "typescript": "~5.7.0",
     "zone.js": "^0.15.0"
   },
   "peerDependencies": {

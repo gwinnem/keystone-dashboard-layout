@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ContentChild,
   DestroyRef,
   ElementRef,
   EventEmitter,
@@ -12,9 +13,10 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { NgStyle } from '@angular/common';
+import { NgStyle, NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   calcColWidth,
@@ -50,8 +52,8 @@ import type {
   TDistributeAxis,
   TLayout,
 } from '@keystone-dashboard-layout/core';
-import { findCrossGridZoneAt, registerCrossGridZone } from '@keystone-dashboard-layout/core/gridlayout/helpers/cross-grid-registry';
-import type { ICrossGridDropRejected, ICrossGridItemDropped, ICrossGridZone } from '@keystone-dashboard-layout/core/gridlayout/interfaces/cross-grid.interfaces';
+import { findCrossGridZoneAt, registerCrossGridZone } from './cross-grid-registry';
+import type { ICrossGridDropRejected, ICrossGridItemDropped, ICrossGridZone } from './cross-grid.interfaces';
 import { GridEventBusService, IGridDefaults, IItemClickedEvent, IItemDragEvent, IItemResizeEvent } from './grid-event-bus.service';
 
 let layoutIdCounter = 0;
@@ -152,7 +154,7 @@ interface ISpacingIndicatorStyle {
     '(click)': 'handleBackgroundClick($event)',
     class: `kdl-grid-layout`,
   },
-  imports: [NgStyle],
+  imports: [NgStyle, NgTemplateOutlet],
   providers: [GridEventBusService],
   selector: `kdl-grid-layout`,
   standalone: true,
@@ -170,7 +172,13 @@ interface ISpacingIndicatorStyle {
         }
       }
       @if (isDragging && placeholderStyle) {
-        <div class="kdl-grid-placeholder" [ngStyle]="placeholderStyle"></div>
+        @if (placeholderTemplate) {
+          <div [ngStyle]="placeholderStyle">
+            <ng-container *ngTemplateOutlet="placeholderTemplate ?? null; context: { $implicit: placeholder, placeholder: placeholder, isDragging: isDragging }"></ng-container>
+          </div>
+        } @else {
+          <div class="kdl-grid-placeholder" [ngStyle]="placeholderStyle"></div>
+        }
       }
     </div>
   `,
@@ -375,6 +383,19 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   placeholder: IPlaceholder | null = null;
   /** Pixel-ready placeholder style for the template, derived from `placeholder` — `null` whenever `placeholder` itself is, or before the container has been measured. */
   placeholderStyle: Record<string, string> | null = null;
+  /**
+   * Optional template for fully custom placeholder content during any
+   * drag/resize (in-grid or outside-drop) — falls back to the existing
+   * plain `.kdl-grid-placeholder` div when not provided, so every
+   * existing consumer's rendering is completely unaffected. Matches
+   * Vue's own `#placeholder` scoped slot (`{ placeholder, isDragging }`),
+   * expressed as Angular's own template-projection idiom. Queried by
+   * the template reference variable name `placeholder`, not by
+   * directive type, since a plain `<ng-template>` has no component/
+   * directive of its own to match against — the same pattern
+   * `GridItemComponent`'s own `resizeHandleTemplate` uses.
+   */
+  @ContentChild(`placeholder`, { read: TemplateRef }) placeholderTemplate: TemplateRef<{ $implicit: IPlaceholder | null; placeholder: IPlaceholder | null; isDragging: boolean }> | undefined;
   /** This grid's own resolved `layoutId` — either the `@Input()` value, or an auto-generated one (`grid-layout-N`) resolved once at `ngOnInit`. */
   resolvedLayoutId = ``;
 
@@ -385,6 +406,19 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   private effectiveColNum = 12;
   private undoStack: TLayout[] = [];
   private redoStack: TLayout[] = [];
+  /**
+   * Always holds the most recent, post-commit layout state — the
+   * Angular port of Vue's own `lastSnapshot` (`useUndoRedo.ts`).
+   * Established once at `ngOnInit` (`initLastSnapshot`'s own
+   * equivalent) and refreshed after every successful commit
+   * (drag/resize end, `compactNow()`, `duplicateItem()`, align/
+   * distribute, `undo()`/`redo()`), so an externally-driven `layout`
+   * length change (e.g. a parent adding/removing an item by
+   * reassigning the `[layout]` input directly, bypassing drag/resize
+   * entirely) always has a real "before" state to commit against —
+   * see `commitFromLastSnapshot` below.
+   */
+  private lastSnapshot: TLayout = [];
   /** Captured at drag/resizestart, pushed to `undoStack` on a genuinely-completed drag/resizeend — `null` whenever no gesture is in progress or `enableUndoRedo` is off. */
   private preGestureSnapshot: TLayout | null = null;
   /**
@@ -433,6 +467,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
   ngOnInit(): void {
     this.workingLayout = cloneLayout(this.layout);
+    this.lastSnapshot = cloneLayout(this.layout);
     this.effectiveColNum = this.colNum;
     this.resolvedLayoutId = this.layoutId ?? generateLayoutId();
     this.layouts = Object.fromEntries(Object.entries(this.responsiveLayouts).map(([breakpoint, breakpointLayout]) => [breakpoint, cloneLayout(breakpointLayout)]));
@@ -484,8 +519,21 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
   ngOnChanges(changes: SimpleChanges): void {
     if(changes[`layout`] && !changes[`layout`].firstChange) {
+      // Captured before workingLayout is overwritten below, so a
+      // length-change commit (further down) has the correct "how many
+      // items were there before this change" comparison to make.
+      const previousLength = this.workingLayout.length;
       this.workingLayout = cloneLayout(this.layout);
       this.pruneSelection();
+      // The Angular port of Vue's own separate `watch(() =>
+      // props.layout.length, ...)` -> `commitFromLastSnapshot()` —
+      // see that method's own doc comment for why this specific case
+      // (an externally-driven length change, bypassing drag/resize/
+      // duplicateItem/compactNow entirely) needs its own explicit
+      // commit rather than relying on any of those other call sites.
+      if(this.workingLayout.length !== previousLength) {
+        this.commitFromLastSnapshot();
+      }
     }
     if(changes[`colNum`]) {
       this.effectiveColNum = this.colNum;
@@ -634,6 +682,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     this.workingLayout = cloneLayout(previous);
     this.canUndo = this.undoStack.length > 0;
     this.canRedo = true;
+    this.lastSnapshot = cloneLayout(this.workingLayout);
     this.layoutChange.emit(this.workingLayout);
     this.changeDetectorRef.markForCheck();
   }
@@ -648,6 +697,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     this.workingLayout = cloneLayout(next);
     this.canUndo = true;
     this.canRedo = this.redoStack.length > 0;
+    this.lastSnapshot = cloneLayout(this.workingLayout);
     this.layoutChange.emit(this.workingLayout);
     this.changeDetectorRef.markForCheck();
   }
@@ -693,17 +743,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     // `compactType`, not `props.compactType` directly.
     const compacted = this.resolveCompactor(compactTypeOverride).compact(this.workingLayout, this.effectiveColNum, { compactType: compactTypeOverride });
 
-    if(this.enableUndoRedo) {
-      this.undoStack.push(beforeCompact);
-      if(this.undoStack.length > this.undoHistoryLimit) {
-        this.undoStack.shift();
-      }
-      this.redoStack = [];
-      this.canUndo = true;
-      this.canRedo = false;
-    }
-
     this.workingLayout = compacted;
+    this.commitUndoPoint(beforeCompact);
     this.layoutChange.emit(compacted);
     this.changeDetectorRef.markForCheck();
   }
@@ -829,6 +870,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     if(adjustments.size === 0) {
       return;
     }
+    const beforeAdjust = cloneLayout(this.workingLayout);
     const next = cloneLayout(this.workingLayout);
     const selectedIdSet = new Set(selectedIds);
 
@@ -852,18 +894,13 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       }
     });
 
-    if(this.enableUndoRedo) {
-      this.undoStack.push(cloneLayout(this.workingLayout));
-      if(this.undoStack.length > this.undoHistoryLimit) {
-        this.undoStack.shift();
-      }
-      this.redoStack = [];
-      this.canUndo = true;
-      this.canRedo = false;
-    }
-
+    // commitUndoPoint's own no-op guard needs the *post*-mutation
+    // state to compare `beforeAdjust` against — called after
+    // workingLayout is reassigned to the compacted result below, not
+    // before (see compactNow()'s own identical ordering).
     const compacted = this.resolveCompactor().compact(next, this.effectiveColNum, { compactType: this.compactType });
     this.workingLayout = compacted;
+    this.commitUndoPoint(beforeAdjust);
     this.layoutChange.emit(compacted);
     this.changeDetectorRef.markForCheck();
   }
@@ -1057,6 +1094,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       this.workingLayout = compacted;
       this.layoutChange.emit(compacted);
       this.clearGuides();
+      this.isDragging = false;
+      this.placeholder = null;
       this.commitGestureEnd();
       this.changeDetectorRef.markForCheck();
       return;
@@ -1067,6 +1106,22 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       const adjustment = findSnapAdjustment(next, { h: event.h, i: event.i, w: event.w, x: targetX, y: targetY }, this.snapThreshold);
       targetX = adjustment.x ?? targetX;
       targetY = adjustment.y ?? targetY;
+    }
+
+    // Regular in-grid drag placeholder — a real, confirmed gap this
+    // port had until now (see #placeholder's own doc comment on
+    // GridLayoutComponent): `placeholder`/`isDragging` were previously
+    // only ever set from the outside-drop path
+    // (`handleOutsideDragOver`/`handleOutsideDragLeave`), leaving
+    // Vue's own #placeholder slot with nothing to project into during
+    // a regular in-grid drag at all. Uses the same, already-computed
+    // `targetX`/`targetY` (post-snap, pre-collision-resolution) as the
+    // "where is this drag currently heading" position — the same value
+    // `moveElement` below is about to resolve against collisions.
+    if(event.eventType === `dragstart` || event.eventType === `dragmove`) {
+      this.placeholder = { h: event.h, w: event.w, x: targetX, y: targetY };
+      this.updatePlaceholderStyle();
+      this.isDragging = true;
     }
 
     this.applyGroupMove(event.eventType, event.i, targetX, targetY, next);
@@ -1129,6 +1184,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     this.layoutChange.emit(compacted);
 
     if(event.eventType === `dragend`) {
+      this.isDragging = false;
+      this.placeholder = null;
       this.positionsBeforeDrag = undefined;
       this.commitGestureEnd();
     }
@@ -1158,6 +1215,14 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
     if(event.eventType === `resizestart` || event.eventType === `resizemove`) {
       this.updateGuides(event.i, event.x, event.y, event.w, event.h, next);
+      // Regular in-grid resize placeholder — same rationale as
+      // handleItemDrag's own identical addition just above (see that
+      // method's own comment for the full explanation). Uses the
+      // resize's own in-progress w/h/x/y directly, matching the same
+      // "where is this gesture currently heading" semantics.
+      this.placeholder = { h: event.h, w: event.w, x: event.x, y: event.y };
+      this.updatePlaceholderStyle();
+      this.isDragging = true;
     } else {
       this.clearGuides();
     }
@@ -1173,6 +1238,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     this.layoutChange.emit(compacted);
 
     if(event.eventType === `resizeend`) {
+      this.isDragging = false;
+      this.placeholder = null;
       this.commitGestureEnd();
     }
     this.changeDetectorRef.markForCheck();
@@ -1230,14 +1297,52 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     if(!this.enableUndoRedo || !this.preGestureSnapshot) {
       return;
     }
-    this.undoStack.push(this.preGestureSnapshot);
+    this.commitUndoPoint(this.preGestureSnapshot);
+    this.preGestureSnapshot = null;
+  }
+
+  /**
+   * Pushes `before` onto `undoStack` (capped at `undoHistoryLimit`,
+   * oldest dropped first), clears `redoStack`, and refreshes
+   * `lastSnapshot` to the current, post-mutation `workingLayout` —
+   * the Angular port of Vue's own `commitUndoPoint` (`useUndoRedo.ts`).
+   * A no-op when `enableUndoRedo` is off, or when `before` is
+   * identical to the current state (nothing actually changed — e.g. a
+   * drag that snaps back to its own start position shouldn't consume
+   * an undo slot for a change that never happened).
+   */
+  private commitUndoPoint(before: TLayout): void {
+    if(!this.enableUndoRedo) {
+      return;
+    }
+    if(JSON.stringify(before) === JSON.stringify(this.workingLayout)) {
+      return;
+    }
+    this.undoStack.push(before);
     if(this.undoStack.length > this.undoHistoryLimit) {
       this.undoStack.shift();
     }
     this.redoStack = [];
-    this.preGestureSnapshot = null;
     this.canUndo = true;
     this.canRedo = false;
+    this.lastSnapshot = cloneLayout(this.workingLayout);
+  }
+
+  /**
+   * Commits `lastSnapshot` (the state just before the current change)
+   * as the "before" value — called from `ngOnChanges` whenever the
+   * `layout` `@Input()`'s own length changes, the Angular port of
+   * Vue's own `watch(() => props.layout.length, ...)` ->
+   * `commitFromLastSnapshot()`. This is what makes an externally-
+   * driven layout length change (a parent adding/removing an item by
+   * reassigning `[layout]` directly, bypassing drag/resize/
+   * `duplicateItem`/`compactNow` entirely) undo-trackable at all —
+   * without this, `canUndo` never became `true` after such a change,
+   * despite this component's own doc comments elsewhere claiming
+   * exactly that behavior.
+   */
+  private commitFromLastSnapshot(): void {
+    this.commitUndoPoint(this.lastSnapshot);
   }
 
   private snapshotGroupMovePositions(activeId: string | number): Map<string | number, { x: number; y: number }> {
@@ -1570,13 +1675,31 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   }
 
   private updateContainerHeight(): void {
-    const [, marginV] = this.margin;
+    const [marginH, marginV] = this.margin;
     const cssVars: Record<string, string | number> = {
       '--grid-transition-duration': `${this.transitionDurationMs}ms`,
       '--grid-transition-timing': this.transitionTimingFunction,
     };
     if(this.showResizeHandles) {
       cssVars[`--kdl-resize-handle-color`] = this.resizeHandleColor;
+    }
+    // Grid-line spacing (showGridLines) — a real, confirmed gap this
+    // port was missing entirely (found by comparing directly against a
+    // live Vue example, not assumed): unlike Vue's own gridLinesStyle,
+    // this method never set these two custom properties at all, so
+    // .kdl-grid-lines::before's own background-size fell back to its
+    // CSS default of 1px 1px — a grid-line pattern repeating every
+    // single pixel, which visually blends into what looks like a solid
+    // gray fill rather than discrete, visible lines. Computed the same
+    // way alignment-guide/spacing-indicator pixel sizes already are
+    // elsewhere in this file, for consistency — and, matching Vue's own
+    // identical guard, only when the container has actually been
+    // measured; before that, a 1x1px pattern is the correct,
+    // invisible-but-harmless fallback, not a bug.
+    if(this.containerWidth > 0) {
+      const colWidth = calcColWidth(this.containerWidth, marginH, this.effectiveColNum);
+      cssVars[`--kdl-grid-line-column-size`] = `${colWidth + marginH}px`;
+      cssVars[`--kdl-grid-line-row-size`] = `${this.rowHeight + marginV}px`;
     }
     const mode = this.resolvedHeightMode();
     // 'fixed'/'scroll' both mean "no explicit height here," differing

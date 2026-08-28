@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
 import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import '../examples-react/shared-example-item.css';
 import './03-events.css';
 
@@ -14,33 +15,34 @@ const initialLayout: TLayout = [
 export default function Events() {
   const [layout, setLayout] = useState<TLayout>(initialLayout);
   const [events, setEvents] = useState<string[]>([]);
-  const previousLayoutRef = useRef<TLayout>(initialLayout);
 
-  function pushEvent(message: string): void {
-    setEvents((current) => [message, ...current].slice(0, 6));
-  }
-
-  function handleLayoutChange(next: TLayout): void {
-    const previous = previousLayoutRef.current;
-    for (const item of next) {
-      const before = previous.find((p) => p.i === item.i);
-      if (!before) continue;
-      if (before.x !== item.x || before.y !== item.y) {
-        pushEvent(`${item.i} moved to x:${item.x} y:${item.y}`);
-      }
-      if (before.w !== item.w || before.h !== item.h) {
-        pushEvent(`${item.i} resized to w:${item.w} h:${item.h}`);
-      }
-    }
-    previousLayoutRef.current = next;
-    setLayout(next);
+  function log(message: string): void {
+    setEvents((current) => [`${new Date().toLocaleTimeString()} — ${message}`, ...current].slice(0, 8));
   }
 
   return (
     <>
-      <GridLayout colNum={12} layout={layout} onLayoutChange={handleLayoutChange} rowHeight={60} showGridLines>
+      <GridLayout
+        colNum={12}
+        layout={layout}
+        onColumnsChanged={(cols) => log(`onColumnsChanged: ${cols}`)}
+        onDragEnd={(id) => log(`dragend: ${id}`)}
+        onDragMove={() => log('dragmove')}
+        onDragStart={(id) => log(`dragstart: ${id}`)}
+        onLayoutChange={(next) => {
+          log('onLayoutChange');
+          setLayout(next);
+        }}
+        rowHeight={60}
+        showGridLines
+      >
         {layout.map((item) => (
-          <GridItem i={item.i} key={item.i}>
+          <GridItem
+            i={item.i}
+            key={item.i}
+            onItemMoved={({ i, x, y }) => log(`moved: ${i} -> (${x},${y})`)}
+            onItemResized={({ i, w, h }) => log(`resized: ${i} -> ${w}x${h}`)}
+          >
             <div className="example-item">{item.i}</div>
           </GridItem>
         ))}
@@ -56,6 +58,8 @@ export default function Events() {
           )}
         </ul>
       </div>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

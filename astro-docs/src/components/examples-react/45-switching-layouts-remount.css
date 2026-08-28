@@ -14,3 +14,8 @@
   border: 1px solid var(--kg-line-light);
   color: var(--kg-text-hi-light);
 }
+
+.demo-description {
+  color: var(--kg-text-lo-light);
+  font-size: 13px;
+}

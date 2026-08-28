@@ -9,30 +9,40 @@
       :key="item.i"
       :h="item.h"
       :i="item.i"
-      :max-h="item.i === '0' ? 4 : undefined"
-      :max-w="item.i === '0' ? 5 : undefined"
-      :min-h="item.i === '0' ? 2 : undefined"
-      :min-w="item.i === '0' ? 2 : undefined"
-      :preserve-aspect-ratio="item.i === '1'"
+      :max-h="item.maxH"
+      :max-w="item.maxW"
+      :min-h="item.minH"
+      :min-w="item.minW"
+      :preserve-aspect-ratio="item.preserveAspectRatio"
       :w="item.w"
       :x="item.x"
       :y="item.y">
       <div class="example-item">
-        {{ item.i === '0' ? 'w: 2-5, h: 2-4' : item.i === '1' ? 'aspect locked' : item.i }}
+        {{ item.label }}
       </div>
     </GridItem>
   </GridLayout>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
   import { ref } from 'vue';
   import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
-  const layout = ref<TLayout>([
-    { h: 2, i: '0', w: 3, x: 0, y: 0 },
-    { h: 2, i: '1', w: 2, x: 3, y: 0 },
-    { h: 2, i: '2', w: 3, x: 5, y: 0 },
+  const layout = ref<(TLayout[number] & {
+    label: string;
+    minW?: number;
+    maxW?: number;
+    minH?: number;
+    maxH?: number;
+    preserveAspectRatio?: boolean;
+  })[]>([
+    { h: 2, i: '0', label: 'minW: 2, maxW: 4', maxW: 4, minW: 2, w: 3, x: 0, y: 0 },
+    { h: 2, i: '1', label: 'minH: 2, maxH: 3', maxH: 3, minH: 2, w: 3, x: 3, y: 0 },
+    { h: 2, i: '2', label: 'preserveAspectRatio', preserveAspectRatio: true, w: 3, x: 6, y: 0 },
   ]);
 </script>
 

@@ -1,0 +1,110 @@
+import type { Routes } from '@angular/router';
+import { HomeComponent } from './home.component';
+import { BasicDragResizePageComponent } from './pages/01-basic-drag-resize.page.component';
+import { BoundedDragPageComponent } from './pages/02-bounded-drag.page.component';
+import { EventsPageComponent } from './pages/03-events.page.component';
+import { MultipleGridsPageComponent } from './pages/04-multiple-grids.page.component';
+import { DragAllowIgnoreElementsPageComponent } from './pages/05-drag-allow-ignore-elements.page.component';
+import { MirroredRtlPageComponent } from './pages/06-mirrored-rtl.page.component';
+import { ResponsiveBreakpointsPageComponent } from './pages/07-responsive-breakpoints.page.component';
+import { PreventCollisionPageComponent } from './pages/08-prevent-collision.page.component';
+import { ResponsivePredefinedLayoutsPageComponent } from './pages/09-responsive-predefined-layouts.page.component';
+import { AddRemoveItemsPageComponent } from './pages/10-add-remove-items.page.component';
+import { OutsideDragDropPageComponent } from './pages/11-outside-drag-drop.page.component';
+import { CrossGridDragDropPageComponent } from './pages/12-cross-grid-drag-drop.page.component';
+import { CloseButtonPageComponent } from './pages/13-close-button.page.component';
+import { BorderRadiusPageComponent } from './pages/14-border-radius.page.component';
+import { HorizontalShiftPageComponent } from './pages/15-horizontal-shift.page.component';
+import { GridLinesPageComponent } from './pages/16-grid-lines.page.component';
+import { StaticItemsPageComponent } from './pages/17-static-items.page.component';
+import { CustomDragHandleCloseButtonPageComponent } from './pages/18-custom-drag-handle-close-button.page.component';
+import { SaveLoadLayoutPageComponent } from './pages/19-save-load-layout.page.component';
+import { AutoSizeGridPageComponent } from './pages/20-auto-size-grid.page.component';
+import { EditModeTogglePageComponent } from './pages/21-edit-mode-toggle.page.component';
+import { CrossGridDropRestrictionsPageComponent } from './pages/22-cross-grid-drop-restrictions.page.component';
+import { OutsideDragDropMultipleGridsPageComponent } from './pages/23-outside-drag-drop-multiple-grids.page.component';
+import { TransitionDurationEasingPageComponent } from './pages/24-transition-duration-easing.page.component';
+import { CustomDragPlaceholderPageComponent } from './pages/25-custom-drag-placeholder.page.component';
+import { AlignmentGuidesPageComponent } from './pages/26-alignment-guides.page.component';
+import { ScrollToItemFocusItemPageComponent } from './pages/27-scroll-to-item-focus-item.page.component';
+import { SvgExportPageComponent } from './pages/28-svg-export.page.component';
+import { CompactNowRearrangeDuplicateItemPageComponent } from './pages/29-compact-now-rearrange-duplicate-item.page.component';
+import { BlockedMoveFeedbackPageComponent } from './pages/30-blocked-move-feedback.page.component';
+import { PerItemAutoHeightPageComponent } from './pages/31-per-item-auto-height.page.component';
+import { SnapToGridPageComponent } from './pages/32-snap-to-grid.page.component';
+import { ResizeHintAppearancePageComponent } from './pages/33-resize-hint-appearance.page.component';
+import { OutsideDropAcceptPayloadPageComponent } from './pages/34-outside-drop-accept-payload.page.component';
+import { NamedPresetsPageComponent } from './pages/35-named-presets.page.component';
+import { AriaLabelsPageComponent } from './pages/36-aria-labels.page.component';
+import { MultiSelectGroupMoveResizePageComponent } from './pages/37-multi-select-group-move-resize.page.component';
+import { SizeConstraintsAspectRatioPageComponent } from './pages/38-size-constraints-aspect-ratio.page.component';
+import { AutoScrollPageComponent } from './pages/39-auto-scroll.page.component';
+import { LayoutLifecycleEventsPageComponent } from './pages/40-layout-lifecycle-events.page.component';
+import { LayoutBoundsRenderingOptionsPageComponent } from './pages/41-layout-bounds-rendering-options.page.component';
+import { PluggableCompactionPageComponent } from './pages/42-pluggable-compaction.page.component';
+import { UndoRedoPageComponent } from './pages/43-undo-redo.page.component';
+import { GridDimensionsPageComponent } from './pages/44-grid-dimensions.page.component';
+import { SwitchingLayoutsRemountPageComponent } from './pages/45-switching-layouts-remount.page.component';
+import { AlignDistributeSelectedPageComponent } from './pages/46-align-distribute-selected.page.component';
+import { SpacingIndicatorsPageComponent } from './pages/47-spacing-indicators.page.component';
+import { CustomHeaderSlotPageComponent } from './pages/48-custom-header-slot.page.component';
+import { PerItemZIndexPageComponent } from './pages/49-per-item-z-index.page.component';
+import { HeightModesPageComponent } from './pages/50-height-modes.page.component';
+import { DragActivationDistancePageComponent } from './pages/51-drag-activation-distance.page.component';
+import { RestrictResizeHandlesPageComponent } from './pages/52-restrict-resize-handles.page.component';
+
+export const ROUTES: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'examples/01-basic-drag-resize', component: BasicDragResizePageComponent },
+  { path: 'examples/02-bounded-drag', component: BoundedDragPageComponent },
+  { path: 'examples/03-events', component: EventsPageComponent },
+  { path: 'examples/04-multiple-grids', component: MultipleGridsPageComponent },
+  { path: 'examples/05-drag-allow-ignore-elements', component: DragAllowIgnoreElementsPageComponent },
+  { path: 'examples/06-mirrored-rtl', component: MirroredRtlPageComponent },
+  { path: 'examples/07-responsive-breakpoints', component: ResponsiveBreakpointsPageComponent },
+  { path: 'examples/08-prevent-collision', component: PreventCollisionPageComponent },
+  { path: 'examples/09-responsive-predefined-layouts', component: ResponsivePredefinedLayoutsPageComponent },
+  { path: 'examples/10-add-remove-items', component: AddRemoveItemsPageComponent },
+  { path: 'examples/11-outside-drag-drop', component: OutsideDragDropPageComponent },
+  { path: 'examples/12-cross-grid-drag-drop', component: CrossGridDragDropPageComponent },
+  { path: 'examples/13-close-button', component: CloseButtonPageComponent },
+  { path: 'examples/14-border-radius', component: BorderRadiusPageComponent },
+  { path: 'examples/15-horizontal-shift', component: HorizontalShiftPageComponent },
+  { path: 'examples/16-grid-lines', component: GridLinesPageComponent },
+  { path: 'examples/17-static-items', component: StaticItemsPageComponent },
+  { path: 'examples/18-custom-drag-handle-close-button', component: CustomDragHandleCloseButtonPageComponent },
+  { path: 'examples/19-save-load-layout', component: SaveLoadLayoutPageComponent },
+  { path: 'examples/20-auto-size-grid', component: AutoSizeGridPageComponent },
+  { path: 'examples/21-edit-mode-toggle', component: EditModeTogglePageComponent },
+  { path: 'examples/22-cross-grid-drop-restrictions', component: CrossGridDropRestrictionsPageComponent },
+  { path: 'examples/23-outside-drag-drop-multiple-grids', component: OutsideDragDropMultipleGridsPageComponent },
+  { path: 'examples/24-transition-duration-easing', component: TransitionDurationEasingPageComponent },
+  { path: 'examples/25-custom-drag-placeholder', component: CustomDragPlaceholderPageComponent },
+  { path: 'examples/26-alignment-guides', component: AlignmentGuidesPageComponent },
+  { path: 'examples/27-scroll-to-item-focus-item', component: ScrollToItemFocusItemPageComponent },
+  { path: 'examples/28-svg-export', component: SvgExportPageComponent },
+  { path: 'examples/29-compact-now-rearrange-duplicate-item', component: CompactNowRearrangeDuplicateItemPageComponent },
+  { path: 'examples/30-blocked-move-feedback', component: BlockedMoveFeedbackPageComponent },
+  { path: 'examples/31-per-item-auto-height', component: PerItemAutoHeightPageComponent },
+  { path: 'examples/32-snap-to-grid', component: SnapToGridPageComponent },
+  { path: 'examples/33-resize-hint-appearance', component: ResizeHintAppearancePageComponent },
+  { path: 'examples/34-outside-drop-accept-payload', component: OutsideDropAcceptPayloadPageComponent },
+  { path: 'examples/35-named-presets', component: NamedPresetsPageComponent },
+  { path: 'examples/36-aria-labels', component: AriaLabelsPageComponent },
+  { path: 'examples/37-multi-select-group-move-resize', component: MultiSelectGroupMoveResizePageComponent },
+  { path: 'examples/38-size-constraints-aspect-ratio', component: SizeConstraintsAspectRatioPageComponent },
+  { path: 'examples/39-auto-scroll', component: AutoScrollPageComponent },
+  { path: 'examples/40-layout-lifecycle-events', component: LayoutLifecycleEventsPageComponent },
+  { path: 'examples/41-layout-bounds-rendering-options', component: LayoutBoundsRenderingOptionsPageComponent },
+  { path: 'examples/42-pluggable-compaction', component: PluggableCompactionPageComponent },
+  { path: 'examples/43-undo-redo', component: UndoRedoPageComponent },
+  { path: 'examples/44-grid-dimensions', component: GridDimensionsPageComponent },
+  { path: 'examples/45-switching-layouts-remount', component: SwitchingLayoutsRemountPageComponent },
+  { path: 'examples/46-align-distribute-selected', component: AlignDistributeSelectedPageComponent },
+  { path: 'examples/47-spacing-indicators', component: SpacingIndicatorsPageComponent },
+  { path: 'examples/48-custom-header-slot', component: CustomHeaderSlotPageComponent },
+  { path: 'examples/49-per-item-z-index', component: PerItemZIndexPageComponent },
+  { path: 'examples/50-height-modes', component: HeightModesPageComponent },
+  { path: 'examples/51-drag-activation-distance', component: DragActivationDistancePageComponent },
+  { path: 'examples/52-restrict-resize-handles', component: RestrictResizeHandlesPageComponent },
+];

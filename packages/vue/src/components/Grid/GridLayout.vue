@@ -483,18 +483,31 @@
    */
   const runCompaction = (minPositions?: ICompactorContext[`minPositions`], compactTypeOverride?: ECompactType): void => {
     const compactType = compactTypeOverride ?? props.compactType as ECompactType;
-    if(props.compactor) {
-      const compacted = props.compactor.compact(props.layout, props.colNum as number, { compactType, minPositions });
-      // `v-model:layout` works by mutating this array in place, keeping
-      // the parent's own bound reference in sync — reassigning
-      // `props.layout` directly isn't just discouraged, Vue doesn't
-      // allow it at all. A deliberate, checked exception, not an
-      // oversight — see PRODUCTION_READINESS.md.
-      // eslint-disable-next-line vue/no-mutating-props
-      props.layout.splice(0, props.layout.length, ...compacted);
-      return;
-    }
-    getCompactor(compactType).compact(props.layout, props.colNum as number, { compactType, minPositions });
+    const compactor = props.compactor ?? getCompactor(compactType);
+    const compacted = compactor.compact(props.layout, props.colNum as number, { compactType, minPositions });
+    // Bug fix: the built-in-compactor path used to call `.compact(...)`
+    // here and discard its return value entirely, relying on an
+    // in-place mutation `ICompactor`'s own interface contract
+    // explicitly forbids ("Must not mutate the input `layout`... returns
+    // a new array" — see that interface's own doc comment). Confirmed
+    // directly, not assumed: a freshly-pushed item using the documented
+    // `y: Infinity` placement convention ("push it, let compaction find
+    // a real position" — this file's own `duplicateItem`/this
+    // component's "Add or remove items" example both rely on exactly
+    // this) never actually got compacted through this path at all,
+    // permanently stuck at its own raw, pre-compaction `y: Infinity` in
+    // the real `props.layout` array `GridItem` reads from —
+    // reproduced directly via the "Add or remove items" example: a
+    // newly-added item rendered with no visible id and sitting exactly
+    // on top of the grid's own first item. `v-model:layout` requires
+    // mutating `props.layout` in place (Vue doesn't allow reassigning a
+    // prop directly) rather than replacing the reference outright —
+    // `.splice(0, length, ...compacted)` is the same in-place-mutation
+    // idiom the custom-`compactor` branch immediately below already
+    // used correctly; this now applies identically regardless of
+    // whether a custom compactor is set.
+    // eslint-disable-next-line vue/no-mutating-props
+    props.layout.splice(0, props.layout.length, ...compacted);
   };
 
   const { canRedo, canUndo, captureDragStart, captureResizeStart, commitDragEnd, commitFromLastSnapshot, commitResizeEnd, commitUndoPoint, initLastSnapshot, redo, undo } = useUndoRedo({

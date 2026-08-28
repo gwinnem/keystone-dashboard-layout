@@ -71,7 +71,7 @@ const ARROW_KEY_DELTAS: Record<string, [number, number]> = {
  * instance, needs the synthetic `dragstart` for `multiSelect`'s own
  * group-move snapshot to have anything to snapshot at all).
  */
-export function GridItem({ i, header, children, renderResizeHandle, className }: IGridItemProps): JSX.Element {
+export function GridItem({ i, header, children, renderResizeHandle, onItemMoved, onItemResized, className }: IGridItemProps): JSX.Element {
   const context = useGridContext();
   const item = context.layout.find(entry => entry.i === i);
 
@@ -153,6 +153,7 @@ export function GridItem({ i, header, children, renderResizeHandle, className }:
     margin: context.margin,
     maxRows: context.maxRows,
     onDrag: context.onItemDrag,
+    onItemMoved,
     rowHeight: context.rowHeight,
     transformScale: context.transformScale,
     w: item.w,
@@ -191,6 +192,7 @@ export function GridItem({ i, header, children, renderResizeHandle, className }:
     minH,
     minW,
     onResize: context.onItemResize,
+    onItemResized,
     preserveAspectRatio: resolvedPreserveAspectRatio,
     rowHeight: context.rowHeight,
     transformScale: context.transformScale,

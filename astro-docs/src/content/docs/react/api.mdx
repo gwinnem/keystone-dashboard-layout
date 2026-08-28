@@ -12,10 +12,14 @@ real public entry point — not assumed from the components alone.
 import {
   GridLayout,
   GridItem,
+  GridItemDragHandle,
+  GridItemCloseButton,
   useLayoutStorage,
   useLayoutPresets,
   type IGridLayoutProps,
   type IGridItemProps,
+  type IGridItemDragHandleProps,
+  type IGridItemCloseButtonProps,
   type IGridLayoutHandle,
   type IUseLayoutStorageReturn,
   type IUseLayoutPresetsOptions,
@@ -34,6 +38,36 @@ through its own barrel — those come from the shared
 full prop documentation. Their prop types (`IGridLayoutProps`,
 `IGridItemProps`) are directly importable, useful for typing a wrapper
 component's own props.
+
+### GridItemDragHandle {#griditemdraghandle}
+
+A small, ready-made drag-handle widget — the React port of Vue's own
+`CustomDragElement.vue`. Not used internally by `GridItem`/`GridLayout`
+themselves; place it inside a `GridItem`'s own children when you want
+dragging restricted to a single handle rather than the whole item,
+paired with that layout item's own `dragAllowFrom` field (e.g.
+`dragAllowFrom: '.kdl-draggable-handle'`).
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `text` | `string` | `'x'` | Label rendered inside the handle's own button |
+
+See [Custom drag handle & close button](/react/examples/custom-drag-handle-close-button/)
+for it in context, or reach for a plain element with `dragAllowFrom`
+instead when you want full control over markup and styling.
+
+### GridItemCloseButton {#griditemclosebutton}
+
+The default close button rendered inside a `GridItem` when its own
+`showCloseButton` resolves `true` — the React port of Vue's own
+`CustomCloseButton.vue`. Also exported standalone for rendering the
+identical button elsewhere (e.g. a custom header) and wiring it to the
+same removal logic manually.
+
+| Prop | Type | Description |
+|---|---|---|
+| `i` | `string \| number` | The id of the `GridItem` this button removes when clicked (required) |
+| `onRemoveGridItem` | `(id: string \| number) => void` | Called with `i` when clicked |
 
 ## Interfaces
 

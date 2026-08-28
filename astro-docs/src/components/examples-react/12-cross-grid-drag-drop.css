@@ -1,0 +1,14 @@
+.grid-column .kdl-grid-layout {
+  min-height: 140px;
+}
+
+.example-item--static {
+  background: var(--kg-paper-3);
+  border-style: dashed;
+  flex-direction: column;
+}
+
+.example-item small {
+  color: var(--kg-text-lo-light);
+  font-size: 10px;
+}

@@ -10,10 +10,18 @@ import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
   <CustomDragHandleCloseButton client:visible />
 </ExampleTryIt>
 
-Unlike the Vue package, there's no separate exported `CustomDragElement`/`CustomCloseButton`
-component to import — since any element can already be a drag handle
-or a close button, a plain `<span>`/`<button>` styled however you like
-is the whole mechanism. Pairing `dragAllowFrom` with `resizeIgnoreFrom`
-on the same selector matters here too: without it, the handle can end
-up fighting the resize engine's own edge-proximity detection near a
-corner.
+Any element can be a drag handle via `dragAllowFrom`, or a close
+button via a plain `onClick` calling your own remove handler — the
+DIY approach this example demonstrates, and still the right choice
+when you want full control over markup and styling.
+
+If you'd rather not hand-roll one, this package also exports
+[`GridItemDragHandle`](/react/api/#griditemdraghandle) and
+[`GridItemCloseButton`](/react/api/#griditemclosebutton) — small,
+ready-made components matching this exact visual pattern (a
+`.kdl-draggable-handle` hit-area, a styled close button), ported
+directly from the Vue package's own `CustomDragElement`/
+`CustomCloseButton`. Pairing `dragAllowFrom`/`resizeIgnoreFrom` with
+the handle's own `.kdl-draggable-handle` class still matters either
+way: without it, the handle can end up fighting the resize engine's
+own edge-proximity detection near a corner.

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
 import '@keystone-dashboard-layout/react/style.css';
 import type { TLayout } from '@keystone-dashboard-layout/core';
+import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import './31-per-item-auto-height.css';
 
 const initialLayout: TLayout = [
@@ -16,10 +17,15 @@ export default function PerItemAutoHeight() {
     setLines((current) => [...current, `Line ${current.length + 1} of content.`]);
   }
 
+  function removeLine(): void {
+    setLines((current) => (current.length > 1 ? current.slice(0, -1) : current));
+  }
+
   return (
     <>
       <div className="demo-controls">
-        <button className="demo-btn" onClick={addLine} type="button">Add a line of text</button>
+        <button className="demo-btn" onClick={addLine} type="button">+ Add a line</button>
+        <button className="demo-btn demo-btn--ghost" onClick={removeLine} type="button">- Remove a line</button>
       </div>
 
       <GridLayout colNum={12} layout={layout} onLayoutChange={setLayout} rowHeight={30} showGridLines>
@@ -31,6 +37,8 @@ export default function PerItemAutoHeight() {
           </GridItem>
         ))}
       </GridLayout>
+
+      <LayoutJsonViewer layout={layout} />
     </>
   );
 }

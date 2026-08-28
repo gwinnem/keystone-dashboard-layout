@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>512/512</span>
+                <span class='fraction'>510/510</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>502/502</span>
+                <span class='fraction'>500/500</span>
             </div>
         
             
@@ -2172,7 +2172,20 @@
 <a name='L2107'></a><a href='#L2107'>2107</a>
 <a name='L2108'></a><a href='#L2108'>2108</a>
 <a name='L2109'></a><a href='#L2109'>2109</a>
-<a name='L2110'></a><a href='#L2110'>2110</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L2110'></a><a href='#L2110'>2110</a>
+<a name='L2111'></a><a href='#L2111'>2111</a>
+<a name='L2112'></a><a href='#L2112'>2112</a>
+<a name='L2113'></a><a href='#L2113'>2113</a>
+<a name='L2114'></a><a href='#L2114'>2114</a>
+<a name='L2115'></a><a href='#L2115'>2115</a>
+<a name='L2116'></a><a href='#L2116'>2116</a>
+<a name='L2117'></a><a href='#L2117'>2117</a>
+<a name='L2118'></a><a href='#L2118'>2118</a>
+<a name='L2119'></a><a href='#L2119'>2119</a>
+<a name='L2120'></a><a href='#L2120'>2120</a>
+<a name='L2121'></a><a href='#L2121'>2121</a>
+<a name='L2122'></a><a href='#L2122'>2122</a>
+<a name='L2123'></a><a href='#L2123'>2123</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2658,17 +2671,30 @@
 <span class="cline-any cline-yes">387x</span>
 <span class="cline-any cline-yes">709x</span>
 <span class="cline-any cline-yes">709x</span>
-<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">709x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">698x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">709x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">387x</span>
@@ -4766,18 +4792,31 @@
    */
   const runCompaction = (minPositions?: ICompactorContext[`minPositions`], compactTypeOverride?: ECompactType): void =&gt; {
     const compactType = compactTypeOverride ?? props.compactType as ECompactType;
-    if(props.compactor) {
-      const compacted = props.compactor.compact(props.layout, props.colNum as number, { compactType, minPositions });
-      // `v-model:layout` works by mutating this array in place, keeping
-      // the parent's own bound reference in sync — reassigning
-      // `props.layout` directly isn't just discouraged, Vue doesn't
-      // allow it at all. A deliberate, checked exception, not an
-      // oversight — see PRODUCTION_READINESS.md.
-      // eslint-disable-next-line vue/no-mutating-props
-      props.layout.splice(0, props.layout.length, ...compacted);
-      return;
-    }
-    getCompactor(compactType).compact(props.layout, props.colNum as number, { compactType, minPositions });
+    const compactor = props.compactor ?? getCompactor(compactType);
+    const compacted = compactor.compact(props.layout, props.colNum as number, { compactType, minPositions });
+    // Bug fix: the built-in-compactor path used to call `.compact(...)`
+    // here and discard its return value entirely, relying on an
+    // in-place mutation `ICompactor`'s own interface contract
+    // explicitly forbids ("Must not mutate the input `layout`... returns
+    // a new array" — see that interface's own doc comment). Confirmed
+    // directly, not assumed: a freshly-pushed item using the documented
+    // `y: Infinity` placement convention ("push it, let compaction find
+    // a real position" — this file's own `duplicateItem`/this
+    // component's "Add or remove items" example both rely on exactly
+    // this) never actually got compacted through this path at all,
+    // permanently stuck at its own raw, pre-compaction `y: Infinity` in
+    // the real `props.layout` array `GridItem` reads from —
+    // reproduced directly via the "Add or remove items" example: a
+    // newly-added item rendered with no visible id and sitting exactly
+    // on top of the grid's own first item. `v-model:layout` requires
+    // mutating `props.layout` in place (Vue doesn't allow reassigning a
+    // prop directly) rather than replacing the reference outright —
+    // `.splice(0, length, ...compacted)` is the same in-place-mutation
+    // idiom the custom-`compactor` branch immediately below already
+    // used correctly; this now applies identically regardless of
+    // whether a custom compactor is set.
+    // eslint-disable-next-line vue/no-mutating-props
+    props.layout.splice(0, props.layout.length, ...compacted);
   };
 &nbsp;
   const { canRedo, canUndo, captureDragStart, captureResizeStart, commitDragEnd, commitFromLastSnapshot, commitResizeEnd, commitUndoPoint, initLastSnapshot, redo, undo } = useUndoRedo({
@@ -6397,7 +6436,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-25T12:09:48.921Z
+                at 2026-08-28T06:26:09.920Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

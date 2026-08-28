@@ -5,7 +5,7 @@ description: Every component, directive, service, and function exported from the
 
 Confirmed directly against `packages/angular/src/index.ts`, the
 package's real public entry point — not assumed from the components
-alone. As of this writing, that barrel exports five things:
+alone. As of this writing, that barrel exports seven things:
 
 ## What this package exports
 
@@ -16,6 +16,8 @@ import {
   GridItemHeaderDirective,
   GridLayoutStorageService,
   GridLayoutPresetsService,
+  GridItemDragHandleComponent,
+  GridItemCloseButtonComponent,
 } from '@keystone-dashboard-layout/angular';
 ```
 
@@ -30,22 +32,24 @@ its prop contract; there's no separate props-interface convention to
 mirror here.
 
 :::caution[A real gap, not a documented limitation]
-`GridItemHeaderDirective`, `GridLayoutStorageService`, and
-`GridLayoutPresetsService` were fully implemented in the package's own
-source but weren't actually exported from this barrel until a recent
-fix — meaning no consumer could previously import them from
-`@keystone-dashboard-layout/angular` at all, despite the package's own
-`docs/IMPLEMENTATION_PLAN.md` already describing them as finished,
-public API. Confirm you're on a version that includes the fix before
-relying on these three specifically.
+`GridItemHeaderDirective`, `GridLayoutStorageService`,
+`GridLayoutPresetsService`, `GridItemDragHandleComponent`, and
+`GridItemCloseButtonComponent` were fully implemented in the package's
+own source but weren't actually exported from this barrel until a
+recent fix — meaning no consumer could previously import any of these
+five from `@keystone-dashboard-layout/angular` at all, despite the
+package's own `docs/IMPLEMENTATION_PLAN.md` already describing them as
+finished, public API. Confirm you're on a version that includes the
+fix before relying on these five specifically.
 :::
 
 ## Components & directive
 
 `GridLayoutComponent`, `GridItemComponent` — see
 [Components](/angular/components/) for full `@Input()`/`@Output()`
-documentation. `GridItemHeaderDirective` is a marker directive with no
-inputs/outputs of its own — see
+documentation, including the standalone `GridItemDragHandleComponent`/
+`GridItemCloseButtonComponent` utility components. `GridItemHeaderDirective`
+is a marker directive with no inputs/outputs of its own — see
 [GridItemComponent props](/angular/components/grid-item/props/#header-content)
 for how it's used.
 

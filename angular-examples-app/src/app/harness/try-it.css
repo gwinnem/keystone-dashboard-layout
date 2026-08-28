@@ -1,0 +1,110 @@
+/* Adapted from astro-docs's own ExampleTryIt.astro <style> block —
+   same card shell (toolbar, Preview/Source tabs, copy button, footer)
+   so this app's example pages visually match the Vue/React docs. */
+.try-it {
+  margin: 24px 0;
+}
+
+.try-it__card {
+  background: var(--kg-paper-2);
+  border: 1px solid var(--kg-line-light);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.try-it__toolbar {
+  align-items: center;
+  background: var(--kg-paper-3);
+  border-bottom: 1px solid var(--kg-line-light);
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+}
+
+.try-it__filename {
+  color: var(--kg-blueprint-deep);
+  font-family: var(--kg-font-mono);
+  font-size: 13px;
+}
+
+.try-it__tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.try-it__tab {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--kg-text-lo-light);
+  cursor: pointer;
+  font-family: var(--kg-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 12px;
+}
+
+.try-it__tab.is-active {
+  background: var(--kg-paper-2);
+  box-shadow: 0 1px 2px rgba(20, 23, 26, 0.08);
+  color: var(--kg-text-hi-light);
+}
+
+.try-it__tab:not(.is-active):hover {
+  color: var(--kg-text-hi-light);
+}
+
+.try-it__stage {
+  padding: 20px;
+}
+
+.try-it__panel--source {
+  position: relative;
+}
+
+.try-it__panel--source pre {
+  background: var(--kg-ink);
+  color: var(--kg-text-hi-dark);
+  font-family: var(--kg-font-mono);
+  font-size: 12.5px;
+  margin: 0;
+  max-height: 480px;
+  overflow: auto;
+  padding: 20px;
+  white-space: pre-wrap;
+}
+
+.try-it__copy {
+  align-items: center;
+  background: var(--kg-ink-2);
+  border: 1px solid var(--kg-line-dark);
+  border-radius: 6px;
+  color: var(--kg-text-hi-dark);
+  cursor: pointer;
+  display: flex;
+  height: 30px;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  right: 17px;
+  top: 12px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  width: 30px;
+}
+
+.try-it__copy:hover,
+.try-it__copy.is-copied {
+  background: var(--kg-blueprint-deep);
+  color: white;
+}
+
+.try-it__footer {
+  align-items: center;
+  background: var(--kg-paper-2);
+  border-top: 1px solid var(--kg-line-light);
+  color: var(--kg-text-lo-light);
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  padding: 12px 16px;
+}

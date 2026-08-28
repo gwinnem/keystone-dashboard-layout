@@ -25,6 +25,8 @@
       </div>
     </GridItem>
   </GridLayout>
+
+  <LayoutJsonViewer :layout="layout" />
 </template>
 
 <script lang="ts" setup>
@@ -32,6 +34,7 @@
   import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
   import '@keystone-dashboard-layout/vue/style.css';
   import ExampleToggle from '../harness/ExampleToggle.vue';
+  import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   const showCloseButton = ref(true);
 
