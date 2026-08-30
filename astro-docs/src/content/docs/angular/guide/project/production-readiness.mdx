@@ -10,7 +10,7 @@ holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
 forever."
 :::
 
-:::caution[A real, layered CI investigation — confirmed via live pushes: 6 bugs found, 6 fixed, one (bug 6) not yet re-verified]
+:::caution[A real, layered CI investigation — confirmed via live pushes: 7 bugs found, 7 fixed, one (bug 7) not yet re-verified]
 **Bug 1 — confirmed fixed via a live push**: pnpm version conflict at
 "Setup pnpm" across every workflow. Gone.
 
@@ -34,18 +34,30 @@ fixed** — this package's own `test:coverage` step no longer appears in
 any subsequent failed-job annotation.
 
 **Bug 6 (React's own, surfaced only after bug 3's fix) — confirmed
-fixed, pending re-verification**: with bug 3 fixed, `packages/react`'s
-own `test:coverage` failed next — again all 354 real tests passed, one
+fixed via a live push**: with bug 3 fixed, `packages/react`'s own
+`test:coverage` failed next — again all 354 real tests passed, one
 spec file simply failed to even load: `Error: Failed to resolve import
-"../../../hooks/useGridItemResize"`. Root cause: a genuine, pre-existing
-typo in that test file's own relative import path, never caught before
-because this specific file never got far enough to run in any prior CI
-attempt. The real source file sits at `src/components/Grid/hooks/
-useGridItemResize.ts` — one directory up from the test file
-(`src/components/Grid/__tests__/`), not three (confirmed against
-`GridItem.tsx`'s own identical import path). Fixed by correcting
-`../../../hooks/useGridItemResize` to `../hooks/useGridItemResize`. Not
-yet pushed.
+"../../../hooks/useGridItemResize"`. Root cause: a genuine,
+pre-existing typo in that test file's own relative import path, never
+caught before because this specific file never got far enough to run
+in any prior CI attempt. Fixed by correcting
+`../../../hooks/useGridItemResize` to `../hooks/useGridItemResize`.
+Confirmed fixed: the file now genuinely imports and its 14 tests
+actually run for the first time ever.
+
+**Bug 7 (React's own, surfaced only after bug 6's fix) — fixed, not
+yet re-verified**: with the import fixed, 10 of that same file's 14
+tests failed with `TypeError: Cannot read properties of null (reading
+'__nativeResizeHandler')`. Root cause: the test harness's own
+`onReady(result, rootRef.current!)` was called directly in the
+component's render body — but React only populates a ref's `.current`
+during its commit phase, *after* render returns, so `rootRef.current`
+was always `null` at the point it was read, permanently. A real,
+pre-existing bug in the harness, never caught for the same reason as
+bug 6 (this file never ran before). Fixed by moving the `onReady` call
+into a `useEffect`, which fires after commit — `render()` from Testing
+Library flushes effects synchronously, so the ref is populated by the
+time `render()` returns. Not yet pushed.
 
 **Bug 4 — confirmed fixed via a live push**: Node.js 18 (EOL April
 2025) and Node.js 20 (EOL April 2026) were both still in this project's
@@ -66,9 +78,9 @@ page-coordinate threshold that never accounted for the test fixture's
 real page layout) was also found and fixed in this same investigation
 — confirmed via a live push: `End-to-end tests` is now green.
 
-With bugs 3 and 6 now both fixed, this package's own CI failure should
-be fully resolved — bug 6 hasn't been pushed yet, so it isn't confirmed
-the way bugs 1–5 already are.
+With bugs 3, 6, and 7 now all fixed, this package's own CI failure
+should be fully resolved — bug 7 hasn't been pushed yet, so it isn't
+confirmed the way bugs 1–6 already are.
 :::
 
 ## Code quality

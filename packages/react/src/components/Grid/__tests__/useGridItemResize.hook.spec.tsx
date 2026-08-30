@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { render } from '@testing-library/react';
 import { useGridItemResize } from '../hooks/useGridItemResize';
 import type { IUseGridItemResizeOptions, IUseGridItemResizeReturn } from '../hooks/useGridItemResize';
@@ -50,11 +50,23 @@ const defaultOptions = (overrides: Partial<IUseGridItemResizeOptions> = {}): IUs
  * afterward wouldn't re-trigger the hook's own wiring effect at all
  * (its dependency array — `[handleResize, handleRefs, rootRef]` — never
  * changes identity just because a ref's `.current` was mutated).
+ *
+ * The same rule is why `onReady` fires from a `useEffect` here, not
+ * from the render body directly: `rootRef.current` is still `null`
+ * during render (a real, confirmed bug this test file had before —
+ * every `dispatch()`-based test failed with "Cannot read properties of
+ * null (reading '__nativeResizeHandler')", since `createContext`'s own
+ * captured `rootEl` was permanently `null`). `render()` from Testing
+ * Library flushes effects synchronously (it wraps mount in `act()`), so
+ * by the time `render()` returns, the ref is already attached and
+ * `onReady` has already fired with the real element.
  */
 function Harness({ onReady, options }: { onReady: (result: IUseGridItemResizeReturn, rootEl: HTMLDivElement) => void; options: IUseGridItemResizeOptions }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const result = useGridItemResize(rootRef, options);
-  onReady(result, rootRef.current!);
+  useEffect(() => {
+    onReady(result, rootRef.current!);
+  });
   return (
     <div ref={rootRef}>
       <span ref={result.handleRefs.n} />
