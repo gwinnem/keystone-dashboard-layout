@@ -148,42 +148,51 @@ describe(`useGridItemResize`, () => {
   describe(`handleResize — resizestart`, () => {
     it(`Should set isResizing/resizing and call onResize on resizestart`, () => {
       const onResize = vi.fn();
-      const { dispatch, result } = createContext(defaultOptions({ onResize }));
+      const ctx = createContext(defaultOptions({ onResize }));
 
-      dispatch({ edges: { bottom: false, left: false, right: true, top: false }, type: `resizestart` });
+      ctx.dispatch({ edges: { bottom: false, left: false, right: true, top: false }, type: `resizestart` });
 
-      expect(result.isResizing).toBe(true);
-      expect(result.resizing).toBeDefined();
+      // `ctx.result` (not a destructured snapshot) is read fresh here —
+      // real, confirmed bug found while fixing this file: `result` is
+      // exposed via a getter specifically so callers see the *latest*
+      // value after a dispatch-triggered state update, but destructuring
+      // `{ result }` at the top (the pattern this test used before)
+      // evaluates that getter immediately and freezes a stale snapshot
+      // from before this dispatch ever ran — `calcPosition`/`autoSize`
+      // survive that (stable `useCallback` function references), but
+      // `isResizing`/`resizing` (raw state values) don't.
+      expect(ctx.result.isResizing).toBe(true);
+      expect(ctx.result.resizing).toBeDefined();
       expect(onResize).toHaveBeenCalledWith(`item-1`, `resizestart`, 0, 0, 2, 2);
     });
   });
 
   describe(`handleResize — resizemove edges`, () => {
     it(`Should grow width when dragging the right edge (LTR: anchor untouched)`, () => {
-      const { dispatch, result } = createContext(defaultOptions());
-      dispatch({ edges: { bottom: false, left: false, right: true, top: false }, type: `resizestart` });
-      const widthBefore = result.resizing!.width;
+      const ctx = createContext(defaultOptions());
+      ctx.dispatch({ edges: { bottom: false, left: false, right: true, top: false }, type: `resizestart` });
+      const widthBefore = ctx.result.resizing!.width;
 
-      dispatch({ clientX: 50, edges: { bottom: false, left: false, right: true, top: false }, type: `resizemove` });
+      ctx.dispatch({ clientX: 50, edges: { bottom: false, left: false, right: true, top: false }, type: `resizemove` });
 
-      expect(result.resizing!.width).toBeGreaterThan(widthBefore);
+      expect(ctx.result.resizing!.width).toBeGreaterThan(widthBefore);
     });
 
     it(`Should divide (not multiply) coreEvent.deltaY by transformScale during resizemove`, () => {
-      const { dispatch, result } = createContext(defaultOptions({ transformScale: 2 }));
-      dispatch({ edges: { bottom: true, left: false, right: false, top: false }, type: `resizestart` });
+      const ctx = createContext(defaultOptions({ transformScale: 2 }));
+      ctx.dispatch({ edges: { bottom: true, left: false, right: false, top: false }, type: `resizestart` });
       // resizestart's own pos = calcPosition(0,0,2,2): height = round(150*2 + max(0,1)*10) = 310.
-      const heightAtStart = result.resizing!.height;
+      const heightAtStart = ctx.result.resizing!.height;
 
       // offsetXYFromParentOf reduces to clientY directly for this
       // harness's own unattached-parent stub behavior (same analysis as
       // Vue's own identical test) — lastH after resizestart is 0
       // (dispatch default), so deltaY = 100 - 0 = 100.
-      dispatch({ clientY: 100, edges: { bottom: true, left: false, right: false, top: false }, type: `resizemove` });
+      ctx.dispatch({ clientY: 100, edges: { bottom: true, left: false, right: false, top: false }, type: `resizemove` });
 
       // height = prevHeight(310) + deltaY(100)/transformScale(2) = 310+50=360.
       // A "*" mutant would instead give 310+200=510 — genuinely different.
-      expect(result.resizing!.height).toBe(heightAtStart + 50);
+      expect(ctx.result.resizing!.height).toBe(heightAtStart + 50);
     });
   });
 
@@ -213,23 +222,23 @@ describe(`useGridItemResize`, () => {
 
   describe(`handleResize — preserveAspectRatio`, () => {
     it(`Should derive height from width when only a horizontal edge is driving`, () => {
-      const { dispatch, result } = createContext(defaultOptions({ preserveAspectRatio: true }));
-      dispatch({ edges: { bottom: false, left: false, right: true, top: false }, type: `resizestart` });
-      const heightBefore = result.resizing!.height;
+      const ctx = createContext(defaultOptions({ preserveAspectRatio: true }));
+      ctx.dispatch({ edges: { bottom: false, left: false, right: true, top: false }, type: `resizestart` });
+      const heightBefore = ctx.result.resizing!.height;
 
-      dispatch({ clientX: 90, edges: { bottom: false, left: false, right: true, top: false }, type: `resizemove` });
+      ctx.dispatch({ clientX: 90, edges: { bottom: false, left: false, right: true, top: false }, type: `resizemove` });
 
-      expect(result.resizing!.height).not.toBe(heightBefore);
+      expect(ctx.result.resizing!.height).not.toBe(heightBefore);
     });
 
     it(`Should NOT derive dimensions at all when preserveAspectRatio is false`, () => {
-      const { dispatch, result } = createContext(defaultOptions({ preserveAspectRatio: false }));
-      dispatch({ edges: { bottom: false, left: false, right: true, top: false }, type: `resizestart` });
-      const heightAtStart = result.resizing!.height;
+      const ctx = createContext(defaultOptions({ preserveAspectRatio: false }));
+      ctx.dispatch({ edges: { bottom: false, left: false, right: true, top: false }, type: `resizestart` });
+      const heightAtStart = ctx.result.resizing!.height;
 
-      dispatch({ clientX: 90, edges: { bottom: false, left: false, right: true, top: false }, type: `resizemove` });
+      ctx.dispatch({ clientX: 90, edges: { bottom: false, left: false, right: true, top: false }, type: `resizemove` });
 
-      expect(result.resizing!.height).toBe(heightAtStart);
+      expect(ctx.result.resizing!.height).toBe(heightAtStart);
     });
   });
 
