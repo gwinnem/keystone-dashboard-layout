@@ -2,7 +2,6 @@
 title: Production readiness
 description: An honest checklist of what's actually verified, what's a known gap, and what's blocking real-world use — not a marketing claim.
 ---
-
 :::note[Snapshot, not a permanent guarantee]
 This reflects a specific point in this project's own history — re-running
 the commands it references is the only way to confirm any of this still
@@ -10,7 +9,7 @@ holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
 forever."
 :::
 
-:::caution[A real, layered CI investigation is in progress — two bugs found and fixed, a third surfaced]
+:::caution[A real, layered CI investigation — three bugs fixed (not yet re-verified), one still open]
 **Bug 1 (fixed, confirmed via a live push)**: every workflow was failing
 immediately at "Setup pnpm" — "Multiple versions of pnpm specified"
 (`version: '9'` hardcoded in each workflow file vs. root `package.json`'s
@@ -37,6 +36,26 @@ job still failed overall, because `packages/angular`'s own
 Node-22-specific (plausible, unconfirmed), possibly a genuine,
 version-independent regression. Needs bug 2's fix pushed and a fresh
 run to tell which.
+
+**Bug 4 (fixed, not yet pushed) — the biggest finding**: pushing bug
+1's fix alone let the Node 18 and Node 20 CI legs actually run for the
+first time — and both failed for real. Node 18: `packages/core`'s own
+`vite build` (which depends on `rolldown`) throws `SyntaxError: The
+requested module 'node:util' does not provide an export named
+'styleText'` — an API Node 18 never had. Investigating further
+surfaced something bigger: **Node.js 18 reached end-of-life in April
+2025, and Node.js 20 reached end-of-life in April 2026** — this
+project's own `engines` field (`^18.0.0 || ^20.0.0 || >=22.0.0`) was
+claiming support for two already-unsupported Node majors. Fixed by
+narrowing `engines.node` to `>=22.0.0` across the root and all four
+packages, and narrowing `ci.yml`'s own test matrix (plus the hardcoded
+Node version in `mutation-testing.yml`/`release.yml`) to Node 22 only
+— the one version confirmed both still-supported and able to actually
+build every package. **Also fixed**: `check:licenses` was separately
+failing on the root workspace package itself (`"UNLICENSED"`, a known
+`license-checker-rseidelsohn` quirk for any `"private": true` package
+regardless of its own `license` field) — fixed with `--excludePrivatePackages`.
+None of this batch pushed/re-verified yet.
 :::
 
 ## Code quality
@@ -94,7 +113,7 @@ Zero runtime dependencies is the strongest possible position on third-party runt
 
 ## Browser/runtime support
 
-Node engine range (`^18.0.0 || ^20.0.0 || >=22.0.0`) declared and respected. Browser support relies on `ResizeObserver` and modern-but-broadly-supported CSS — no explicit browserslist-driven compatibility test independently confirms the exact minimum supported browser versions beyond what the `browserslist` config declares.
+Node engine range (`>=22.0.0`, narrowed from a previous `^18.0.0 || ^20.0.0 || >=22.0.0` — see the caution above for why) declared and respected. Browser support relies on `ResizeObserver` and modern-but-broadly-supported CSS — no explicit browserslist-driven compatibility test independently confirms the exact minimum supported browser versions beyond what the `browserslist` config declares.
 
 ## Known, open, and deliberately deferred
 

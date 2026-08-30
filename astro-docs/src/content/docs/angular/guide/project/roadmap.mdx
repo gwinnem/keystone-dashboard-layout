@@ -46,21 +46,29 @@ Still genuinely unverified — the script has never actually been run
 successfully end to end, per `ci.yml`'s own comment keeping it
 `continue-on-error: true`.
 
-### CI is being fixed in layers — two bugs down, a third open (this package's own)
+### CI is being fixed in layers — three bugs down, one open (this package's own)
 
 **Bug 1** (workflow files hardcoding a pnpm version that conflicted with
 root `package.json`'s own `packageManager` field) is fixed and pushed —
 confirmed gone from a live run. **Bug 2** (pnpm had been bumped to a
-version requiring Node 22+, but most CI jobs target Node 18/20) is fixed
-in source — `packageManager` pinned to `pnpm@10.32.0` — but not yet
-pushed. **Bug 3, this package's own**: with bug 1 alone fixed, the Node
-22 CI leg got far enough to run the real Vue/React/Core test suite for
-the first time (437/437 passed) — but this package's own `test:coverage`
-step exited with code 1, failing the job overall. Not yet root-caused:
-possibly Node-22-specific, possibly a genuine regression. The single
-most concrete, immediate item on this whole roadmap right now. See
-[Production readiness](/angular/guide/project/production-readiness/)
-for the full account.
+version requiring Node 22+) is fixed — `packageManager` pinned to
+`pnpm@10.32.0`. **Bug 3, this package's own**: with bug 1 alone fixed,
+the Node 22 CI leg ran the real Vue/React/Core test suite for the first
+time (437/437 passed) — but this package's own `test:coverage` step
+exited with code 1, failing the job overall. Not yet root-caused:
+possibly Node-22-specific, possibly a genuine regression — still open,
+the single most concrete item on this whole roadmap. **Bug 4, the
+biggest one**: pushing bug 1 alone also let Node 18/20 actually run —
+and both failed for real, for a reason unrelated to this package
+specifically (`packages/core`'s `vite build` needs a `node:util` export
+Node 18 never had). Investigating turned up something bigger: **Node.js
+18 reached end-of-life in April 2025, and Node.js 20 reached end-of-life
+in April 2026** — this project's own `engines` field, this package's
+own included, was claiming support for two already-unsupported majors.
+Fixed by narrowing `engines.node` to `>=22.0.0` everywhere and narrowing
+the CI matrix to Node 22 only. See [Production readiness](/angular/guide/project/production-readiness/)
+for the full account — this whole batch needs pushing and a fresh run
+to confirm.
 
 ### Live test/coverage numbers
 

@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION_DEFAULT: '20'
+  NODE_VERSION_DEFAULT: '22'
   # No PNPM_VERSION here on purpose — pnpm/action-setup@v4 auto-detects
   # the version from this repo's own root package.json "packageManager"
   # field when no explicit version is passed. Pinning both here and in
@@ -35,9 +35,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Root package.json's engines field is "^18.0.0 || ^20.0.0 || >=22.0.0"
-        # — test against the full supported range.
-        node: ['18', '20', '22']
+        # Root package.json's own engines field is ">=22.0.0" — Node 18
+        # reached its own end-of-life in April 2025, and Node 20 reached
+        # its own end-of-life in April 2026 (confirmed directly, not
+        # assumed); testing either any further was already questionable
+        # on that basis alone. It's also no longer just a policy
+        # preference: packages/core's own `vite build` depends on
+        # rolldown, which imports `node:util`'s `styleText` export — an
+        # API Node 18 never had at all, confirmed via a real, reproduced
+        # CI failure (`SyntaxError: The requested module 'node:util' does
+        # not provide an export named 'styleText'`) — so Node 18 could
+        # not build this project's own tooling even if its own EOL status
+        # were set aside entirely. Node 22 is the one version in the old
+        # three-way matrix that's both still actively supported and
+        # confirmed able to build/typecheck/test every package for real.
+        node: ['22']
     steps:
       - name: Checkout
         uses: actions/checkout@v4

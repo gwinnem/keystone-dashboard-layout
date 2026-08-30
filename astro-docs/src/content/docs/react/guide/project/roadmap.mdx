@@ -31,19 +31,28 @@ contrast, this package's own `check:bundle-size` script *has* now been
 confirmed (17.97 KB gzip, well under budget) — see
 [Production readiness](/react/guide/project/production-readiness/).
 
-### CI is being fixed in layers — two bugs down, a third open
+### CI is being fixed in layers — three bugs down, one open
 
 **Bug 1** (workflow files hardcoding a pnpm version that conflicted with
 root `package.json`'s own `packageManager` field) is fixed and pushed —
 confirmed gone from a live run. **Bug 2** (pnpm had been bumped to a
-version requiring Node 22+, but most CI jobs target Node 18/20) is fixed
-in source — `packageManager` pinned to `pnpm@10.32.0` — but not yet
-pushed. **Bug 3**, discovered before bug 2's fix even landed: with bug 1
-alone fixed, the Node 22 CI leg got far enough to run the real test
-suite for the first time (437/437 Vitest tests passed across Vue/React/
-Core), but `angular`'s own `test:coverage` step failed — not yet
-root-caused. See [Production readiness](/react/guide/project/production-readiness/)
-for the full account.
+version requiring Node 22+) is fixed — `packageManager` pinned to
+`pnpm@10.32.0`. **Bug 3**, surfaced before bug 2 even landed: with bug 1
+alone fixed, the Node 22 CI leg ran the real test suite for the first
+time (437/437 Vitest tests passed across Vue/React/Core), but
+`angular`'s own `test:coverage` step failed — not yet root-caused,
+still open. **Bug 4, the biggest one**: pushing bug 1 alone also let
+Node 18/20 actually run — and both failed for real (`packages/core`'s
+`vite build`, via `rolldown`, needs a `node:util` export Node 18 never
+had). Investigating turned up something bigger: **Node.js 18 reached
+end-of-life in April 2025, and Node.js 20 reached end-of-life in April
+2026** — this project's own `engines` field was claiming support for
+two already-unsupported majors. Fixed by narrowing `engines.node` to
+`>=22.0.0` everywhere and narrowing the CI matrix to Node 22 only. Also
+fixed in the same batch: `check:licenses` was separately failing on the
+root workspace package itself. See [Production readiness](/react/guide/project/production-readiness/)
+for the full account — this whole batch needs pushing and a fresh run
+to confirm.
 
 ### Live test/coverage/lint numbers
 

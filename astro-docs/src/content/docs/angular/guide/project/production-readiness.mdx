@@ -10,7 +10,7 @@ holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
 forever."
 :::
 
-:::caution[A real, layered CI investigation is in progress — two bugs found and fixed, a third surfaced]
+:::caution[A real, layered CI investigation — three bugs fixed (not yet re-verified), one still open]
 **Bug 1 (fixed, confirmed via a live push)**: every workflow was failing
 immediately at "Setup pnpm" — "Multiple versions of pnpm specified"
 (`version: '9'` hardcoded in each workflow file vs. root `package.json`'s
@@ -38,6 +38,26 @@ step exited with code 1. Not yet root-caused: possibly Node-22-specific
 regression. Needs bug 2's fix pushed and a fresh run to tell which —
 this is the most concrete, immediate open item for this package right
 now.
+
+**Bug 4 (fixed, not yet pushed) — the biggest finding**: pushing bug
+1's fix alone let the Node 18 and Node 20 CI legs actually run for the
+first time — and both failed for real, though for a reason unrelated to
+this package specifically (`packages/core`'s own `vite build`, which
+depends on `rolldown`, throws `SyntaxError: The requested module
+'node:util' does not provide an export named 'styleText'` — an API
+Node 18 never had). Investigating further surfaced something bigger:
+**Node.js 18 reached end-of-life in April 2025, and Node.js 20 reached
+end-of-life in April 2026** — this project's own `engines` field was
+claiming support for two already-unsupported Node majors, this
+package's own included. Fixed by narrowing `engines.node` to
+`>=22.0.0` across the root and all four packages, and narrowing
+`ci.yml`'s own test matrix (plus the hardcoded Node version in
+`mutation-testing.yml`/`release.yml`) to Node 22 only. **Also fixed**:
+`check:licenses` was separately failing on the root workspace package
+itself (a known `license-checker-rseidelsohn` quirk marking any
+`"private": true` package `"UNLICENSED"` regardless of its own `license`
+field) — fixed with `--excludePrivatePackages`. None of this batch
+pushed/re-verified yet.
 :::
 
 ## Code quality
@@ -72,7 +92,7 @@ now.
 
 ## CI/CD & repository hygiene
 
-Confirmed via a direct read of `.github/workflows/`: the same three workflows Vue/React have — `ci.yml` (typecheck, coverage-gated tests, build, bundle-size/package-install checks — both `continue-on-error` for this package, a docs-site build, and a separate `audit` job, all *configured* to run across Node 18/20/22), `mutation-testing.yml` (confirmed working at 81.14% via local runs only — see the pnpm caution above), and `release.yml` (present, not independently re-verified). One confirmed, meaningful gap versus Vue/React: `ci.yml`'s own `e2e` job explicitly excludes this package (turbo skips it, since it has no `test:e2e` script — see [Testing philosophy](/angular/guide/project/testing/)). Branch protection and repository secrets aren't checkable from source.
+Confirmed via a direct read of `.github/workflows/`: the same three workflows Vue/React have — `ci.yml` (typecheck, coverage-gated tests, build, bundle-size/package-install checks — both `continue-on-error` for this package, a docs-site build, and a separate `audit` job, all *configured* to run on Node 22 only, narrowed from an earlier 18/20/22 matrix — see the caution above), `mutation-testing.yml` (confirmed working at 81.14% via local runs only — see the pnpm caution above), and `release.yml` (present, not independently re-verified). One confirmed, meaningful gap versus Vue/React: `ci.yml`'s own `e2e` job explicitly excludes this package (turbo skips it, since it has no `test:e2e` script — see [Testing philosophy](/angular/guide/project/testing/)). Branch protection and repository secrets aren't checkable from source.
 
 ## Documentation
 
@@ -92,7 +112,7 @@ Not zero runtime dependencies (see [Runtime dependencies](#runtime-dependencies)
 
 ## Browser/runtime support
 
-Node engine range (`^18.0.0 || ^20.0.0 || >=22.0.0`) declared in `package.json`, matching Vue/React, and exercised directly by `ci.yml`'s own `verify` job across all three. Browser support itself isn't independently re-verified in this pass — and, per [Testing depth](#testing-depth) above, isn't backed by an e2e suite the way Vue/React's own browser coverage is.
+Node engine range (`>=22.0.0`, narrowed from a previous `^18.0.0 || ^20.0.0 || >=22.0.0` — see the caution above for why) declared in `package.json`, matching Vue/React, and exercised directly by `ci.yml`'s own `verify` job (now Node 22 only). Browser support itself isn't independently re-verified in this pass — and, per [Testing depth](#testing-depth) above, isn't backed by an e2e suite the way Vue/React's own browser coverage is.
 
 ## Known, open, and deliberately deferred
 

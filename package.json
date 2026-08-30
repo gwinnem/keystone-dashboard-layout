@@ -23,7 +23,7 @@
     "lint:fix": "turbo run lint:fix",
     "lint:style": "turbo run lint:style",
     "typecheck": "turbo run typecheck",
-    "check:licenses": "license-checker-rseidelsohn --production --onlyAllow \"MIT;BSD-2-Clause;BSD-3-Clause;ISC;Apache-2.0;0BSD;CC0-1.0;Unlicense\" --summary",
+    "check:licenses": "license-checker-rseidelsohn --production --excludePrivatePackages --onlyAllow \"MIT;BSD-2-Clause;BSD-3-Clause;ISC;Apache-2.0;0BSD;CC0-1.0;Unlicense\" --summary",
     "format": "prettier --write \"packages/**/src/**/*\"",
     "commit": "cz"
   },
@@ -52,6 +52,6 @@
     "typescript": "^6.0.3"
   },
   "engines": {
-    "node": "^18.0.0 || ^20.0.0 || >=22.0.0"
+    "node": ">=22.0.0"
   }
 }
