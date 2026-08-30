@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { useEffect, useRef } from 'react';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { useGridItemResize } from '../hooks/useGridItemResize';
 import type { IUseGridItemResizeOptions, IUseGridItemResizeReturn } from '../hooks/useGridItemResize';
 
@@ -94,12 +94,26 @@ const createContext = (options: IUseGridItemResizeOptions) => {
     edges?: { bottom: boolean; left: boolean; right: boolean; top: boolean };
   }): void => {
     const handler = (rootEl as unknown as { __nativeResizeHandler?: (e: unknown) => void }).__nativeResizeHandler;
-    handler?.({
-      clientX: 0,
-      clientY: 0,
-      edges: { bottom: false, left: false, right: false, top: false },
-      target: rootEl,
-      ...event,
+    // The native handler calls the hook's own state setters directly —
+    // outside any React-aware event system, so outside React's own
+    // automatic batching/act() scope entirely. Without `act()` here, a
+    // real, confirmed bug this test file had: `handleResize`'s state
+    // update was scheduled but not guaranteed to have flushed by the
+    // time this function returns, so `result` (captured via the
+    // `useEffect` above, which only re-fires after a real commit) could
+    // still reflect the *previous* render's value the instant the next
+    // assertion ran — surfacing as `result.resizing` being `undefined`
+    // or `result.isResizing` still `false` right after a dispatched
+    // resizestart. `act()` forces the update to flush synchronously
+    // before `dispatch()` returns.
+    act(() => {
+      handler?.({
+        clientX: 0,
+        clientY: 0,
+        edges: { bottom: false, left: false, right: false, top: false },
+        target: rootEl,
+        ...event,
+      });
     });
   };
 
