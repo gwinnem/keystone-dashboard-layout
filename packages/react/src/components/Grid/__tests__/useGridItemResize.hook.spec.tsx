@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { useRef } from 'react';
 import { render } from '@testing-library/react';
-import { useGridItemResize } from '../../../hooks/useGridItemResize';
-import type { IUseGridItemResizeOptions, IUseGridItemResizeReturn } from '../../../hooks/useGridItemResize';
+import { useGridItemResize } from '../hooks/useGridItemResize';
+import type { IUseGridItemResizeOptions, IUseGridItemResizeReturn } from '../hooks/useGridItemResize';
 
 /**
  * Same constants as Vue's own `tests/useGridItemResize.spec.ts` — this
