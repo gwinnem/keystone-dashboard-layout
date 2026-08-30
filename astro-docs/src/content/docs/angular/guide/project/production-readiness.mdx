@@ -10,25 +10,34 @@ holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
 forever."
 :::
 
-:::caution[Substantially more of this page is now confirmed than earlier snapshots — but not all of it]
-Mutation testing, bundle size, CI/CD workflow presence, e2e-suite
-absence, accessibility implementation, and runtime dependencies have
-all since been directly confirmed via source/config inspection (see
-each section below). Live test-pass counts, coverage percentage,
-lint/audit output, and `check:package-install`'s own pass/fail status
-still need a direct command run rather than a cited number.
-:::
+:::caution[A real, layered CI investigation is in progress — two bugs found and fixed, a third surfaced]
+**Bug 1 (fixed, confirmed via a live push)**: every workflow was failing
+immediately at "Setup pnpm" — "Multiple versions of pnpm specified"
+(`version: '9'` hardcoded in each workflow file vs. root `package.json`'s
+own `packageManager`). Fixed by removing the hardcoded version from all
+three workflow files; pushed, and confirmed gone — no job fails
+instantly anymore.
 
-:::caution[A real, confirmed CI-wide failure was found and fixed while checking this]
-Every workflow run on GitHub (`ci.yml`, `mutation-testing.yml`,
-`release.yml`) has been failing immediately at the "Setup pnpm" step —
-"Multiple versions of pnpm specified" (`version: '9'` hardcoded in each
-workflow file vs. root `package.json`'s own `packageManager:
-pnpm@11.22.0`). Every "CI confirms X" claim below describes what the
-workflow is *configured* to enforce, not a recent, actual green run.
-Fixed by removing the hardcoded version from all three workflow files
-so `pnpm/action-setup@v4` auto-detects from `package.json` instead — a
-local source change only, not yet pushed or re-run.
+**Bug 2 (fixed, not yet re-verified)**: with bug 1 fixed, every job
+immediately hit a *different* failure — `Error [ERR_UNKNOWN_BUILTIN_
+MODULE]: No such built-in module: node:sqlite`. Root cause: the
+`packageManager` field had been bumped to `pnpm@11.22.0`, and pnpm 11
+requires Node.js 22+ (dropping 18/19/20/21 support entirely) — but this
+repo's own `engines` field, and most CI jobs, target Node 18/20. Fixed
+by pinning `packageManager` to `pnpm@10.32.0` instead (still
+actively maintained, unlike EOL'd pnpm 9, and compatible with the full
+Node 18/20/22 range) — **not yet pushed/re-verified.**
+
+**A third issue surfaced already, before bug 2's own fix was even
+pushed**: with bug 1's fix alone live, the Node 22 leg of the CI matrix
+got far enough to actually run the real test suite for the first time
+ever — **437/437 Vitest tests passed** across Vue/React/Core — but the
+job still failed overall, because **this package's own** `test:coverage`
+step exited with code 1. Not yet root-caused: possibly Node-22-specific
+(plausible, unconfirmed), possibly a genuine, version-independent
+regression. Needs bug 2's fix pushed and a fresh run to tell which —
+this is the most concrete, immediate open item for this package right
+now.
 :::
 
 ## Code quality

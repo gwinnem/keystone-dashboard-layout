@@ -10,20 +10,33 @@ holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
 forever."
 :::
 
-:::caution[A real, confirmed CI-wide failure was found and fixed while checking this]
-Every workflow run visible on GitHub (`ci.yml`, `mutation-testing.yml`,
-`release.yml`) has been failing immediately at the "Setup pnpm" step —
-"Multiple versions of pnpm specified" (`version: '9'` hardcoded in each
-workflow file vs. root `package.json`'s own `packageManager:
-pnpm@11.22.0`). This means **none of the CI-enforced claims below have
-actually been exercised in real CI recently** — every job failed before
-reaching typecheck, lint, tests, or any build/audit step. Fixed by
-removing the hardcoded version from all three workflow files, letting
-`pnpm/action-setup@v4` auto-detect from `package.json` instead — but
-this fix hasn't been pushed/re-run yet, so it's confirmed as a source
-change, not yet as a passing CI run. Every "blocking gate" claim in the
-sections below describes what the workflow is *configured* to do, not
-a recent, actual green run.
+:::caution[A real, layered CI investigation is in progress — two bugs found and fixed, a third surfaced]
+**Bug 1 (fixed, confirmed via a live push)**: every workflow was failing
+immediately at "Setup pnpm" — "Multiple versions of pnpm specified"
+(`version: '9'` hardcoded in each workflow file vs. root `package.json`'s
+own `packageManager`). Fixed by removing the hardcoded version from all
+three workflow files; pushed, and confirmed gone — no job fails
+instantly anymore.
+
+**Bug 2 (fixed, not yet re-verified)**: with bug 1 fixed, every job
+immediately hit a *different* failure — `Error [ERR_UNKNOWN_BUILTIN_
+MODULE]: No such built-in module: node:sqlite`. Root cause: the
+`packageManager` field had been bumped to `pnpm@11.22.0`, and pnpm 11
+requires Node.js 22+ (dropping 18/19/20/21 support entirely) — but this
+repo's own `engines` field, and most CI jobs, target Node 18/20. Fixed
+by pinning `packageManager` to `pnpm@10.32.0` instead (still
+actively maintained, unlike EOL'd pnpm 9, and compatible with the full
+Node 18/20/22 range) — **not yet pushed/re-verified.**
+
+**A third issue surfaced already, before bug 2's own fix was even
+pushed**: with bug 1's fix alone live, the Node 22 leg of the CI matrix
+got far enough to actually run the real test suite for the first time
+ever — **437/437 Vitest tests passed** across Vue/React/Core — but the
+job still failed overall, because `packages/angular`'s own
+`test:coverage` step exited with code 1. Not yet root-caused: possibly
+Node-22-specific (plausible, unconfirmed), possibly a genuine,
+version-independent regression. Needs bug 2's fix pushed and a fresh
+run to tell which.
 :::
 
 ## Code quality

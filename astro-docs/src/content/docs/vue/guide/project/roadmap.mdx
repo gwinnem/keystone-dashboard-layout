@@ -27,16 +27,19 @@ override, and a distinct header slot per item. See the
 
 ## What's still open
 
-### Pushing the pnpm-version CI fix, and confirming a real green run
+### CI is being fixed in layers — two bugs down, a third open
 
-Every workflow (`ci.yml`/`mutation-testing.yml`/`release.yml`) has been
-failing immediately at "Setup pnpm" — a hardcoded `version: '9'` in
-each workflow conflicting with root `package.json`'s own
-`packageManager: pnpm@11.22.0`. Fixed in source (the hardcoded version
-removed, letting the action auto-detect from `package.json` instead),
-but not yet pushed — no workflow has actually re-run with the fix.
-This is why `mutation-test-vue`'s own 82.08% (below) is confirmed via
-local runs only, not a real CI run.
+**Bug 1** (workflow files hardcoding a pnpm version that conflicted with
+root `package.json`'s own `packageManager` field) is fixed and pushed —
+confirmed gone from a live run. **Bug 2** (pnpm had been bumped to a
+version requiring Node 22+, but most CI jobs target Node 18/20) is fixed
+in source — `packageManager` pinned to `pnpm@10.32.0` — but not yet
+pushed. **Bug 3**, discovered before bug 2's fix even landed: with bug 1
+alone fixed, the Node 22 CI leg got far enough to run the real test
+suite for the first time (437/437 Vitest tests passed across Vue/React/
+Core), but `angular`'s own `test:coverage` step failed — not yet
+root-caused. See [Production readiness](/vue/guide/project/production-readiness/)
+for the full account.
 
 ### Live test/coverage numbers
 
