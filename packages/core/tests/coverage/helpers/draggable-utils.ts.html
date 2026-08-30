@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>11/11</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>0/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>11/11</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -174,7 +174,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -200,23 +200,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -246,11 +246,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -260,7 +260,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -276,8 +276,8 @@
  * @param num       The number to validate.
  * @returns boolean If the param is a real number it returns true, if not it returns false.
  */
-function isNum(num: number): boolean {
-  return !Number.isNaN(num);
+function <span class="fstat-no" title="function not covered" >isNum(n</span>um: number): boolean {
+<span class="cstat-no" title="statement not covered" >  return !Number.isNaN(num);</span>
 }
 &nbsp;
 /**
@@ -302,24 +302,24 @@ function isNum(num: number): boolean {
  *
  * @param evt The mouse (or native drag/resize) event to read the position from.
  */
-export function offsetXYFromParentOf(evt: { target: EventTarget | null; clientX: number; clientY: number }): IPoint {
-  const t = evt.target as HTMLElement;
-  const offsetParent = t.offsetParent || document.body;
+export function <span class="fstat-no" title="function not covered" >offsetXYFromParentOf(e</span>vt: { target: EventTarget | null; clientX: number; clientY: number }): IPoint {
+  const t = <span class="cstat-no" title="statement not covered" >evt.target as HTMLElement;</span>
+  const offsetParent = <span class="cstat-no" title="statement not covered" >t.offsetParent || document.body;</span>
   const offsetParentRect =
-    t.offsetParent === document.body
+<span class="cstat-no" title="statement not covered" >    t.offsetParent === document.body</span>
       ? {
         left: 0,
         top: 0,
       }
       : offsetParent.getBoundingClientRect();
 &nbsp;
-  const x = evt.clientX + offsetParent.scrollLeft - offsetParentRect.left;
-  const y = evt.clientY + offsetParent.scrollTop - offsetParentRect.top;
+  const x = <span class="cstat-no" title="statement not covered" >evt.clientX + offsetParent.scrollLeft - offsetParentRect.left;</span>
+  const y = <span class="cstat-no" title="statement not covered" >evt.clientY + offsetParent.scrollTop - offsetParentRect.top;</span>
 &nbsp;
   /* const x = Math.round(evt.clientX + offsetParent.scrollLeft - offsetParentRect.left);
   const y = Math.round(evt.clientY + offsetParent.scrollTop - offsetParentRect.top); */
 &nbsp;
-  return {
+<span class="cstat-no" title="statement not covered" >  return {</span>
     x,
     y,
   };
@@ -347,13 +347,13 @@ export interface IDraggableCoreData {
  * @param x     Current tick's x position.
  * @param y     Current tick's y position.
  */
-export function createCoreData(lastX: number, lastY: number, x: number, y: number): IDraggableCoreData {
+export function <span class="fstat-no" title="function not covered" >createCoreData(l</span>astX: number, lastY: number, x: number, y: number): IDraggableCoreData {
   // State changes are often (but not always!) async. We want the latest value.
-  const isStart = !isNum(lastX);
+  const isStart = <span class="cstat-no" title="statement not covered" >!isNum(lastX);</span>
 &nbsp;
-  if(isStart) {
+<span class="cstat-no" title="statement not covered" >  if(isStart) {</span>
     // If this is our first move, use the x and y as last coords.
-    return {
+<span class="cstat-no" title="statement not covered" >    return {</span>
       deltaX: 0,
       deltaY: 0,
       lastX: x,
@@ -363,7 +363,7 @@ export function createCoreData(lastX: number, lastY: number, x: number, y: numbe
     };
   }
   // Otherwise calculate proper values.
-  return {
+<span class="cstat-no" title="statement not covered" >  return {</span>
     deltaX: x - lastX,
     deltaY: y - lastY,
     lastX,
@@ -379,7 +379,7 @@ export function createCoreData(lastX: number, lastY: number, x: number, y: numbe
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-23T13:00:51.625Z
+                at 2026-08-29T19:15:03.098Z
             </div>
         <script src="../prettify.js"></script>
         <script>

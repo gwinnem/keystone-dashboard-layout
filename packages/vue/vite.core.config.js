@@ -13,13 +13,12 @@
  * The `./core` subpath export has been removed from this package's
  * package.json accordingly. Consumers previously importing
  * `vue-ts-responsive-grid-layout/core` should switch to
- * `@keystone-dashboard-layout/core` directly once it's published — see
- * MIGRATION.md.
+ * `@keystone-dashboard-layout/core` directly instead.
  *
- * Kept in the repo (rather than deleted) only so this history and the
- * migration note are easy to find; safe to actually delete once
- * consumers have migrated and this has been through at least one
- * released version with the deprecation noted in CHANGELOG.md.
+ * Kept in the repo (rather than deleted) only so this history is easy
+ * to find; safe to actually delete once consumers have migrated and
+ * this has been through at least one released version with the
+ * deprecation noted in CHANGELOG.md.
  */
 import { defineConfig } from 'vite';
 

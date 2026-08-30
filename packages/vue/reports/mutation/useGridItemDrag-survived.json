@@ -1,0 +1,437 @@
+[
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 261
+      },
+      "start": {
+        "column": 50,
+        "line": 259
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "NoCoverage"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 47,
+        "line": 81
+      },
+      "start": {
+        "column": 25,
+        "line": 81
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "left + margin.value[0]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 84,
+        "line": 82
+      },
+      "start": {
+        "column": 51,
+        "line": 82
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "rowHeight.value - margin.value[1]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 46,
+        "line": 82
+      },
+      "start": {
+        "column": 25,
+        "line": 82
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "top + margin.value[1]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 52,
+        "line": 137
+      },
+      "start": {
+        "column": 30,
+        "line": 137
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "(cRight - pRight) / -1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 144
+      },
+      "start": {
+        "column": 12,
+        "line": 144
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 53,
+        "line": 177
+      },
+      "start": {
+        "column": 34,
+        "line": 177
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "dragging.value.top",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 55,
+        "line": 176
+      },
+      "start": {
+        "column": 35,
+        "line": 176
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "dragging.value.left",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 57,
+        "line": 187
+      },
+      "start": {
+        "column": 37,
+        "line": 187
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "dragging.value.left",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 100,
+        "line": 187
+      },
+      "start": {
+        "column": 61,
+        "line": 187
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "coreEvent.deltaX * transformScale.value",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 96,
+        "line": 191
+      },
+      "start": {
+        "column": 57,
+        "line": 191
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "coreEvent.deltaY * transformScale.value",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 10,
+        "line": 204
+      },
+      "start": {
+        "column": 30,
+        "line": 202
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 8,
+        "line": 209
+      },
+      "start": {
+        "column": 7,
+        "line": 207
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "default:",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 202
+      },
+      "start": {
+        "column": 12,
+        "line": 202
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 202
+      },
+      "start": {
+        "column": 12,
+        "line": 202
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 56,
+        "line": 217
+      },
+      "start": {
+        "column": 34,
+        "line": 217
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 32,
+        "line": 221
+      },
+      "start": {
+        "column": 8,
+        "line": 221
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 105,
+        "line": 221
+      },
+      "start": {
+        "column": 73,
+        "line": 221
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 8,
+        "line": 274
+      },
+      "start": {
+        "column": 14,
+        "line": 269
+      }
+    },
+    "mutatorName": "ObjectLiteral",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 271
+      },
+      "start": {
+        "column": 18,
+        "line": 271
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 271
+      },
+      "start": {
+        "column": 46,
+        "line": 271
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "props.isStatic",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 271
+      },
+      "start": {
+        "column": 18,
+        "line": 271
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "RuntimeError"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 271
+      },
+      "start": {
+        "column": 18,
+        "line": 271
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "Boolean(draggable.value) || !props.isStatic",
+    "status": "RuntimeError"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 29,
+        "line": 281
+      },
+      "start": {
+        "column": 5,
+        "line": 281
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "nativeDraggable.destroy",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 48,
+        "line": 259
+      },
+      "start": {
+        "column": 8,
+        "line": 259
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 4,
+        "line": 283
+      },
+      "start": {
+        "column": 41,
+        "line": 280
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "RuntimeError"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 9,
+        "line": 274
+      },
+      "start": {
+        "column": 7,
+        "line": 269
+      }
+    },
+    "mutatorName": "ArrowFunction",
+    "replacement": "() => undefined",
+    "status": "RuntimeError"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 23,
+        "line": 263
+      },
+      "start": {
+        "column": 8,
+        "line": 263
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "RuntimeError"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 265
+      },
+      "start": {
+        "column": 25,
+        "line": 263
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "RuntimeError"
+  }
+]

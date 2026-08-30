@@ -1,0 +1,40 @@
+---
+title: Installation
+description: Adding @keystone-dashboard-layout/core directly, and how to reach the extra cross-grid-registry subpath export.
+---
+
+```sh
+npm i @keystone-dashboard-layout/core
+```
+
+Works with `import`, `require`, and TypeScript's own type resolution —
+the package ships ESM, CJS, and its own `.d.ts` types, so no extra
+`@types` package is needed either way.
+
+```ts
+import { collides, compactLayout, getBreakpointFromWidth } from '@keystone-dashboard-layout/core';
+```
+
+## The cross-grid-registry subpath
+
+Everything above comes from the package's own main entry point. One
+piece is deliberately **not** re-exported there: the cross-grid
+registry — the runtime coordination point multiple grids on the same
+page use to recognize each other for drag-and-drop between them. It's
+a stateful, singleton-style module tied to component mount/unmount,
+not a pure calculation the way everything else here is, so it's kept
+as its own, explicit subpath import instead of bundled into the main
+one:
+
+```ts
+import { registerCrossGridZone } from '@keystone-dashboard-layout/core/gridlayout/helpers/cross-grid-registry';
+import type { ICrossGridZone } from '@keystone-dashboard-layout/core/gridlayout/interfaces/cross-grid.interfaces';
+```
+
+Only worth reaching for directly if you're building a new framework
+integration from scratch — the Vue and React packages already wire this
+up internally for their own `allowCrossGridDrag` prop.
+
+## Where to go next
+
+- [API reference](/core/api/) — every exported function, type, and validator, grouped by category.

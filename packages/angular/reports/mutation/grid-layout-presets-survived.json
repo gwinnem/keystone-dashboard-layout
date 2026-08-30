@@ -1,0 +1,182 @@
+[
+  {
+    "location": {
+      "end": {
+        "column": 37,
+        "line": 41
+      },
+      "start": {
+        "column": 8,
+        "line": 41
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 43
+      },
+      "start": {
+        "column": 39,
+        "line": 41
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 12,
+        "line": 58
+      },
+      "start": {
+        "column": 8,
+        "line": 58
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 60
+      },
+      "start": {
+        "column": 14,
+        "line": 58
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 68
+      },
+      "start": {
+        "column": 39,
+        "line": 66
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 37,
+        "line": 66
+      },
+      "start": {
+        "column": 8,
+        "line": 66
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 12,
+        "line": 97
+      },
+      "start": {
+        "column": 8,
+        "line": 97
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 99
+      },
+      "start": {
+        "column": 14,
+        "line": 97
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 46,
+        "line": 102
+      },
+      "start": {
+        "column": 10,
+        "line": 102
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 46,
+        "line": 102
+      },
+      "start": {
+        "column": 10,
+        "line": 102
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "parsed || typeof parsed === `object`",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 46,
+        "line": 102
+      },
+      "start": {
+        "column": 20,
+        "line": 102
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 42,
+        "line": 112
+      },
+      "start": {
+        "column": 5,
+        "line": 112
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "this.resolveStorage(storage).setItem",
+    "status": "Survived"
+  }
+]

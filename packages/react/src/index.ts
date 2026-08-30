@@ -1,12 +1,9 @@
 /**
  * Public entry point for `@keystone-dashboard-layout/react`.
  *
- * See `README.md` for the exact feature scope of this port and
- * `docs/IMPLEMENTATION_PLAN.md` for what's still not here and why —
- * ported incrementally, phase by phase, rather than attempted all at
- * once.
+ * See `README.md` for the exact feature scope of this port.
  */
-import './styles/index.css';
+import './styles/index.scss';
 
 export { GridLayout } from './components/Grid/GridLayout';
 export { GridItem } from './components/Grid/GridItem';

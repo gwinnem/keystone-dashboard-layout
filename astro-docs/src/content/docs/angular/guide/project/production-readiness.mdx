@@ -1,0 +1,66 @@
+---
+title: Production readiness
+description: An honest checklist of what's actually verified, what's a known gap, and what's blocking real-world use — not a marketing claim.
+---
+
+:::note[Snapshot, not a permanent guarantee]
+This reflects a specific point in this project's own history — re-running
+the commands it references is the only way to confirm any of this still
+holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
+forever."
+:::
+
+:::caution[Much less independently re-verified than the Vue/React equivalents]
+This package's own production-readiness picture hasn't had anywhere near
+the same recent, direct scrutiny as Vue's or React's — most sections
+below are honestly marked as unverified rather than guessed at. Treat
+this as a starting checklist to work through, not a confirmed state.
+:::
+
+## Code quality
+
+- **Unit/component tests passing** — not independently re-confirmed in this pass; re-run this package's own test command for a current count.
+- **Test coverage** — not independently re-confirmed in this pass.
+- **Mutation testing (Stryker)** — the least-confirmed of the three framework packages. A specific fix exists (`hasInitializedUndoTracking`, addressing a false-positive `canUndo` bug) from earlier work, but it was never re-verified with a live mutation run — its own CI job (`mutation-test-angular` or similarly named, if `.github/workflows/mutation-testing.yml` follows the same pattern as Vue's) was removed pending that confirmation and, as of this snapshot, still is. Unlike Vue and React (both confirmed working via real runs at 82%+ overall this pass), this package's mutation testing status is genuinely unknown until someone runs it.
+- **Lint** — not independently re-verified in this pass.
+- **`npm audit`** — not re-run in this pass.
+
+## Runtime dependencies
+
+Built on the same shared `@keystone-dashboard-layout/core` engine (zero runtime dependencies itself) the Vue and React packages use — not independently re-audited in this pass for this package's own `package.json` specifically; check its current dependency list directly.
+
+## Build & packaging
+
+Not independently re-measured in this pass.
+
+## CI/CD & repository hygiene
+
+Not independently re-verified in this pass which workflows exist and are currently green for this package, beyond the one specific, known gap noted above (`mutation-test-angular` removed pending re-verification).
+
+## Documentation
+
+The guide, feature list, component reference, and API reference exist as of this snapshot; their currency hasn't been independently re-checked in this pass. This package does **not yet have** the kind of project-level docs (`roadmap`, `accessibility`, `testing`, `architecture`, `comparison-alternatives`/`comparison-commercial`) that exist for the Vue package — this document itself is the first of that kind for Angular.
+
+## Testing depth
+
+Not independently re-verified in this pass whether an e2e suite exists and passes for this package, or across which browsers.
+
+## Accessibility
+
+Not independently re-verified in this pass. The package's own introduction describes feature parity with Vue and React — but that claim hasn't been independently re-checked against this package's own source and test suite in this pass.
+
+## Security
+
+Not independently re-audited in this pass.
+
+## Browser/runtime support
+
+Not independently re-verified in this pass.
+
+## Known, open, and deliberately deferred
+
+No dedicated roadmap document exists for this package yet (see [Documentation](#documentation) above) — check the Vue package's own [Roadmap](/vue/guide/project/roadmap/) for the shared-core feature list, keeping in mind some items there may be Vue-specific rather than applying to every framework. The one specific, known open item for this package is the unverified `hasInitializedUndoTracking` mutation-testing fix noted under [Code quality](#code-quality) above.
+
+## The short version
+
+**One specific, known gap**: the `hasInitializedUndoTracking` fix needs a real mutation-testing run to confirm it actually resolved the `canUndo` false-positive it was meant to, before its CI job can be restored. **Everything else in this checklist**: not independently re-verified in this pass at all — this document exists to name the gaps honestly rather than claim parity with Vue/React's own, much more recently and thoroughly checked state.

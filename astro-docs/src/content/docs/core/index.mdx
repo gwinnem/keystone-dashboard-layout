@@ -1,0 +1,29 @@
+---
+title: Core
+description: The framework-agnostic grid-layout algorithms shared by the Vue, React, and Angular packages — usable standalone.
+tableOfContents: false
+---
+
+The pure grid-layout math the Vue, React, and Angular packages are all
+built on — bin-packing, collision detection, compaction, responsive
+breakpoints, alignment guides, and more. Zero framework dependency for
+the vast majority of it: every function takes plain data in, returns
+plain data out, no live DOM or component lifecycle required.
+
+```sh
+npm i @keystone-dashboard-layout/core
+```
+
+## Jump in
+
+- **[Guide](/core/guide/introduction/)** — what this package is, who it's for, and how to install it.
+- **[API reference](/core/api/)** — every exported function, type, and validator, grouped by what it does.
+
+Most people building with this project's own **[Vue](/vue/)**,
+**[React](/react/)**, or **[Angular](/angular/)** package never need to
+install this directly — it's already a dependency of each. Reach for it
+on its own when you want the same collision/compaction/breakpoint
+algorithms outside any of those three components entirely: validating a
+layout server-side, computing compaction for a batch job, or building
+an integration for a framework this project doesn't have a package for
+yet.

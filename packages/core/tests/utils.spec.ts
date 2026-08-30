@@ -195,6 +195,17 @@ describe('compactItemHorizontal', () => {
     expect(result).toStrictEqual({ i: 'a', x: 3, y: 0, w: 1, h: 2 });
   });
 
+  it('Should not attempt any leftward movement at all when horizontalCompact is false and no minPositions is given', () => {
+    // Neither branch of `if(horizontalCompact) {...} else if(minPositions) {...}`
+    // fires in this case — the item should be left exactly where it
+    // started (before the separate rightward-collision-push step below,
+    // which has nothing to push against here since compareWith is empty).
+    const item: ILayoutItem = { i: 'a', x: 5, y: 0, w: 1, h: 2 };
+    const result = compactItemHorizontal([], item, false);
+
+    expect(result).toStrictEqual({ i: 'a', x: 5, y: 0, w: 1, h: 2 });
+  });
+
   it('Should push an item right until it no longer collides', () => {
     const blocker: ILayoutItem = { i: 'blocker', x: 0, y: 0, w: 2, h: 2 };
     const item: ILayoutItem = { i: 'a', x: 0, y: 0, w: 1, h: 2 };
@@ -361,6 +372,18 @@ describe(`getLayoutItem`, () => {
 
   it(`Should Return undefined when layout item does not exists by number`, () => {
     const result: ILayoutItem = getLayoutItem(testLayoutOne, 999);
+    expect(result).toBe(undefined);
+  });
+
+  it(`Should Return undefined when id is neither a string nor a number (bypasses both typeof branches entirely)`, () => {
+    // The initial validation guard above only rejects undefined/null/
+    // whitespace/negative-when-parsed — a boolean genuinely passes all
+    // of those (`true.toString()` is the non-empty string "true",
+    // parseInt("true") is NaN, and NaN < 0 is false), then reaches the
+    // loop's own `typeof id === 'string'`/`typeof id === 'number'`
+    // checks, matching neither for any real item — the same safe
+    // fallback as a genuinely-not-found string/number id.
+    const result: ILayoutItem = getLayoutItem(testLayoutOne, true);
     expect(result).toBe(undefined);
   });
 });

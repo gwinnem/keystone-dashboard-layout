@@ -1,4 +1,17 @@
-# @keystone-dashboard-layout/core
+<div style="text-align: center">
+
+[![CI](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml/badge.svg)](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat)](https://github.com/prettier/prettier)
+[![npm](https://img.shields.io/npm/v/%40keystone-dashboard-layout%2Fvue)](https://www.npmjs.com/package/@keystone-dashboard-layout/vue)
+[![NPM](https://img.shields.io/npm/l/%40keystone-dashboard-layout%2Fvue)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/vue/LICENSE)
+
+</div>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/gwinnem/keystone-dashboard-layout/main/packages/vue/docs/Data%20Grid.svg" height="200" alt="logo">
+</p>
+
+<h1 align="center">@keystone-dashboard-layout/core</h1>
 
 Framework-agnostic grid-layout algorithms — bin-packing, collision
 detection, compaction, responsive breakpoint resolution, alignment

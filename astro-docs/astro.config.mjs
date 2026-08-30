@@ -345,6 +345,27 @@ export default defineConfig({
             },
           ],
         },
+        // Core docs — the framework-agnostic shared implementation
+        // underneath Vue/React/Angular, not a UI component library
+        // itself, so this section deliberately doesn't follow the same
+        // Guide/Features/Components/API/Examples shape the three
+        // framework packages above use. Placed last since it's an
+        // advanced/internals topic most users installing one of the
+        // three framework packages never need to open at all (see this
+        // section's own Introduction page for who it actually is for).
+        {
+          label: 'Core',
+          items: [
+            {
+              label: 'Guide',
+              items: [
+                { label: 'Introduction', slug: 'core/guide/introduction' },
+                { label: 'Installation', slug: 'core/guide/installation' },
+              ],
+            },
+            { label: 'API reference', slug: 'core/api' },
+          ],
+        },
       ],
     }),
   ],

@@ -54,22 +54,40 @@ const ANGULAR_NAV_LINKS: { label: string; href: string }[] = [
 	{ label: `Components`, href: `/angular/components/` },
 	{ label: `API`, href: `/angular/api/` },
 ];
+// Core deliberately has its own, much shorter list — it's the shared
+// framework-agnostic engine, not a UI component library, so it has no
+// Features/Components/Examples/Changelog pages of its own at all (see
+// its own docs' Documentation section for that same point). Omitted
+// from the ternary chain below before this fix, this fell through to
+// the final `else` (Vue's own full nav) — confirmed directly via a
+// real screenshot showing Vue's Features/Components/Examples/Changelog
+// links on /core/ pages, not assumed.
+const CORE_NAV_LINKS: { label: string; href: string }[] = [
+	{ label: `Guide`, href: `/core/guide/introduction/` },
+	{ label: `API reference`, href: `/core/api/` },
+];
 
 const navLinks: { label: string; href: string }[] = Astro.url.pathname.includes(`/react`)
 	? REACT_NAV_LINKS
 	: Astro.url.pathname.includes(`/angular`)
 		? ANGULAR_NAV_LINKS
-		: VUE_NAV_LINKS;
+		: Astro.url.pathname.includes(`/core`)
+			? CORE_NAV_LINKS
+			: VUE_NAV_LINKS;
 
 // The npm icon below links to a different package per framework,
 // mirroring navLinks' own route-detection above rather than a single
 // fixed href — each framework publishes its own real package under
-// @keystone-dashboard-layout, not one shared package.
+// @keystone-dashboard-layout, not one shared package. Same fix as
+// navLinks above: /core fell through to Vue's own npm package here too
+// before this, for the identical reason.
 const npmHref = Astro.url.pathname.includes(`/react`)
 	? `https://www.npmjs.com/package/@keystone-dashboard-layout/react`
 	: Astro.url.pathname.includes(`/angular`)
 		? `https://www.npmjs.com/package/@keystone-dashboard-layout/angular`
-		: `https://www.npmjs.com/package/@keystone-dashboard-layout/vue`;
+		: Astro.url.pathname.includes(`/core`)
+			? `https://www.npmjs.com/package/@keystone-dashboard-layout/core`
+			: `https://www.npmjs.com/package/@keystone-dashboard-layout/vue`;
 
 // Custom icon row — edit this array directly to add, remove, or
 // reorder icons. Each `svg` is a raw inline path (no external request,

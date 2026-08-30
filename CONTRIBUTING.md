@@ -1,30 +1,45 @@
-# Contributing to vue-ts-responsive-grid-layout
+# Contributing to keystone-dashboard-layout
 
-Thanks for considering a contribution. This document covers the practical
-mechanics — for the bigger picture of how the codebase is organized, see
-[`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md); for the current state of
-known gaps and in-progress work, see
-[`docs/REFACTOR_STRATEGY.md`](./docs/REFACTOR_STRATEGY.md) and
-[`docs/REFACTORING.md`](./docs/REFACTORING.md).
+Thanks for considering a contribution. This is a monorepo with four
+packages — [`@keystone-dashboard-layout/core`](./packages/core)
+(framework-agnostic shared engine),
+[`@keystone-dashboard-layout/vue`](./packages/vue) (the reference
+implementation),
+[`@keystone-dashboard-layout/react`](./packages/react), and
+[`@keystone-dashboard-layout/angular`](./packages/angular) — each
+independently versioned and released. Most contributions target one
+package specifically; this document covers the practical mechanics
+common to all of them. For the bigger picture of how a given package is
+organized, see that package's own `docs/` folder (e.g.
+[`packages/vue/docs/ARCHITECTURE.md`](./packages/vue/docs/ARCHITECTURE.md));
+for the current state of known gaps and in-progress work, see
+[`packages/vue/docs/REFACTOR_STRATEGY.md`](./packages/vue/docs/REFACTOR_STRATEGY.md)
+and [`packages/vue/docs/REFACTORING.md`](./packages/vue/docs/REFACTORING.md).
 
 ## Getting set up
 
 ```sh
-git clone https://github.com/gwinnem/vue-responsive-grid-layout.git
-cd vue-responsive-grid-layout
-npm install
+git clone https://github.com/gwinnem/keystone-dashboard-layout.git
+cd keystone-dashboard-layout
+pnpm install
 ```
 
 Node `^18.0.0 || ^20.0.0 || >=22.0.0` (see `engines` in `package.json`).
+This root `pnpm install` covers `packages/*` only — the documentation
+site (`astro-docs/`) and Angular's own standalone examples app
+(`angular-examples-app/`) are each deliberately separate projects with
+their own `pnpm install`/`pnpm dev`; see the root
+[`README.md`](./README.md)'s own "Documentation & examples" section.
 
-Useful commands while working:
+Useful commands while working, run from the repo root (via
+[Turborepo](https://turborepo.com), across every package at once) or
+scoped to one package with `--filter`:
 
 ```sh
-npm run dev             # Vite dev server for the sandbox
-npm run demo            # the demo app (what e2e tests run against)
-npm run docs:dev        # the VitePress documentation site
-npm run test            # Vitest, watch mode
-npm run typecheck       # vue-tsc, no emit
+pnpm dev                                                  # turbo run dev, every package
+pnpm --filter @keystone-dashboard-layout/vue dev          # just Vue
+pnpm test                                                 # turbo run test
+pnpm typecheck                                            # turbo run typecheck
 ```
 
 ## Before opening a PR
@@ -32,26 +47,26 @@ npm run typecheck       # vue-tsc, no emit
 Run the same checks CI runs:
 
 ```sh
-npm run typecheck
-npm run lint:style       # must be clean — this one's a hard gate
-npm run lint             # advisory for now; see the note below
-npm run test:coverage    # must stay at or above 90% on all four metrics
-npm run build:only
-npm run demo:build
-npm run docs:build
+pnpm typecheck
+pnpm lint:style          # must be clean on packages that define it — a hard gate
+pnpm lint                # advisory for now; see the note below
+pnpm test:coverage       # must stay at or above each package's own configured floor
+pnpm build
 ```
 
-See [`docs/TESTING.md`](./docs/TESTING.md) for how the test suite itself
-is organized (unit, component, e2e) and what's mocked and why.
+See each package's own `docs/TESTING.md` (where one exists — currently
+Vue and React) for how that package's own test suite is organized
+(unit, component, e2e) and what's mocked and why.
 
 ### About the ESLint gate
 
-`npm run lint` currently reports a few hundred pre-existing issues that
-predate this project having a working ESLint config at all (see
-`docs/REFACTORING.md` #6) — it's advisory in CI (`continue-on-error:
-true`), not blocking, specifically so it doesn't fail your PR over debt
-you didn't introduce. Please don't add *new* lint issues, but you're not
-expected to fix unrelated pre-existing ones in an unrelated PR.
+`pnpm lint` is advisory in CI (`continue-on-error: true`) across every
+package, not blocking, specifically so it doesn't fail your PR over debt
+you didn't introduce — both Vue's and React's own configs currently
+carry a real number of pre-existing issues that predate (or, for React,
+predate a later tightening of) their own ESLint setup. Please don't add
+*new* lint issues, but you're not expected to fix unrelated pre-existing
+ones in an unrelated PR.
 
 ## Commit messages
 
@@ -59,87 +74,74 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/),
 enforced informally via [Commitizen](https://commitizen-tools.github.io/commitizen/):
 
 ```sh
-npm run commit
+pnpm commit
 ```
 
 walks you through generating a properly-formatted commit message. This
-matters beyond style — `semantic-release` (see
-[`.releaserc.json`](./.releaserc.json) and
-`.github/workflows/release.yml`) parses commit messages to decide the next
-version number and generate `CHANGELOG.md` automatically on every merge to
-`main`. A `fix:` commit triggers a patch release, `feat:` a minor release,
-and `feat!:`/a `BREAKING CHANGE:` footer a major release — get the type
-wrong and you'll get the wrong kind of release.
+matters beyond style — each package's own `semantic-release` config
+(scoped to that package's own path via `semantic-release-monorepo`; see
+`packages/*/.releaserc.json` and `.github/workflows/release.yml`) parses
+commit messages to decide *that package's own* next version number and
+generate its own `CHANGELOG.md` automatically on every merge to `main`.
+A `fix:` commit triggers a patch release, `feat:` a minor release, and
+`feat!:`/a `BREAKING CHANGE:` footer a major release, for whichever
+package(s) the commit's own changed files fall under — get the type
+wrong and you'll get the wrong kind of release for that package.
 
 ## Tests are not optional
 
-This project has a specific, documented history of bugs that survived
-because tests didn't actually assert what they looked like they asserted
-(`docs/REFACTORING.md` #8), and multiple real bugs found specifically
-*because* someone was writing a test (`docs/REFACTORING.md` #16, #25, #26).
-A PR that changes behavior without a test covering that behavior will be
-asked for one — not as a formality, but because that's literally how this
-codebase has found its worst bugs.
-
-If you're touching `GridItem.vue`/`GridLayout.vue` or their composables,
-`docs/TESTING.md`'s "Component testing approach" section explains the
-mocking setup (`ResizeObserver`, `@interactjs/interact`) you'll need to
-work with.
+Vue's own codebase has a specific, documented history of bugs that
+survived because tests didn't actually assert what they looked like
+they asserted, and multiple real bugs found specifically *because*
+someone was writing a test — see
+[`packages/vue/docs/REFACTORING.md`](./packages/vue/docs/REFACTORING.md)
+for the individually-logged findings. A PR that changes behavior
+without a test covering that behavior will be asked for one — not as a
+formality, but because that's literally how this codebase has found its
+worst bugs, across all three framework packages.
 
 ## How releases happen
 
 Nothing manual: merging to `main` triggers
-`.github/workflows/release.yml`, which runs `semantic-release` — it
-determines the version bump from commit messages since the last release,
-updates `CHANGELOG.md`, publishes to npm, and creates a GitHub release.
-See [`docs/REFACTOR_STRATEGY.md`](./docs/REFACTOR_STRATEGY.md)'s Phase 1
-section for the full CI/CD picture, including what still requires a
-maintainer's one-time setup (an `NPM_TOKEN` secret, branch protection).
+`.github/workflows/release.yml`, which runs `semantic-release`
+separately for each of Vue, React, and Angular (in that order, chained
+rather than parallel, to avoid a `git push` race between the three) —
+each determines its own version bump from commit messages touching its
+own package path since its own last release, updates its own
+`CHANGELOG.md`, publishes to npm, and creates a GitHub release. See that
+workflow file's own top comment for the full account, including what
+still requires a maintainer's one-time setup (an `NPM_TOKEN` secret,
+branch protection).
 
-### Generating (and, manually, publishing) the package locally
+### Generating a package tarball locally
 
-`npm run package` runs every quality gate this project has —
-typecheck, `lint:style`, the dependency license allowlist, the full
-test suite, the build, the bundle-size budget check, and the
-pack-and-install smoke test — then produces the exact tarball
-`npm publish` would push (`vue-ts-responsive-grid-layout-<version>.tgz`
-in the repo root). Useful for inspecting exactly what a release would
-contain before merging, or for a manual publish outside the normal
-`semantic-release` flow.
-
-```sh
-npm run package                    # full pipeline, stops before publish
-npm run package -- --skip-tests    # faster local dry run only — do not
-                                    # use a tarball built this way for an
-                                    # actual release
-```
-
-This stops short of actually publishing on its own — that needs your
-own authenticated npm session (`npm login`), not something the script
-can do for you. Once the tarball is built:
+Each package that defines `check:bundle-size`/`check:package-install`
+scripts (currently Vue; React and Angular have their own versions too,
+though newer and less battle-tested — see each script's own top comment)
+can be inspected locally before a release:
 
 ```sh
-npm login                                          # if not already
-npm publish vue-ts-responsive-grid-layout-<version>.tgz
+pnpm --filter @keystone-dashboard-layout/vue run build
+pnpm --filter @keystone-dashboard-layout/vue run check:bundle-size
+pnpm --filter @keystone-dashboard-layout/vue run check:package-install
 ```
 
-Or, if you're already logged in and want the script to also run
-`npm publish` itself once everything above passes (it still checks
-you're authenticated first, and still asks for one explicit
-confirmation before the actual publish, since that's the one step here
-that can't be undone the way every earlier step can be re-run):
-
-```sh
-npm run package -- --publish
-```
+Actually publishing is left to the automated release pipeline above,
+not a manual `npm publish` — the pipeline's own sequencing (build, test,
+bundle-size check, then release) is the source of truth for what a real
+release actually runs.
 
 ## Reporting bugs / requesting features
 
 Open an issue on
-[GitHub](https://github.com/gwinnem/vue-responsive-grid-layout/issues).
+[GitHub](https://github.com/gwinnem/keystone-dashboard-layout/issues).
+Please say which package (Vue/React/Angular/core) the issue concerns.
 For a bug report, a minimal reproduction (a fork of one of the
-[examples](https://github.com/gwinnem/vue-responsive-grid-layout/tree/main/vitepress-docs/examples)
-is a good starting point) makes it much faster to confirm and fix.
+[live examples](https://github.com/gwinnem/keystone-dashboard-layout/tree/main/astro-docs/src/components/examples)
+is a good starting point for Vue or React; see
+[`angular-examples-app/README.md`](./angular-examples-app/README.md)
+for Angular's own, separate examples app) makes it much faster to
+confirm and fix.
 
 ## Reporting security issues
 

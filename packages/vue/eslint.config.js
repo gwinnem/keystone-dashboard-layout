@@ -41,8 +41,6 @@ export default [
       'tests/**',
       'e2e/**',
       'node_modules/**',
-      'vitepress-docs/.vitepress/cache/**',
-      'vitepress-docs/.vitepress/dist/**',
       'src/vite-env.d.ts',
       '*.tgz',
     ],

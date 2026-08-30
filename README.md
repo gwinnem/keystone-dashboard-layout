@@ -32,14 +32,13 @@ See each package's own README for its full feature list and usage —
 [`packages/react/README.md`](./packages/react/README.md),
 [`packages/angular/README.md`](./packages/angular/README.md).
 
-Angular's own `PARITY_GAP_ANGULAR.md`
-([`packages/angular/docs/PARITY_GAP_ANGULAR.md`](./packages/angular/docs/PARITY_GAP_ANGULAR.md))
-tracks the most current, source-verified feature-by-feature comparison
-against Vue for that specific port — including the narrow, genuine
-gaps still open and a real behavioral bug found and fixed along the
-way (`enableUndoRedo` not tracking externally-driven `layout` length
-changes). No equivalent document exists yet for React specifically,
-since its own parity work closed out without leaving one behind.
+Angular's own port had a real, confirmed behavioral bug found and
+fixed during its own parity work against Vue: `enableUndoRedo` wasn't
+tracking externally-driven `layout` length changes (only drag/resize/
+`duplicateItem`/`compactNow`), despite the component's own doc
+comments claiming it did. Fixed in `GridLayoutComponent` directly —
+see that file's own `commitUndoPoint`/`lastSnapshot` doc comments for
+the full account.
 
 ## Tooling
 
@@ -110,13 +109,12 @@ the steps above.
 > **Note:** this project previously used VitePress for documentation
 > (`vitepress-docs/`, with `docs:dev`/`docs:build`/`docs:preview`
 > scripts in the root `package.json`). That migration to Astro is now
-> complete — `vitepress-docs/` no longer exists, and `vitepress` isn't
-> a dependency anywhere in this repo anymore. The root `package.json`'s
-> own `docs:*` scripts still reference the old, now-nonexistent
-> `vitepress-docs` path and need updating to point at `astro-docs`
-> instead (or removing, since `astro-docs` is a separate project run
-> via its own scripts, not through the root task runner) — a real,
-> confirmed leftover from that migration, not yet cleaned up.
+> complete — `vitepress-docs/` no longer exists, `vitepress` isn't a
+> dependency anywhere in this repo anymore, and the root
+> `package.json`'s own now-broken `docs:*` scripts have been removed
+> accordingly (`astro-docs` is a separate project run via its own
+> scripts above, not through the root task runner, so there was nothing
+> meaningful to redirect them to instead).
 
 ## Repository layout
 

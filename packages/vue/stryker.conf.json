@@ -1,29 +1,48 @@
 {
   "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/api/schema/stryker-schema.json",
   "_comment_plugins": "Explicit, not Stryker's own default '@stryker-mutator/*' glob — a real, confirmed bug under this monorepo's pnpm workspace structure, not a stylistic preference: that glob resolves relative to wherever @stryker-mutator/core itself is physically installed, then looks for sibling '@stryker-mutator/*' packages inside *its own* node_modules. Under pnpm's strict, non-hoisting structure, that folder only ever contains core's own direct dependencies (confirmed via a real debug trace against this exact class of failure in the Angular package's own stryker.conf.json: '@stryker-mutator/instrumenter' loaded fine this way, since it *is* one) — never a sibling devDependency of *this* package, like vitest-runner, which lives in a completely separate, isolated part of the pnpm store the glob has no way to see. Naming the plugin explicitly instead makes Stryker resolve it via normal Node module resolution (walking up from this config file's own directory), which correctly finds it.",
-  "_comment_known_limitation": "PAUSED, not resolved — a real run against this config still fails with '[@vue/compiler-sfc] Failed to resolve import source \"@/core/griditem/enums/EGridItemEvents\"' (confirmed via --logLevel debug, not assumed). Root cause: this package's own '@/core' alias reaches into the sibling packages/core workspace package, but Stryker's default sandboxing only copies the current project directory (packages/vue) into its temp sandbox — it has no awareness of a path alias reaching outside that directory, so packages/core is simply absent from the sandbox, even though the import is completely valid in the real project. A `files`-style option to include the sibling directory may exist in principle, but doesn't appear to be a currently-supported option in this Stryker version (not present in v9.6.1's own full config dump); the more structurally reliable fix would be invoking Stryker from the monorepo root instead of this package's own directory, so both packages/vue and packages/core fall inside the sandboxed working tree — not attempted yet. Angular and React almost certainly hit the identical issue, since both also depend on the sibling core package. Deliberately left un-fixed for now rather than guessed at further; revisit this comment before re-attempting.",
+  "_comment_known_limitation": "CONFIRMED RESOLVED via a real, clean mutation run (65.53% overall, real kill/survive/timeout numbers across every composable, including the ones that previously showed 0 real coverage). Full history of the four issues that had to be fixed to get here, and the diagnostic technique used for each, now lives in packages/vue/docs/STRYKER.md's own 'Why the monorepo root' section — not duplicated here to avoid this comment drifting out of sync with that doc over time. Summary only: (1) this package's own '@/core' alias reaching into the sibling packages/core workspace package required running `stryker run` from the MONOREPO ROOT (see packages/vue/package.json's own `test:mutation` script, and every root-relative path below); (2)/(3) two follow-on 'no tests found'/tsconfig-resolution failures that root-invocation itself surfaced, fixed via `vitest.config.js`'s own explicit `root: __dirname` and excluding the monorepo's own root tsconfig.json (see `ignorePatterns` below) respectively; (4) `@vue/compiler-sfc`'s own compile-time type resolution for `defineEmits<T>()` failing specifically inside a Stryker sandbox for every file importing a type from `@/core` — fixed at the source, not here, by switching GridItem.vue/GridLayout.vue/CustomCloseButton.vue to the runtime-array `defineEmits([...])` form (see the comment above each of those three declarations for that trade-off). `cleanTempDir: false` (used to keep a sandbox around for direct inspection while diagnosing (4)) has been removed now that things work — re-add it only if diagnosing a new, similarly opaque failure.",
   "packageManager": "npm",
   "plugins": ["@stryker-mutator/vitest-runner"],
   "testRunner": "vitest",
-  "reporters": ["clear-text", "progress", "html"],
+  "vitest": {
+    "configFile": "packages/vue/vitest.config.js",
+    "dir": "packages/vue",
+    "related": false
+  },
+  "reporters": ["clear-text", "progress", "html", "json"],
+  "jsonReporter": {
+    "fileName": "packages/vue/reports/mutation/mutation.json"
+  },
   "htmlReporter": {
-    "fileName": "reports/mutation/index.html"
+    "fileName": "packages/vue/reports/mutation/index.html"
   },
   "coverageAnalysis": "perTest",
   "timeoutMS": 15000,
-  "_comment_mutate": "'src/core/**/*.ts' removed (a real, confirmed bug, not a stylistic cleanup): this package's own src/ has no core directory at all — @keystone-dashboard-layout/core is a separate workspace package reached via the '@/core' path alias, not a local folder. The glob matched zero files (confirmed via a real stryker run: 'Glob pattern src/core/**/*.ts did not result in any files'), silently excluding those 0 files rather than erroring, which is why this went unnoticed until now.",
   "mutate": [
-    "src/components/Grid/composables/*.ts",
-    "src/composables/*.ts",
-    "src/hooks/*.ts",
-    "!src/**/*.d.ts"
+    "packages/vue/src/components/Grid/composables/*.ts",
+    "packages/vue/src/composables/*.ts",
+    "packages/vue/src/hooks/*.ts",
+    "!packages/vue/src/**/*.d.ts"
   ],
+  "_comment_ignorePatterns": "Now root-relative, since this config runs with the monorepo root as its own cwd (see this file's own '_comment_known_limitation'). Excludes every sibling package/app this package's own mutation run doesn't need at all (react, angular, astro-docs, angular-examples-app — none of them are a dependency of packages/vue), plus every package's own build/demo/doc output, to keep the sandbox copy reasonably sized rather than accidentally including the entire monorepo. Deliberately does NOT exclude packages/core — that's the whole point of this fix.",
   "ignorePatterns": [
-    "demo",
-    "sandbox",
-    "vitepress-docs",
-    "docs",
+    "tsconfig.json",
+    "packages/react",
+    "packages/angular",
+    "astro-docs",
+    "angular-examples-app",
+    "packages/vue/demo",
+    "packages/vue/sandbox",
+    "packages/vue/docs",
+    "packages/vue/dist",
+    "packages/vue/dist-demo",
+    "packages/vue/e2e",
+    "packages/vue/test-results",
+    "packages/vue/.stryker-tmp",
+    "packages/vue/reports",
+    "packages/core/dist",
     "dist",
-    "dist-demo"
+    "public"
   ]
 }

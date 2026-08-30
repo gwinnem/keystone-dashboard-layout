@@ -19,6 +19,20 @@ import type { Config } from 'jest';
  */
 const config: Config = {
   preset: `jest-preset-angular`,
+  // Explicit, not left to jest-preset-angular's own implicit default
+  // (which is 'jsdom' too, normally) — attempting a fix for a real,
+  // confirmed failure specifically under @stryker-mutator/jest-runner's
+  // own sandbox: a live run there failed with 'ReferenceError: document
+  // is not defined' plus a cascade of Angular DI circular-dependency
+  // errors (NG0200, DocumentToken/TestComponentRenderer) during
+  // TestBed's own teardown, across every spec that touches the DOM at
+  // all — see stryker.conf.json's own '_comment_known_limitation' for
+  // the full account. The plain `pnpm test` run (outside Stryker) has
+  // always passed with this same preset's own implicit default, so this
+  // is specifically testing whether Stryker's own jest-runner resolves
+  // a preset-implied environment differently than plain `jest` does —
+  // unverified, could not be tested by the assistant that wrote this.
+  testEnvironment: `jsdom`,
   setupFilesAfterEnv: [`<rootDir>/setup-jest.ts`],
   testPathIgnorePatterns: [
     `<rootDir>/node_modules/`,

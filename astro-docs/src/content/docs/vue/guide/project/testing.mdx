@@ -3,18 +3,6 @@ title: Testing philosophy
 description: How Keystone Dashboard Layout for Vue is tested — unit, component, end-to-end, and what's left to a human.
 ---
 
-:::note[A correction versus the repo's own TESTING.md]
-The source document this page is adapted from still describes drag/resize
-testing in terms of mocking `interactjs`. That's stale — per the
-[Architecture](/vue/guide/project/architecture/) page and the
-[Changelog](/vue/guide/changelog/), the library replaced `interact.js`
-with a native, Pointer Events-based engine. This page describes the
-current, native-engine reality rather than reproducing the outdated
-`interactjs` framing.
-:::
-
-Two independent test layers.
-
 ## Unit & component tests — Vitest
 
 Pure-function tests for the grid math, validators, and helpers, plus
@@ -22,9 +10,10 @@ component tests for every Vue component (`GridLayout`, `GridItem`,
 `CustomCloseButton`, `CustomDragElement`), all run against jsdom.
 
 ```sh
-npm run test           # watch mode
-npm run test:ui         # Vitest UI
-npm run test:coverage   # single run with coverage
+pnpm test            # watch mode
+pnpm test:ui         # Vitest UI
+pnpm test:coverage   # single run with coverage
+pnpm test:mutation   # running mutation tests.
 ```
 
 ### Coverage gate

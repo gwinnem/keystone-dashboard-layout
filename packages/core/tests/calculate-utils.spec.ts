@@ -65,4 +65,43 @@ describe(`calcXY`, () => {
 
     expect(result).toStrictEqual({ x: 1, y: 1 });
   });
+
+  // Every test above uses a clearly-invalid value (0) to trigger each
+  // throw — none use the exact boundary (1), so "< 1" and a mutated
+  // "<= 1" were never distinguished for any of the 7 checks. Each test
+  // below sets exactly one param to 1 (its own valid boundary) against
+  // the same otherwise-valid baseline as the "all-valid" test above,
+  // confirming validateXYParams correctly does NOT throw at that
+  // boundary.
+  it(`Should NOT throw when rowHeight is exactly 1 (the boundary, not just clearly invalid at 0)`, () => {
+    expect(() => calcXY(50, 100, [10, 10], 1, 6, 2, 2, 10, 600)).not.toThrow();
+  });
+
+  it(`Should NOT throw when margin[0] is exactly 1`, () => {
+    expect(() => calcXY(50, 100, [1, 10], 60, 6, 2, 2, 10, 600)).not.toThrow();
+  });
+
+  it(`Should NOT throw when margin[1] is exactly 1`, () => {
+    expect(() => calcXY(50, 100, [10, 1], 60, 6, 2, 2, 10, 600)).not.toThrow();
+  });
+
+  it(`Should NOT throw when cols is exactly 1`, () => {
+    expect(() => calcXY(50, 100, [10, 10], 60, 1, 2, 2, 10, 600)).not.toThrow();
+  });
+
+  it(`Should NOT throw when innerH is exactly 1`, () => {
+    expect(() => calcXY(50, 100, [10, 10], 60, 6, 1, 2, 10, 600)).not.toThrow();
+  });
+
+  it(`Should NOT throw when innerW is exactly 1`, () => {
+    expect(() => calcXY(50, 100, [10, 10], 60, 6, 2, 1, 10, 600)).not.toThrow();
+  });
+
+  it(`Should NOT throw when maxRows is exactly 1`, () => {
+    expect(() => calcXY(50, 100, [10, 10], 60, 6, 2, 2, 1, 600)).not.toThrow();
+  });
+
+  it(`Should NOT throw when containerWidth is exactly 1`, () => {
+    expect(() => calcXY(50, 100, [10, 10], 60, 6, 2, 2, 10, 1)).not.toThrow();
+  });
 });

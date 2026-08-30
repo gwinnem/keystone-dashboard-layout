@@ -1,6 +1,6 @@
 ---
 title: Components
-description: GridLayout and GridItem — the two components this package exports.
+description: GridLayout, GridItem, and two standalone utility components this package exports.
 ---
 
 The package exports these from its main entry point:
@@ -9,6 +9,8 @@ The package exports these from its main entry point:
 |---|---|
 | [`GridLayout`](/react/components/grid-layout/props/) | The grid container — owns the layout array, breakpoints, and collision/compaction logic. A fully controlled component (`layout`/`onLayoutChange`). |
 | [`GridItem`](/react/components/grid-item/props/) | A single draggable/resizable cell, rendered as a child of `GridLayout`. |
+| `GridItemCloseButton` | A standalone close-button building block, for rendering the same affordance somewhere other than `GridItem`'s own built-in close button (e.g. inside a custom header). |
+| `GridItemDragHandle` | A standalone drag-handle building block, for the same reason. |
 
 See [Styling](/react/components/styling/) for the CSS custom properties
 and class names used throughout.
@@ -20,8 +22,12 @@ import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
 There's no default export — always import by name. See [Installation](/react/guide/installation/)
 if you haven't added the package yet.
 
-Unlike the Vue package, there's no separate exported close-button or
-drag-handle component. A close button is a built-in, per-item opt-in
+There's also a real, exported close-button component
+(`GridItemCloseButton`) and drag-handle component (`GridItemDragHandle`)
+— useful when you want those same building blocks rendered somewhere
+other than `GridItem`'s own built-in rendering (e.g. inside a custom
+header). Most consumers should reach for the simpler, built-in path
+first though: a close button is a built-in, per-item opt-in
 (`showCloseButton` on `GridLayout`/`ILayoutItem` + an `onItemClose`
 callback you handle yourself), and any part of an item is a drag handle
 by default — restrict it via `dragAllowFrom`/`dragIgnoreFrom` on the
@@ -36,4 +42,4 @@ layout item instead of swapping in a different component.
 `scrollToItem(id)`/`focusItem(id)` — the React equivalent of Vue's own
 `defineExpose`'d template-ref methods, reached via `forwardRef`/
 `useImperativeHandle` instead. See [Imperative handle](/react/api/interfaces/imperative-handle/)
-once that page lands for the full reference.
+for the full reference.

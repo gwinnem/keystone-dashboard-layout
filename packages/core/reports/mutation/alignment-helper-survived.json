@@ -1,0 +1,602 @@
+[
+  {
+    "location": {
+      "end": {
+        "column": 35,
+        "line": 58
+      },
+      "start": {
+        "column": 10,
+        "line": 58
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 61
+      },
+      "start": {
+        "column": 36,
+        "line": 61
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 35,
+        "line": 64
+      },
+      "start": {
+        "column": 10,
+        "line": 64
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 64,
+        "line": 120
+      },
+      "start": {
+        "column": 18,
+        "line": 120
+      }
+    },
+    "mutatorName": "MethodExpression",
+    "replacement": "layout",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 63,
+        "line": 120
+      },
+      "start": {
+        "column": 40,
+        "line": 120
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 45,
+        "line": 129
+      },
+      "start": {
+        "column": 21,
+        "line": 129
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherRight < activeLeft",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 97,
+        "line": 129
+      },
+      "start": {
+        "column": 50,
+        "line": 129
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 97,
+        "line": 129
+      },
+      "start": {
+        "column": 76,
+        "line": 129
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherRight >= bestLeft",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 133
+      },
+      "start": {
+        "column": 6,
+        "line": 133
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 46,
+        "line": 142
+      },
+      "start": {
+        "column": 23,
+        "line": 142
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherTop <= activeBottom",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 73,
+        "line": 142
+      },
+      "start": {
+        "column": 50,
+        "line": 142
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherBottom >= activeTop",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 98,
+        "line": 143
+      },
+      "start": {
+        "column": 50,
+        "line": 143
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 45,
+        "line": 143
+      },
+      "start": {
+        "column": 21,
+        "line": 143
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherLeft > activeRight",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 98,
+        "line": 143
+      },
+      "start": {
+        "column": 77,
+        "line": 143
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherLeft <= bestRight",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 56,
+        "line": 147
+      },
+      "start": {
+        "column": 6,
+        "line": 147
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "bestRight !== undefined || bestRight > activeRight",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 29,
+        "line": 147
+      },
+      "start": {
+        "column": 6,
+        "line": 147
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 56,
+        "line": 147
+      },
+      "start": {
+        "column": 33,
+        "line": 147
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 56,
+        "line": 147
+      },
+      "start": {
+        "column": 33,
+        "line": 147
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "bestRight >= activeRight",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 45,
+        "line": 157
+      },
+      "start": {
+        "column": 21,
+        "line": 157
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherBottom < activeTop",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 96,
+        "line": 157
+      },
+      "start": {
+        "column": 50,
+        "line": 157
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 96,
+        "line": 157
+      },
+      "start": {
+        "column": 75,
+        "line": 157
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherBottom >= bestTop",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 50,
+        "line": 161
+      },
+      "start": {
+        "column": 6,
+        "line": 161
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "bestTop !== undefined || bestTop < activeTop",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 27,
+        "line": 161
+      },
+      "start": {
+        "column": 6,
+        "line": 161
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 50,
+        "line": 161
+      },
+      "start": {
+        "column": 31,
+        "line": 161
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 50,
+        "line": 161
+      },
+      "start": {
+        "column": 31,
+        "line": 161
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "bestTop <= activeTop",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 46,
+        "line": 170
+      },
+      "start": {
+        "column": 23,
+        "line": 170
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherLeft <= activeRight",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 73,
+        "line": 170
+      },
+      "start": {
+        "column": 50,
+        "line": 170
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherRight >= activeLeft",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 45,
+        "line": 171
+      },
+      "start": {
+        "column": 21,
+        "line": 171
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherTop > activeBottom",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 99,
+        "line": 171
+      },
+      "start": {
+        "column": 50,
+        "line": 171
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 99,
+        "line": 171
+      },
+      "start": {
+        "column": 78,
+        "line": 171
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "otherTop <= bestBottom",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 59,
+        "line": 175
+      },
+      "start": {
+        "column": 6,
+        "line": 175
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "bestBottom !== undefined || bestBottom > activeBottom",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 30,
+        "line": 175
+      },
+      "start": {
+        "column": 6,
+        "line": 175
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 59,
+        "line": 175
+      },
+      "start": {
+        "column": 34,
+        "line": 175
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 59,
+        "line": 175
+      },
+      "start": {
+        "column": 34,
+        "line": 175
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "bestBottom >= activeBottom",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 243
+      },
+      "start": {
+        "column": 37,
+        "line": 243
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "distance <= bestXDistance",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 243
+      },
+      "start": {
+        "column": 37,
+        "line": 243
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 256
+      },
+      "start": {
+        "column": 12,
+        "line": 256
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "distance <= threshold || distance < bestYDistance",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 33,
+        "line": 256
+      },
+      "start": {
+        "column": 12,
+        "line": 256
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 256
+      },
+      "start": {
+        "column": 37,
+        "line": 256
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 256
+      },
+      "start": {
+        "column": 37,
+        "line": 256
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "distance <= bestYDistance",
+    "status": "Survived"
+  }
+]

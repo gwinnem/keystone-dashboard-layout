@@ -95,10 +95,12 @@ currently only verified via `pnpm dev` (`http://localhost:4200/`).
 Verification depth varies by example: 33–45 were individually
 live-verified against real browser interaction this session (drag/
 resize dispatched via `PointerEvent`s, DOM state inspected directly),
-surfacing and fixing several real bugs along the way — see
-`packages/angular/docs/PARITY_GAP_ANGULAR.md` for the most
-significant one (`enableUndoRedo` silently not tracking externally-
-driven `layout` length changes). Examples 1–32 were verified in an
-earlier session. Examples 46–52 exist as files but weren’t part of
-either verification pass — treat them with the same caution 33–45
-were treated with before this session’s own pass through them.
+surfacing and fixing several real bugs along the way — most
+significantly, `enableUndoRedo` silently not tracking externally-
+driven `layout` length changes, fixed directly in
+`GridLayoutComponent` (see that file's own `commitUndoPoint`/
+`lastSnapshot` doc comments for the full account). Examples 1–32 were
+verified in an earlier session. Examples 46–52 exist as files but
+weren’t part of either verification pass — treat them with the same
+caution 33–45 were treated with before this session’s own pass
+through them.

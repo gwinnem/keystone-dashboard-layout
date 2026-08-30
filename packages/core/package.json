@@ -41,9 +41,12 @@
     "lint": "eslint --color",
     "lint:fix": "eslint --fix --color",
     "test": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:mutation": "stryker run"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "^9.6.1",
+    "@stryker-mutator/vitest-runner": "^9.6.1",
     "@vitest/coverage-v8": "^4.1.10",
     "jsdom": "^29.1.1",
     "vite": "^8.1.5",

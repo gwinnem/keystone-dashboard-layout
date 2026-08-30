@@ -162,26 +162,31 @@
   /** Injected from `GridLayout`'s `provide('eventBus', ...)`. See docs/ARCHITECTURE.md for the full message table. */
   const eventBus = inject(`eventBus`) as TGridItemEventBus;
 
-  // Note: DRAG/DRAGGED are declared here but never actually emitted — MOVE/
-  // MOVED fire instead. See docs/REFACTORING.md #20.
-  const emit = defineEmits<{
-    (
-      e: EGridItemEvent.CONTAINER_RESIZED,
-      i: number | string,
-      h: number,
-      w: number,
-      height: number,
-      width: number,
-    ): void;
-    (e: EGridItemEvent.DRAG, i: number | string, h: number, w: number, height: number, width: number): void;
-    (e: EGridItemEvent.DRAGGED, i: number | string, h: number, w: number, height: number, width: number): void;
-    (e: EGridItemEvent.MOVE, i: number | string, x: number, y: number): void;
-    (e: EGridItemEvent.MOVED, i: number | string, x: number, y: number): void;
-    (e: EGridItemEvent.REMOVE_ITEM, i: string | number): void;
-    (e: EGridItemEvent.RESIZE, i: number | string, h: number, w: number, height: number, width: number): void;
-    (e: EGridItemEvent.RESIZED, i: number | string, h: number, w: number, height: number, width: number): void;
-    (e: EGridItemEvent.ITEM_CLICKED, i: number | string, event: MouseEvent): void;
-  }>();
+  // Runtime-array form, not the generic/type-argument form this used to
+  // use — see CustomCloseButton.vue's own identical comment for the full
+  // explanation: a confirmed, Stryker-sandbox-specific `@vue/compiler-sfc`
+  // compile-time type-resolution failure for this exact cross-package
+  // `@/core` import ('[@vue/compiler-sfc] Failed to resolve import
+  // source "@/core/griditem/enums/EGridItemEvents"'), not a stylistic
+  // choice — this runtime-array form needs no such resolution at all.
+  // Trade-off, accepted deliberately: every `emit(...)` call site below
+  // now only has its event *name* checked against this array, not its
+  // payload argument types, which the previous type-argument form did
+  // check. Note: DRAG/DRAGGED are declared here but never actually
+  // emitted — MOVE/MOVED fire instead (see docs/REFACTORING.md #20) —
+  // kept in this array anyway, matching the previous type declaration's
+  // own scope, in case a consumer still listens for them defensively.
+  const emit = defineEmits([
+    EGridItemEvent.CONTAINER_RESIZED,
+    EGridItemEvent.DRAG,
+    EGridItemEvent.DRAGGED,
+    EGridItemEvent.MOVE,
+    EGridItemEvent.MOVED,
+    EGridItemEvent.REMOVE_ITEM,
+    EGridItemEvent.RESIZE,
+    EGridItemEvent.RESIZED,
+    EGridItemEvent.ITEM_CLICKED,
+  ]);
 
   // Props Data
   const props = withDefaults(defineProps<IGridItemProps>(), {
@@ -1236,8 +1241,8 @@
   position: relative;
   width: $size;
 
-  &:after,
-  &:before {
+  &::after,
+  &::before {
     background: $color;
     border-radius: $thickness;
     content: '';
@@ -1248,11 +1253,11 @@
     top: math.div(($size - $thickness), 2);
   }
 
-  &:before {
+  &::before {
     transform: rotate(45deg);
   }
 
-  &:after {
+  &::after {
     transform: rotate(-45deg);
   }
 

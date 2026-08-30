@@ -2,17 +2,92 @@ name: Mutation testing
 
 # Deliberately NOT run on every push/PR — mutation testing re-runs the test
 # suite once per mutant, far too slow for per-PR feedback. Runs weekly
-# instead, plus on-demand via workflow_dispatch. Scoped to packages/vue
-# (the only package with a Stryker config today) — see
-# packages/vue/docs/STRYKER.md for the full rationale and how to run it
-# locally. Add a matching step per package once react/angular have real
-# test suites and their own stryker.conf.json.
+# instead, plus on-demand via workflow_dispatch.
+#
+# All four packages are now confirmed working via real local runs:
+#   - react: 82.93% overall mutation score (up from an earlier 79.42%
+#     snapshot), after fixing a real, confirmed bug: this package's own
+#     vitest.config.ts uses a '@/core' path alias reaching into the
+#     sibling packages/core/src, but Stryker's default sandboxing only
+#     copies this package's own directory into its temp sandbox — fixed
+#     via an explicit `files` option in packages/react/stryker.conf.json
+#     adding that sibling path (see that config's own
+#     '_comment_resolved_limitation' for the full account).
+#   - vue: 82.08% overall mutation score (up from an earlier 65.53%
+#     snapshot), real kill/survive/timeout numbers across every
+#     composable. The same '@/core'-reaching-outside-the-sandbox problem
+#     applied here too, but needed a different fix (React's own
+#     `files`-option workaround doesn't generalize) — Stryker is invoked
+#     from the MONOREPO ROOT instead (see packages/vue/package.json's own
+#     `test:mutation` script), which surfaced three further follow-on
+#     issues along the way. See packages/vue/docs/STRYKER.md's own "Why
+#     the monorepo root" section for the full account of all four, and
+#     packages/vue/stryker.conf.json's own '_comment_known_limitation'
+#     for the short version.
+#   - core: 85.71% overall mutation score. The simplest setup of the
+#     four: this package's own '@/core' alias is self-referential
+#     (resolves to its own src/, not a sibling package), so it never had
+#     the cross-package sandboxing problem the other three needed
+#     workarounds for. See packages/core/docs/STRYKER-KNOWN-ISSUES.md for
+#     a documented, unresolved case of specific mutants surviving despite
+#     100%-confirmed real test coverage — not yet root-caused, don't
+#     assume more tests alone will fix it if picking this up again.
+#   - angular: 71.47% overall mutation score, confirmed via a real run
+#     completing cleanly with zero dry-run failures — this was the last
+#     of the four to get here. Getting this far needed two real fixes,
+#     both now confirmed (not just reasoned through): (1) an explicit
+#     `testEnvironment: 'jsdom'` in jest.config.ts, since
+#     @stryker-mutator/jest-runner's own sandbox resolved
+#     jest-preset-angular's implicit default differently than plain
+#     `jest` does, previously surfacing as 'ReferenceError: document is
+#     not defined' plus an Angular DI circular-dependency cascade; (2) a
+#     genuine source bug this then surfaced — grid-layout.component.ts's
+#     own `hasInitializedUndoTracking` flag, guarding against a false
+#     '0 -> N items' transition on first population being misread as a
+#     user-driven undo-worthy change. See packages/angular/stryker.conf.json's
+#     own '_comment_resolved_limitation' for the full account of both.
+#     Lowest of the four scores — cross-grid-registry.ts (46.88%) and
+#     grid-layout.component.ts (66.73%, but by far the largest file) are
+#     the two biggest remaining opportunities, neither touched yet.
 on:
   schedule:
     - cron: '0 3 * * 1' # every Monday at 03:00 UTC
   workflow_dispatch:
 
 jobs:
+  mutation-test-react:
+    name: Stryker mutation testing (React)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Stryker
+        run: pnpm --filter @keystone-dashboard-layout/react run test:mutation
+
+      - name: Upload mutation report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report-react
+          path: packages/react/reports/mutation/
+          retention-days: 30
+
   mutation-test-vue:
     name: Stryker mutation testing (Vue)
     runs-on: ubuntu-latest
@@ -35,6 +110,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # This package's own `test:mutation` script itself `cd`s to the
+      # monorepo root before invoking Stryker (see the top-of-file comment
+      # above, and packages/vue/docs/STRYKER.md) — `pnpm --filter` here
+      # only sets the initial working directory the script starts from,
+      # matching how mutation-test-react above invokes its own script.
       - name: Run Stryker
         run: pnpm --filter @keystone-dashboard-layout/vue run test:mutation
 
@@ -42,6 +122,72 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: mutation-report
+          name: mutation-report-vue
           path: packages/vue/reports/mutation/
+          retention-days: 30
+
+  mutation-test-core:
+    name: Stryker mutation testing (Core)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Stryker
+        run: pnpm --filter @keystone-dashboard-layout/core run test:mutation
+
+      - name: Upload mutation report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report-core
+          path: packages/core/reports/mutation/
+          retention-days: 30
+
+  mutation-test-angular:
+    name: Stryker mutation testing (Angular)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Stryker
+        run: pnpm --filter @keystone-dashboard-layout/angular run test:mutation
+
+      - name: Upload mutation report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report-angular
+          path: packages/angular/reports/mutation/
           retention-days: 30

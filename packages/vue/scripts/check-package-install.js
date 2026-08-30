@@ -77,12 +77,31 @@ let tarballName;
 
 try {
   log('Packing tarball...');
-  // npm's pack filename is deterministic (name@version, scoped '@'/'/'
-  // replaced with '-') — computing it directly is far more robust than
-  // parsing `npm pack`'s stdout, which mixes in `npm notice` verbosity
-  // and (despite --ignore-scripts not suppressing it in every npm
-  // version) the `prepare` script's own output.
-  execSync('npm pack --silent --ignore-scripts', { cwd: ROOT, stdio: 'ignore' });
+  // Deliberately `pnpm pack`, not `npm pack` — a real, confirmed bug
+  // found via a live run, not a stylistic preference: this package's own
+  // `dependencies` includes `"@keystone-dashboard-layout/core":
+  // "workspace:*"`, a pnpm-specific protocol plain `npm` has no concept
+  // of at all. `npm pack` copies that literal string into the tarball's
+  // own package.json unchanged; a consumer's later `npm install` of that
+  // tarball then fails outright with `EUNSUPPORTEDPROTOCOL: Unsupported
+  // URL Type "workspace:"`, since npm doesn't know how to resolve it —
+  // confirming that a plain `npm pack` here would let this same, real
+  // publishing bug slip through undetected. `pnpm pack` performs the
+  // same workspace-protocol-to-real-version rewrite `pnpm publish` does
+  // before packing, so this tarball's own package.json ends up with the
+  // same, real, resolvable version a genuine release would — exactly
+  // what this script exists to verify. The following `npm install` step
+  // deliberately stays plain `npm`, not `pnpm` — simulating what an
+  // actual downstream consumer using npm (not pnpm) would experience.
+  execSync('pnpm pack', { cwd: ROOT });
+  // Known, expected limitation until @keystone-dashboard-layout/core's
+  // own first real npm release: the `npm install` below now correctly
+  // resolves the rewritten "workspace:*" -> a real version number (e.g.
+  // "0.1.0"), confirmed via a live run — but npm then tries to fetch
+  // that exact version of `core` from the real npm registry, which
+  // 404s until `core` has actually been published there at least once.
+  // Not a bug in this script; nothing to fix here until that first
+  // publish happens.
   tarballName = `${pkg.name.replace(/^@/, '').replace(/\//g, '-')}-${pkg.version}.tgz`;
   if (!existsSync(path.join(ROOT, tarballName))) {
     fail(`Expected tarball not found after \`npm pack\`: ${tarballName}`);
@@ -96,10 +115,14 @@ try {
   copyFileSync(tarballPath, scratchTarball);
 
   execSync('npm init -y', { cwd: scratchDir, stdio: 'ignore' });
-  execSync(`npm install ${JSON.stringify(scratchTarball)} vue@^3`, {
-    cwd: scratchDir,
-    stdio: 'ignore',
-  });
+  try {
+    execSync(`npm install ${JSON.stringify(scratchTarball)} vue@^3`, {
+      cwd: scratchDir,
+      encoding: 'utf-8',
+    });
+  } catch (err) {
+    fail(`npm install into the scratch directory failed:\n${err.stdout || ''}\n${err.stderr || ''}`);
+  }
 
   const installedRoot = path.join(scratchDir, 'node_modules', pkg.name);
   if (!existsSync(installedRoot)) {

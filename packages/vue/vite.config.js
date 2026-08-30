@@ -14,12 +14,12 @@ export default defineConfig({
     emptyOutDir: true,
     lib: {
       entry: path.resolve(__dirname, `src/components/index.ts`),
-      fileName: format => `vue-ts-responsive-grid-layout.${format}.js`,
+      fileName: format => `keystone-dashboard-layout-vue.${format}.js`,
       formats: [
         `es`,
         `umd`,
       ],
-      name: `vue-ts-responsive-grid-layout`,
+      name: `KeystoneDashboardLayoutVue`,
     },
     outDir: `./dist`,
     rollupOptions: {

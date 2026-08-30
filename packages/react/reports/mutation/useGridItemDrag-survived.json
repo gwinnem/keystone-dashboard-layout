@@ -1,0 +1,332 @@
+[
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 234
+      },
+      "start": {
+        "column": 13,
+        "line": 232
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "NoCoverage"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 10,
+        "line": 157
+      },
+      "start": {
+        "column": 24,
+        "line": 155
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 72,
+        "line": 156
+      },
+      "start": {
+        "column": 30,
+        "line": 156
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "(clientRect.right - parentRect.right) / -1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 66,
+        "line": 156
+      },
+      "start": {
+        "column": 31,
+        "line": 156
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "clientRect.right + parentRect.right",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 72,
+        "line": 156
+      },
+      "start": {
+        "column": 70,
+        "line": 156
+      }
+    },
+    "mutatorName": "UnaryOperator",
+    "replacement": "+1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 39,
+        "line": 165
+      },
+      "start": {
+        "column": 11,
+        "line": 165
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "autoScrollRef.current.start",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 66,
+        "line": 134
+      },
+      "start": {
+        "column": 45,
+        "line": 134
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "rowHeight - margin[1]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 66,
+        "line": 190
+      },
+      "start": {
+        "column": 18,
+        "line": 190
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "Number(draggingRef.current?.left) + scaledDeltaX",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 22,
+        "line": 155
+      },
+      "start": {
+        "column": 12,
+        "line": 155
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 50,
+        "line": 190
+      },
+      "start": {
+        "column": 25,
+        "line": 190
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "draggingRef.current.left",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 10,
+        "line": 159
+      },
+      "start": {
+        "column": 16,
+        "line": 157
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 63,
+        "line": 158
+      },
+      "start": {
+        "column": 30,
+        "line": 158
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "clientRect.left + parentRect.left",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 40,
+        "line": 209
+      },
+      "start": {
+        "column": 11,
+        "line": 209
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "autoScrollRef.current.update",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 88,
+        "line": 201
+      },
+      "start": {
+        "column": 33,
+        "line": 201
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "containerWidth + calcGridItemWH(w, colWidth, margin[0])",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 8,
+        "line": 215
+      },
+      "start": {
+        "column": 7,
+        "line": 213
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "default:",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 8,
+        "line": 215
+      },
+      "start": {
+        "column": 16,
+        "line": 213
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 177
+      },
+      "start": {
+        "column": 23,
+        "line": 177
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 36,
+        "line": 178
+      },
+      "start": {
+        "column": 9,
+        "line": 178
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "autoScrollRef.current.stop",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 22,
+        "line": 189
+      },
+      "start": {
+        "column": 12,
+        "line": 189
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 63,
+        "line": 187
+      },
+      "start": {
+        "column": 30,
+        "line": 187
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "coreEvent.deltaY * transformScale",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 50,
+        "line": 192
+      },
+      "start": {
+        "column": 25,
+        "line": 192
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "draggingRef.current.left",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 50,
+        "line": 194
+      },
+      "start": {
+        "column": 26,
+        "line": 194
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "draggingRef.current.top",
+    "status": "Survived"
+  }
+]

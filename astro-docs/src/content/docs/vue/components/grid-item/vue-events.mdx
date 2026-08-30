@@ -20,6 +20,13 @@ Bind these with `@container-resized`, `@item-clicked`, `@item-move`,
 respectively — see [Events](/vue/examples/events/) for a live demo, and
 [`EGridItemEvent`](/vue/api/enums/grid-item-events/) for the backing enum.
 
+:::note[Payloads aren't compile-time checked]
+The payload shapes in the table above are accurate for what's actually
+emitted, but `GridItem`'s own emit declaration doesn't statically type
+the payload arguments — only the event *names* are checked by
+TypeScript, not your handler's parameter types.
+:::
+
 :::caution[Declared but not currently emitted]
 `EGridItemEvent.DRAG` and `DRAGGED` exist on the enum for backwards
 compatibility, but `GridItem` emits `item-move`/`item-moved` instead —

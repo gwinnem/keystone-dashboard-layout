@@ -1,0 +1,512 @@
+[
+  {
+    "location": {
+      "end": {
+        "column": 39,
+        "line": 20
+      },
+      "start": {
+        "column": 6,
+        "line": 20
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 90,
+        "line": 20
+      },
+      "start": {
+        "column": 66,
+        "line": 20
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 21,
+        "line": 24
+      },
+      "start": {
+        "column": 6,
+        "line": 24
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "bounds.cols <= 1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 47,
+        "line": 28
+      },
+      "start": {
+        "column": 6,
+        "line": 28
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "layoutItem.x + layoutItem.w >= bounds.cols",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 16,
+        "line": 65
+      },
+      "start": {
+        "column": 6,
+        "line": 65
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 4,
+        "line": 67
+      },
+      "start": {
+        "column": 18,
+        "line": 65
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 19,
+        "line": 79
+      },
+      "start": {
+        "column": 11,
+        "line": 79
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 19,
+        "line": 80
+      },
+      "start": {
+        "column": 11,
+        "line": 80
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "oldX >= x",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 19,
+        "line": 80
+      },
+      "start": {
+        "column": 11,
+        "line": 80
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 82
+      },
+      "start": {
+        "column": 9,
+        "line": 82
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 82
+      },
+      "start": {
+        "column": 9,
+        "line": 82
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 82
+      },
+      "start": {
+        "column": 9,
+        "line": 82
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "oldY <= y",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 82
+      },
+      "start": {
+        "column": 9,
+        "line": 82
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "oldY >= y",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 15,
+        "line": 95
+      },
+      "start": {
+        "column": 6,
+        "line": 95
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 15,
+        "line": 95
+      },
+      "start": {
+        "column": 6,
+        "line": 95
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 4,
+        "line": 97
+      },
+      "start": {
+        "column": 17,
+        "line": 95
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 30,
+        "line": 96
+      },
+      "start": {
+        "column": 14,
+        "line": 96
+      }
+    },
+    "mutatorName": "MethodExpression",
+    "replacement": "sorted",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 64,
+        "line": 123
+      },
+      "start": {
+        "column": 8,
+        "line": 123
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "l.y > collision.y || l.y - collision.y > collision.h / 4",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 25,
+        "line": 123
+      },
+      "start": {
+        "column": 8,
+        "line": 123
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 25,
+        "line": 123
+      },
+      "start": {
+        "column": 8,
+        "line": 123
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "l.y >= collision.y",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 64,
+        "line": 123
+      },
+      "start": {
+        "column": 29,
+        "line": 123
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 46,
+        "line": 123
+      },
+      "start": {
+        "column": 29,
+        "line": 123
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "l.y + collision.y",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 64,
+        "line": 123
+      },
+      "start": {
+        "column": 29,
+        "line": 123
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "l.y - collision.y >= collision.h / 4",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 101,
+        "line": 127
+      },
+      "start": {
+        "column": 29,
+        "line": 127
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "(Object.keys(moving) as EMovingDirections[]).filter(k => moving[k])[0]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 14,
+        "line": 182
+      },
+      "start": {
+        "column": 10,
+        "line": 182
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 18,
+        "line": 178
+      },
+      "start": {
+        "column": 6,
+        "line": 178
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 78,
+        "line": 200
+      },
+      "start": {
+        "column": 31,
+        "line": 200
+      }
+    },
+    "mutatorName": "ArrayDeclaration",
+    "replacement": "[]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 61,
+        "line": 200
+      },
+      "start": {
+        "column": 32,
+        "line": 200
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "itemToMove.x - collidesWith.w",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 75,
+        "line": 203
+      },
+      "start": {
+        "column": 46,
+        "line": 203
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "itemToMove.y + collidesWith.h",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 96,
+        "line": 208
+      },
+      "start": {
+        "column": 7,
+        "line": 208
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 49,
+        "line": 208
+      },
+      "start": {
+        "column": 7,
+        "line": 208
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 76,
+        "line": 203
+      },
+      "start": {
+        "column": 31,
+        "line": 203
+      }
+    },
+    "mutatorName": "ArrayDeclaration",
+    "replacement": "[]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 49,
+        "line": 208
+      },
+      "start": {
+        "column": 7,
+        "line": 208
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "movingDirection !== EMovingDirections.LEFT",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 96,
+        "line": 212
+      },
+      "start": {
+        "column": 65,
+        "line": 212
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  }
+]

@@ -145,4 +145,47 @@ describe('validateLayoutItemRequiredKeys', () => {
     };
     expect(validateLayoutItemRequiredKeys(keys)).toBe(false);
   });
+
+  it('Should return true when x and y are exactly at their own minimum (0), not just above it', () => {
+    // The existing "all valid" test above already exercises h/w at
+    // exactly their own minimum (1), but never x/y at theirs (0) —
+    // isKeyNumericAndMinValidValue's own "result === minValue" branch
+    // (separate from "result > minValue") was never isolated for x/y
+    // specifically.
+    const keys = {
+      i: 1,
+      x: 0,
+      y: 0,
+      h: 1,
+      w: 1,
+    };
+    expect(validateLayoutItemRequiredKeys(keys)).toBe(true);
+  });
+
+  // isLayoutCorrectSize chains Object.hasOwn(...) && for all five keys —
+  // only 'y' missing was tested above ("not all required keys are
+  // passed"), which can't distinguish removing any of the OTHER four
+  // checks (a mutant dropping the 'i'/'h'/'w'/'x' check specifically
+  // would still correctly fail via the untouched 'y' check in that one
+  // test, masking it). Each of the four below is missing exactly one
+  // different key.
+  it('Should return false when i is missing (h/w/x/y all present)', () => {
+    const keys = { h: 1, w: 1, x: 1, y: 1 };
+    expect(validateLayoutItemRequiredKeys(keys)).toBe(false);
+  });
+
+  it('Should return false when h is missing (i/w/x/y all present)', () => {
+    const keys = { i: 1, w: 1, x: 1, y: 1 };
+    expect(validateLayoutItemRequiredKeys(keys)).toBe(false);
+  });
+
+  it('Should return false when w is missing (i/h/x/y all present)', () => {
+    const keys = { i: 1, h: 1, x: 1, y: 1 };
+    expect(validateLayoutItemRequiredKeys(keys)).toBe(false);
+  });
+
+  it('Should return false when x is missing (i/h/w/y all present)', () => {
+    const keys = { i: 1, h: 1, w: 1, y: 1 };
+    expect(validateLayoutItemRequiredKeys(keys)).toBe(false);
+  });
 });

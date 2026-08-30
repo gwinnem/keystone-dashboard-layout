@@ -29,9 +29,36 @@
     i: -1,
   });
 
-  const emit = defineEmits<{
-    (e: EGridItemEvent.REMOVE_ITEM, value: string | number): void;
-  }>();
+  // Runtime-array form, not the generic/type-argument form this used to
+  // use — a deliberate, confirmed-necessary workaround, not a stylistic
+  // choice: `defineEmits<{ (e: EGridItemEvent.REMOVE_ITEM, ...): void }>()`
+  // requires `@vue/compiler-sfc`'s own compile-time type resolution to
+  // read `EGridItemEvent`'s actual definition from its import source
+  // (`@/core/griditem/enums/EGridItemEvents`) — a completely separate
+  // resolution path from Vite's own bundler-level `resolve.alias` (which
+  // already works correctly everywhere else in this file/package, and
+  // for every plain runtime import). That separate path was confirmed,
+  // via a real, reproduced failure (not assumed), to break specifically
+  // when this package is copied into a temp sandbox — as Stryker's own
+  // mutation-testing tooling does — with '[@vue/compiler-sfc] Failed to
+  // resolve import source "@/core/griditem/enums/EGridItemEvents"', even
+  // though the exact same file, same alias, same coverage flags, run
+  // correctly from this package's own real directory (confirmed via a
+  // direct, side-by-side `npx vitest run` comparison). Root cause not
+  // fully pinned down — several config-level fixes (`resolve.
+  // preserveSymlinks`, an explicit `vitest.config.js` `root`, excluding
+  // the monorepo's own root tsconfig.json from the sandbox) were tried
+  // and ruled out along the way, each fixing a real but separate issue,
+  // none touching this one. This runtime-array form needs no compile-
+  // time type resolution at all (the array itself is the runtime
+  // validation Vue needs), sidestepping the problem entirely rather than
+  // working around it. Trade-off, accepted deliberately: TypeScript now
+  // only checks the emitted *event name* against this array, not the
+  // payload's own shape (previously, `emit(EGridItemEvent.REMOVE_ITEM,
+  // props.i)`'s second argument was checked against `string | number`)
+  // — a real loss of compile-time safety on the call site below, not a
+  // behavioral change at runtime.
+  const emit = defineEmits([EGridItemEvent.REMOVE_ITEM]);
 
   /** Emits `EGridItemEvent.REMOVE_ITEM` with the configured `i`, unless `i` is the default `-1` sentinel. */
   const removeItem = (): void => {
@@ -56,8 +83,8 @@
   position: relative;
   width: $size;
 
-  &:before,
-  &:after {
+  &::before,
+  &::after {
     background: $color;
     border-radius: $thickness;
     content: '';
@@ -68,11 +95,11 @@
     top: calc(($size - $thickness) / 2);
   }
 
-  &:before {
+  &::before {
     transform: rotate(45deg);
   }
 
-  &:after {
+  &::after {
     transform: rotate(-45deg);
   }
 

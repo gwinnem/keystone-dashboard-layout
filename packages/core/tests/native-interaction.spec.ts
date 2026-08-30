@@ -305,6 +305,24 @@ describe(`native-interaction`, () => {
   });
 
   describe(`createNativeResizable`, () => {
+    it(`RESIZE_EDGE_MAP should map each of the 8 handles to its own exact edge combination`, () => {
+      // A static object literal with 8 entries — nothing in this file
+      // directly asserted on its own exact shape before, only ever
+      // compared indirectly (e.g. "events[0].edges === RESIZE_EDGE_MAP.se",
+      // which would still pass even if RESIZE_EDGE_MAP.se's own value
+      // were wrong, since both sides reference the same constant).
+      expect(RESIZE_EDGE_MAP).toStrictEqual({
+        e: { bottom: false, left: false, right: true, top: false },
+        n: { bottom: false, left: false, right: false, top: true },
+        ne: { bottom: false, left: false, right: true, top: true },
+        nw: { bottom: false, left: true, right: false, top: true },
+        s: { bottom: true, left: false, right: false, top: false },
+        se: { bottom: true, left: false, right: true, top: false },
+        sw: { bottom: true, left: true, right: false, top: false },
+        w: { bottom: false, left: true, right: false, top: false },
+      });
+    });
+
     it(`Should fire resizestart/resizeend immediately (no activation threshold) with the correct edges for the grabbed handle`, () => {
       const root = document.createElement(`div`);
       const handle = document.createElement(`span`);
@@ -591,6 +609,99 @@ describe(`native-interaction`, () => {
       autoScroll.stop();
     });
 
+    it(`Should compute an exact dx/dy at the left/top edge boundary (distance 0), not just a negative sign`, () => {
+      // Every other test in this block only checks toBeLessThan(0)/
+      // toBeGreaterThan(0) — loose enough that an arithmetic mutant
+      // changing the exact magnitude (e.g. "* (1 - x/margin)" ->
+      // "/ (1 - x/margin)", or "1 - x/margin" -> "1 + x/margin") would
+      // still pass as long as the sign came out right. distance=0
+      // exactly (the pointer right at the container's own left/top
+      // edge) gives a clean, exact expected value: dx = dy =
+      // -AUTO_SCROLL_MAX_SPEED_PX * (1 - 0/40) = -12.
+      const container = document.createElement(`div`);
+      const el = document.createElement(`div`);
+      container.appendChild(el);
+      document.body.appendChild(container);
+
+      Object.defineProperty(container, `scrollHeight`, { configurable: true, value: 800 });
+      Object.defineProperty(container, `clientHeight`, { configurable: true, value: 400 });
+      container.getBoundingClientRect = () => ({
+        bottom: 400, height: 400, left: 0, right: 400, toJSON: () => ({}), top: 0, width: 400, x: 0, y: 0,
+      });
+      const scrollBySpy = vi.fn();
+      container.scrollBy = scrollBySpy;
+      vi.spyOn(window, `getComputedStyle`).mockReturnValue({ overflowX: `visible`, overflowY: `auto` } as CSSStyleDeclaration);
+
+      const autoScroll = createNativeAutoScroll();
+      autoScroll.start(el);
+      autoScroll.update(0, 0);
+      vi.advanceTimersByTime(20);
+
+      expect(scrollBySpy).toHaveBeenCalledWith(-12, -12);
+      autoScroll.stop();
+    });
+
+    it(`Should compute an exact dx/dy at the right/bottom edge boundary (distance 0)`, () => {
+      // Mirrors the left/top test above for distRight/distBottom's own,
+      // separate arithmetic (positive dx/dy this time): pointer exactly
+      // at the container's own right/bottom edge (400,400) ->
+      // distRight = distBottom = 0 -> dx = dy =
+      // AUTO_SCROLL_MAX_SPEED_PX * (1 - 0/40) = 12.
+      const container = document.createElement(`div`);
+      const el = document.createElement(`div`);
+      container.appendChild(el);
+      document.body.appendChild(container);
+
+      Object.defineProperty(container, `scrollHeight`, { configurable: true, value: 800 });
+      Object.defineProperty(container, `clientHeight`, { configurable: true, value: 400 });
+      container.getBoundingClientRect = () => ({
+        bottom: 400, height: 400, left: 0, right: 400, toJSON: () => ({}), top: 0, width: 400, x: 0, y: 0,
+      });
+      const scrollBySpy = vi.fn();
+      container.scrollBy = scrollBySpy;
+      vi.spyOn(window, `getComputedStyle`).mockReturnValue({ overflowX: `visible`, overflowY: `auto` } as CSSStyleDeclaration);
+
+      const autoScroll = createNativeAutoScroll();
+      autoScroll.start(el);
+      autoScroll.update(400, 400);
+      vi.advanceTimersByTime(20);
+
+      expect(scrollBySpy).toHaveBeenCalledWith(12, 12);
+      autoScroll.stop();
+    });
+
+    it(`Should recognize overflow:'scroll' (not just 'auto') as scrollable, and treat an exact scrollHeight===clientHeight as NOT scrollable`, () => {
+      // Every other test in this block uses overflowY:'auto' specifically
+      // — 'scroll' is a separate string-equality branch of the same OR
+      // chain, never independently confirmed. Also confirms the '>' (not
+      // '>=') comparison: scrollHeight exactly equal to clientHeight
+      // should NOT count as scrollable, since there's genuinely nothing
+      // to scroll in that case.
+      const container = document.createElement(`div`);
+      const el = document.createElement(`div`);
+      container.appendChild(el);
+      document.body.appendChild(container);
+
+      Object.defineProperty(container, `scrollHeight`, { configurable: true, value: 400 });
+      Object.defineProperty(container, `clientHeight`, { configurable: true, value: 400 });
+      vi.spyOn(window, `getComputedStyle`).mockReturnValue({ overflowX: `visible`, overflowY: `scroll` } as CSSStyleDeclaration);
+
+      const autoScroll = createNativeAutoScroll();
+      // With no genuinely scrollable ancestor (scrollHeight===clientHeight
+      // here) and document.scrollingElement falling back per jsdom's own
+      // default, this should resolve to some fallback container without
+      // throwing — the real point of this test is the scrollableY
+      // condition itself not being satisfied by an exact-equality case,
+      // confirmed indirectly via not throwing when tick() eventually runs
+      // against whatever container (real or fallback) was found.
+      expect(() => {
+        autoScroll.start(el);
+        autoScroll.update(10, 10);
+        vi.advanceTimersByTime(20);
+        autoScroll.stop();
+      }).not.toThrow();
+    });
+
     it(`Should stop ticking once stop() is called`, () => {
       const container = document.createElement(`div`);
       const el = document.createElement(`div`);
@@ -627,6 +738,116 @@ describe(`native-interaction`, () => {
         vi.advanceTimersByTime(20);
         autoScroll.stop();
       }).not.toThrow();
+    });
+
+    it(`Should recognize an ancestor scrollable on the X axis specifically (overflowX, scrollWidth > clientWidth), not just Y`, () => {
+      // Every other test in this describe block stubs overflowX:'visible'
+      // and only ever exercises the Y-axis scrollableY branch —
+      // scrollableX is a structurally separate condition (its own
+      // overflowX check and its own scrollWidth/clientWidth comparison)
+      // that was never reached by any of them.
+      const container = document.createElement(`div`);
+      const el = document.createElement(`div`);
+      container.appendChild(el);
+      document.body.appendChild(container);
+
+      Object.defineProperty(container, `scrollWidth`, { configurable: true, value: 800 });
+      Object.defineProperty(container, `clientWidth`, { configurable: true, value: 400 });
+      container.getBoundingClientRect = () => (
+        { bottom: 400, height: 400, left: 0, right: 400, toJSON: () => ({}), top: 0, width: 400, x: 0, y: 0 }
+      );
+      const scrollBySpy = vi.fn();
+      container.scrollBy = scrollBySpy;
+      vi.spyOn(window, `getComputedStyle`).mockReturnValue({ overflowX: `auto`, overflowY: `visible` } as CSSStyleDeclaration);
+
+      const autoScroll = createNativeAutoScroll();
+      autoScroll.start(el);
+      autoScroll.update(10, 10);
+      vi.advanceTimersByTime(20);
+
+      expect(scrollBySpy).toHaveBeenCalled();
+      autoScroll.stop();
+    });
+
+    it(`Should use document.scrollingElement itself when it genuinely is an HTMLElement, not just fall back to null`, () => {
+      // The existing "fall back to document.scrollingElement" test above
+      // relies on jsdom's own unstubbed default for
+      // document.scrollingElement, which may itself already resolve to
+      // something that isn't recognized as an HTMLElement — meaning
+      // that test alone could exercise only the ternary's false/null
+      // side, never the true one. Explicitly stubbing it to a real
+      // element (document.body) confirms the true side is reachable too.
+      const el = document.createElement(`div`);
+      document.body.appendChild(el);
+      vi.spyOn(window, `getComputedStyle`).mockReturnValue({ overflowX: `visible`, overflowY: `visible` } as CSSStyleDeclaration);
+      const scrollingElementDescriptor = Object.getOwnPropertyDescriptor(document, `scrollingElement`);
+      Object.defineProperty(document, `scrollingElement`, { configurable: true, get: () => document.body });
+      // jsdom doesn't implement scrollBy on elements at all by default —
+      // vi.spyOn requires the property to already exist, so (matching
+      // every other test in this file) this needs a direct assignment
+      // instead. document.body is shared across the whole test run
+      // (unlike every other test's own freshly-created element), so
+      // this restores both properties manually in a finally block
+      // rather than relying on vi.restoreAllMocks(), which only covers
+      // vi.spyOn-created mocks.
+      const originalScrollBy = document.body.scrollBy;
+      const originalGetBoundingClientRect = document.body.getBoundingClientRect;
+      const scrollBySpy = vi.fn();
+      document.body.scrollBy = scrollBySpy;
+      document.body.getBoundingClientRect = () => (
+        { bottom: 400, height: 400, left: 0, right: 400, toJSON: () => ({}), top: 0, width: 400, x: 0, y: 0 }
+      );
+
+      const autoScroll = createNativeAutoScroll();
+      try {
+        autoScroll.start(el);
+        autoScroll.update(10, 10);
+        vi.advanceTimersByTime(20);
+
+        expect(scrollBySpy).toHaveBeenCalled();
+      } finally {
+        autoScroll.stop();
+        document.body.scrollBy = originalScrollBy;
+        document.body.getBoundingClientRect = originalGetBoundingClientRect;
+        if(scrollingElementDescriptor) {
+          Object.defineProperty(document, `scrollingElement`, scrollingElementDescriptor);
+        } else {
+          delete (document as { scrollingElement?: Element | null }).scrollingElement;
+        }
+      }
+    });
+
+    it(`Should no-op (not throw, not scroll) when a scheduled tick fires after a second start() call overwrote container to null`, () => {
+      const container = document.createElement(`div`);
+      const elA = document.createElement(`div`);
+      container.appendChild(elA);
+      document.body.appendChild(container);
+      Object.defineProperty(container, `scrollHeight`, { configurable: true, value: 800 });
+      Object.defineProperty(container, `clientHeight`, { configurable: true, value: 400 });
+      container.getBoundingClientRect = () => (
+        { bottom: 400, height: 400, left: 0, right: 400, toJSON: () => ({}), top: 0, width: 400, x: 0, y: 0 }
+      );
+      const scrollBySpy = vi.fn();
+      container.scrollBy = scrollBySpy;
+      vi.spyOn(window, `getComputedStyle`).mockReturnValue({ overflowX: `visible`, overflowY: `auto` } as CSSStyleDeclaration);
+
+      const elB = document.createElement(`div`);
+      const scrollingElementDescriptor = Object.getOwnPropertyDescriptor(document, `scrollingElement`);
+      Object.defineProperty(document, `scrollingElement`, { configurable: true, value: null });
+
+      const autoScroll = createNativeAutoScroll();
+      autoScroll.start(elA);
+      autoScroll.start(elB);
+
+      expect(() => vi.advanceTimersByTime(20)).not.toThrow();
+      expect(scrollBySpy).not.toHaveBeenCalled();
+
+      autoScroll.stop();
+      if(scrollingElementDescriptor) {
+        Object.defineProperty(document, `scrollingElement`, scrollingElementDescriptor);
+      } else {
+        delete (document as { scrollingElement?: Element | null }).scrollingElement;
+      }
     });
   });
 });

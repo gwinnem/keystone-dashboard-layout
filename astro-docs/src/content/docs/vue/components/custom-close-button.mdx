@@ -35,6 +35,13 @@ function removeItem(id: string | number): void {
 |---|---|---|
 | `remove-grid-item` | `(i: string \| number)` | The button was clicked with a real `i` set (not the `-1` default). |
 
+:::note[Payload type isn't compile-time checked]
+The payload shown above is accurate for what's actually emitted, but
+this component's own emit declaration doesn't statically type the
+payload argument — only the event *name* is checked by TypeScript, not
+your handler's parameter type.
+:::
+
 ## Why you'd use this instead of `showCloseButton`
 
 `showCloseButton` is the right choice for the common case — the built-in

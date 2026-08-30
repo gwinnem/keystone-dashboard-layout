@@ -1,0 +1,227 @@
+[
+  {
+    "location": {
+      "end": {
+        "column": 25,
+        "line": 77
+      },
+      "start": {
+        "column": 6,
+        "line": 77
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 4,
+        "line": 79
+      },
+      "start": {
+        "column": 27,
+        "line": 77
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 22,
+        "line": 16
+      },
+      "start": {
+        "column": 18,
+        "line": 16
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 4,
+        "line": 34
+      },
+      "start": {
+        "column": 26,
+        "line": 28
+      }
+    },
+    "mutatorName": "ObjectLiteral",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 20,
+        "line": 18
+      },
+      "start": {
+        "column": 15,
+        "line": 18
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 23
+      },
+      "start": {
+        "column": 12,
+        "line": 23
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 4,
+        "line": 40
+      },
+      "start": {
+        "column": 29,
+        "line": 35
+      }
+    },
+    "mutatorName": "ObjectLiteral",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 20,
+        "line": 46
+      },
+      "start": {
+        "column": 15,
+        "line": 46
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 13,
+        "line": 21
+      },
+      "start": {
+        "column": 11,
+        "line": 21
+      }
+    },
+    "mutatorName": "UnaryOperator",
+    "replacement": "+1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 11,
+        "line": 33
+      },
+      "start": {
+        "column": 8,
+        "line": 33
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "\"\"",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 23,
+        "line": 45
+      },
+      "start": {
+        "column": 18,
+        "line": 45
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 10,
+        "line": 15
+      },
+      "start": {
+        "column": 8,
+        "line": 15
+      }
+    },
+    "mutatorName": "UnaryOperator",
+    "replacement": "+1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 23,
+        "line": 17
+      },
+      "start": {
+        "column": 18,
+        "line": 17
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 10,
+        "line": 58
+      },
+      "start": {
+        "column": 8,
+        "line": 58
+      }
+    },
+    "mutatorName": "UnaryOperator",
+    "replacement": "+1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 16,
+        "line": 51
+      },
+      "start": {
+        "column": 12,
+        "line": 51
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "false",
+    "status": "Survived"
+  }
+]

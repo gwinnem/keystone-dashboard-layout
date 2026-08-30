@@ -54,6 +54,28 @@ describe(`GridEventBusService`, () => {
     });
   });
 
+  it(`Should default gridDefaults$ to the documented initial IGridDefaults values`, done => {
+    // Never independently verified before — every other default value
+    // test above covers its own subject, but gridDefaults$'s own
+    // initial object (5 booleans plus borderRadiusPx/maxRows) had no
+    // test at all confirming its specific field values.
+    service.gridDefaults$.subscribe(value => {
+      expect(value).toEqual({
+        ariaLabels: {},
+        borderRadiusPx: 10,
+        enableEditMode: true,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
+      done();
+    });
+  });
+
   it(`Should emit a new value on containerWidth$ after setContainerWidth`, () => {
     const seen: number[] = [];
     service.containerWidth$.subscribe(value => seen.push(value));

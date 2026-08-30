@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>10/10</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>10/10</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -109,37 +109,37 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * Events emitted by the `GridItem` component. Re-exported from the
@@ -148,28 +148,28 @@
  * and compare against these at runtime, e.g.
  * `if (eventName === EGridItemEvent.RESIZED) { ... }`.
  */
-export enum EGridItemEvent {
+export <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >enum E</span>GridItemEvent {</span>
   /** The item's rendered pixel size changed; fired after `createStyle()` recomputes `styleObj`. */
-  CONTAINER_RESIZED = `container-resized`,
+<span class="cstat-no" title="statement not covered" >  CONTAINER_RESIZED = `container-resized`,</span>
   /**
    * Declared in `defineEmits` but not currently emitted anywhere in the
    * component — `MOVE`/`MOVED` are the events that actually fire during a
    * drag. Kept for backwards compatibility with existing type usage;
    * don't rely on this one firing.
    */
-  DRAG = `drag`,
+<span class="cstat-no" title="statement not covered" >  DRAG = `drag`,</span>
   /** See `DRAG` — declared but not currently emitted; `MOVED` fires instead. */
-  DRAGGED = `dragged`,
+<span class="cstat-no" title="statement not covered" >  DRAGGED = `dragged`,</span>
   /** Fired continuously while a drag is in progress, whenever the grid-unit position changes. */
-  MOVE = `item-move`,
+<span class="cstat-no" title="statement not covered" >  MOVE = `item-move`,</span>
   /** Fired once when a drag completes and the item's position actually changed. */
-  MOVED = `item-moved`,
+<span class="cstat-no" title="statement not covered" >  MOVED = `item-moved`,</span>
   /** Fired when the item's close button is clicked (only rendered when `showCloseButton` and `enableEditMode` are both true). */
-  REMOVE_ITEM = `remove-grid-item`,
+<span class="cstat-no" title="statement not covered" >  REMOVE_ITEM = `remove-grid-item`,</span>
   /** Fired continuously while a resize is in progress, whenever the grid-unit size changes. */
-  RESIZE = `resize`,
+<span class="cstat-no" title="statement not covered" >  RESIZE = `resize`,</span>
   /** Fired once when a resize completes and the item's size actually changed. */
-  RESIZED = `resized`,
+<span class="cstat-no" title="statement not covered" >  RESIZED = `resized`,</span>
   /**
    * Fired on a genuine click/tap on the item — not the trailing click a
    * browser can still dispatch immediately after a drag/resize gesture
@@ -178,7 +178,7 @@ export enum EGridItemEvent {
    * `multiSelect` handling) can check `shiftKey`/`ctrlKey`/`metaKey` for
    * additive-selection gestures. See `multiSelect`/`selectedItems`.
    */
-  ITEM_CLICKED = `item-clicked`,
+<span class="cstat-no" title="statement not covered" >  ITEM_CLICKED = `item-clicked`,</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -187,7 +187,7 @@ export enum EGridItemEvent {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-23T13:00:51.625Z
+                at 2026-08-29T19:15:03.098Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

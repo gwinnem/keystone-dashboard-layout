@@ -95,10 +95,8 @@
   import { findAlignmentGuides, findSnapAdjustment, findSpacingIndicators, IAlignmentGuide, ISpacingIndicator } from '@/core/gridlayout/helpers/alignment-helper';
   import { computeAlignAdjustments, computeDistributeAdjustments, TAlignEdge, TDistributeAxis } from '@/core/gridlayout/helpers/align-distribute-helper';
   import { calcColWidth } from '@/core/griditem/helpers/grid-item-calculate-helper';
-  import { IOutsideItemDropped } from '@/core/gridlayout/interfaces/outside-drop.interfaces';
   import { layoutValidator } from '@/core/validators/layout-validator';
   import { EErrorMessage } from '@/core/common/enums/ErrorMessages';
-  import { ICrossGridDropRejected, ICrossGridItemDropped } from '@/core/gridlayout/interfaces/cross-grid.interfaces';
   import { useCrossGridDrag } from './composables/useCrossGridDrag';
   import { useMultiSelect } from './composables/useMultiSelect';
   import { useOutsideDrop } from './composables/useOutsideDrop';
@@ -269,21 +267,33 @@
 
   provide(`eventBus`, eventBus);
 
-  const emit = defineEmits<{
-    (e: EGridLayoutEvent.BREAKPOINT_CHANGED, newBreakpoint: string, layout: TLayout): void;
-    (e: EGridLayoutEvent.COLUMNS_CHANGED, colNum: number): void;
-    (e: EGridLayoutEvent.CROSS_GRID_DROP_REJECTED, payload: ICrossGridDropRejected): void;
-    (e: EGridLayoutEvent.CROSS_GRID_ITEM_DROPPED, payload: ICrossGridItemDropped): void;
-    (e: EGridLayoutEvent.ITEM_DROPPED_FROM_OUTSIDE, payload: IOutsideItemDropped): void;
-    (e: EGridLayoutEvent.DRAG_END, itemId: string | number): void;
-    (e: EGridLayoutEvent.DRAG_MOVE, itemId: string | number): void;
-    (e: EGridLayoutEvent.DRAG_START, itemId: string | number): void;
-    (e: EGridLayoutEvent.LAYOUT_UPDATE, layout: TLayout): void;
-    (e: EGridLayoutEvent.LAYOUT_UPDATED, layout: TLayout): void;
-    (e: EGridLayoutEvent.LAYOUT_READY, layout: TLayout): void;
-    (e: EGridLayoutEvent.MOVE_BLOCKED_BY_COLLISION, itemId: string | number): void;
-    (e: EGridLayoutEvent.SELECTION_CHANGED, selectedItems: (string | number)[]): void;
-  }>();
+  // Runtime-array form, not the generic/type-argument form this used to
+  // use — see CustomCloseButton.vue's own identical comment for the full
+  // explanation: a confirmed, Stryker-sandbox-specific `@vue/compiler-sfc`
+  // compile-time type-resolution failure for this exact cross-package
+  // `@/core` import (`EGridLayoutEvent`, imported from
+  // `@/core/gridlayout/enums/EGridLayoutEvents`, is the same shape of
+  // problem `EGridItemEvent` was for GridItem.vue/CustomCloseButton.vue),
+  // not a stylistic choice — this runtime-array form needs no such
+  // resolution at all. Trade-off, accepted deliberately: every
+  // `emit(...)` call site elsewhere in this file now only has its event
+  // *name* checked against this array, not its payload argument types,
+  // which the previous type-argument form did check.
+  const emit = defineEmits([
+    EGridLayoutEvent.BREAKPOINT_CHANGED,
+    EGridLayoutEvent.COLUMNS_CHANGED,
+    EGridLayoutEvent.CROSS_GRID_DROP_REJECTED,
+    EGridLayoutEvent.CROSS_GRID_ITEM_DROPPED,
+    EGridLayoutEvent.ITEM_DROPPED_FROM_OUTSIDE,
+    EGridLayoutEvent.DRAG_END,
+    EGridLayoutEvent.DRAG_MOVE,
+    EGridLayoutEvent.DRAG_START,
+    EGridLayoutEvent.LAYOUT_UPDATE,
+    EGridLayoutEvent.LAYOUT_UPDATED,
+    EGridLayoutEvent.LAYOUT_READY,
+    EGridLayoutEvent.MOVE_BLOCKED_BY_COLLISION,
+    EGridLayoutEvent.SELECTION_CHANGED,
+  ]);
 
   /**
    * `heightMode`'s own precedence rule, resolved once here rather than

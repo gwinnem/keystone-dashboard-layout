@@ -65,7 +65,7 @@ cascade). See each row's own note.
 |---|---|---|---|
 | `multiSelect` | `boolean` | `false` | Enables click/Ctrl-click/Shift-click (range) multi-item selection, and group move/resize for the selection. |
 | `selectionChanged` | `EventEmitter<(string \| number)[]>` | — | Emits the full, current selection whenever it changes. |
-| `enableUndoRedo` | `boolean` | `false` | Enables `undo()`/`redo()` (public methods) and the `canUndo`/`canRedo` public fields. Snapshots are taken at drag start, resize start, and before `compactNow()`/`alignSelected()`/`distributeSelected()`. |
+| `enableUndoRedo` | `boolean` | `false` | Enables `undo()`/`redo()` (public methods) and the `canUndo`/`canRedo` public fields. Snapshots are taken at drag start, resize start, before `compactNow()`/`alignSelected()`/`distributeSelected()`, and on any externally-driven `layout` length change (e.g. a parent adding/removing an item by reassigning the `[layout]` input directly) — matching Vue's own identical set of trigger points. |
 | `undoHistoryLimit` | `number` | `50` | Maximum number of snapshots kept for `undo()`. |
 
 ## Responsive

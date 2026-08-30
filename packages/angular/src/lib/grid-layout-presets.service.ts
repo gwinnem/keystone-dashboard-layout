@@ -5,8 +5,7 @@ import type { TLayout } from '@keystone-dashboard-layout/core';
 const hasWindow = (): boolean => typeof window !== `undefined`;
 
 /**
- * Phase 9 of the Angular port (see `docs/IMPLEMENTATION_PLAN.md`) — the
- * Angular equivalent of Vue's own `useLayoutPresets.ts` composable /
+ * The Angular equivalent of Vue's own `useLayoutPresets.ts` composable /
  * React's equivalent hook: named layout presets, beyond
  * `GridLayoutStorageService`'s single-slot persistence — a way to save
  * and switch between several named arrangements of the *same* items

@@ -57,9 +57,22 @@ describe(`moveToCorrectPlace`, () => {
       .toThrow(EErrorMessage.INVALID_LAYOUT_ITEM);
   });
 
+  it(`Should throw an error if parameter layoutItem is strictly undefined (not null)`, () => {
+    // Distinct from the "null" test above — layoutItem === null and
+    // layoutItem === undefined are two separate strict-equality checks
+    // in the same guard; null !== undefined in JS, so the null test
+    // alone never exercises this specific check.
+    expect(() => moveToCorrectPlace(undefined, {cols: 3}, [testDataOne[0]]))
+      .toThrow(EErrorMessage.INVALID_LAYOUT_ITEM);
+  });
+
   it(`Should throw an error if parameter bounds is less than 1`, () => {
     expect(() => moveToCorrectPlace(testDataOne[0], { cols: 0 }, [testDataOne[0]]))
       .toThrow(EErrorMessage.INVALID_BOUNDS);
+  });
+
+  it(`Should NOT throw when bounds.cols is exactly 1 (the boundary, not just clearly invalid at 0)`, () => {
+    expect(() => moveToCorrectPlace({ h: 1, i: `a`, w: 1, x: 0, y: 0 }, { cols: 1 }, [])).not.toThrow();
   });
 
   it(`Should wrap the item to the next row when it collides all the way across the current one`, () => {
@@ -69,6 +82,26 @@ describe(`moveToCorrectPlace`, () => {
     moveToCorrectPlace(item, { cols: 3 }, statics);
 
     expect(item).toStrictEqual({ i: `a`, x: 0, y: 1, w: 2, h: 1 });
+  });
+
+  it(`Should NOT wrap when x+w is exactly equal to bounds.cols (touching the edge, not exceeding it)`, () => {
+    const item = { h: 1, i: `a`, w: 2, x: 1, y: 0 }; // x+w = 3
+
+    moveToCorrectPlace(item, { cols: 3 }, []);
+
+    expect(item).toStrictEqual({ h: 1, i: `a`, w: 2, x: 1, y: 0 });
+  });
+
+  it(`Should leave the item exactly where it is when nothing collides with it at all (the while loop never runs)`, () => {
+    // Every existing "step past collisions" test above/below has the
+    // loop body actually execute at least once — this confirms the
+    // loop's own condition correctly skips entirely when there's
+    // genuinely nothing to collide with.
+    const item = { h: 1, i: `a`, w: 1, x: 0, y: 0 };
+
+    moveToCorrectPlace(item, { cols: 3 }, []);
+
+    expect(item).toStrictEqual({ h: 1, i: `a`, w: 1, x: 0, y: 0 });
   });
 
   it(`Should step past multiple colliding static items before settling in a free column`, () => {
@@ -222,6 +255,51 @@ describe(`moveElement`, () => {
     expect(result.find(item => item.i === `a`)).toMatchObject({ x: 0, y: 1 });
     expect(result.find(item => item.i === `static`)).toMatchObject({ x: 0, y: 0 });
   });
+
+  it(`Should resolve via $default (not a directional shortcut) when moving to the exact same x/y it's already at (all four moving flags false)`, () => {
+    // Every existing test above has oldX/oldY genuinely differ from the
+    // target x/y, exercising each flag's own true side — none test the
+    // exact boundary (oldX===x, oldY===y), where a mutated "<="/">="
+    // would incorrectly flip a flag to true. "a" and "b" start already
+    // overlapping; moving "a" to its own current position (0,0) keeps
+    // all four flags false, so movingDirection resolves to undefined,
+    // which movingCordsData's own "in" check treats as absent —
+    // confirming $default (y+1) is used, not a directional shortcut.
+    const layout: TLayout = [
+      { i: `a`, x: 0, y: 0, w: 2, h: 2 },
+      { i: `b`, x: 0, y: 0, w: 2, h: 2 },
+    ];
+
+    const result = moveElement(layout, layout[0], 0, 0, true, false, false);
+
+    expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 1 });
+  });
+
+  it(`Should reverse the collision-resolution order when moving upward (moving.UP), not process it in normal row/col order`, () => {
+    // No existing test in this describe block moves an item upward at
+    // all (every one moves down or sideways) — moving.UP's own
+    // "sorted = sorted.reverse()" branch was never reached.
+    //
+    // isUserAction: false here specifically — true would first try
+    // moveElementAwayFromCollision's own "move directly above" shortcut
+    // (a real mistake in an earlier version of this test, caught by
+    // actually running it: that shortcut found b's own target position
+    // (0,0) collision-free and moved it there directly, never reaching
+    // the $default/UP-direction logic this test means to exercise).
+    // false skips that shortcut, landing on $default's own y+1 (3)
+    // instead — which then collides with "a" a second time, but that
+    // second collision is correctly skipped via the "already moved"
+    // short-circuit, confirmed by the assertion below.
+    const layout: TLayout = [
+      { i: `a`, x: 0, y: 5, w: 2, h: 2 },
+      { i: `b`, x: 0, y: 2, w: 2, h: 2 },
+    ];
+
+    const result = moveElement(layout, layout[0], 0, 2, false, false, false);
+
+    expect(result.find(item => item.i === `a`)).toMatchObject({ x: 0, y: 2 });
+    expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 3 });
+  });
 });
 
 describe(`moveElementAwayFromCollision`, () => {
@@ -245,9 +323,31 @@ describe(`moveElementAwayFromCollision`, () => {
       { i: `b`, x: 0, y: 0, w: 4, h: 2 },
     ];
 
-    expect(() =>
-      moveElementAwayFromCollision(layout, layout[0], layout[1], false, EMovingDirections.RIGHT, true),
-    ).not.toThrow();
+    const result = moveElementAwayFromCollision(layout, layout[0], layout[1], false, EMovingDirections.RIGHT, true);
+
+    // Strengthened from a bare not.toThrow(): collidesWith(a, w:2) IS
+    // narrower than itemToMove(b, w:4) and genuinely offset (x:5 !==
+    // x:0), so the override's own guard is false and $default (x
+    // unchanged, y+1) is what should actually apply here.
+    expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 1 });
+  });
+
+  it(`Should apply the RIGHT-direction override (not $default) when the colliding item is NOT narrower than the one being moved`, () => {
+    // The contrasting case to the test above — collidesWith(a, w:4) is
+    // NOT narrower than itemToMove(b, w:2), so "collidesWith.w <
+    // itemToMove.w" is false, making the override's own guard true
+    // (the negated combination it's part of), and the RIGHT-specific
+    // target (itemToMove.x - collidesWith.w) should apply instead of
+    // $default.
+    const layout: TLayout = [
+      { i: `a`, x: 5, y: 0, w: 4, h: 2 },
+      { i: `b`, x: 20, y: 0, w: 2, h: 2 },
+    ];
+
+    const result = moveElementAwayFromCollision(layout, layout[0], layout[1], false, EMovingDirections.RIGHT, true);
+
+    // target = itemToMove.x(20) - collidesWith.w(4) = 16, at collidesWith.y(0).
+    expect(result.find(item => item.i === `b`)).toMatchObject({ x: 16, y: 0 });
   });
 
   /**

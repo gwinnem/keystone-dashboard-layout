@@ -91,6 +91,35 @@ describe(`getBreakpointFromWidth`, () => {
   it(`Empty breakpoints should throw error`, () => {
     expect(() => getBreakpointFromWidth([], 99)).toThrowError(EErrorMessage.INVALID_BREAKPOINT);
   });
+
+  it(`A width exactly equal to a breakpoint's own threshold should resolve to the NEXT LOWER breakpoint, not that one — the comparison is strictly "greater than", not "greater than or equal"`, () => {
+    // sm's own threshold is 768 — width=768 exactly should NOT match sm
+    // (768 > 768 is false); the highest breakpoint whose threshold is
+    // strictly below 768 (xs, at 480) is what should match instead.
+    // None of the other tests in this file use a width that exactly
+    // equals any real breakpoint threshold, so a ">" -> ">=" mutant
+    // here was never actually distinguished from correct behavior.
+    expect(getBreakpointFromWidth(breakpoints, 768)).toBe(`xs`);
+  });
+
+  describe(`isBreakPointDefined (via getBreakpointFromWidth's own guard)`, () => {
+    // Each of isBreakPointDefined's own 7 Object.hasOwn(...) checks is
+    // chained with && — the existing "empty breakpoints"/"empty array"
+    // tests above are missing ALL 7 keys at once, which can't
+    // distinguish any ONE check's own removal from the others (removing
+    // any single check still leaves 6 more that an empty object fails
+    // regardless). Testing each key missing in isolation (all 6 OTHERS
+    // present) is what actually confirms each check individually matters.
+    const allSevenKeys = { lg: 1200, md: 996, sm: 768, xl: 1400, xs: 480, xxl: 1600, xxs: 0 };
+
+    for(const missingKey of Object.keys(allSevenKeys)) {
+      it(`Should throw when only "${missingKey}" is missing (all other 6 keys present)`, () => {
+        const partial = { ...allSevenKeys };
+        delete (partial as Record<string, number>)[missingKey];
+        expect(() => getBreakpointFromWidth(partial, 500)).toThrowError(EErrorMessage.INVALID_BREAKPOINT);
+      });
+    }
+  });
 });
 
 const columns: IColumns = {

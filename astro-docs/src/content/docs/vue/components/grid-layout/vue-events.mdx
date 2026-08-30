@@ -25,6 +25,13 @@ See [Events](/vue/examples/events/) for a live demo, and
 [`EGridLayoutEvent`](/vue/api/enums/grid-layout-events/) for the enum
 backing these event names.
 
+:::note[Payloads aren't compile-time checked]
+The payload shapes in the table above are accurate for what's actually
+emitted, but `GridLayout`'s own emit declaration doesn't statically
+type the payload arguments — only the event *names* are checked by
+TypeScript, not your handler's parameter types.
+:::
+
 :::caution[Declared but not currently emitted]
 `EGridLayoutEvent.CHANGED_DIRECTION` and `CONTAINER_RESIZED` exist on the
 enum for backwards compatibility but aren't wired up to any emit call —

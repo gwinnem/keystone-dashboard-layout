@@ -60,8 +60,8 @@
     "a11y",
     "aria"
   ],
-  "main": "dist/vue-ts-responsive-grid-layout.umd.js",
-  "module": "dist/vue-ts-responsive-grid-layout.es.js",
+  "main": "dist/keystone-dashboard-layout-vue.umd.js",
+  "module": "dist/keystone-dashboard-layout-vue.es.js",
   "types": "./dist/types/components/index.d.ts",
   "files": [
     "dist/*",
@@ -73,12 +73,12 @@
   "exports": {
     ".": {
       "types": "./dist/types/components/index.d.ts",
-      "import": "./dist/vue-ts-responsive-grid-layout.es.js",
-      "require": "./dist/vue-ts-responsive-grid-layout.umd.js"
+      "import": "./dist/keystone-dashboard-layout-vue.es.js",
+      "require": "./dist/keystone-dashboard-layout-vue.umd.js"
     },
     "./style.css": "./dist/vue.css"
   },
-  "homepage": "https://vue-ts-responsive-grid-layout.winnem.tech",
+  "homepage": "https://github.com/gwinnem/keystone-dashboard-layout/tree/main/packages/vue",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gwinnem/keystone-dashboard-layout.git",
@@ -99,7 +99,8 @@
     "build:types": "vite build",
     "check:bundle-size": "node scripts/check-bundle-size.js",
     "check:package-install": "node scripts/check-package-install.js",
-    "test:mutation": "stryker run",
+    "test:mutation": "cd ../.. && stryker run packages/vue/stryker.conf.json",
+    "test:mutation:debug": "cd ../.. && stryker run packages/vue/stryker.conf.json --fileLogLevel trace --logLevel debug",
     "typecheck": "vue-tsc --project tsconfig.json --noEmit",
     "lint": "eslint --color",
     "lint:fix": "eslint --fix --color",
@@ -120,6 +121,7 @@
     "@keystone-dashboard-layout/core": "workspace:*"
   },
   "devDependencies": {
+    "@anolilab/semantic-release-pnpm": "^1.1.11",
     "@playwright/test": "^1.61.1",
     "@stryker-mutator/core": "^9.6.1",
     "@stryker-mutator/vitest-runner": "^9.6.1",
@@ -139,6 +141,10 @@
     "rollup-plugin-visualizer": "^7.0.1",
     "sass": "^1.87.0",
     "scss": "^0.2.4",
+    "semantic-release": "^25.0.8",
+    "semantic-release-monorepo": "^8.0.2",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard-scss": "^17.0.0",
     "unplugin-vue-markdown": "^32.0.0",
     "vite": "^8.1.5",
     "vite-plugin-dts": "^4.5.4",

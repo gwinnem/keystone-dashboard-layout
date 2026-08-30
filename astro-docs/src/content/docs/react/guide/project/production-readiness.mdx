@@ -1,0 +1,64 @@
+---
+title: Production readiness
+description: An honest checklist of what's actually verified, what's a known gap, and what's blocking real-world use — not a marketing claim.
+---
+
+:::note[Snapshot, not a permanent guarantee]
+This reflects a specific point in this project's own history — re-running
+the commands it references is the only way to confirm any of this still
+holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
+forever."
+:::
+
+## Code quality
+
+- **Unit/component/hook tests passing** — a real, substantial test suite exists across `GridLayout`/`GridItem`, every exported hook, and the drag/resize/cross-grid-drag internals; not independently re-counted in this exact pass — re-run `pnpm test` for a current total rather than trusting a specific figure here.
+- **Test coverage** — not independently re-confirmed in this pass; re-run `pnpm test:coverage` for a current number.
+- **Mutation testing (Stryker)** — a real, confirmed capability, not just configured-but-untested: **overall mutation score 82.93%**, verified via a real run (up from 79.42% at an earlier check). Per-file breakdown as of the last confirmed run:
+  - `useCrossGridDrag.ts` — 91.49%
+  - `useGridItemDrag.ts` — 87.37%
+  - `useGridItemResize.ts` — 78.05% at the last confirmed run; a further test fix (correcting a `calcWH` boundary value that didn't actually distinguish a `+`/`-` arithmetic mutant) was applied afterward but never re-confirmed with a fresh run — check current state rather than assume this crossed 80%.
+  - `useLayoutPresets.ts` — 71.67%, and a known, deliberately-not-chased gap: most of its remaining survived mutants are on `useCallback`/`useMemo` dependency arrays (which don't affect a function's behavior when called, only whether React recreates it between renders) or on a `savePreset`/`deletePreset` early-return guard that's very likely a genuine equivalent mutant (bypassing it still routes through `readAllPresets`'s own separate, downstream null-storage guard, so there's no observable behavioral difference to test against). Not pursued further once the package's own overall score cleared 80%.
+  - `useLayoutStorage.ts` — 86.27%.
+- **Lint** — not independently re-verified in this pass.
+- **`npm audit`** — not re-run in this pass.
+
+## Runtime dependencies
+
+Built on the same shared `@keystone-dashboard-layout/core` engine the Vue package uses (zero runtime dependencies itself) — not independently re-audited in this pass for the `react` package's own `package.json`; check its current dependency list directly rather than assume parity with Vue's own zero-dependency claim.
+
+## Build & packaging
+
+Not independently re-measured in this pass — bundle size, the library build, and a pack-and-install smoke test all need a fresh check rather than an assumed-good state.
+
+## CI/CD & repository hygiene
+
+Not independently re-verified in this pass which GitHub Actions workflows exist for this package specifically, or whether branch protection/secrets are configured for it. Check the repository's own `.github/workflows/` directly.
+
+## Documentation
+
+The guide, feature list, component reference, and API reference exist and are current as of this snapshot. This package does **not yet have** the kind of project-level docs (`roadmap`, `accessibility`, `testing`, `architecture`, `comparison-alternatives`/`comparison-commercial`) that exist for the Vue package — this document itself is the first of that kind for React.
+
+## Testing depth
+
+Not independently re-verified in this pass whether an e2e suite (Playwright or otherwise) exists and passes for this package, or across which browsers. Check directly rather than assume parity with Vue's own e2e coverage.
+
+## Accessibility
+
+Not independently re-verified in this pass. The package's own introduction describes feature parity with Vue, which does have keyboard move/resize and ARIA labeling implemented and tested — but that claim hasn't been independently re-checked against this package's own source and test suite in this pass.
+
+## Security
+
+Not independently re-audited in this pass. No known reason to suspect an issue, but that's an inference from the shared architecture, not a direct check of this package specifically.
+
+## Browser/runtime support
+
+Not independently re-verified in this pass.
+
+## Known, open, and deliberately deferred
+
+No dedicated roadmap document exists for this package yet (see [Documentation](#documentation) above) — check the Vue package's own [Roadmap](/vue/guide/project/roadmap/) for the shared-core feature list, keeping in mind some items there may be Vue-specific rather than applying to every framework.
+
+## The short version
+
+**Mutation testing**: genuinely verified, in good shape overall (82.93%), with one known file (`useLayoutPresets.ts`) whose remaining gap is very likely mostly equivalent mutants rather than a real testing hole, and one file (`useGridItemResize.ts`) close to the 80% mark but not confirmed past it. **Everything else in this checklist**: not independently re-verified in this specific pass — this is a narrower, mutation-testing-focused snapshot rather than the full sweep the Vue document represents, and each other section should be treated as "needs a fresh check," not "assumed fine."

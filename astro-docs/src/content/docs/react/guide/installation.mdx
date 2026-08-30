@@ -54,7 +54,7 @@ function Dashboard() {
 
 That's the whole setup — see the [Guide's own example](/react/guide/introduction/#how-it-fits-together)
 for the same shape, or [Components](/react/components/) for the full
-prop/callback reference once that page lands.
+prop/callback reference.
 
 ## A more complete example: drag, resize, and remove
 
@@ -113,11 +113,15 @@ support:
 import {
   GridLayout,
   GridItem,
+  GridItemDragHandle,
+  GridItemCloseButton,
   useLayoutStorage,
   useLayoutPresets,
   type IGridLayoutProps,
   type IGridItemProps,
   type IGridLayoutHandle,
+  type IGridItemDragHandleProps,
+  type IGridItemCloseButtonProps,
   type IUseLayoutStorageReturn,
   type IUseLayoutPresetsOptions,
   type IUseLayoutPresetsReturn,
@@ -126,7 +130,7 @@ import {
 
 Layout-level types (`TLayout`, `ILayoutItem`, and so on) come from the
 shared `@keystone-dashboard-layout/core` package instead — see
-[API](/react/api/) once that page lands for the complete list.
+[API](/react/api/) for the complete list.
 
 ## Requirements
 

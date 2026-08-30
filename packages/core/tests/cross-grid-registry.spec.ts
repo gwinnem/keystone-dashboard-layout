@@ -75,4 +75,47 @@ describe(`cross-grid-registry`, () => {
       unregisterB();
     }
   });
+
+  // The existing "match"/"no match" tests above use points clearly
+  // inside or clearly outside the rect (50,50 vs 5000,5000) — neither
+  // distinguishes an inclusive boundary (>=/<=) from an exclusive one
+  // (>/<), since those only diverge exactly AT the edge itself. Each
+  // test below places one coordinate exactly on one edge, with the
+  // other coordinate safely mid-rect, confirming the boundary itself
+  // counts as "inside".
+  it(`Should treat a point exactly on the left edge (x === rect.left) as inside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-f` }));
+    try {
+      expect(findCrossGridZoneAt(0, 50, `some-other-id`)?.layoutId).toBe(`zone-f`);
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should treat a point exactly on the right edge (x === rect.right) as inside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-g` }));
+    try {
+      expect(findCrossGridZoneAt(100, 50, `some-other-id`)?.layoutId).toBe(`zone-g`);
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should treat a point exactly on the top edge (y === rect.top) as inside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-h` }));
+    try {
+      expect(findCrossGridZoneAt(50, 0, `some-other-id`)?.layoutId).toBe(`zone-h`);
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should treat a point exactly on the bottom edge (y === rect.bottom) as inside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-i` }));
+    try {
+      expect(findCrossGridZoneAt(50, 100, `some-other-id`)?.layoutId).toBe(`zone-i`);
+    } finally {
+      unregister();
+    }
+  });
 });

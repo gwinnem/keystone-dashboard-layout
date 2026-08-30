@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/api/schema/stryker-schema.json",
-  "_comment_known_limitation": "PAUSED, not resolved — a real run against this config crashed partway through the initial dry run with '[vitest-pool]: Failed to start threads worker' across many test files simultaneously, cause not yet definitively traced. Worth flagging: this package's own vitest.config.ts uses the identical '@/core' alias (resolving to the sibling packages/core/src) that was CONFIRMED to be the root cause of an equivalent, more clearly-diagnosed failure in the Vue package's own stryker.conf.json (see that file's own '_comment_known_limitation') — Stryker's default sandboxing only copies the current project directory into its temp sandbox, with no awareness that a path alias reaches outside it, so packages/core would be absent from this package's own sandbox too. Whether that's actually this specific crash's own root cause is unconfirmed (the failure mode looked different — a worker-thread startup crash, not an explicit 'failed to resolve import' error — and a competing theory, Windows long-path limits inside the deeply-nested .stryker-tmp sandbox path, was also raised but not verified either). Deliberately paused rather than guessed at further; revisit this comment, and Vue's own equivalent one, together before re-attempting either.",
+  "_comment_resolved_limitation": "CONFIRMED FIXED via a real run: a full mutation-testing pass now completes successfully (79.42% overall mutation score — 1261 killed, 362 survived, 186 timeout, 13 no coverage, 3 errors, in ~55 minutes). Previously crashed partway through the initial dry run with '[vitest-pool]: Failed to start threads worker' across many test files simultaneously. Root cause, now confirmed rather than just suspected: this package's own vitest.config.ts uses the identical '@/core' alias (resolving to the sibling packages/core/src) that was also the root cause of an equivalent Vue package failure — Stryker's default sandboxing only copies the current project directory into its temp sandbox, with no awareness that a path alias reaches outside it, so packages/core was absent from this package's own sandbox too. The `files` option below (adding an explicit `../core/src/**/*.ts` glob, alongside this package's own default file set) is the confirmed fix. The competing Windows-long-path theory raised earlier turned out not to be the (or at least not the whole) cause, since this now passes on the same Windows machine unchanged otherwise. The 3 'errors' in GridItem.tsx and the 362 survived mutants are real, substantive mutation-testing findings of their own — worth triaging separately, not a sign this config is still broken.",
   "packageManager": "pnpm",
   "testRunner": "vitest",
   "plugins": ["@stryker-mutator/vitest-runner"],
@@ -23,6 +23,17 @@
   },
   "coverageAnalysis": "perTest",
   "timeoutMS": 15000,
+  "files": [
+    "**/*",
+    "!node_modules/**",
+    "!dist/**",
+    "!coverage/**",
+    "!.stryker-tmp/**",
+    "!reports/**",
+    "!e2e/**",
+    "!e2e-fixture/**",
+    "../core/src/**/*.ts"
+  ],
   "mutate": [
     "src/components/Grid/GridLayout.tsx",
     "src/components/Grid/GridItem.tsx",

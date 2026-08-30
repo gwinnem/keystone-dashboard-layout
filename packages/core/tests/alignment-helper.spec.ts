@@ -86,6 +86,48 @@ describe(`findSnapAdjustment`, () => {
     expect(result).toStrictEqual({});
   });
 
+  it(`Should snap when the distance is exactly equal to threshold, not just strictly less than it`, () => {
+    // Every other test above uses a distance clearly inside threshold
+    // (never exactly at the edge), so "distance <= threshold" and a
+    // mutated "distance < threshold" were never actually distinguished.
+    // other is wide enough (w:100) that every OTHER edge-combo
+    // (left-to-right, right-to-left, right-to-right) is far outside
+    // threshold, isolating left-to-left as the only qualifying combo.
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 10, y: 4 },
+      { h: 2, i: `other`, w: 100, x: 7, y: 0 }, // left edge at x=7, distance exactly 3
+    ];
+
+    const result = findSnapAdjustment(layout, layout[0], 3);
+
+    expect(result.x).toBe(7);
+  });
+
+  it(`Should keep the FIRST match found when two candidates are exactly equidistant, not the later one`, () => {
+    // "distance < bestXDistance" is a strict less-than — a later
+    // candidate at the exact same distance as the current best should
+    // NOT replace it. Every existing "closest match" test above uses
+    // clearly different distances, never a genuine tie, so a mutated
+    // "<=" was never distinguished from the real "<".
+    //
+    // "first"'s own closest edge-combo (activeLeft(5) vs its right
+    // edge(4)) is distance 1, setting bestX=4. "second"'s own closest
+    // combo (activeRight(7) vs its left edge(8)) is ALSO distance 1,
+    // encountered later — the genuine tie this test targets.
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 5, y: 4 },
+      { h: 2, i: `first`, w: 2, x: 2, y: 0 },
+      { h: 2, i: `second`, w: 2, x: 8, y: 0 },
+    ];
+
+    const result = findSnapAdjustment(layout, layout[0], 3);
+
+    // If "second" incorrectly won the tie, x would resolve via its own
+    // left edge (8), adjusted for active's width (8 - 2 = 6), instead
+    // of "first"'s own right edge (4).
+    expect(result.x).toBe(4);
+  });
+
   it(`Should return an empty object when nothing else is in the layout`, () => {
     const layout = [{ h: 2, i: `active`, w: 2, x: 5, y: 5 }];
 
@@ -378,6 +420,135 @@ describe(`findSpacingIndicators`, () => {
     const layout = [
       { h: 2, i: `active`, w: 2, x: 5, y: 0 },
       { h: 2, i: `other`, w: 2, x: 0, y: 10 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  // The yOverlaps/xOverlaps check in each of the four "nearest neighbor"
+  // loops is `otherTop < activeBottom && otherBottom > activeTop` (or the
+  // x-axis equivalent) — the test above has BOTH halves false at once
+  // (other's y-range is entirely below active's), which can't
+  // distinguish either half's own mutants from the other. Each pair
+  // below isolates one half as the sole reason the candidate is ignored,
+  // with the other half genuinely true.
+  it(`Should ignore a left-side candidate when only otherTop < activeBottom is false (otherBottom > activeTop is still true)`, () => {
+    // other's y-range (5-7) starts at/after active's bottom (0-2), so
+    // otherTop(5) < activeBottom(2) is false — but otherBottom(7) >
+    // activeTop(0) is true, isolating the first half specifically.
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 5, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 0, y: 5 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should ignore a left-side candidate when only otherBottom > activeTop is false (otherTop < activeBottom is still true)`, () => {
+    // other's y-range (-5 to -3) ends at/before active's top (5-7), so
+    // otherBottom(-3) > activeTop(5) is false — but otherTop(-5) <
+    // activeBottom(7) is true, isolating the second half specifically.
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 5, y: 5 },
+      { h: 2, i: `other`, w: 2, x: 0, y: -5 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should ignore a right-side candidate when only otherTop < activeBottom is false`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 5, y: 5 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should ignore a right-side candidate when only otherBottom > activeTop is false`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 5 },
+      { h: 2, i: `other`, w: 2, x: 5, y: -5 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should ignore a top-side candidate when only otherLeft < activeRight is false`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 5 },
+      { h: 2, i: `other`, w: 2, x: 5, y: 0 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should ignore a top-side candidate when only otherRight > activeLeft is false`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 5, y: 5 },
+      { h: 2, i: `other`, w: 2, x: -5, y: 0 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should ignore a bottom-side candidate when only otherLeft < activeRight is false`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 5, y: 5 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should ignore a bottom-side candidate when only otherRight > activeLeft is false`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 5, y: 0 },
+      { h: 2, i: `other`, w: 2, x: -5, y: 5 },
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  // The isolation tests above use values clearly on one side or the
+  // other of the yOverlaps/xOverlaps boundary — that distinguishes
+  // LogicalOperator (&&/||) mutants, but NOT EqualityOperator ones
+  // (< vs <=, > vs >=), since those only diverge when a value sits
+  // EXACTLY at the boundary (touching, not overlapping). Each test
+  // below uses an other item whose relevant edge exactly equals
+  // activeItem's, which correctly-implemented "strictly less/greater
+  // than" treats as NOT overlapping (touching isn't overlapping).
+  it(`Should treat a left-side candidate exactly touching (otherTop === activeBottom) as NOT overlapping`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 5, y: 0 }, // bottom edge at y=2
+      { h: 2, i: `other`, w: 2, x: 0, y: 2 }, // top edge at y=2, exactly touching
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should treat a left-side candidate exactly touching (otherBottom === activeTop) as NOT overlapping`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 5, y: 5 }, // top edge at y=5
+      { h: 2, i: `other`, w: 2, x: 0, y: 3 }, // bottom edge at y=5, exactly touching
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should treat a top-side candidate exactly touching (otherLeft === activeRight) as NOT overlapping`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 5 }, // right edge at x=2
+      { h: 2, i: `other`, w: 2, x: 2, y: 0 }, // left edge at x=2, exactly touching
+    ];
+
+    expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  it(`Should treat a top-side candidate exactly touching (otherRight === activeLeft) as NOT overlapping`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 5, y: 5 }, // left edge at x=5
+      { h: 2, i: `other`, w: 2, x: 3, y: 0 }, // right edge at x=5, exactly touching
     ];
 
     expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);

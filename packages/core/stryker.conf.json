@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/api/schema/stryker-schema.json",
+  "_comment_setup": "Unlike packages/vue and packages/react (both of which needed a workaround for their own '@/core' alias reaching into this sibling package — see their own stryker.conf.json comments for the full history), this package has no such problem at all: its own '@/core' alias (vitest.config.ts's own resolve.alias) is self-referential, resolving to this package's own src/ directory, not a sibling one — confirmed by reading that config directly, not assumed. Stryker's default per-package sandboxing (copying just this package's own directory) is therefore already sufficient, with no monorepo-root invocation or extra `files` entries needed — this config is a plain, direct `stryker run` from this package's own directory, matching the simplest case, not either of the other two packages' own more involved fixes.",
+  "packageManager": "pnpm",
+  "testRunner": "vitest",
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "reporters": ["clear-text", "progress", "html", "json"],
+  "clearTextReporter": {
+    "allowColor": true,
+    "allowEmojis": true,
+    "logTests": false,
+    "maxTestsToLog": 3,
+    "reportTests": true,
+    "reportMutants": true,
+    "reportScoreTable": true,
+    "skipFull": false
+  },
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "coverageAnalysis": "perTest",
+  "_comment_coverageAnalysis": "Reverted after a real, direct test: switched to \"all\" (every test runs against every mutant, no coverage-based skipping) to test a specific theory about several native-interaction.ts createNativeAutoScroll mutants (lines 440-456, only ever executed inside a requestAnimationFrame callback triggered via vi.advanceTimersByTime under fake timers) repeatedly showing as \"Survived\" despite tests that, verified by hand against the real source, should kill them. Confirmed via a real run: the EXACT SAME mutants survive under \"all\" as under \"perTest\" — this DISPROVES the earlier theory (that perTest's own coverage instrumentation was failing to attribute these tests to these mutants, so Stryker never even tried running them). Something more fundamental than coverage-analysis mode is going on with these specific tests — not yet root-caused. Reverted to \"perTest\" since \"all\" provided no benefit and is markedly slower for the full suite.",
+  "timeoutMS": 15000,
+  "files": [
+    "**/*",
+    "!node_modules/**",
+    "!dist/**",
+    "!coverage/**",
+    "!.stryker-tmp/**",
+    "!reports/**"
+  ],
+  "_comment_mutate": "Matches vitest.config.ts's own coverage.include/exclude exactly (src/**/*.ts, minus the same pure-type-declaration files that config already excludes from coverage) — mutating a file with no runtime code at all would just waste scanning time for zero possible mutants, and this package's own test suite was never expected to cover those files in the first place. Enums ARE included (not excluded): unlike plain interfaces/types, a TypeScript enum compiles to a real runtime object with real string/number values Stryker can mutate (e.g. a compactType string literal), and none of them are excluded from coverage either.",
+  "mutate": [
+    "src/**/*.ts",
+    "!src/common/interfaces/event-bus.interfaces.ts",
+    "!src/common/interfaces/transform-style.interfaces.ts",
+    "!src/common/types/**",
+    "!src/griditem/interfaces/**",
+    "!src/gridlayout/interfaces/**",
+    "!src/helpers/point.interface.ts",
+    "!src/breakpoints.interfaces.ts",
+    "!src/layout-definition.ts",
+    "!src/index.ts",
+    "!src/**/*.d.ts"
+  ],
+  "ignorePatterns": [
+    "dist",
+    "coverage"
+  ]
+}

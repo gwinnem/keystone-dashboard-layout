@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>17/17</span>
+                <span class='fraction'>0/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>0/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>16/16</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -182,7 +182,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -246,22 +246,22 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">13x</span>
-<span class="cline-any cline-yes">13x</span>
-<span class="cline-any cline-yes">13x</span>
-<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">13x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -272,12 +272,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">107x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { TLayout } from '../layout-definition';
 import { keysValidator } from './keys-validator';
@@ -290,7 +290,7 @@ import { keysValidator } from './keys-validator';
  * `tests/layoutValidator.spec.ts` so the test fixtures and the validator's
  * own reference shapes can't drift apart.
  */
-export const layoutValidatorPayload = {
+export const layoutValidatorPayload = <span class="cstat-no" title="statement not covered" >{</span>
   invalidOptionalLayout: {
     h: 1,
     i: -1,
@@ -354,22 +354,22 @@ export const layoutValidatorPayload = {
  * @param layout The layout array to validate.
  * @returns `true` for an empty array (nothing to violate — see docs/REFACTORING.md #9/#33: a grid mounting with no items yet, e.g. an empty cross-grid-drop target, is a normal state, not an error) or if every item has the required keys and correctly-typed optional keys.
  */
-export const layoutValidator = (layout: TLayout): boolean =&gt; {
-  if(layout.length === 0) {
-    return true;
+export const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >layoutValidator = (l</span>ayout: TLayout): boolean =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  if(layout.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >    return true;</span>
   }
 &nbsp;
-  const { validOptionalLayout, validRequiredLayout } = layoutValidatorPayload;
-  const validLayout = { ...validRequiredLayout, ...validOptionalLayout };
-  const requiredKeys = Object.keys(validRequiredLayout);
-  const requiredKeysValid = layout.map(l =&gt; keysValidator(requiredKeys, Object.keys(l)));
+  const { validOptionalLayout, validRequiredLayout } = <span class="cstat-no" title="statement not covered" >layoutValidatorPayload;</span>
+  const validLayout = <span class="cstat-no" title="statement not covered" >{ ...validRequiredLayout, ...validOptionalLayout };</span>
+  const requiredKeys = <span class="cstat-no" title="statement not covered" >Object.keys(validRequiredLayout);</span>
+  const requiredKeysValid = <span class="cstat-no" title="statement not covered" >layout.<span class="fstat-no" title="function not covered" >map(l</span> =&gt; <span class="cstat-no" title="statement not covered" >keysValidator(requiredKeys, Object.keys(l)))</span>;</span>
 &nbsp;
-  if(requiredKeysValid.includes(false)) {
-    return false;
+<span class="cstat-no" title="statement not covered" >  if(requiredKeysValid.includes(false)) {</span>
+<span class="cstat-no" title="statement not covered" >    return false;</span>
   }
 &nbsp;
-  const validTypes = layout.map(l =&gt; {
-    const layoutItemKeys = Object.keys(l) as (keyof typeof l)[];
+  const validTypes = <span class="cstat-no" title="statement not covered" >layout.<span class="fstat-no" title="function not covered" >map(l</span> =&gt; {</span>
+    const layoutItemKeys = <span class="cstat-no" title="statement not covered" >Object.keys(l) as (keyof typeof l)[];</span>
     // `data` (and any other key not present in validLayout) correctly
     // falls through to `true` below — it's a consumer-defined payload of
     // arbitrary type, not one of the fixed-type optional fields this
@@ -380,12 +380,12 @@ export const layoutValidator = (layout: TLayout): boolean =&gt; {
     // correct `typeof` for an arbitrary payload), but indexing with a
     // key it doesn't have is exactly the runtime case this ternary's
     // `: true` branch already handles correctly.
-    const validLayoutIndexable = validLayout as Record&lt;string, unknown&gt;;
-    return layoutItemKeys
-      .map(k =&gt; (validLayoutIndexable[k] ? typeof l[k] === typeof validLayoutIndexable[k] : true))
+    const validLayoutIndexable = <span class="cstat-no" title="statement not covered" >validLayout as Record&lt;string, unknown&gt;;</span>
+<span class="cstat-no" title="statement not covered" >    return layoutItemKeys</span>
+      .<span class="fstat-no" title="function not covered" >map(k</span> =&gt; (<span class="cstat-no" title="statement not covered" >validLayoutIndexable[k] ? typeof l[k] === typeof validLayoutIndexable[k] : true))</span>
       .includes(false);
   });
-  return !validTypes.includes(true);
+<span class="cstat-no" title="statement not covered" >  return !validTypes.includes(true);</span>
 };
 &nbsp;</pre></td></tr></table></pre>
 
@@ -394,7 +394,7 @@ export const layoutValidator = (layout: TLayout): boolean =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-23T13:00:51.625Z
+                at 2026-08-29T19:15:03.098Z
             </div>
         <script src="../prettify.js"></script>
         <script>

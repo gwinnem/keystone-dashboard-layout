@@ -287,6 +287,36 @@ describe(`GridItemComponent`, () => {
       expect(component.dragging).toEqual({ left: 100, top: 50 });
     });
 
+    it(`Should subtract a non-zero parent offset too, not just the degenerate (0,0) case above`, () => {
+      // setupDraggableItem's own parent rect is always (0,0) —
+      // subtracting 0 can't distinguish "-" from a mutated "+" in
+      // clientRect.left - parentRect.left / clientRect.top - parentRect.top.
+      setInputsAndDetectChanges({
+        colNum: 12,
+        containerWidth: 1220,
+        h: 2,
+        i: `0`,
+        margin: [10, 10],
+        rowHeight: 100,
+        w: 2,
+        x: 0,
+        y: 0,
+      });
+      const item = fixture.nativeElement as HTMLElement;
+      const parent = document.createElement(`div`);
+      document.body.appendChild(parent);
+      parent.appendChild(item);
+      Object.defineProperty(item, `offsetParent`, { configurable: true, get: () => parent });
+      mockRect(parent, { left: 20, top: 15 });
+      mockRect(item, { left: 100, top: 50 });
+      createdParent = parent;
+
+      dragHandlerOf(item)({ clientX: 100, clientY: 50, target: item, type: `dragstart` });
+
+      // left = 100-20 = 80; top = 50-15 = 35
+      expect(component.dragging).toEqual({ left: 80, top: 35 });
+    });
+
     it(`Should override the grid-unit-derived style with the live pixel position while dragging`, () => {
       const { item } = setupDraggableItem();
 
@@ -387,6 +417,38 @@ describe(`GridItemComponent`, () => {
       item.dispatchEvent(mockPointerEvent(`pointermove`, { clientX: 130, clientY: 80, pointerId: 1 }));
 
       expect(component.isDragging).toBe(true);
+    });
+
+    it(`Should also actually block the native engine from starting a drag when isStatic is true, even with isDraggable left at its own default (true)`, () => {
+      // Neither test above ever sets isStatic — both only vary
+      // isDraggable, leaving createNativeDraggable's own "enabled:
+      // resolvedIsDraggable && !isStatic" option's second half
+      // (!isStatic) never isolated on its own.
+      const { item } = setupDraggableItem();
+      setInputsAndDetectChanges({ isStatic: true });
+      (item as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
+
+      item.dispatchEvent(mockPointerEvent(`pointerdown`, { button: 0, clientX: 100, clientY: 50, pointerId: 1 }));
+      item.dispatchEvent(mockPointerEvent(`pointermove`, { clientX: 130, clientY: 80, pointerId: 1 }));
+
+      expect(component.isDragging).toBe(false);
+    });
+
+    it(`Should not start a drag when the pointerdown originates from a child <button>, matching the default dragIgnoreFrom ('a, button')`, () => {
+      // No test in this whole file exercises dragIgnoreFrom/dragAllowFrom
+      // at all — confirmed via a direct search. This is the one that
+      // matters most: the default value itself, which every consumer
+      // gets for free without ever setting the input explicitly.
+      const { item } = setupDraggableItem();
+      const button = document.createElement(`button`);
+      item.appendChild(button);
+      (item as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
+      (button as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
+
+      button.dispatchEvent(mockPointerEvent(`pointerdown`, { button: 0, clientX: 100, clientY: 50, pointerId: 1 }));
+      item.dispatchEvent(mockPointerEvent(`pointermove`, { clientX: 130, clientY: 80, pointerId: 1 }));
+
+      expect(component.isDragging).toBe(false);
     });
 
     it(`Should report a grid-unit x/y via the eventBus on each drag tick, when one is injected`, () => {
@@ -697,6 +759,37 @@ describe(`GridItemComponent`, () => {
       expect(component.resizing).toEqual({ height: 210, left: 10, top: 10, width: 192 });
     });
 
+    it(`Should seed a non-zero left/top from calcResizePosition on resizestart, not just the origin case above`, () => {
+      // The test above uses x:0, y:0 — (x+1)*margin and (y+1)*margin
+      // both reduce to a bare margin value either way, which can't
+      // distinguish "+" from "-" or "*" from "/" in colWidth*x/rowHeight*y
+      // (both terms are simply 0 regardless of the operator at x=y=0).
+      setInputsAndDetectChanges({
+        colNum: 12,
+        containerWidth: 1220,
+        h: 2,
+        i: `0`,
+        margin: [10, 10],
+        rowHeight: 100,
+        w: 2,
+        x: 4,
+        y: 3,
+      });
+      const item = fixture.nativeElement as HTMLElement;
+      const parent = document.createElement(`div`);
+      document.body.appendChild(parent);
+      parent.appendChild(item);
+      Object.defineProperty(item, `offsetParent`, { configurable: true, get: () => parent });
+      mockRect(parent, { left: 0, top: 0 });
+      createdParent = parent;
+
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizestart` });
+
+      // left = round(90.8333*4 + 5*10) = round(363.333+50) = 413
+      // top = round(100*3 + 4*10) = round(300+40) = 340
+      expect(component.resizing).toEqual({ height: 210, left: 413, top: 340, width: 192 });
+    });
+
     it(`Should pass an Infinity height/width straight through on resizestart, not run it through the pixel formula`, () => {
       // Nothing in this phase's own scope ever actually sets h/w to
       // Infinity (that's what the still-deferred autoHeight feature
@@ -829,6 +922,51 @@ describe(`GridItemComponent`, () => {
       // would throw, confirmed directly, since nothing in this specific
       // test's own module configuration provides it).
       expect(component.resizing?.width).toBeLessThan(192);
+    });
+
+    it(`Should clamp width up to minW when shrinking below it, verified via the reported eventBus payload (not just the raw, unclamped resizing state)`, () => {
+      // The test above only ever checks component.resizing (the raw,
+      // unclamped pixel size) and its own comment claims minW/minH are
+      // "verified via the reported eventBus payload in the next test
+      // below" — but the next test is actually for maxW, not minW. No
+      // test in this file ever isolates the minW clamp itself the way
+      // minH/maxW/maxH each get their own dedicated eventBus-report test.
+      setInputsAndDetectChanges({
+        colNum: 12,
+        containerWidth: 1220,
+        h: 2,
+        i: `0`,
+        margin: [10, 10],
+        minW: 2,
+        rowHeight: 100,
+        w: 3,
+        x: 0,
+        y: 0,
+      });
+      const item = fixture.nativeElement as HTMLElement;
+      const parent = document.createElement(`div`);
+      document.body.appendChild(parent);
+      parent.appendChild(item);
+      Object.defineProperty(item, `offsetParent`, { configurable: true, get: () => parent });
+      mockRect(parent, { left: 0, top: 0 });
+      createdParent = parent;
+
+      const eventBus = new GridEventBusService();
+      eventBus.setContainerWidth(1220);
+      eventBus.setColNum(12);
+      eventBus.setRowHeight(100);
+      eventBus.setMargin([10, 10]);
+      const reported: { w: number }[] = [];
+      eventBus.itemResize$.subscribe(event => reported.push({ w: event.w }));
+      (component as unknown as { eventBus: GridEventBusService }).eventBus = eventBus;
+
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizestart` });
+      // Shrink by roughly 3 full columns worth of pixels — would resolve
+      // to w far below 2 without the minW clamp.
+      resizeHandlerOf(item)({ clientX: -300, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizemove` });
+
+      expect(reported.every(event => event.w >= 2)).toBe(true);
+      expect(reported.some(event => event.w === 2)).toBe(true);
     });
 
     it(`Should clamp width up to maxW when growing past it`, () => {
@@ -1063,6 +1201,36 @@ describe(`GridItemComponent`, () => {
       (seHandle as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
 
       seHandle.dispatchEvent(mockPointerEvent(`pointerdown`, { button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+
+      expect(component.isResizing).toBe(true);
+    });
+
+    it(`Should wire up the n/w resize handles too, not just se — ngAfterViewInit's own eight nearly-identical "if handleRef" checks are each only ever exercised together (the resizeHandles-subset test above always excludes some, never all eight at once)`, () => {
+      const { item: itemN } = setupResizableItem();
+      const nHandle = itemN.querySelector(`.kdl-resize-hint--n`) as HTMLElement;
+      (nHandle as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
+
+      nHandle.dispatchEvent(mockPointerEvent(`pointerdown`, { button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+
+      expect(component.isResizing).toBe(true);
+    });
+
+    it(`Should wire up the w resize handle too`, () => {
+      const { item } = setupResizableItem();
+      const wHandle = item.querySelector(`.kdl-resize-hint--w`) as HTMLElement;
+      (wHandle as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
+
+      wHandle.dispatchEvent(mockPointerEvent(`pointerdown`, { button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+
+      expect(component.isResizing).toBe(true);
+    });
+
+    it.each([`e`, `s`, `ne`, `nw`, `sw`])(`Should wire up the %s resize handle too, completing all eight`, edge => {
+      const { item } = setupResizableItem();
+      const handle = item.querySelector(`.kdl-resize-hint--${edge}`) as HTMLElement;
+      (handle as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
+
+      handle.dispatchEvent(mockPointerEvent(`pointerdown`, { button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
 
       expect(component.isResizing).toBe(true);
     });
@@ -1705,6 +1873,41 @@ describe(`GridItemComponent`, () => {
       }).not.toThrow();
 
       await Promise.resolve();
+    });
+
+    it(`Should actually invoke setupAutoHeight() on the next microtask, not just avoid throwing — confirmed via a spy`, () => {
+      // The test above never actually sets component.autoHeight to true
+      // before calling ngOnChanges — only the *changes* object claims a
+      // change happened, so setupAutoHeight()'s own "if(!this.autoHeight)"
+      // guard makes it a no-op regardless, and a mutated
+      // "() => undefined" in place of the real microtask callback would
+      // still pass that test's own bare not.toThrow() check.
+      setInputsAndDetectChanges({ autoHeight: false, containerWidth: 1220, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+      const setupSpy = jest.spyOn(component as unknown as { setupAutoHeight: () => void }, `setupAutoHeight`);
+      component.autoHeight = true;
+
+      component.ngOnChanges({ autoHeight: { firstChange: false } } as unknown as SimpleChanges);
+
+      return Promise.resolve().then(() => {
+        expect(setupSpy).toHaveBeenCalled();
+      });
+    });
+
+    it(`Should NOT tear down/re-setup autoHeight at all when an unrelated @Input() changes and autoHeight itself is untouched`, () => {
+      // The setInputsAndDetectChanges helper's own established convention
+      // (ngOnChanges({layout:{}})) never includes an autoHeight key at
+      // all for a normal call — confirming this guard's own "&&
+      // !firstChange" condition genuinely gates teardownAutoHeight(),
+      // not just that some other test happens to satisfy it when it
+      // should. A mutant forcing this condition to always true would
+      // tear down and reschedule the observer on every single
+      // unrelated input change.
+      setInputsAndDetectChanges({ autoHeight: true, containerWidth: 1220, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+      const teardownSpy = jest.spyOn(component as unknown as { teardownAutoHeight: () => void }, `teardownAutoHeight`);
+
+      setInputsAndDetectChanges({ zIndex: 5 });
+
+      expect(teardownSpy).not.toHaveBeenCalled();
     });
 
     it(`Should tear down the observer once autoHeight toggles back off`, async () => {

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>14/14</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>18/18</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>14/14</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -126,20 +126,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">32x</span>
-<span class="cline-any cline-yes">32x</span>
-<span class="cline-any cline-yes">71x</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">65x</span>
-<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">22x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -154,17 +151,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">26x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { ILayoutItem, TLayout } from '../../layout-definition';
@@ -177,18 +177,18 @@
  * @param  {TLayout} layout   Array of layout objects.
  * @return {TLayout}          A new, sorted array (does not mutate `layout`).
  */
-export function sortLayoutItemsByRowCol(layout: TLayout): TLayout {
-  const a: ILayoutItem[] = [];
-  return a.concat(layout).sort((itemA, itemB) =&gt; {
-    if(itemA.y === itemB.y &amp;&amp; itemA.x === itemB.x) {
-      return 0;
+export function <span class="fstat-no" title="function not covered" >sortLayoutItemsByRowCol(l</span>ayout: TLayout): TLayout {
+  const a: ILayoutItem[] = <span class="cstat-no" title="statement not covered" >[];</span>
+<span class="cstat-no" title="statement not covered" >  return a.concat(layout).<span class="fstat-no" title="function not covered" >sort((i</span>temA, itemB) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    if(itemA.y === itemB.y &amp;&amp; itemA.x === itemB.x) {</span>
+<span class="cstat-no" title="statement not covered" >      return 0;</span>
     }
 &nbsp;
-    if(itemA.y &gt; itemB.y || (itemA.y === itemB.y &amp;&amp; itemA.x &gt; itemB.x)) {
-      return 1;
+<span class="cstat-no" title="statement not covered" >    if(itemA.y &gt; itemB.y || (itemA.y === itemB.y &amp;&amp; itemA.x &gt; itemB.x)) {</span>
+<span class="cstat-no" title="statement not covered" >      return 1;</span>
     }
 &nbsp;
-    return -1;
+<span class="cstat-no" title="statement not covered" >    return -1;</span>
   });
 }
 &nbsp;
@@ -205,18 +205,18 @@ export function sortLayoutItemsByRowCol(layout: TLayout): TLayout {
  * @param  {TLayout} layout   Array of layout objects.
  * @return {TLayout}          A new, sorted array (does not mutate `layout`).
  */
-export function sortLayoutItemsByColRow(layout: TLayout): TLayout {
-  const a: ILayoutItem[] = [];
-  return a.concat(layout).sort((itemA, itemB) =&gt; {
-    if(itemA.x === itemB.x &amp;&amp; itemA.y === itemB.y) {
-      return 0;
+export function <span class="fstat-no" title="function not covered" >sortLayoutItemsByColRow(l</span>ayout: TLayout): TLayout {
+  const a: ILayoutItem[] = <span class="cstat-no" title="statement not covered" >[];</span>
+<span class="cstat-no" title="statement not covered" >  return a.concat(layout).<span class="fstat-no" title="function not covered" >sort((i</span>temA, itemB) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    if(itemA.x === itemB.x &amp;&amp; itemA.y === itemB.y) {</span>
+<span class="cstat-no" title="statement not covered" >      return 0;</span>
     }
 &nbsp;
-    if(itemA.x &gt; itemB.x || (itemA.x === itemB.x &amp;&amp; itemA.y &gt; itemB.y)) {
-      return 1;
+<span class="cstat-no" title="statement not covered" >    if(itemA.x &gt; itemB.x || (itemA.x === itemB.x &amp;&amp; itemA.y &gt; itemB.y)) {</span>
+<span class="cstat-no" title="statement not covered" >      return 1;</span>
     }
 &nbsp;
-    return -1;
+<span class="cstat-no" title="statement not covered" >    return -1;</span>
   });
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -226,7 +226,7 @@ export function sortLayoutItemsByColRow(layout: TLayout): TLayout {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-23T13:00:51.625Z
+                at 2026-08-29T19:15:03.098Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

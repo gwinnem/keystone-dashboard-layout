@@ -22,7 +22,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const BUNDLE_PATH = path.resolve(__dirname, '../dist/vue-ts-responsive-grid-layout.es.js');
+const BUNDLE_PATH = path.resolve(__dirname, '../dist/keystone-dashboard-layout-vue.es.js');
 
 // Current measured size (see docs/BUNDLE_ANALYSIS.md) is ~42.6 KB gzip,
 // after a large feature batch (compactNow/rearrange, duplicateItem,
@@ -51,7 +51,7 @@ const rawKb = formatKb(raw.length);
 const gzipKb = formatKb(gzipped.length);
 const budgetBytes = BUDGET_KB * 1024;
 
-console.log(`[bundle-size] vue-ts-responsive-grid-layout.es.js: ${rawKb} KB raw / ${gzipKb} KB gzip`);
+console.log(`[bundle-size] keystone-dashboard-layout-vue.es.js: ${rawKb} KB raw / ${gzipKb} KB gzip`);
 console.log(`[bundle-size] Budget: ${BUDGET_KB} KB gzip`);
 
 if (gzipped.length > budgetBytes) {

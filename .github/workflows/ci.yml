@@ -2,9 +2,12 @@ name: CI
 
 # Runs on every push to main and every PR. Monorepo-aware: turbo runs each
 # task (typecheck, lint, test, build, ...) per package, automatically
-# skipping any package whose package.json doesn't define that script (e.g.
-# packages/react and packages/angular are scaffolds and don't yet define
-# every task packages/vue does).
+# skipping any package whose package.json doesn't define that script.
+# packages/vue, packages/react, and packages/angular all have full feature
+# parity and real test suites today; each still defines a slightly
+# different task set (e.g. Angular deliberately omits dev/lint/test:e2e —
+# see that package's own package.json _comment_scripts field for why),
+# which is exactly what turbo's own skip-if-undefined behavior is for.
 on:
   push:
     branches: [main]
@@ -63,8 +66,9 @@ jobs:
 
       - name: Unit + component tests (with coverage gate)
         # packages/vue enforces a 90% coverage floor via its own
-        # vitest.config.js; packages/react passes trivially
-        # (passWithNoTests) until real tests exist.
+        # vitest.config.js; packages/react and packages/angular each have
+        # their own real, extensive test suites now too (Vitest and Jest
+        # respectively) — no longer a passWithNoTests placeholder.
         run: pnpm test:coverage
 
       - name: Build all packages
@@ -79,11 +83,50 @@ jobs:
         # catches issues that testing through source aliases never would.
         run: pnpm --filter @keystone-dashboard-layout/vue run check:package-install
 
+      - name: Check bundle size (React package)
+        # continue-on-error until verified against a real build — this
+        # script (like Angular's own below) has never actually been run;
+        # see its own top comment for what's unverified about it. Remove
+        # continue-on-error once confirmed working, so a real regression
+        # actually blocks CI the way Vue's own check does.
+        run: pnpm --filter @keystone-dashboard-layout/react run check:bundle-size
+        continue-on-error: true
+
+      - name: Verify the published React package actually installs and resolves
+        run: pnpm --filter @keystone-dashboard-layout/react run check:package-install
+        continue-on-error: true
+
+      - name: Check bundle size (Angular package)
+        # continue-on-error until verified — this script's own
+        # "measure the whole output directory" approach and its BUDGET_KB
+        # placeholder are both unverified against a real ng-packagr build;
+        # see its own top comment.
+        run: pnpm --filter @keystone-dashboard-layout/angular run check:bundle-size
+        continue-on-error: true
+
+      - name: Verify the published Angular package actually installs and resolves
+        # continue-on-error until verified — this script's own assumptions
+        # about ng-packagr's generated package.json/exports shape haven't
+        # been checked against a real build; see its own top comment.
+        run: pnpm --filter @keystone-dashboard-layout/angular run check:package-install
+        continue-on-error: true
+
       - name: Build Vue demo app
         run: pnpm --filter @keystone-dashboard-layout/vue run demo:build
 
+      - name: Install documentation site dependencies
+        # astro-docs is a separate, standalone project (its own
+        # package.json/pnpm-workspace.yaml, deliberately outside this
+        # root workspace) that depends on the just-built packages above
+        # via `link:../packages/*` — install its own dependencies
+        # explicitly rather than assuming the root `pnpm install` above
+        # covered it, since it doesn't.
+        working-directory: astro-docs
+        run: pnpm install
+
       - name: Build documentation site
-        run: pnpm docs:build
+        working-directory: astro-docs
+        run: pnpm build
 
   e2e:
     name: End-to-end tests
@@ -107,13 +150,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        # Only packages/vue defines playwright.config.ts today; this
-        # installs browsers once for whichever packages need them.
+        # packages/vue and packages/react both define playwright.config.ts
+        # today (packages/angular deliberately has no e2e layer yet — see
+        # that package's own SUPPORT.md). This installs browsers once for
+        # whichever packages need them.
         run: pnpm --filter @keystone-dashboard-layout/vue exec playwright install --with-deps
 
       - name: Run e2e tests
-        # turbo skips any package without a test:e2e script (currently only
-        # packages/vue defines one).
+        # turbo skips any package without a test:e2e script (packages/vue
+        # and packages/react both define one; packages/angular
+        # deliberately doesn't yet — see that package's own SUPPORT.md).
         run: pnpm test:e2e
 
       - name: Upload Playwright report
@@ -149,9 +195,10 @@ jobs:
         run: pnpm audit --prod --audit-level=high
 
       - name: Audit all dependencies (advisory)
-        # vitepress vendors its own vite a major version behind the
-        # workspace's top-level vite, with no non-breaking fix available
-        # yet — dev-server-only, doesn't affect published consumers.
+        # Broader dev-dependency audit than the production-only gate
+        # above — kept advisory rather than blocking, since a dev-only
+        # transitive advisory shouldn't fail CI the way a production one
+        # should; doesn't affect published consumers either way.
         run: pnpm audit --audit-level=high
         continue-on-error: true
 

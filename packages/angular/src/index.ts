@@ -1,16 +1,9 @@
 // Entry point for @keystone-dashboard-layout/angular
 // Port of packages/vue/src/components/Grid (GridLayout, GridItem) to Angular.
 //
-// See docs/PARITY_GAP_ANGULAR.md for the architecture mapping (Vue's
-// reactive refs/watchers/eventBus/defineExpose -> Angular's
-// @Input()/ngOnChanges/DI-scoped service/public class members) and
-// docs/IMPLEMENTATION_PLAN.md for the phase-by-phase build order this
-// follows. Every item in the original prop inventory is implemented as
-// of Phase 13 (see IMPLEMENTATION_PLAN.md's own closing note) — this
-// comment previously read "Phase 1... is implemented; everything else
-// is still pending", which was stale by the time of a full re-read of
-// this package's own docs/IMPLEMENTATION_PLAN.md, not an accurate
-// reflection of the package's real state.
+// Every item in Vue's own original prop inventory is implemented — full
+// feature parity, not a partial port (see this package's own README.md
+// for the complete, current feature list).
 //
 // The framework-agnostic algorithms (bin-packing, collision detection,
 // compaction, responsive breakpoints, alignment guides/snapping,

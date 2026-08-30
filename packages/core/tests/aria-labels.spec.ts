@@ -6,6 +6,20 @@ describe(`resolveAriaLabels`, () => {
     expect(resolveAriaLabels(undefined, undefined)).toStrictEqual(DEFAULT_ARIA_LABELS);
   });
 
+  it(`DEFAULT_ARIA_LABELS should contain the actual, specific English text — not just be internally self-consistent`, () => {
+    // Every other test in this file compares result.X against
+    // DEFAULT_ARIA_LABELS.X directly — the SAME constant on both sides
+    // of the comparison. If a mutant replaced one of these string
+    // literals with '' (or any other value) at the source, every one of
+    // those comparisons would still pass, since both sides would shift
+    // together. Hardcoded literal values here are what actually pin
+    // down the real content.
+    expect(DEFAULT_ARIA_LABELS.closeButton).toBe(`Close`);
+    expect(DEFAULT_ARIA_LABELS.itemRoleDescription).toBe(`Draggable, resizable item`);
+    expect(DEFAULT_ARIA_LABELS.moveInstruction).toBe(`Press arrow keys to move.`);
+    expect(DEFAULT_ARIA_LABELS.resizeInstruction).toBe(`Press shift plus arrow keys to resize.`);
+  });
+
   it(`Should let GridLayout's own labels override the defaults`, () => {
     const result = resolveAriaLabels({ closeButton: `Cerrar` }, undefined);
 

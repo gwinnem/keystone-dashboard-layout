@@ -1,0 +1,182 @@
+[
+  {
+    "location": {
+      "end": {
+        "column": 48,
+        "line": 10
+      },
+      "start": {
+        "column": 17,
+        "line": 10
+      }
+    },
+    "mutatorName": "ArrayDeclaration",
+    "replacement": "[]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 47,
+        "line": 10
+      },
+      "start": {
+        "column": 42,
+        "line": 10
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 40,
+        "line": 10
+      },
+      "start": {
+        "column": 36,
+        "line": 10
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 22,
+        "line": 10
+      },
+      "start": {
+        "column": 18,
+        "line": 10
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 21,
+        "line": 11
+      },
+      "start": {
+        "column": 18,
+        "line": 11
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 26,
+        "line": 11
+      },
+      "start": {
+        "column": 23,
+        "line": 11
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 10
+      },
+      "start": {
+        "column": 24,
+        "line": 10
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 34,
+        "line": 10
+      },
+      "start": {
+        "column": 30,
+        "line": 10
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 31,
+        "line": 11
+      },
+      "start": {
+        "column": 28,
+        "line": 11
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 36,
+        "line": 11
+      },
+      "start": {
+        "column": 33,
+        "line": 11
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 41,
+        "line": 11
+      },
+      "start": {
+        "column": 38,
+        "line": 11
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 42,
+        "line": 11
+      },
+      "start": {
+        "column": 17,
+        "line": 11
+      }
+    },
+    "mutatorName": "ArrayDeclaration",
+    "replacement": "[]",
+    "status": "Survived"
+  }
+]

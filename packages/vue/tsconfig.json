@@ -43,7 +43,6 @@
       "@/core/*": ["../core/src/*"],
       "@/components/Grid/layout-definition": ["../core/src/layout-definition"],
       "@/*": ["./src/*"],
-      "@theme/*": ["../../vitepress-docs/.vitepress/theme/*"],
     },
     "types": [
       "node",
@@ -59,7 +58,6 @@
     "/dist",
     "node_modules",
     "*.tgz",
-    "../../vitepress-docs/*",
     "tests/*",
     "sandbox/*"
   ],

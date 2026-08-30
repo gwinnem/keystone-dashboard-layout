@@ -281,19 +281,31 @@ Ordered by how quickly each one can rule itself in or out.
 not writing new ones. Do this before anything else in this document;
 a red result here is more urgent than any feature above.
 
-### C2. Mutation testing re-run
+### C2. Mutation testing re-run — done (infrastructure); results triage still open
 
-`PRODUCTION_READINESS.md` flags this as not re-run since the emitter
-swap, the `resizeHandles` fix, and the `zIndex`/`#header` additions —
-exactly the kind of changed surface (a previously-buggy watcher, an
-internal pub/sub replacement) mutation testing is specifically good at
-catching regressions in that ordinary coverage percentages can miss
-(a test can execute a line without actually asserting on its effect).
+**Update**: this item's own effort estimate ("Small to run") turned out
+to badly understate what was actually needed. Getting `pnpm
+test:mutation` to run at all against this package required a genuinely
+significant fix, not just a re-run: this package's `@/core` alias
+reaches into the sibling `packages/core` workspace package, which
+Stryker's *default* sandboxing has no way to see (it only copies the
+current project's own directory), so mutation testing never actually
+executed cleanly here before. See [`docs/STRYKER.md`](./STRYKER.md)'s
+own "Why the monorepo root" section for the full account — the fix
+(invoking Stryker from the monorepo root, plus three further follow-on
+issues that same change surfaced) is now in place and confirmed working
+via a real run, not assumed.
 
-**Effort**: Small to run (`npm run test:mutation` or equivalent CI
-script), but budget real time to *read* the results — a mutation
-report is only useful if surviving mutants are actually triaged, not
-just glanced at for a summary score.
+What's still open, matching this item's original framing: *reading and
+triaging* the results is a separate task from getting the infrastructure
+working, and hasn't happened yet as a dedicated pass — see
+[Interpreting results](./STRYKER.md#interpreting-results-going-forward)
+in that same doc for how to approach it.
+
+**Effort**: the infrastructure fix was Moderate, not Small (see above) —
+already done. Triaging survived mutants from a real run remains Small
+to Moderate, budgeting real time to read results rather than glance at
+a summary score.
 
 ### C3. Visual regression baselines
 

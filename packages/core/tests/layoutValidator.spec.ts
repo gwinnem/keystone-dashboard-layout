@@ -72,4 +72,18 @@ describe(`layoutValidator`, () => {
   it(`Should accept a layout item with no data field at all (it's optional)`, () => {
     expect(layoutValidator([validRequiredLayout])).toBe(true);
   });
+
+  it(`Should return false when an optional key is present with the WRONG type — not just a different value of the same type`, () => {
+    // invalidOptionalLayout (used above) is misleadingly named: every
+    // one of its fields is still the *same type* as validOptionalLayout's
+    // own fields (e.g. isDraggable is still a boolean, just a different
+    // one) — this validator only ever checks typeof, never the actual
+    // value, so that fixture can never distinguish a real type-mismatch
+    // bug from a correctly-typed one. This constructs a genuine type
+    // mismatch instead: isDraggable as a string, which validLayout's own
+    // typeof check should actually catch.
+    const result = layoutValidator([{ ...validRequiredLayout, isDraggable: `yes` }]);
+
+    expect(result).toBe(false);
+  });
 });

@@ -509,6 +509,26 @@ describe(`GridLayoutComponent`, () => {
       expect(component.alignmentGuideStyles.length).toBeGreaterThan(0);
     });
 
+    it(`Should compute the exact left pixel position of an X-axis alignment guide, not just "something rendered"`, () => {
+      // The test above only ever checks .length > 0, which can't
+      // distinguish an arithmetic mutant in the pixel-conversion formula
+      // (guide.position * (colWidth + marginH) + marginH) from correct
+      // code, as long as *some* non-empty style object comes out.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 4, y: 4 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout: twoItemLayout, showAlignmentGuides: true });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 4, y: 0 });
+
+      // colWidth = (1220-10*13)/12 = 90.8333; left = 4*(90.8333+10)+10 = 413.333
+      const guide = component.alignmentGuideStyles.find(g => g.width === `1px`);
+      expect(guide).toBeDefined();
+      expect(parseFloat(guide!.left)).toBeCloseTo(413.333, 2);
+    });
+
     it(`Should populate a horizontal (Y-axis) alignment guide when the dragged item's own top/bottom edge lines up instead of left/right`, () => {
       const twoItemLayout: TLayout = [
         { h: 2, i: `a`, w: 2, x: 0, y: 0 },
@@ -526,6 +546,26 @@ describe(`GridLayoutComponent`, () => {
       expect(component.alignmentGuideStyles.some(guide => guide.width === `100%` && guide.left === `0`)).toBe(true);
     });
 
+    it(`Should compute the exact top pixel of a Y-axis alignment guide, not just "something rendered at left:0"`, () => {
+      // The test above only ever checks left/width, never the actual
+      // top pixel value — the Y-axis guide's own pixel-conversion
+      // formula (guide.position * (rowHeight + marginV) + marginV) has
+      // no exact value check.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 6, y: 6 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout: twoItemLayout, showAlignmentGuides: true });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 0, y: 6 });
+
+      // rowHeight defaults to 150; top = 6*(150+10)+10 = 970
+      const guide = component.alignmentGuideStyles.find(g => g.width === `100%`);
+      expect(guide).toBeDefined();
+      expect(guide!.top).toBe(`970px`);
+    });
+
     it(`Should clear alignmentGuideStyles once the drag ends`, () => {
       const twoItemLayout: TLayout = [
         { h: 2, i: `a`, w: 2, x: 0, y: 0 },
@@ -538,6 +578,27 @@ describe(`GridLayoutComponent`, () => {
       expect(component.alignmentGuideStyles.length).toBeGreaterThan(0);
 
       eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 4, y: 0 });
+      expect(component.alignmentGuideStyles.length).toBe(0);
+    });
+
+    it(`Should also clear alignmentGuideStyles once a resize ends, not just a drag`, () => {
+      // The test above only ever exercises the drag path — handleItemResize's
+      // own identical "else { this.clearGuides(); }" branch for resizeend
+      // has no test of its own.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 4, y: 0 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout: twoItemLayout, showAlignmentGuides: true });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemResize({ eventType: `resizestart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      // Grown to w:4 — "a"'s own right edge (0+4=4) now lines up with
+      // "b"'s own left edge (4).
+      eventBus.emitItemResize({ eventType: `resizemove`, h: 2, i: `a`, w: 4, x: 0, y: 0 });
+      expect(component.alignmentGuideStyles.length).toBeGreaterThan(0);
+
+      eventBus.emitItemResize({ eventType: `resizeend`, h: 2, i: `a`, w: 4, x: 0, y: 0 });
       expect(component.alignmentGuideStyles.length).toBe(0);
     });
 
@@ -584,6 +645,30 @@ describe(`GridLayoutComponent`, () => {
       expect(component.spacingIndicatorStyles.length).toBeGreaterThan(0);
     });
 
+    it(`Should compute the exact left/top pixel center of an X-axis spacing indicator, not just "something rendered"`, () => {
+      // The test above only ever checks .length > 0, which can't
+      // distinguish an arithmetic mutant in the gapStart/gapEnd/center
+      // pixel-conversion formulas from correct code.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 6, y: 0 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout: twoItemLayout, rowHeight: 150, showSpacingGuides: true });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      // "a" dragged to x:2 (occupies 2-4); "b" at x:6 (occupies 6-8) —
+      // gap: gapStart=4 (a's own right edge), gapEnd=6 (b's own left edge).
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+
+      // colWidth = 90.8333; startPx = 4*(90.8333+10)+10 = 413.333;
+      // endPx = 6*(90.8333+10)+10 = 615; center left = (413.333+615)/2 = 514.1667
+      // centerY = (0 + 2/2)*(150+10)+10 = 170
+      const indicator = component.spacingIndicatorStyles.find(i => i.label.includes(`col`));
+      expect(indicator).toBeDefined();
+      expect(parseFloat(indicator!.left)).toBeCloseTo(514.1667, 2);
+      expect(parseFloat(indicator!.top)).toBeCloseTo(170, 2);
+    });
+
     it(`Should populate a Y-axis spacing indicator when the nearest gap is vertical rather than horizontal`, () => {
       const twoItemLayout: TLayout = [
         { h: 2, i: `a`, w: 2, x: 0, y: 0 },
@@ -598,6 +683,30 @@ describe(`GridLayoutComponent`, () => {
 
       expect(component.spacingIndicatorStyles.length).toBeGreaterThan(0);
       expect(component.spacingIndicatorStyles.some(indicator => indicator.label.includes(`row`))).toBe(true);
+    });
+
+    it(`Should compute the exact left/top pixel center of a Y-axis spacing indicator too, not just X-axis`, () => {
+      // The test above only ever checks label.includes('row'), never
+      // the actual pixel position — the Y-axis branch's own
+      // gapStart/gapEnd/centerX pixel-conversion formulas (distinct code
+      // from the X-axis branch already covered elsewhere) have no exact
+      // value check at all.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 0, y: 6 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, layout: twoItemLayout, rowHeight: 100, showSpacingGuides: true });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 0, y: 2 });
+
+      // gapStart=4 (a's own bottom edge), gapEnd=6 (b's own top edge).
+      // startPxY = 4*(100+10)+10 = 450; endPxY = 6*110+10 = 670; top = 560
+      // colWidth = 90.8333; centerX (left) = (0+1)*(90.8333+10)+10 = 110.8333
+      const indicator = component.spacingIndicatorStyles.find(i => i.label.includes(`row`));
+      expect(indicator).toBeDefined();
+      expect(parseFloat(indicator!.left)).toBeCloseTo(110.8333, 2);
+      expect(indicator!.top).toBe(`560px`);
     });
 
     it(`Should use the singular "col" (not "cols") in the label when the X-axis gap is exactly 1 unit`, () => {
@@ -640,6 +749,26 @@ describe(`GridLayoutComponent`, () => {
 
       // Drag "a" to x:7 — 1 grid unit shy of "b"'s own left edge (x:6),
       // within the snapThreshold of 1 — should snap exactly to x:6.
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 7, y: 4 });
+
+      const itemA = emitted[0].find(item => item.i === `a`);
+      expect(itemA?.x).toBe(6);
+    });
+
+    it(`Should snap using the actual default snapThreshold (1) when not explicitly set, not just when explicitly matching it`, () => {
+      // Every snapThreshold test in this file explicitly sets it to 1
+      // (the same as the default) — masking a mutation on the @Input()
+      // default declaration itself, since the explicit override would
+      // produce the identical value regardless.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 6, y: 4 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, layout: twoItemLayout, snapToGrid: true });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
       eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 7, y: 4 });
 
       const itemA = emitted[0].find(item => item.i === `a`);
@@ -910,6 +1039,53 @@ describe(`GridLayoutComponent`, () => {
       expect(itemC.y).toBe(0);
     });
 
+    it(`Should compute the correct group-move delta when the dragged anchor's own starting x/y is non-zero, not just the degenerate (0,0) case above`, () => {
+      // The test above has the anchor "a" starting at (0,0) —
+      // anchorStart.x/y are both 0, so "x - anchorStart.x" and a mutated
+      // "x + anchorStart.x" give the identical delta at that value.
+      const threeItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 4, y: 4 },
+        { h: 2, i: `b`, w: 2, x: 8, y: 4 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, compactType: ECompactType.NONE, layout: threeItemLayout, multiSelect: true });
+      component.selectItem(`a`);
+      component.toggleItemSelection(`b`);
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 4, y: 4 });
+      // dx = 6-4 = 2; dy = 6-4 = 2.
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 6, y: 6 });
+
+      const itemB = emitted[emitted.length - 1].find(item => item.i === `b`)!;
+      expect(itemB.x).toBe(10);
+      expect(itemB.y).toBe(6);
+    });
+
+    it(`Should NOT move a group-move passenger whose own isDraggable is explicitly false`, () => {
+      // No test anywhere confirms applyGroupMove's own "passenger.
+      // isDraggable !== false" guard — every existing group-move test
+      // uses passengers that are draggable by default.
+      const threeItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, isDraggable: false, w: 2, x: 4, y: 0 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, compactType: ECompactType.NONE, layout: threeItemLayout, multiSelect: true });
+      component.selectItem(`a`);
+      component.toggleItemSelection(`b`);
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 2, y: 3 });
+
+      const itemB = emitted[emitted.length - 1].find(item => item.i === `b`)!;
+      expect(itemB.x).toBe(4);
+      expect(itemB.y).toBe(0);
+    });
+
     it(`Should resize every other selected item by the same delta when a selected item is resized (group resize)`, () => {
       const threeItemLayout: TLayout = [
         { h: 2, i: `a`, w: 2, x: 0, y: 0 },
@@ -936,6 +1112,28 @@ describe(`GridLayoutComponent`, () => {
       // "c" (not selected) should be untouched.
       expect(itemC.w).toBe(2);
       expect(itemC.h).toBe(2);
+    });
+
+    it(`Should NOT resize a group-resize passenger whose own isResizable is explicitly false`, () => {
+      // Same gap as the analogous group-move test above, for resize's
+      // own "passenger.isResizable !== false" guard.
+      const threeItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 3, i: `b`, isResizable: false, w: 3, x: 4, y: 0 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, compactType: ECompactType.NONE, layout: threeItemLayout, multiSelect: true });
+      component.selectItem(`a`);
+      component.toggleItemSelection(`b`);
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemResize({ eventType: `resizestart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemResize({ eventType: `resizemove`, h: 4, i: `a`, w: 4, x: 0, y: 0 });
+
+      const itemB = emitted[emitted.length - 1].find(item => item.i === `b`)!;
+      expect(itemB.w).toBe(3);
+      expect(itemB.h).toBe(3);
     });
 
     it(`Should clamp a group-resized passenger's own new size to its own minW/maxW/minH/maxH, independent of the anchor's own limits`, () => {
@@ -1173,6 +1371,37 @@ describe(`GridLayoutComponent`, () => {
       const last = emitted[emitted.length - 1];
       const itemA = last.find(item => item.i === `a`);
       expect(itemA?.x).toBe(3);
+      // Never checked before: canRedo's own post-redo() recomputation
+      // (this.canRedo = this.redoStack.length > 0) at the exact boundary
+      // where redoStack becomes empty again.
+      expect(component.canRedo).toBe(false);
+    });
+
+    it(`Should keep canRedo true after a redo() when more than one redo is still available, not just the fully-exhausted case above`, () => {
+      // The test above only ever checks canRedo post-redo() at the exact
+      // moment redoStack becomes empty (false either way, whether the
+      // real "redoStack.length > 0" computation runs or a hardcoded
+      // false mutant replaces it) — never a case where it should still
+      // be true afterward.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 6, y: 0 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, enableUndoRedo: true, layout: twoItemLayout });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 3, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 3, y: 0 });
+      component.undo();
+      component.undo();
+
+      component.redo();
+
+      expect(component.canRedo).toBe(true);
     });
 
     it(`Should not record any undo history at all when enableUndoRedo is off (the default)`, () => {
@@ -1239,9 +1468,73 @@ describe(`GridLayoutComponent`, () => {
 
       expect(canUndoAfterTwoUndos).toBe(false);
     });
+
+    it(`Should keep canUndo true after an undo() when more than one undo is still available, not just the fully-exhausted case above`, () => {
+      // Every existing canUndo check after undo() happens at the exact
+      // moment the stack becomes empty (false either way, whether the
+      // real "undoStack.length > 0" computation runs or a hardcoded
+      // false mutant replaces it) — never a case where it should still
+      // be true afterward.
+      setInputsAndDetectChanges({ colNum: 12, enableUndoRedo: true, layout });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragend`, h: 2, i: `0`, w: 2, x: 1, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `0`, w: 2, x: 1, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragend`, h: 2, i: `0`, w: 2, x: 2, y: 0 });
+
+      component.undo();
+
+      expect(component.canUndo).toBe(true);
+    });
+
   });
 
   describe(`Phase 7 — responsive breakpoints`, () => {
+    it(`Should NOT resolve any breakpoint at all while containerWidth is still unmeasured (0), not just once measured`, () => {
+      // The "resolve colNum..." test right below sets responsive:true
+      // via setInputsAndDetectChanges *before* ever calling
+      // ngAfterViewInit() itself — meaning resolveResponsiveColNum()
+      // already runs once, via ngOnChanges, while containerWidth is
+      // still its own default (0) — but that test only ever subscribes
+      // to breakpointChanged afterward, so it can't tell whether a
+      // premature (and wrong) breakpoint resolution happened during
+      // that earlier, unmeasured call and was simply overwritten later
+      // by the real measurement. This isolates that specific moment.
+      const emittedBreakpoints: string[] = [];
+      component.breakpointChanged.subscribe(bp => emittedBreakpoints.push(bp));
+
+      setInputsAndDetectChanges({
+        breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480, xxl: 1600, xl: 1400, xxs: 0 },
+        cols: { lg: 12, md: 10, sm: 6, xs: 4, xxl: 12, xl: 12, xxs: 2 },
+        layout,
+        responsive: true,
+      });
+
+      expect(component.lastBreakpoint).toBeNull();
+      expect(emittedBreakpoints.length).toBe(0);
+    });
+
+    it(`Should leave effectiveColNum at the plain colNum @Input() while unmeasured, confirmed via a direct read`, () => {
+      // A more direct, robust companion to the test above — checks the
+      // private effectiveColNum field itself rather than relying on
+      // breakpointChanged's own emission behavior at this exact
+      // boundary (containerWidth === 0, which also happens to equal
+      // the lowest breakpoint's own threshold). colNum:8, deliberately
+      // NOT 12 (effectiveColNum's own class-field default) — 12 would
+      // make this pass vacuously even if resolveResponsiveColNum() never
+      // actually ran the "effectiveColNum = this.colNum" assignment at all.
+      setInputsAndDetectChanges({
+        breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480, xxl: 1600, xl: 1400, xxs: 0 },
+        colNum: 8,
+        cols: { lg: 12, md: 10, sm: 6, xs: 4, xxl: 12, xl: 12, xxs: 2 },
+        layout,
+        responsive: true,
+      });
+
+      expect((component as unknown as { effectiveColNum: number }).effectiveColNum).toBe(8);
+    });
+
     it(`Should resolve colNum from the matching breakpoint's own cols value once responsive and measured`, () => {
       setInputsAndDetectChanges({
         breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480, xxl: 1600, xl: 1400, xxs: 0 },
@@ -1458,12 +1751,28 @@ describe(`GridLayoutComponent`, () => {
       expect(component.containerStyle[`--grid-transition-timing`]).toBe(`ease-in-out`);
     });
 
+    it(`Should apply the actual default transitionTimingFunction ('ease') when not explicitly set`, () => {
+      // The test above only ever exercises an explicit override —
+      // never confirms the real @Input() default value itself.
+      setInputsAndDetectChanges({ layout });
+
+      expect(component.containerStyle[`--grid-transition-timing`]).toBe(`ease`);
+    });
+
     it(`Should apply --kdl-resize-handle-color only when showResizeHandles is on`, () => {
       setInputsAndDetectChanges({ layout, resizeHandleColor: `blue`, showResizeHandles: false });
       expect(component.containerStyle[`--kdl-resize-handle-color`]).toBeUndefined();
 
       setInputsAndDetectChanges({ showResizeHandles: true });
       expect(component.containerStyle[`--kdl-resize-handle-color`]).toBe(`blue`);
+    });
+
+    it(`Should apply the actual default resizeHandleColor when showResizeHandles is on but resizeHandleColor isn't explicitly set`, () => {
+      // The test above only ever exercises an explicit resizeHandleColor
+      // override — never confirms the real @Input() default value itself.
+      setInputsAndDetectChanges({ layout, showResizeHandles: true });
+
+      expect(component.containerStyle[`--kdl-resize-handle-color`]).toBe(`rgb(94 94 94 / 45%)`);
     });
   });
 
@@ -1515,6 +1824,28 @@ describe(`GridLayoutComponent`, () => {
       expect(sourceFinal.find(item => item.i === `a`)).toBeUndefined();
       const targetFinal = targetEmitted[targetEmitted.length - 1];
       expect(targetFinal.find(item => item.i === `a`)).toBeTruthy();
+    });
+
+    it(`Should leave a second, non-dragged item behind in the source grid's own layout after a cross-grid drop, not remove it too`, () => {
+      // setupTwoGrids's own source layout has only one item — removing
+      // it always leaves an empty array whether the filter predicate is
+      // correct (keep items where i !== event.i) or a mutant that keeps
+      // nothing at all, never distinguishing the two.
+      const { target } = setupTwoGrids();
+      const sourceContainer = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      component.layout = [...component.layout, { h: 2, i: `staying`, w: 2, x: 6, y: 0 }];
+      component.ngOnChanges({ layout: {} } as unknown as SimpleChanges);
+      fixture.detectChanges();
+      mockRect(sourceContainer, { bottom: 300, left: 0, right: 300, top: 0 });
+      const sourceEmitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => sourceEmitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 600, clientY: 100, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+
+      const sourceFinal = sourceEmitted[sourceEmitted.length - 1];
+      expect(sourceFinal.find(item => item.i === `staying`)).toBeTruthy();
     });
 
     it(`Should not throw, and should not accept the drop, when the target's own containerRef is unresolved (its own getRect returns null)`, () => {
@@ -1589,6 +1920,67 @@ describe(`GridLayoutComponent`, () => {
       expect(sourceFinal.find(item => item.i === `a`)?.x).toBe(2);
     });
 
+    it(`Should never set draggedCrossGridId at all when allowCrossGridDrag is off, even on a real dragstart`, () => {
+      // draggedCrossGridId is never directly read/checked anywhere in
+      // this file — only indirectly, via handleCrossGridDragEnd's own
+      // separate guard. This isolates the dragstart-time "if
+      // (this.allowCrossGridDrag) { this.draggedCrossGridId = event.i; }"
+      // check specifically, via a direct cast.
+      const sourceLayout: TLayout = [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }];
+      setInputsAndDetectChanges({ allowCrossGridDrag: false, colNum: 12, layout: sourceLayout });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+
+      expect((component as unknown as { draggedCrossGridId: string | number | null }).draggedCrossGridId).toBeNull();
+    });
+
+    it(`Should set draggedCrossGridId on dragstart when allowCrossGridDrag is on`, () => {
+      const sourceLayout: TLayout = [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }];
+      setInputsAndDetectChanges({ allowCrossGridDrag: true, colNum: 12, layout: sourceLayout });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+
+      expect((component as unknown as { draggedCrossGridId: string | number | null }).draggedCrossGridId).toBe(`a`);
+    });
+
+    it(`Should leave deregisterCrossGridZone null when allowCrossGridDrag stays off (the default) — never registers a zone at all`, () => {
+      // setCrossGridDragEnabled/deregisterCrossGridZone are never
+      // directly tested anywhere in this file — confirmed via a direct
+      // search. Isolates its own "if(!enabled){return;}" guard
+      // specifically.
+      setInputsAndDetectChanges({ allowCrossGridDrag: false, colNum: 12, layout: [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }] });
+
+      expect((component as unknown as { deregisterCrossGridZone: (() => void) | null }).deregisterCrossGridZone).toBeNull();
+    });
+
+    it(`Should set a real deregisterCrossGridZone function once allowCrossGridDrag is on`, () => {
+      setInputsAndDetectChanges({ allowCrossGridDrag: true, colNum: 12, layout: [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }] });
+
+      expect((component as unknown as { deregisterCrossGridZone: (() => void) | null }).deregisterCrossGridZone).toBeInstanceOf(Function);
+    });
+
+    it(`Should also skip the cross-grid lookup when allowCrossGridDrag is ON but no dragstart ever tracked this drag`, () => {
+      // The test above has BOTH halves of the guard's own OR-chain true
+      // simultaneously (allowCrossGridDrag off AND draggedCrossGridId
+      // null, since a dragstart never runs when the feature is off
+      // either) — masking a mutated && from the real ||. This isolates
+      // the second half specifically: allowCrossGridDrag is genuinely on
+      // this time, but dragend fires with no preceding dragstart, so
+      // draggedCrossGridId is still null purely because nothing ever set it.
+      const sourceLayout: TLayout = [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }];
+      setInputsAndDetectChanges({ allowCrossGridDrag: true, colNum: 12, layout: sourceLayout, layoutId: `source` });
+      const sourceEmitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => sourceEmitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 600, clientY: 100, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+
+      const sourceFinal = sourceEmitted[sourceEmitted.length - 1];
+      expect(sourceFinal.find(item => item.i === `a`)?.x).toBe(2);
+    });
+
     it(`Should not attempt any cross-grid lookup at all when allowCrossGridDrag is off (the default)`, () => {
       const sourceLayout: TLayout = [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }];
       setInputsAndDetectChanges({ allowCrossGridDrag: false, colNum: 12, layout: sourceLayout });
@@ -1641,6 +2033,37 @@ describe(`GridLayoutComponent`, () => {
       return event;
     };
 
+    it(`Should not double-attach outside-drop listeners when allowOutsideDrop is redundantly re-enabled`, () => {
+      // outsideDropListenersAttached's own guard is never directly
+      // tested — confirmed via a direct search. A redundant second
+      // "enable" call should be a genuine no-op, not double-attach the
+      // four native listeners — which would double-count dragEnterCount
+      // on a single real dragenter.
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [] });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+
+      component.ngOnChanges({ allowOutsideDrop: { firstChange: false } } as unknown as SimpleChanges);
+
+      dispatchDragEvent(containerDiv, `dragenter`);
+
+      expect((component as unknown as { dragEnterCount: number }).dragEnterCount).toBe(1);
+    });
+
+    it(`Should actually remove the outside-drop listeners once allowOutsideDrop toggles back off`, () => {
+      // No test confirms the four listeners are genuinely detached —
+      // a dragenter after toggling off should have zero effect.
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [] });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+
+      component.allowOutsideDrop = false;
+      component.ngOnChanges({ allowOutsideDrop: { firstChange: false } } as unknown as SimpleChanges);
+
+      dispatchDragEvent(containerDiv, `dragenter`);
+
+      expect((component as unknown as { dragEnterCount: number }).dragEnterCount).toBe(0);
+      expect((component as unknown as { outsideDropListenersAttached: boolean }).outsideDropListenersAttached).toBe(false);
+    });
+
     it(`Should emit itemDroppedFromOutside with the grid-unit position derived from the drop's own clientX/clientY`, () => {
       setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [], margin: [10, 10], outsideDropHeight: 2, outsideDropWidth: 2, rowHeight: 100 });
       const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
@@ -1656,6 +2079,108 @@ describe(`GridLayoutComponent`, () => {
 
       // colWidth = (1220-10*13)/12 = 90.8333; x = round((101-10)/(90.8333+10)) = round(0.902) = 1
       expect(dropped).toEqual([{ h: 2, w: 2, x: 1, y: 0 }]);
+    });
+
+    it(`Should use the actual default outsideDropWidth/outsideDropHeight (2, 2) when not explicitly set`, () => {
+      // Every itemDroppedFromOutside test in this file explicitly sets
+      // both to 2 (matching the default) — masking a mutation on either
+      // @Input() default declaration itself.
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [], margin: [10, 10], rowHeight: 100 });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      containerDiv.getBoundingClientRect = () => ({
+        bottom: 500, height: 500, left: 0, right: 1220, top: 0, width: 1220, x: 0, y: 0, toJSON: () => ({}),
+      });
+      component.containerWidth = 1220;
+      const dropped: { h: number; w: number }[] = [];
+      component.itemDroppedFromOutside.subscribe(payload => dropped.push({ h: payload.h, w: payload.w }));
+      const mockDataTransfer = { getData: () => `` } as unknown as DataTransfer;
+
+      dispatchDragEvent(containerDiv, `drop`, { clientX: 101, clientY: 0, dataTransfer: mockDataTransfer });
+
+      expect(dropped).toEqual([{ h: 2, w: 2 }]);
+    });
+
+    it(`Should compute a non-zero grid-unit y position too, not just x — the existing test above uses clientY:0, which clamps to y:0 regardless of the y-formula's own arithmetic`, () => {
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [], margin: [10, 10], outsideDropHeight: 2, outsideDropWidth: 2, rowHeight: 100 });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      containerDiv.getBoundingClientRect = () => ({
+        bottom: 500, height: 500, left: 0, right: 1220, top: 0, width: 1220, x: 0, y: 0, toJSON: () => ({}),
+      });
+      component.containerWidth = 1220;
+      const dropped: { h: number; w: number; x: number; y: number }[] = [];
+      component.itemDroppedFromOutside.subscribe(payload => dropped.push({ h: payload.h, w: payload.w, x: payload.x, y: payload.y }));
+      const mockDataTransfer = { getData: () => `` } as unknown as DataTransfer;
+
+      dispatchDragEvent(containerDiv, `drop`, { clientX: 250, clientY: 221, dataTransfer: mockDataTransfer });
+
+      // colWidth = 90.8333; x = round((250-10)/(90.8333+10)) = round(2.381) = 2
+      // y = round((221-10)/(100+10)) = round(1.918) = 2
+      expect(dropped).toEqual([{ h: 2, w: 2, x: 2, y: 2 }]);
+    });
+
+    it(`Should clamp x to effectiveColNum - outsideDropWidth when dropped far past the right edge, not some other ceiling`, () => {
+      // Neither existing outside-drop test drags far enough right to
+      // actually reach this specific clamp's own ceiling — confirming
+      // the clamped result is exactly colNum-outsideDropWidth (10 here),
+      // not colNum+outsideDropWidth (14), which a mutated "+" would give.
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [], margin: [10, 10], outsideDropHeight: 2, outsideDropWidth: 2, rowHeight: 100 });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      containerDiv.getBoundingClientRect = () => ({
+        bottom: 500, height: 500, left: 0, right: 1220, top: 0, width: 1220, x: 0, y: 0, toJSON: () => ({}),
+      });
+      component.containerWidth = 1220;
+      const dropped: { x: number }[] = [];
+      component.itemDroppedFromOutside.subscribe(payload => dropped.push({ x: payload.x }));
+      const mockDataTransfer = { getData: () => `` } as unknown as DataTransfer;
+
+      dispatchDragEvent(containerDiv, `drop`, { clientX: 5000, clientY: 0, dataTransfer: mockDataTransfer });
+
+      expect(dropped).toEqual([{ x: 10 }]);
+    });
+
+    it(`Should subtract a non-zero container rect offset too, not just the degenerate (0,0) case every other test uses`, () => {
+      // Every other outside-drop test mocks getBoundingClientRect with
+      // left:0,top:0 — subtracting 0 can't distinguish "-" from a
+      // mutated "+" in clientX-rect.left / clientY-rect.top. The earlier
+      // version of this test used rectTop:30/clientY:140, which happened
+      // to round to the identical y (1) under both "-" and a mutated
+      // "+" — confirmed via direct calculation, not assumed; rectTop:100/
+      // clientY:250 genuinely diverge (y:1 vs y:3).
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [], margin: [10, 10], outsideDropHeight: 2, outsideDropWidth: 2, rowHeight: 100 });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      containerDiv.getBoundingClientRect = () => ({
+        bottom: 600, height: 500, left: 50, right: 1270, top: 100, width: 1220, x: 50, y: 100, toJSON: () => ({}),
+      });
+      component.containerWidth = 1220;
+      const dropped: { x: number; y: number }[] = [];
+      component.itemDroppedFromOutside.subscribe(payload => dropped.push({ x: payload.x, y: payload.y }));
+      const mockDataTransfer = { getData: () => `` } as unknown as DataTransfer;
+
+      // left = 161-50 = 111 -> x:1; top = 250-100 = 150 -> y:1
+      dispatchDragEvent(containerDiv, `drop`, { clientX: 161, clientY: 250, dataTransfer: mockDataTransfer });
+
+      expect(dropped).toEqual([{ x: 1, y: 1 }]);
+    });
+
+    it(`Should also correctly subtract marginV in the y-formula's own final division, not just the rect.top subtraction above`, () => {
+      // The test above's own top(150) happens to round to the identical
+      // y under both "top-marginV" and a mutated "top+marginV" —
+      // confirmed via direct calculation. top:155 (rect.top:100,
+      // clientY:255) genuinely diverges (y:1 vs y:2).
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [], margin: [10, 10], outsideDropHeight: 2, outsideDropWidth: 2, rowHeight: 100 });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      containerDiv.getBoundingClientRect = () => ({
+        bottom: 600, height: 500, left: 0, right: 1220, top: 100, width: 1220, x: 0, y: 100, toJSON: () => ({}),
+      });
+      component.containerWidth = 1220;
+      const dropped: { y: number }[] = [];
+      component.itemDroppedFromOutside.subscribe(payload => dropped.push({ y: payload.y }));
+      const mockDataTransfer = { getData: () => `` } as unknown as DataTransfer;
+
+      // top = 255-100 = 155; y = round((155-10)/110) = round(1.318) = 1
+      dispatchDragEvent(containerDiv, `drop`, { clientX: 0, clientY: 255, dataTransfer: mockDataTransfer });
+
+      expect(dropped).toEqual([{ y: 1 }]);
     });
 
     it(`Should fall back to the drop rect's own measured width when containerWidth hasn't been measured yet`, () => {
@@ -1706,6 +2231,79 @@ describe(`GridLayoutComponent`, () => {
       dispatchDragEvent(containerDiv, `dragleave`);
 
       expect(component.isDragging).toBe(false);
+    });
+
+    it(`Should stay dragging after only one of two nested dragleave events, not clear at the first (Math.max floor, not Math.min)`, () => {
+      // The test above does exactly one dragenter then one dragleave —
+      // dragEnterCount goes 1 -> Math.max(0, 1-1) = 0, but a mutated
+      // Math.min(0, 1-1) gives the identical 0 at this specific value,
+      // never distinguishing the two. Two nested dragenters (nested
+      // elements both firing enter, matching the real bubbling this
+      // counter exists for) then only one dragleave is the case where
+      // they diverge: Math.max(0, 2-1)=1 (correctly still dragging) vs
+      // a mutated Math.min(0, 2-1)=0 (incorrectly clears already).
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [], margin: [10, 10], rowHeight: 100 });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      component.containerWidth = 1220;
+
+      dispatchDragEvent(containerDiv, `dragenter`);
+      dispatchDragEvent(containerDiv, `dragenter`);
+      dispatchDragEvent(containerDiv, `dragover`, { clientX: 50, clientY: 50 });
+      dispatchDragEvent(containerDiv, `dragleave`);
+
+      expect(component.isDragging).toBe(true);
+    });
+
+    it(`Should compute the exact pixel placeholderStyle for a non-zero grid position — never directly asserted on anywhere in this file before`, () => {
+      // No existing test in this whole file reads component.placeholderStyle
+      // at all, despite updatePlaceholderStyle() having its own dedicated
+      // pixel-conversion formula (height/left/top/width) — the isDragging
+      // test above only ever checks isDragging itself, and its own
+      // clientX/clientY:50 resolves to grid x:0,y:0 anyway (degenerate for
+      // this formula's own colWidth*x / rowHeight*y multiplication terms).
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [], margin: [10, 10], outsideDropHeight: 2, outsideDropWidth: 2, rowHeight: 100 });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      component.containerWidth = 1220;
+
+      dispatchDragEvent(containerDiv, `dragenter`);
+      // Resolves to grid x:2 (round((250-10)/100.8333)=2), y:1 (round((120-10)/110)=1).
+      dispatchDragEvent(containerDiv, `dragover`, { clientX: 250, clientY: 120 });
+
+      // colWidth = 90.8333; height = round(100*2+1*10) = 210
+      // left = round(90.8333*2+3*10) = round(211.667) = 212
+      // top = round(100*1+2*10) = 120
+      // width = round(90.8333*2+1*10) = round(191.667) = 192
+      expect(component.placeholderStyle).toEqual({ height: `210px`, left: `212px`, top: `120px`, width: `192px` });
+    });
+
+    it(`Should compute the top pixel correctly at a y-value other than 1, where multiplication and division genuinely diverge`, () => {
+      // The test above uses y:1 for its own top value — degenerate for
+      // distinguishing "rowHeight * y" from a mutated "rowHeight / y",
+      // since multiplying or dividing by 1 gives the identical result.
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [], margin: [10, 10], outsideDropHeight: 2, outsideDropWidth: 2, rowHeight: 100 });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      component.containerWidth = 1220;
+
+      dispatchDragEvent(containerDiv, `dragenter`);
+      // y = round((340-10)/110) = round(3.0) = 3.
+      dispatchDragEvent(containerDiv, `dragover`, { clientX: 0, clientY: 340 });
+
+      // top = round(100*3 + 4*10) = 340
+      expect(component.placeholderStyle?.top).toBe(`340px`);
+    });
+
+    it(`Should compute a real (non-null) placeholderStyle when containerWidth is exactly 1, not just clearly measured (1220)`, () => {
+      // The test above uses containerWidth:1220, far from
+      // updatePlaceholderStyle()'s own "containerWidth < 1" boundary —
+      // doesn't distinguish a mutated "<= 1" from the real "< 1".
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, layout: [], margin: [10, 10], outsideDropHeight: 2, outsideDropWidth: 2, rowHeight: 100 });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      component.containerWidth = 1;
+
+      dispatchDragEvent(containerDiv, `dragenter`);
+      dispatchDragEvent(containerDiv, `dragover`, { clientX: 0, clientY: 0 });
+
+      expect(component.placeholderStyle).not.toBeNull();
     });
 
     it(`Should not accept the drop at all when outsideDropAccept returns false`, () => {
@@ -1795,6 +2393,27 @@ describe(`GridLayoutComponent`, () => {
       expect(itemA?.y).toBe(0);
     });
 
+    it(`Should respect a non-NONE compactType (HORIZONTAL) via compactNow(), not silently force VERTICAL`, () => {
+      // Both tests above use vertically-scattered layouts, and NONE gets
+      // overridden to VERTICAL either way — neither distinguishes the
+      // override ternary's own "else" branch (pass compactType through
+      // unchanged when it's not NONE) from a mutant that forces VERTICAL
+      // unconditionally, since both produce the identical y:0 result for
+      // a NONE/VERTICAL input. A HORIZONTAL-scattered item is the one
+      // case where the two diverge: forced-VERTICAL would leave it
+      // exactly where it started (already at y:0, x unchanged), while
+      // real HORIZONTAL compaction moves it left.
+      const scatteredLayout: TLayout = [{ h: 2, i: `a`, w: 2, x: 4, y: 0 }];
+      setInputsAndDetectChanges({ colNum: 12, compactType: ECompactType.HORIZONTAL, layout: scatteredLayout });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+
+      component.compactNow();
+
+      const itemA = emitted[0].find(item => item.i === `a`);
+      expect(itemA?.x).toBe(0);
+    });
+
     it(`Should perform the same operation via rearrange(), as an alias for compactNow()`, () => {
       const scatteredLayout: TLayout = [{ h: 2, i: `a`, w: 2, x: 0, y: 4 }];
       setInputsAndDetectChanges({ colNum: 12, layout: scatteredLayout });
@@ -1834,6 +2453,11 @@ describe(`GridLayoutComponent`, () => {
       expect(duplicated).toBeTruthy();
       expect(duplicated?.w).toBe(2);
       expect(duplicated?.h).toBe(2);
+      // Never checked before: the copy's own placement (x unchanged,
+      // y: source.y + source.h) — source y:0, h:2, so the copy should
+      // land at y:2, directly below the source.
+      expect(duplicated?.x).toBe(0);
+      expect(duplicated?.y).toBe(2);
     });
 
     it(`Should return null from duplicateItem() when the given id doesn't match any item`, () => {
@@ -1887,6 +2511,11 @@ describe(`GridLayoutComponent`, () => {
       // "a" is the anchor (first selected) and never moves; "b" aligns to
       // its own left edge (x:0).
       expect(itemB?.x).toBe(0);
+      // Never checked before: a left-align adjustment only ever sets
+      // {x}, with y genuinely absent — confirming y stays at its own
+      // original value (4), not overwritten to undefined by an
+      // unconditional "item.y = adjustment.y" assignment.
+      expect(itemB?.y).toBe(4);
     });
 
     it(`Should be a no-op via alignSelected() when fewer than 2 items are selected`, () => {
@@ -1962,6 +2591,29 @@ describe(`GridLayoutComponent`, () => {
 
       const itemB = emitted[0].find(item => item.i === `b`);
       expect(itemB?.x).toBe(0);
+    });
+
+    it(`Should block an alignSelected adjustment that would collide with a NON-selected item, when preventCollision is on`, () => {
+      // The test above only covers the "collides with a fellow-selected
+      // item" exemption — never the opposite case this same guard exists
+      // for: a genuine collision with an unrelated, unselected item.
+      const threeItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 4 },
+        { h: 2, i: `b`, w: 2, x: 6, y: 0 },
+        { h: 2, i: `c`, w: 2, x: 0, y: 0 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, compactType: ECompactType.NONE, layout: threeItemLayout, multiSelect: true, preventCollision: true });
+      component.selectItem(`a`);
+      component.toggleItemSelection(`b`);
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+
+      // Aligning "b" to "a"'s own left edge (x:0) would land it directly
+      // on top of "c" (not selected, at x:0,y:0) — should be blocked.
+      component.alignSelected(`left`);
+
+      const itemB = emitted[0].find(item => item.i === `b`);
+      expect(itemB?.x).toBe(6);
     });
 
     it(`Should record an undo snapshot for distributeSelected() when enableUndoRedo is on, revertible via undo()`, () => {
@@ -2079,6 +2731,22 @@ describe(`GridLayoutComponent`, () => {
       }).not.toThrow();
     });
 
+    it(`Should be a genuine no-op (no layoutChange at all) when applyAlignDistributeAdjustments is called with an empty adjustments map`, () => {
+      // No test exercises the "adjustments.size === 0" early-return
+      // guard directly — alignSelected()'s own "fewer than 2 selected"
+      // check already prevents an empty map from reaching here through
+      // the public API in the align case, so this is only reachable via
+      // the private method directly, matching the pattern above.
+      setInputsAndDetectChanges({ colNum: 12, layout });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+
+      (component as unknown as { applyAlignDistributeAdjustments: (adjustments: Map<string, { x?: number; y?: number }>, selectedIds: string[]) => void })
+        .applyAlignDistributeAdjustments(new Map(), []);
+
+      expect(emitted.length).toBe(0);
+    });
+
     it(`Should render the current layout as an SVG string containing every item's own id, via exportLayoutAsSvg`, () => {
       setInputsAndDetectChanges({ colNum: 12, layout });
 
@@ -2087,6 +2755,22 @@ describe(`GridLayoutComponent`, () => {
       expect(svg).toContain(`<svg`);
       expect(svg).toContain(`>0<`);
       expect(svg).toContain(`>1<`);
+    });
+
+    it(`Should fall back to containerWidth:1200 for exportLayoutAsSvg when containerWidth is unmeasured (0)`, () => {
+      // No test confirms the "this.containerWidth || 1200" fallback
+      // actually applies — comparing against an explicit, different
+      // containerWidth's own SVG output is the only way to observe it,
+      // since exportLayoutAsSvg has no direct way to inspect the
+      // resolved containerWidth value itself.
+      setInputsAndDetectChanges({ colNum: 12, layout });
+
+      const svgUnmeasured = component.exportLayoutAsSvg();
+
+      component.containerWidth = 1200;
+      const svgExplicit1200 = component.exportLayoutAsSvg();
+
+      expect(svgUnmeasured).toBe(svgExplicit1200);
     });
 
     it(`Should scroll a matching item into view via scrollToItem, without throwing for a missing id`, () => {
@@ -2101,7 +2785,34 @@ describe(`GridLayoutComponent`, () => {
       component.scrollToItem(`0`);
 
       expect(scrollIntoViewSpy).toHaveBeenCalled();
+      // Never checked before: the exact options passed — only that
+      // scrollIntoView was called at all.
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: `smooth`, block: `nearest`, inline: `nearest` });
       expect(() => component.scrollToItem(`does-not-exist`)).not.toThrow();
+    });
+
+    it(`Should find the correct item element by id among several candidates, not just "some" element`, () => {
+      // findItemElement's own ".find(el => el.getAttribute(...) ===
+      // idAsString)" predicate is only ever exercised with a single
+      // candidate element in the test above — never distinguishing a
+      // correct exact-match from a mutant that matches everything.
+      setInputsAndDetectChanges({ colNum: 12, layout });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      const itemA = document.createElement(`div`);
+      itemA.setAttribute(`data-grid-item-id`, `a`);
+      const scrollSpyA = jest.fn();
+      itemA.scrollIntoView = scrollSpyA;
+      const itemB = document.createElement(`div`);
+      itemB.setAttribute(`data-grid-item-id`, `b`);
+      const scrollSpyB = jest.fn();
+      itemB.scrollIntoView = scrollSpyB;
+      containerDiv.appendChild(itemA);
+      containerDiv.appendChild(itemB);
+
+      component.scrollToItem(`b`);
+
+      expect(scrollSpyB).toHaveBeenCalled();
+      expect(scrollSpyA).not.toHaveBeenCalled();
     });
 
     it(`Should be a no-op, not a throw, when scrollToItem()/focusItem() are called with containerRef unresolved`, () => {
@@ -2164,6 +2875,23 @@ describe(`GridLayoutComponent`, () => {
       // reached moveElement, rather than being silently ignored (a
       // hardcoded `false` would produce the exact same result both times).
       expect(itemBWithShift).not.toEqual(itemBWithoutShift);
+    });
+
+    it(`Should never set positionsBeforeDrag at all when restoreOnDrag is off, even on a real dragstart`, () => {
+      // positionsBeforeDrag is never directly checked anywhere in this
+      // file — only indirectly, via the minPositions-in-context tests.
+      // This isolates the dragstart-time "if(this.restoreOnDrag){...}"
+      // check specifically, via a direct cast.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 4, y: 0 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, layout: twoItemLayout, restoreOnDrag: false });
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+
+      expect((component as unknown as { positionsBeforeDrag: unknown }).positionsBeforeDrag).toBeUndefined();
     });
 
     it(`Should not pass any minPositions in context at all when restoreOnDrag is off (the default)`, () => {
@@ -2265,6 +2993,26 @@ describe(`GridLayoutComponent`, () => {
       expect(itemB?.y).toBe(5);
     });
 
+    it(`Should restore the dragged item's own original isStatic (true) afterward, when restoreOnDrag temporarily sets it true to protect its own position during compaction`, () => {
+      // No test confirms wasStatic is correctly restored — a mutant
+      // here would leave the dragged item permanently isStatic:false
+      // (or some other wrong value) after every restoreOnDrag gesture.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, isStatic: true, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 0, y: 5 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, compactType: ECompactType.VERTICAL, layout: twoItemLayout, restoreOnDrag: true });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 10, y: 0 });
+
+      const itemA = emitted[emitted.length - 1].find(item => item.i === `a`);
+      expect(itemA?.isStatic).toBe(true);
+    });
+
     it(`Should let compaction pull other items all the way up as normal when restoreOnDrag is off (the default)`, () => {
       const twoItemLayout: TLayout = [
         { h: 2, i: `a`, w: 2, x: 0, y: 0 },
@@ -2356,6 +3104,37 @@ describe(`GridLayoutComponent`, () => {
 
       expect(received.length).toBe(countAfterInitial);
     });
+
+    it(`Should push the actual @Input() defaults (isDraggable/isResizable true, isBounded/isMirrored false) when none are explicitly set`, () => {
+      // Every gridDefaults$ test above explicitly sets non-default values
+      // for all four — none confirm what actually gets pushed when a
+      // consumer leaves them at their own real @Input() defaults. A bare
+      // setInputsAndDetectChanges() alone wouldn't force pushGridDefaults()
+      // to run at all (its own gated check never sees isDraggable/etc as
+      // "changed" through that helper's {layout:{}} convention), which
+      // would make this test pass vacuously against GridEventBusService's
+      // own separate, hardcoded BehaviorSubject initial value instead —
+      // an explicit ngOnChanges call (matching the established pattern
+      // just above) is what actually exercises pushGridDefaults() itself.
+      setInputsAndDetectChanges({ colNum: 12, layout });
+      component.ngOnChanges({ isDraggable: {} } as unknown as SimpleChanges);
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+      const received: unknown[] = [];
+      eventBus.gridDefaults$.subscribe(defaults => received.push(defaults));
+
+      expect(received[received.length - 1]).toEqual({
+        ariaLabels: {},
+        borderRadiusPx: 10,
+        enableEditMode: true,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
+    });
   });
 
   describe(`Phase 20 — showGridLines`, () => {
@@ -2369,6 +3148,33 @@ describe(`GridLayoutComponent`, () => {
       setInputsAndDetectChanges({ layout, showGridLines: true });
 
       expect(fixture.nativeElement.querySelector(`div`)?.classList.contains(`kdl-grid-lines`)).toBe(true);
+    });
+
+    it(`Should compute the exact --kdl-grid-line-column-size/row-size CSS custom properties once measured — never directly asserted on anywhere in this file before`, () => {
+      // Only the kdl-grid-lines class itself is checked anywhere in this
+      // describe block — the actual pixel sizes updateContainerHeight()
+      // computes for these two custom properties (colWidth+marginH,
+      // rowHeight+marginV) have no test at all.
+      setInputsAndDetectChanges({ colNum: 12, layout, margin: [10, 10], rowHeight: 150, showGridLines: true });
+      component.containerWidth = 1220;
+      component.ngOnChanges({ layout: {} } as unknown as SimpleChanges);
+      // Required, not optional — this component is OnPush, and a direct
+      // property assignment (containerWidth here) plus a manually-invoked
+      // ngOnChanges()/detectChanges() does not itself mark the view dirty
+      // the way a real, parent-template-driven @Input() binding change
+      // would. Confirmed via a real failing test run (NaN from an empty
+      // getPropertyValue() string): without this, the rendered DOM still
+      // reflected the earlier, containerWidth:0 render, where the guard
+      // this test targets means these two custom properties were never
+      // set on the style object at all.
+      (component as unknown as { changeDetectorRef: { markForCheck: () => void } }).changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+
+      // colWidth = (1220-10*13)/12 = 90.8333; column-size = 90.8333+10 = 100.8333
+      // row-size = 150+10 = 160
+      const style = (fixture.nativeElement.querySelector(`div`) as HTMLElement)?.style;
+      expect(parseFloat(style?.getPropertyValue(`--kdl-grid-line-column-size`) ?? ``)).toBeCloseTo(100.8333, 2);
+      expect(style?.getPropertyValue(`--kdl-grid-line-row-size`)).toBe(`160px`);
     });
 
     it(`Should toggle the kdl-grid-lines class off again after being set, when showGridLines flips back to false`, () => {
@@ -2462,6 +3268,26 @@ describe(`GridLayoutComponent`, () => {
       expect(blocked).toEqual([`a`]);
     });
 
+    it(`Should also emit moveBlockedByCollision when only the y-coordinate changes (blocked vertically), not just x`, () => {
+      // The test above only ever changes x (targetY stays equal to
+      // preMoveY throughout) — never isolating the "targetY !==
+      // preMoveY" half of this guard's own OR-chain.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 0, y: 2 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, compactType: ECompactType.NONE, layout: twoItemLayout, preventCollision: true });
+      const blocked: (string | number)[] = [];
+      component.moveBlockedByCollision.subscribe(id => blocked.push(id));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      // Straight down into "b"'s own position, x unchanged.
+      eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 0, y: 2 });
+
+      expect(blocked).toEqual([`a`]);
+    });
+
     it(`Should not emit moveBlockedByCollision when a drag succeeds without any collision`, () => {
       const twoItemLayout: TLayout = [
         { h: 2, i: `a`, w: 2, x: 0, y: 0 },
@@ -2514,6 +3340,28 @@ describe(`GridLayoutComponent`, () => {
       expect(blocked).toEqual([`a`]);
     });
 
+    it(`Should compute the correct clamped width when the anchor item's own x is non-zero, not just the degenerate x:0 case above`, () => {
+      // The test above has item.x:0 — leastX-item.x and a mutated
+      // leastX+item.x give the identical result at x:0 (subtracting or
+      // adding 0 changes nothing), never distinguishing the operator.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 4, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 8, y: 0 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, compactType: ECompactType.NONE, layout: twoItemLayout, preventCollision: true });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemResize({ eventType: `resizestart`, h: 2, i: `a`, w: 2, x: 4, y: 0 });
+      // Growing to w:6 (occupying 4-10) would overlap "b" (at x:8) —
+      // should clamp to w:4 (leastX(8) - item.x(4)), not the full w:6.
+      eventBus.emitItemResize({ eventType: `resizemove`, h: 2, i: `a`, w: 6, x: 4, y: 0 });
+
+      const itemA = emitted[emitted.length - 1].find(item => item.i === `a`);
+      expect(itemA?.w).toBe(4);
+    });
+
     it(`Should clamp the height (not width) of a resize colliding with a neighbor below, not beside, it`, () => {
       const twoItemLayout: TLayout = [
         { h: 2, i: `a`, w: 2, x: 0, y: 0 },
@@ -2537,6 +3385,26 @@ describe(`GridLayoutComponent`, () => {
       expect(itemA?.h).toBe(3);
       expect(itemA?.w).toBe(2);
       expect(blocked).toEqual([`a`]);
+    });
+
+    it(`Should compute the correct clamped height when the anchor item's own y is non-zero, not just the degenerate y:0 case above`, () => {
+      // Same masking issue as the width test above, for leastY-item.y.
+      const twoItemLayout: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 4 },
+        { h: 2, i: `b`, w: 2, x: 0, y: 8 },
+      ];
+      setInputsAndDetectChanges({ colNum: 12, compactType: ECompactType.NONE, layout: twoItemLayout, preventCollision: true });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemResize({ eventType: `resizestart`, h: 2, i: `a`, w: 2, x: 0, y: 4 });
+      // Growing to h:6 (occupying 4-10) would overlap "b" (at y:8) —
+      // should clamp to h:4 (leastY(8) - item.y(4)), not the full h:6.
+      eventBus.emitItemResize({ eventType: `resizemove`, h: 6, i: `a`, w: 2, x: 0, y: 4 });
+
+      const itemA = emitted[emitted.length - 1].find(item => item.i === `a`);
+      expect(itemA?.h).toBe(4);
     });
 
     it(`Should not clamp or emit moveBlockedByCollision for a resize that doesn't collide with anything`, () => {

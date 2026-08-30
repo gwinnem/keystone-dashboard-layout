@@ -1,0 +1,47 @@
+[
+  {
+    "location": {
+      "end": {
+        "column": 22,
+        "line": 48
+      },
+      "start": {
+        "column": 8,
+        "line": 48
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 58,
+        "line": 48
+      },
+      "start": {
+        "column": 45,
+        "line": 48
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 78,
+        "line": 48
+      },
+      "start": {
+        "column": 62,
+        "line": 48
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  }
+]

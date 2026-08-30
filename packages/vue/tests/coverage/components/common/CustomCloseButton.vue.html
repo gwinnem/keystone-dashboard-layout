@@ -173,7 +173,34 @@
 <a name='L108'></a><a href='#L108'>108</a>
 <a name='L109'></a><a href='#L109'>109</a>
 <a name='L110'></a><a href='#L110'>110</a>
-<a name='L111'></a><a href='#L111'>111</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -204,9 +231,36 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
@@ -314,9 +368,36 @@
     i: -1,
   });
 &nbsp;
-  const emit = defineEmits&lt;{
-    (e: EGridItemEvent.REMOVE_ITEM, value: string | number): void;
-  }&gt;();
+  // Runtime-array form, not the generic/type-argument form this used to
+  // use — a deliberate, confirmed-necessary workaround, not a stylistic
+  // choice: `defineEmits&lt;{ (e: EGridItemEvent.REMOVE_ITEM, ...): void }&gt;()`
+  // requires `@vue/compiler-sfc`'s own compile-time type resolution to
+  // read `EGridItemEvent`'s actual definition from its import source
+  // (`@/core/griditem/enums/EGridItemEvents`) — a completely separate
+  // resolution path from Vite's own bundler-level `resolve.alias` (which
+  // already works correctly everywhere else in this file/package, and
+  // for every plain runtime import). That separate path was confirmed,
+  // via a real, reproduced failure (not assumed), to break specifically
+  // when this package is copied into a temp sandbox — as Stryker's own
+  // mutation-testing tooling does — with '[@vue/compiler-sfc] Failed to
+  // resolve import source "@/core/griditem/enums/EGridItemEvents"', even
+  // though the exact same file, same alias, same coverage flags, run
+  // correctly from this package's own real directory (confirmed via a
+  // direct, side-by-side `npx vitest run` comparison). Root cause not
+  // fully pinned down — several config-level fixes (`resolve.
+  // preserveSymlinks`, an explicit `vitest.config.js` `root`, excluding
+  // the monorepo's own root tsconfig.json from the sandbox) were tried
+  // and ruled out along the way, each fixing a real but separate issue,
+  // none touching this one. This runtime-array form needs no compile-
+  // time type resolution at all (the array itself is the runtime
+  // validation Vue needs), sidestepping the problem entirely rather than
+  // working around it. Trade-off, accepted deliberately: TypeScript now
+  // only checks the emitted *event name* against this array, not the
+  // payload's own shape (previously, `emit(EGridItemEvent.REMOVE_ITEM,
+  // props.i)`'s second argument was checked against `string | number`)
+  // — a real loss of compile-time safety on the call site below, not a
+  // behavioral change at runtime.
+  const emit = defineEmits([EGridItemEvent.REMOVE_ITEM]);
 &nbsp;
   /** Emits `EGridItemEvent.REMOVE_ITEM` with the configured `i`, unless `i` is the default `-1` sentinel. */
   const removeItem = (): void =&gt; {
@@ -341,8 +422,8 @@
   position: relative;
   width: $size;
 &nbsp;
-  &amp;:before,
-  &amp;:after {
+  &amp;::before,
+  &amp;::after {
     background: $color;
     border-radius: $thickness;
     content: '';
@@ -353,11 +434,11 @@
     top: calc(($size - $thickness) / 2);
   }
 &nbsp;
-  &amp;:before {
+  &amp;::before {
     transform: rotate(45deg);
   }
 &nbsp;
-  &amp;:after {
+  &amp;::after {
     transform: rotate(-45deg);
   }
 &nbsp;
@@ -400,7 +481,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-28T06:26:09.920Z
+                at 2026-08-28T23:03:26.855Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

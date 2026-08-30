@@ -1,0 +1,57 @@
+---
+title: Introduction
+description: What @keystone-dashboard-layout/core is, who it's for, and how it relates to the Vue/React/Angular packages.
+prev: false
+---
+
+`@keystone-dashboard-layout/core` is the shared implementation
+underneath every framework package in this project. Collision
+detection, bin-packing, compaction, responsive breakpoint resolution,
+alignment guides, and more all live here exactly once — the Vue, React,
+and Angular packages each call into this same code rather than
+maintaining their own copies of the hard, easy-to-get-subtly-wrong
+parts of a drag-and-drop grid.
+
+## Who this is for
+
+Most people don't need this page at all — installing
+**[Vue](/vue/)**, **[React](/react/)**, or **[Angular](/angular/)**
+already pulls this in as a dependency, and none of its exports need to
+be touched directly to use any of those three packages normally.
+
+This package is worth installing and using **directly** when you want
+the same algorithms *without* any of those three components — for
+example:
+
+- Validating a layout array (bounds, key uniqueness, margin/breakpoint
+  shape) on a server, before it ever reaches a browser.
+- Computing compaction or collision resolution for a batch job — a
+  script that rearranges saved dashboard layouts in bulk, say — with no
+  UI involved at all.
+- Building an integration for a framework this project doesn't ship a
+  package for (Svelte, Solid, a plain web component, or anything else)
+  — the same drag/resize engine, breakpoint logic, and layout math the
+  three existing packages use, without reimplementing any of it.
+
+## What's genuinely framework-free, and what isn't
+
+The large majority of this package's own exports are pure functions:
+plain data in, plain data out, no live DOM or component lifecycle
+required at all. That covers collision detection, bin-packing,
+compaction (all five built-in strategies), pixel-to-grid-unit math,
+alignment-guide/snap calculation, multi-select align/distribute/range
+commands, responsive breakpoint resolution, layout serialization, SVG
+export, and every validator.
+
+One deliberate exception: `createNativeDraggable`, `createNativeResizable`,
+and `createNativeAutoScroll` (the native, Pointer Events-based
+drag/resize engine both the Vue and React packages share) need a real
+DOM to do anything at all — they attach real event listeners to real
+elements. They're framework-*agnostic* (no Vue or React-specific code
+whatsoever) but not DOM-*free*, unlike everything else this package
+exports.
+
+## Where to go next
+
+- [Installation](/core/guide/installation/) — add the package directly.
+- [API reference](/core/api/) — every exported function, type, and validator, grouped by category.

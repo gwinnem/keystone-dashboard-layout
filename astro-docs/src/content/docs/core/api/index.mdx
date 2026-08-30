@@ -1,0 +1,260 @@
+---
+title: API reference
+description: Every function, type, and validator @keystone-dashboard-layout/core exports, grouped by what it does.
+---
+
+Every export below comes from the package's own main entry point
+(`import { ... } from '@keystone-dashboard-layout/core'`) unless noted
+otherwise. Grouped by what each does, matching how the package's own
+source organizes them internally.
+
+## Layout data shapes
+
+The core types every other function on this page takes or returns.
+
+- **`ILayoutItem`** — a single grid item: `i` (id), `x`/`y` (grid-unit
+  position), `w`/`h` (grid-unit size), plus the optional per-item
+  constraints (`minW`/`maxW`/`minH`/`maxH`, `isStatic`, `isDraggable`,
+  `isResizable`, and more).
+- **`ILayoutItemRequired`** — the subset of `ILayoutItem`'s own keys
+  that must always be present (`i`, `x`, `y`, `w`, `h`).
+- **`TLayout`** — a plain array of `ILayoutItem`.
+- **`TResponsiveLayout`** — a per-breakpoint map of `TLayout`, keyed by
+  breakpoint name.
+- **`TBreakpoint`** — one of the library's own breakpoint name strings
+  (`xxs`/`xs`/`sm`/`md`/`lg`/`xl`/`xxl`).
+- **`TBreakpoints`** — a `Record<TBreakpoint, number>` of pixel-width
+  thresholds.
+- **`IBreakpoints`** / **`IColumns`** — the shape `breakpoints`/`cols`
+  props take: one column-count or breakpoint-width value per
+  breakpoint name.
+
+## Collision detection
+
+- **`collides(item1, item2)`** — do these two layout items overlap?
+- **`getFirstCollision(layout, item)`** — the first item in `layout`
+  that `item` collides with, or `null`.
+- **`getAllCollisions(layout, item)`** — every item `item` collides
+  with.
+- **`findFirstFitSlot(layout, cols, w, h)`** — the first open
+  `{x, y}` position (scanning row by row) a `w`×`h` item can be placed
+  at without colliding with anything already in `layout`. What backs
+  dropping a new item onto a grid from outside it.
+
+## Movement
+
+- **`moveElement(...)`** — move a layout item to a new position,
+  resolving any resulting collisions by pushing affected items out of
+  the way.
+- **`moveToCorrectPlace(...)`** — settle an item that's ended up out of
+  bounds (typically after a `cols` change) back onto the grid.
+- **`moveElementAwayFromCollision(...)`** — push one specific item away
+  from a specific collision, the lower-level primitive `moveElement`
+  itself is built from.
+
+## Compaction, cloning, and pixel-position styles
+
+- **`compactLayout(layout, verticalCompact, minPositions?)`** /
+  **`compactItem(...)`** — the vertical compaction pass (and its
+  single-item primitive): removes gaps by moving every non-static item
+  up as far as it can go without colliding. `minPositions` backs
+  `restoreOnDrag` — a floor each item won't compact tighter than.
+- **`compactLayoutHorizontal(...)`** / **`compactItemHorizontal(...)`**
+  — the same algorithm, transposed to the x axis (`ECompactType.HORIZONTAL`).
+- **`compactLayoutOverlapVertical(...)`** /
+  **`compactLayoutOverlapHorizontal(...)`** — the `_OVERLAP` compaction
+  variants: every non-static item moves straight to `y: 0`/`x: 0`
+  unconditionally, with **no** collision checking — items are allowed
+  to end up overlapping as a result, by design.
+- **`cloneLayoutItem(item)`** / **`cloneLayout(layout)`** — deep-clone
+  via a JSON round-trip with a custom replacer/reviver pair, so
+  `Infinity`/`-Infinity`/`NaN` (a legitimate, common value for
+  `y`/`x`/`minH`/`minW`/etc — "place past everything else, let
+  compaction settle it") survive the round-trip instead of silently
+  becoming `null` (`JSON.stringify`'s own well-known limitation).
+- **`getLayoutItem(layout, id)`** — find one item by id (string or
+  number), or `undefined`.
+- **`setTransform`** / **`setTransformRtl`** / **`setTopLeft`** /
+  **`setTopRight`** — pixel position/size → inline CSS style object,
+  in each of the four positioning modes the `heightMode`/RTL
+  combinations need.
+- **`getBottomYCoordinate(layout)`** — the lowest `y + h` across every
+  item, i.e. how tall the grid needs to be to fit everything.
+
+## Pluggable compaction
+
+The same interface `GridLayout`'s own `compactor` prop takes.
+
+- **`ICompactor`** / **`ICompactorContext`** — the interface a custom
+  compaction strategy implements, and the context object it receives.
+- **`verticalCompactor`** / **`horizontalCompactor`** /
+  **`noCompactor`** / **`verticalOverlapCompactor`** /
+  **`horizontalOverlapCompactor`** — the five built-in strategies,
+  each matching one `ECompactType` value.
+- **`getCompactor(compactType)`** — look up the built-in strategy for
+  a given `ECompactType` value directly.
+- **`ECompactType`** — the enum backing `compactType` (`VERTICAL`,
+  `HORIZONTAL`, `NONE`, `VERTICAL_OVERLAP`, `HORIZONTAL_OVERLAP`).
+
+## Grid-unit ↔ pixel math
+
+- **`calcXY(top, left, ...)`** — pixel position → grid-unit `{x, y}`,
+  capped to the grid's own bounds.
+- **`calcColWidth(containerWidth, marginX, cols)`** — the pixel width
+  of a single column, given the container width, horizontal margin,
+  and column count.
+- **`calcGridItemWH(gridUnits, colOrRowSize, marginPx)`** — grid units
+  (width or height) → pixel size, accounting for the margins between
+  cells.
+- **`clamp(value, min, max)`** — a plain numeric clamp, used throughout
+  the position/size math above.
+
+## Pointer-event helpers
+
+Behind `calcXY`/`calcPosition`/`calcWH` in both the Vue and React
+packages' own drag/resize hooks — plain DOM event reads and arithmetic,
+genuinely framework-agnostic.
+
+- **`offsetXYFromParentOf(event)`** — a pointer event's `clientX`/`clientY`,
+  converted to a position relative to the event target's own offset
+  parent (falling back to `document.body` when there isn't one).
+- **`createCoreData(lastX, lastY, x, y)`** — the delta between this
+  tick's position and the previous one, handling the very first tick
+  (`lastX`/`lastY` are `NaN`) by reporting a zero delta instead of
+  `NaN`.
+- **`IDraggableCoreData`** — the shape `createCoreData` returns.
+- **`IPoint`** — a plain `{x, y}` pair.
+
+## The native drag/resize/auto-scroll engine
+
+The one genuinely DOM-dependent part of this package — see
+[Introduction](/core/guide/introduction/) for why. Built on the plain
+Pointer Events API, shared as-is by both the Vue and React packages.
+
+- **`createNativeDraggable(el, getOptions, onEvent)`** — wires up
+  pointer-driven dragging on `el`: activation-distance gating (so a
+  plain click isn't misread as a drag), `allowFrom`/`ignoreFrom`
+  selector filtering, and `dragstart`/`dragmove`/`dragend` callbacks.
+- **`createNativeResizable(root, handles, getOptions, onEvent)`** —
+  the resize equivalent: one native listener per resize-handle
+  element, each reporting which `IInteractEdges` combination it
+  represents.
+- **`createNativeAutoScroll()`** — `start`/`update`/`stop`: scrolls
+  the nearest scrollable ancestor of a dragged/resized element while
+  the pointer sits near its edge, at a speed proportional to how close
+  to the edge it is.
+- **`RESIZE_EDGE_MAP`** — the 8 resize-handle identifiers
+  (`TResizeHandle`, e.g. `'se'`), each mapped to its own
+  `IInteractEdges` combination.
+- **`TDragActivationDistance`** — the shape `dragActivationDistance`
+  takes: a single number for every pointer type, or a per-type object
+  (`{mouse, touch, pen}`).
+- **`INativeDragEvent`** / **`INativeDraggableOptions`** /
+  **`INativeResizeEvent`** / **`INativeResizableOptions`** /
+  **`INativeAutoScroll`** — the supporting types for the three
+  functions above.
+
+## Ordering, partitioning, and bounds
+
+- **`sortLayoutItemsByRowCol(layout)`** / **`sortLayoutItemsByColRow(layout)`**
+  — sort a layout for vertical or horizontal compaction respectively
+  (row-major vs. column-major).
+- **`getAllStaticGridItems(layout)`** / **`getAllNonStaticGridItems(layout)`**
+  — partition a layout by its `isStatic` flag.
+- **`correctBounds(layout, bounds, distributeEvenly)`** — pull any
+  out-of-bounds item back within `bounds.cols`, either flush to the
+  right edge or redistributed evenly depending on `distributeEvenly`.
+
+## Alignment guides and snapping
+
+- **`findAlignmentGuides(...)`** — the horizontal/vertical guide lines
+  to show while dragging an item near alignment with another.
+- **`findSnapAdjustment(...)`** — the position delta that would snap
+  the dragged item onto one of those guides.
+- **`findSpacingIndicators(...)`** — the equal-spacing distance labels
+  shown between aligned items.
+- **`IAlignmentGuide`** / **`ISpacingIndicator`** — the shapes these
+  return.
+
+## Multi-select commands
+
+Pure position-adjustment computation — each framework package's own
+multi-select feature calls into these rather than maintaining three
+separate implementations.
+
+- **`computeAlignAdjustments(...)`** — the position deltas to align a
+  set of selected items to one shared edge (`TAlignEdge`).
+- **`computeDistributeAdjustments(...)`** — the position deltas to
+  distribute selected items evenly along an axis (`TDistributeAxis`).
+- **`computeRangeSelection(layout, anchorId, targetId)`** — the
+  Shift-click range-selection helper: every item between `anchorId`
+  and `targetId` in layout order, inclusive.
+
+## Responsive breakpoints
+
+- **`getBreakpointFromWidth(breakpoints, width)`** — which named
+  breakpoint a container width currently falls into (the highest
+  threshold strictly below `width`).
+- **`getColsFromBreakpoint(breakpoint, cols)`** — the column count
+  configured for a given breakpoint.
+- **`sortBreakpoints(breakpoints)`** — breakpoint names sorted
+  ascending by their own pixel-width value.
+- **`findOrGenerateResponsiveLayout(...)`** — the per-breakpoint
+  layout cache/generation logic: reuses a cached layout for a
+  breakpoint if one exists, otherwise scales the current layout to fit
+  the new column count.
+
+## Serialization, SVG export, and outside-drop
+
+- **`serializeLayout(layout)`** / **`deserializeLayout(raw)`** — the
+  `localStorage`-persistence pair every framework package's own
+  layout-storage helper/hook/service uses internally.
+- **`exportLayoutAsSvg(layout, options?)`** — render a layout as a
+  standalone SVG string (one rect + label per item), for exporting a
+  static snapshot of a dashboard.
+- **`IExportLayoutAsSvgOptions`** — `colNum`/`containerWidth`/`margin`/
+  `rowHeight`/`itemFill`/`itemStroke`/`labelColor`/`backgroundColor`,
+  each with a sensible default.
+- **`readOutsideDropPayload(event)`** — parses the payload carried by
+  a drag originating from outside any grid (the `outsideDropAccept`
+  feature).
+
+## Localizable ARIA strings
+
+- **`DEFAULT_ARIA_LABELS`** — the built-in English defaults
+  (`closeButton`, `itemRoleDescription`, `moveInstruction`,
+  `resizeInstruction`).
+- **`resolveAriaLabels(layoutLabels?, itemLabels?)`** — merges three
+  layers (defaults ← grid-wide override ← per-item override), the
+  same resolution every framework package's own `GridItem` uses
+  internally for its ARIA attributes.
+- **`IGridAriaLabels`** — the shape both label-override layers take.
+
+## Validators
+
+The same ones `GridLayout`/`GridItem` use internally for their own
+prop validation — reachable standalone, e.g. to validate a layout that
+came from an API response before ever handing it to a grid component.
+
+- **`breakpointsValidator(breakpoints)`** — confirms all 7 required
+  breakpoint keys are present.
+- **`keysValidator(item)`** / **`validateLayoutItemRequiredKeys(item)`**
+  — confirms a layout item has its required keys (`i`/`x`/`y`/`w`/`h`).
+- **`layoutValidator(layout)`** — validates an entire layout array.
+- **`marginValidator(margin)`** — validates the `margin` prop's own
+  `[x, y]` tuple shape.
+
+## Shared enums and types
+
+- **`EMovingDirections`** / **`TMovingDirection`** — the direction
+  values keyboard move/resize reports internally.
+- **`ITransformStyle`** / **`ITopLeftStyle`** / **`ITopRightStyle`** —
+  the inline-style shapes `setTransform`/`setTopLeft`/`setTopRight`
+  return.
+- **`ICalcXy`** / **`ICalcWh`** — the `{x, y}` / `{w, h}` shapes
+  `calcXY`/`calcGridItemWH` return.
+- **`IGridItemPosition`** — the full pixel position+size shape
+  (`left`/`right`/`top`/`width`/`height`) drag/resize state tracks.
+- **`IGridItemWidthHeight`** — a plain `{w, h}` pair.
+- **`IInteractEdges`** — the `{top, right, bottom, left}` boolean
+  combination identifying which edge(s) of an item are being resized.

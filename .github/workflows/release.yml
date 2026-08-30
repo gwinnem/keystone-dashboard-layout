@@ -5,18 +5,27 @@ name: Release
 # and what version bump it implies — most pushes (docs, chores) result in
 # no release, which is expected.
 #
-# Only packages/vue publishes today (it's the only package with a
-# .releaserc.json and real implementation). Once packages/react and
-# packages/angular have real code ready to publish, give each its own
-# .releaserc.json and add a matching job below — at that point, switch to
-# https://github.com/semantic-release/semantic-release/blob/master/docs/recipes/release-workflow/monorepo.md
-# or a plugin like `semantic-release-monorepo` so each package's release
-# is scoped to commits touching its own path.
+# All three packages (Vue, React, Angular) publish today, each scoped to
+# commits touching only its own path via the `semantic-release-monorepo`
+# plugin (`extends` in each package's own .releaserc.json) — without it,
+# plain semantic-release has no monorepo awareness at all and would
+# analyze every commit in the whole repo's history for every package,
+# regardless of which package's files a given commit actually touched.
+# See https://github.com/pmowrer/semantic-release-monorepo for the plugin
+# itself.
+#
+# The three release jobs are deliberately chained (`needs:`), not run in
+# parallel: each one pushes its own release commit/tag to `main` via
+# @semantic-release/git, and three simultaneous pushes to the same branch
+# risk a non-fast-forward rejection race. Running them one after another
+# avoids that entirely, at the cost of a longer total workflow — an
+# acceptable trade for a release pipeline, which prioritizes correctness
+# over speed.
 #
 # REQUIRES an `NPM_TOKEN` repository secret (an npm automation token with
-# publish rights) before this can actually publish. Until that secret is
-# added, the "Release" step fails safely (no partial/destructive action).
-# GITHUB_TOKEN is provided automatically by Actions.
+# publish rights) before any of this can actually publish. Until that
+# secret is added, each "Release" step fails safely (no partial/
+# destructive action). GITHUB_TOKEN is provided automatically by Actions.
 on:
   push:
     branches: [main]
@@ -72,6 +81,103 @@ jobs:
 
       - name: Release
         working-directory: packages/vue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release
+
+  release-react:
+    name: Release @keystone-dashboard-layout/react
+    needs: release-vue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Re-fetches after release-vue's own commit/tag push above —
+          # needed so this job's own semantic-release sees the latest
+          # main, not the state main was in when this workflow started.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm --filter @keystone-dashboard-layout/react run typecheck
+
+      - name: Test (with coverage gate)
+        run: pnpm --filter @keystone-dashboard-layout/react run test:coverage
+
+      - name: Build library
+        run: pnpm --filter @keystone-dashboard-layout/react run build
+
+      - name: Check bundle size
+        # continue-on-error until verified against a real build — see
+        # packages/react/scripts/check-bundle-size.js's own top comment.
+        run: pnpm --filter @keystone-dashboard-layout/react run check:bundle-size
+        continue-on-error: true
+
+      - name: Release
+        working-directory: packages/react
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release
+
+  release-angular:
+    name: Release @keystone-dashboard-layout/angular
+    needs: release-react
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm --filter @keystone-dashboard-layout/angular run typecheck
+
+      - name: Test (with coverage gate)
+        run: pnpm --filter @keystone-dashboard-layout/angular run test:coverage
+
+      - name: Build library
+        run: pnpm --filter @keystone-dashboard-layout/angular run build
+
+      - name: Check bundle size
+        # continue-on-error until verified against a real build — see
+        # packages/angular/scripts/check-bundle-size.js's own top comment.
+        run: pnpm --filter @keystone-dashboard-layout/angular run check:bundle-size
+        continue-on-error: true
+
+      - name: Release
+        working-directory: packages/angular
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

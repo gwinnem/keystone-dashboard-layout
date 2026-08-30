@@ -93,8 +93,7 @@ interface ISpacingIndicatorStyle {
 }
 
 /**
- * Phase 1–8 of the Angular port (see `docs/IMPLEMENTATION_PLAN.md`'s own
- * scope notes for each) — a grid container supporting dragging,
+ * A grid container supporting dragging,
  * resizing, `preventCollision`, `compactType`, a custom `compactor`,
  * `isBounded`, alignment guides/spacing indicators/`snapToGrid`,
  * `multiSelect`, `enableUndoRedo`, `responsive`/`breakpoints`/`cols`,
@@ -419,6 +418,32 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
    * see `commitFromLastSnapshot` below.
    */
   private lastSnapshot: TLayout = [];
+  /**
+   * Set `true` at the very end of `ngOnInit`, once `workingLayout`/
+   * `lastSnapshot` have genuinely been populated from the real
+   * `layout` input for the first time. Guards `ngOnChanges`'s own
+   * length-change commit logic below against a real, confirmed bug
+   * (found via a live mutation-testing run, not assumed): that logic
+   * compares `workingLayout.length` against its own value *before* this
+   * change, to detect an externally-driven length change worth
+   * committing an undo point for. Without this flag, a caller invoking
+   * `ngOnChanges` directly (bypassing Angular's own normal
+   * constructor -> ngOnChanges -> ngOnInit order entirely) *before*
+   * `ngOnInit` has ever run sees `workingLayout` still at its own
+   * class-field default (`[]`) as the "previous" state — so the very
+   * first, genuine population of a real layout (e.g. 0 -> 2 items)
+   * looks identical to a real, later external length change, and
+   * incorrectly commits an undo point (`canUndo` becomes `true`) before
+   * the component has even finished initializing. This is exactly what
+   * this package's own test suite's `setInputsAndDetectChanges` helper
+   * does throughout (calling `ngOnChanges` manually, ahead of the
+   * `fixture.detectChanges()` call that triggers Angular's own real
+   * lifecycle) — not a test bug to work around, but a genuine gap in
+   * this guard's own robustness against being invoked out of Angular's
+   * normal order, which a real (if unusual) direct caller could equally
+   * well trigger.
+   */
+  private hasInitializedUndoTracking = false;
   /** Captured at drag/resizestart, pushed to `undoStack` on a genuinely-completed drag/resizeend — `null` whenever no gesture is in progress or `enableUndoRedo` is off. */
   private preGestureSnapshot: TLayout | null = null;
   /**
@@ -468,6 +493,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   ngOnInit(): void {
     this.workingLayout = cloneLayout(this.layout);
     this.lastSnapshot = cloneLayout(this.layout);
+    this.hasInitializedUndoTracking = true;
     this.effectiveColNum = this.colNum;
     this.resolvedLayoutId = this.layoutId ?? generateLayoutId();
     this.layouts = Object.fromEntries(Object.entries(this.responsiveLayouts).map(([breakpoint, breakpointLayout]) => [breakpoint, cloneLayout(breakpointLayout)]));
@@ -531,7 +557,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       // (an externally-driven length change, bypassing drag/resize/
       // duplicateItem/compactNow entirely) needs its own explicit
       // commit rather than relying on any of those other call sites.
-      if(this.workingLayout.length !== previousLength) {
+      if(this.workingLayout.length !== previousLength && this.hasInitializedUndoTracking) {
         this.commitFromLastSnapshot();
       }
     }

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>12/12</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>12/12</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -100,8 +100,8 @@
 <a name='L35'></a><a href='#L35'>35</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -110,32 +110,32 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * Checking if the window object exists.
  */
-const hasWindow = (): boolean =&gt; {
-  return typeof window !== `undefined`;
+const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >hasWindow = (): boolean =&gt; {</span></span>
+<span class="cstat-no" title="statement not covered" >  return typeof window !== `undefined`;</span>
 };
 &nbsp;
 /**
@@ -144,13 +144,13 @@ const hasWindow = (): boolean =&gt; {
  * @param {Function}  callback  Callback function.
  * @see   https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
  */
-export const addWindowEventListener = (event: string, callback: () =&gt; void): boolean =&gt; {
-  if(!hasWindow()) {
-    callback();
-    return false;
+export const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >addWindowEventListener = (e</span>vent: string, callback: () =&gt; void): boolean =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  if(!hasWindow()) {</span>
+<span class="cstat-no" title="statement not covered" >    callback();</span>
+<span class="cstat-no" title="statement not covered" >    return false;</span>
   }
-  window.addEventListener(event, callback);
-  return true;
+<span class="cstat-no" title="statement not covered" >  window.addEventListener(event, callback);</span>
+<span class="cstat-no" title="statement not covered" >  return true;</span>
 };
 &nbsp;
 /**
@@ -159,11 +159,11 @@ export const addWindowEventListener = (event: string, callback: () =&gt; void): 
  * @param {Function}  callback  Callback function.
  * @see   https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener
  */
-export const removeWindowEventListener = (event: string, callback: () =&gt; void): void =&gt; {
-  if(!hasWindow()) {
-    return;
+export const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >removeWindowEventListener = (e</span>vent: string, callback: () =&gt; void): void =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  if(!hasWindow()) {</span>
+<span class="cstat-no" title="statement not covered" >    return;</span>
   }
-  window.removeEventListener(event, callback);
+<span class="cstat-no" title="statement not covered" >  window.removeEventListener(event, callback);</span>
 };
 &nbsp;</pre></td></tr></table></pre>
 
@@ -172,7 +172,7 @@ export const removeWindowEventListener = (event: string, callback: () =&gt; void
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-23T13:00:51.625Z
+                at 2026-08-29T19:15:03.098Z
             </div>
         <script src="../prettify.js"></script>
         <script>

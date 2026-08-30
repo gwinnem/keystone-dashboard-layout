@@ -83,8 +83,7 @@ const NO_ACTIVE_EDGES: IInteractEdges = { bottom: false, left: false, right: fal
 const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se`, `sw`];
 
 /**
- * Phase 3/4/6/7/11 of the Angular port (see `docs/IMPLEMENTATION_PLAN.md`)
- * — dragging (Phase 3), resizing (Phase 4), `isBounded` (Phase 6),
+ * Dragging (Phase 3), resizing (Phase 4), `isBounded` (Phase 6),
  * `isMirrored`/RTL, `zIndex`, `autoScroll`, `dragAllowFrom`/
  * `dragIgnoreFrom`/`resizeIgnoreFrom`/`dragActivationDistance`,
  * `showResizeHandles`/`resizeHandleColor`, a per-item `resizeHandles`
@@ -701,9 +700,8 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
    * attribute entirely rather than setting it to a literal `"null"`
    * string. A direct port of Vue's own `draggableOrResizableAndNotStatic`
    * (`GridItem.vue`, its own `:tabindex` binding), now including its
-   * own `editModeEnabled.value` factor — the TODO this doc comment
-   * used to flag (see `docs/IMPLEMENTATION_PLAN_PARITY_GAPS.md`'s own
-   * Phase 15/18 notes) is closed.
+   * own `editModeEnabled.value` factor — a TODO this doc comment used
+   * to flag is now closed.
    *
    * A real, pre-existing gap this port had, discovered while starting
    * Phase 16 (keyboard-driven move/resize): no `tabindex` binding of any

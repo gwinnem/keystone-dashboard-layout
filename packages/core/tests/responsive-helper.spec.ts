@@ -57,4 +57,21 @@ describe(`findOrGenerateResponsiveLayout`, () => {
       { i: `b`, x: 1, y: 0, w: 1, h: 2, moved: false },
     ]);
   });
+
+  it(`Should correct an item that's out of bounds for the NEW breakpoint's own column count — not the original layout's`, () => {
+    // The "cols" passed to correctBounds() is specifically the NEW
+    // breakpoint's own column count, not whatever the original layout
+    // was authored for — every existing test above uses an item that's
+    // already within bounds for the new cols value, so correctBounds()
+    // being called with the right cols at all was never actually
+    // observable (a mutant passing {} instead of { cols } — making
+    // bounds.cols undefined, so "x+w > undefined" is always false and
+    // the correction never triggers — would produce the same result).
+    const layout = [{ h: 1, i: `a`, w: 2, x: 5, y: 0 }]; // x+w=7
+
+    const result = findOrGenerateResponsiveLayout(layout, {}, {}, `sm`, `md`, 4, ECompactType.VERTICAL, false);
+
+    // Corrected to fit within cols=4: x = cols - w = 4 - 2 = 2.
+    expect(result).toStrictEqual([{ h: 1, i: `a`, moved: false, w: 2, x: 2, y: 0 }]);
+  });
 });

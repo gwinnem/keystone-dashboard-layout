@@ -1,6 +1,7 @@
 ---
 title: Introduction
 description: What Keystone Dashboard Layout for React is, what you get, and where to go next.
+prev: false
 ---
 
 Keystone Dashboard Layout for React is a React component library for building
@@ -40,11 +41,15 @@ the Vue package.
   layout persistence (serializing to/from `localStorage`) and named
   layout presets.
 
-There's no separate exported close-button or drag-handle component here
-— a close button is a built-in, per-item opt-in (`showCloseButton` +
-an `onItemClose` callback you handle yourself), and any part of an item
-is a drag handle by default, restrictable via `dragAllowFrom`/
-`dragIgnoreFrom`.
+There's also a real, exported close-button component
+(`GridItemCloseButton`) and drag-handle component (`GridItemDragHandle`)
+— useful when you want those same building blocks rendered somewhere
+other than `GridItem`'s own built-in rendering (e.g. inside a custom
+header). Most consumers should reach for the simpler, built-in path
+first though: a close button is a built-in, per-item opt-in
+(`showCloseButton` + an `onItemClose` callback you handle yourself),
+and any part of an item is a drag handle by default, restrictable via
+`dragAllowFrom`/`dragIgnoreFrom`.
 
 ## How it fits together
 

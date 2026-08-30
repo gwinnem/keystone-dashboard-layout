@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>15/15</span>
+                <span class='fraction'>0/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>0/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>13/13</span>
+                <span class='fraction'>0/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -150,7 +150,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -167,7 +167,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -191,27 +191,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { TLayout } from '../layout-definition';
 import { layoutValidator } from '@/core/validators/layout-validator';
@@ -225,7 +225,7 @@ import { layoutValidator } from '@/core/validators/layout-validator';
  * fact about the item).
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- `moved` is deliberately excluded via destructuring, not read; the whole point of this line is to strip it out of the returned object.
-const stripInternalFields = (layout: TLayout): TLayout =&gt; layout.map(({ moved: _moved, ...rest }) =&gt; rest) as TLayout;
+const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >stripInternalFields = (l</span>ayout: TLayout): TLayout =&gt; <span class="cstat-no" title="statement not covered" >layout.<span class="fstat-no" title="function not covered" >map(({</span> moved: _moved, ...rest }) =&gt; <span class="cstat-no" title="statement not covered" >rest)</span> as TLayout;</span></span>
 &nbsp;
 /**
  * Serializes a layout array to a JSON string suitable for persisting
@@ -241,8 +241,8 @@ const stripInternalFields = (layout: TLayout): TLayout =&gt; layout.map(({ moved
  *   circular references or `BigInt` values, neither of which a valid
  *   `TLayout` can contain.
  */
-export function serializeLayout(layout: TLayout): string {
-  return JSON.stringify(stripInternalFields(layout));
+export function <span class="fstat-no" title="function not covered" >serializeLayout(l</span>ayout: TLayout): string {
+<span class="cstat-no" title="statement not covered" >  return JSON.stringify(stripInternalFields(layout));</span>
 }
 &nbsp;
 /**
@@ -265,28 +265,28 @@ export function serializeLayout(layout: TLayout): string {
  *   empty/missing, not valid JSON, or didn't parse into a valid layout
  *   shape.
  */
-export function deserializeLayout(json: string | null | undefined): TLayout | null {
-  if(!json) {
-    return null;
+export function <span class="fstat-no" title="function not covered" >deserializeLayout(j</span>son: string | null | undefined): TLayout | null {
+<span class="cstat-no" title="statement not covered" >  if(!json) {</span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
   }
 &nbsp;
   let parsed: unknown;
-  try {
-    parsed = JSON.parse(json);
+<span class="cstat-no" title="statement not covered" >  try {</span>
+<span class="cstat-no" title="statement not covered" >    parsed = JSON.parse(json);</span>
   } catch{
-    return null;
+<span class="cstat-no" title="statement not covered" >    return null;</span>
   }
 &nbsp;
-  if(!Array.isArray(parsed)) {
-    return null;
+<span class="cstat-no" title="statement not covered" >  if(!Array.isArray(parsed)) {</span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
   }
 &nbsp;
-  const layout = parsed as TLayout;
-  if(!layoutValidator(layout)) {
-    return null;
+  const layout = <span class="cstat-no" title="statement not covered" >parsed as TLayout;</span>
+<span class="cstat-no" title="statement not covered" >  if(!layoutValidator(layout)) {</span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
   }
 &nbsp;
-  return layout;
+<span class="cstat-no" title="statement not covered" >  return layout;</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -295,7 +295,7 @@ export function deserializeLayout(json: string | null | undefined): TLayout | nu
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-23T13:00:51.625Z
+                at 2026-08-29T19:15:03.098Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>23/23</span>
+                <span class='fraction'>0/23</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>23/23</span>
+                <span class='fraction'>0/23</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -101,29 +101,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * Error messages thrown by the validators and grid-math helpers in
@@ -132,29 +132,29 @@
  * `expect(() =&gt; fn()).toThrowError(EErrorMessage.X)` in tests doesn't rely on
  * copy-pasted string literals matching by coincidence.
  */
-export enum EErrorMessage {
-  INVALID_BREAKPOINT = 'Invalid parameter breakpoint',
-  INVALID_BREAKPOINT_NOT_FOUND = 'Breakpoint not found',
-  INVALID_BOUNDS = 'Invalid parameter bounds passed',
-  INVALID_COL_OR_ROW_SIZE = 'Invalid colOrRowSize parameter passed',
-  INVALID_COLUMNS = 'Invalid parameter cols passed',
-  INVALID_EMPTY_LAYOUT = 'Layout can not be empty',
-  INVALID_GRID_UNITS = 'Invalid gridUnits parameter passed',
-  INVALID_LAYOUT = 'Invalid parameter layout passed',
-  INVALID_LAYOUT_ITEM = 'Invalid parameter layoutItem passed',
-  INVALID_LAYOUT_ITEM_ID = 'Invalid parameter layoutItem id passed',
-  INVALID_LAYOUT_VALIDATED = 'Layout is not valid',
-  INVALID_MARGIN = 'Invalid marginPx parameter passed',
-  INVALID_MARGIN_LEFT_RIGHT = 'Invalid parameter marginLeftRight passed',
-  INVALID_PARAM_COLS = 'Parameter cols must be greater than 0',
-  INVALID_PARAM_CONTAINER_WIDTH = 'Invalid parameter containerWidth passed',
-  INVALID_PARAM_INNER_H = 'Parameter innerH must be greater than 0',
-  INVALID_PARAM_INNER_W = 'Parameter innerW must be greater than 0',
-  INVALID_PARAM_MARGIN = 'Parameter margin must be greater than 0',
-  INVALID_PARAM_MAX_ROWS = 'Parameter maxRows must be greater than 0',
-  INVALID_PARAM_ROW_HEIGHT = 'Parameter rowHeight must be greater than 0',
-  INVALID_PARAMS = 'Invalid parameter values passed',
-  INVALID_WIDTH = 'Width must be greater that 0',
+export <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >enum E</span>ErrorMessage {</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_BREAKPOINT = 'Invalid parameter breakpoint',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_BREAKPOINT_NOT_FOUND = 'Breakpoint not found',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_BOUNDS = 'Invalid parameter bounds passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_COL_OR_ROW_SIZE = 'Invalid colOrRowSize parameter passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_COLUMNS = 'Invalid parameter cols passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_EMPTY_LAYOUT = 'Layout can not be empty',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_GRID_UNITS = 'Invalid gridUnits parameter passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_LAYOUT = 'Invalid parameter layout passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_LAYOUT_ITEM = 'Invalid parameter layoutItem passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_LAYOUT_ITEM_ID = 'Invalid parameter layoutItem id passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_LAYOUT_VALIDATED = 'Layout is not valid',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_MARGIN = 'Invalid marginPx parameter passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_MARGIN_LEFT_RIGHT = 'Invalid parameter marginLeftRight passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_PARAM_COLS = 'Parameter cols must be greater than 0',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_PARAM_CONTAINER_WIDTH = 'Invalid parameter containerWidth passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_PARAM_INNER_H = 'Parameter innerH must be greater than 0',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_PARAM_INNER_W = 'Parameter innerW must be greater than 0',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_PARAM_MARGIN = 'Parameter margin must be greater than 0',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_PARAM_MAX_ROWS = 'Parameter maxRows must be greater than 0',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_PARAM_ROW_HEIGHT = 'Parameter rowHeight must be greater than 0',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_PARAMS = 'Invalid parameter values passed',</span>
+<span class="cstat-no" title="statement not covered" >  INVALID_WIDTH = 'Width must be greater that 0',</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -163,7 +163,7 @@ export enum EErrorMessage {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-23T13:00:51.625Z
+                at 2026-08-29T19:15:03.098Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

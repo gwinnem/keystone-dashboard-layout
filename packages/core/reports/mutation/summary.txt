@@ -1,0 +1,33 @@
+File                                            Score  Total  Killed  Timeout  Survived  NoCov  Errors
+----------------------------------------------------------------------------------------------------
+src/validators/layout-validator.ts              62.5%     40      25        0        15      0       0
+src/validators/breakpoint-validator.ts         64.71%     34      22        0        12      0       0
+src/helpers/native-interaction.ts              79.09%    330     260        1        69      0       0
+src/helpers/responsive-utils.ts                79.63%     54      40        3        11      0       0
+src/gridlayout/helpers/move-helper.ts          80.26%    152     119        3        30      0       0
+src/helpers/layout-storage.ts                  82.35%     17      14        0         3      0       0
+src/gridlayout/helpers/export-svg.ts           82.93%     41      34        0         7      0       0
+src/gridlayout/helpers/outside-drop-payload.ts  83.33%     12      10        0         2      0       0
+src/gridlayout/helpers/grid-layout-helper.ts   84.21%     19      16        0         3      0       0
+src/validators/keys-validator.ts               84.62%    104      88        0        16      0       0
+src/helpers/calculate-utils.ts                 85.45%     55      47        0         8      0       0
+src/gridlayout/helpers/responsive-helper.ts    85.71%      7       6        0         1      0       0
+src/gridlayout/helpers/alignment-helper.ts     86.85%    289     251        0        38      0       0
+src/gridlayout/helpers/bin-pack-helper.ts      86.96%     23      20        0         2      1       0
+src/helpers/utils.ts                           87.06%    255     198       24        31      2       0
+src/gridlayout/helpers/align-distribute-helper.ts  88.73%    142     126        0        16      0       0
+src/gridlayout/helpers/cross-grid-registry.ts  90.63%     32      29        0         3      0       0
+src/gridlayout/helpers/collision-helper.ts     91.03%     78      68        3         7      0       0
+src/griditem/helpers/grid-item-calculate-helper.ts  95.83%     48      46        0         2      0       0
+src/gridlayout/helpers/sort-helper.ts           96.3%     54      52        0         2      0       0
+src/common/helpers/breakpoints-helper.ts       98.25%     57      56        0         1      0       0
+src/common/helpers/grid-item-type-helpers.ts     100%      7       7        0         0      0       0
+src/common/interfaces/aria-labels.interface.ts    100%      7       7        0         0      0       0
+src/gridlayout/helpers/compactor.ts              100%     24      24        0         0      0       0
+src/gridlayout/helpers/selection-range-helper.ts    100%     25      25        0         0      0       0
+src/helpers/DOM.ts                               100%     17      17        0         0      0       0
+src/helpers/draggable-utils.ts                   100%     24      24        0         0      0       0
+src/helpers/event-emitter.ts                     100%      1       1        0         0      0       0
+src/validators/margin-validator.ts               100%     26      26        0         0      0       0
+----------------------------------------------------------------------------------------------------
+OVERALL: 85.71% (1692/1974 killed+timeout)

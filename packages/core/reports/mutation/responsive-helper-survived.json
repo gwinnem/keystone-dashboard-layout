@@ -1,0 +1,32 @@
+[
+  {
+    "location": {
+      "end": {
+        "column": 74,
+        "line": 47
+      },
+      "start": {
+        "column": 59,
+        "line": 47
+      }
+    },
+    "mutatorName": "ObjectLiteral",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 49,
+        "line": 45
+      },
+      "start": {
+        "column": 41,
+        "line": 45
+      }
+    },
+    "mutatorName": "ObjectLiteral",
+    "replacement": "{}",
+    "status": "Survived"
+  }
+]

@@ -1,6 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/api/schema/stryker-schema.json",
   "_comment": "Mirrors packages/vue/stryker.conf.json's own structure/conventions exactly (reporters, coverageAnalysis, timeoutMS, packageManager, htmlReporter output path) — the only real differences are testRunner (jest here, matching this package's own Jest + jest-preset-angular unit-test setup, not Vitest) and the mutate globs (this package's own src/lib/*.ts, not Vue's src/core/composables/hooks layout). See jest.config.ts's own doc comment for why this package uses Jest instead of Vitest at all.",
+  "_comment_resolved_limitation": "CONFIRMED FIXED via a real run, in both parts. (1) Infrastructure: 'document is not defined'/the NG0200 circular-dependency cascade is fully resolved by setting `testEnvironment: 'jsdom'` explicitly in jest.config.ts, rather than relying on jest-preset-angular's own implicit default (which @stryker-mutator/jest-runner's own sandbox resolved differently than plain `jest` does). (2) A genuine test/source bug this then surfaced: 'GridLayoutComponent Phase 7 — enableUndoRedo Should be a no-op to call undo()/redo() with nothing to undo/redo' failed with canUndo unexpectedly true. Root cause, traced directly in grid-layout.component.ts: this spec file's own setInputsAndDetectChanges helper calls `ngOnChanges` manually, *before* `fixture.detectChanges()` ever triggers Angular's real lifecycle (ngOnInit included) — at that point `workingLayout` was still at its own class-field default (`[]`), so the length-change-commit logic added earlier this session (for tracking an externally-driven `layout` length change) saw a false '0 -> N items' transition on the component's very first population and incorrectly committed an undo point. Fixed with an explicit `hasInitializedUndoTracking` flag (see that field's own doc comment), set `true` only at the end of a genuine `ngOnInit()` run — not a test-harness workaround, since a real (if unusual) direct caller invoking `ngOnChanges` ahead of `ngOnInit` could trigger the identical false positive. Both (1) and (2) are now confirmed by a real, complete run (71.47% overall mutation score, zero dry-run failures) — not just reasoned through. `mutation-test-angular` has been added to .github/workflows/mutation-testing.yml accordingly.",
   "_comment_plugins": "Explicit, not Stryker's own default '@stryker-mutator/*' glob — a real, confirmed bug under this monorepo's pnpm workspace structure, not a stylistic preference: that glob resolves relative to wherever @stryker-mutator/core itself is physically installed, then looks for sibling '@stryker-mutator/*' packages inside *its own* node_modules. Under pnpm's strict, non-hoisting structure, that folder only ever contains core's own direct dependencies (confirmed via a real debug trace: '@stryker-mutator/instrumenter' loaded fine this way, since it *is* one) — never a sibling devDependency of *this* package, like jest-runner, which lives in a completely separate, isolated part of the pnpm store the glob has no way to see. Naming the plugin explicitly instead makes Stryker resolve it via normal Node module resolution (walking up from this config file's own directory), which correctly finds it.",
   "packageManager": "npm",
   "plugins": ["@stryker-mutator/jest-runner"],
@@ -8,9 +9,12 @@
   "jest": {
     "configFile": "jest.config.ts"
   },
-  "reporters": ["clear-text", "progress", "html"],
+  "reporters": ["clear-text", "progress", "html", "json"],
   "htmlReporter": {
     "fileName": "reports/mutation/index.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
   },
   "coverageAnalysis": "perTest",
   "timeoutMS": 15000,

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>17/17</span>
+                <span class='fraction'>0/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>13/13</span>
+                <span class='fraction'>0/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>16/16</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -255,37 +255,37 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { TLayout } from '../../layout-definition';
 import { calcColWidth, calcGridItemWH } from '@/core/griditem/helpers/grid-item-calculate-helper';
@@ -357,36 +357,36 @@ export interface IExportLayoutAsSvgOptions {
  * @param options See `IExportLayoutAsSvgOptions`; every field optional, with defaults matching `GridLayout`'s own prop defaults.
  * @return A complete SVG document as a string.
  */
-export function exportLayoutAsSvg(layout: TLayout, options: IExportLayoutAsSvgOptions = {}): string {
+export function <span class="fstat-no" title="function not covered" >exportLayoutAsSvg(l</span>ayout: TLayout, options: IExportLayoutAsSvgOptions = <span class="branch-0 cbranch-no" title="branch not covered" >{}): string {</span>
   const {
-    backgroundColor = null,
-    colNum = 12,
-    containerWidth = 1200,
-    itemFill = `#eef2ff`,
-    itemStroke = `#c7d2fe`,
-    labelColor = `#3730a3`,
-    margin = [10, 10],
-    rowHeight = 150,
-  } = options;
+    backgroundColor = <span class="branch-0 cbranch-no" title="branch not covered" >null,</span>
+    colNum = <span class="branch-0 cbranch-no" title="branch not covered" >12,</span>
+    containerWidth = <span class="branch-0 cbranch-no" title="branch not covered" >1200,</span>
+    itemFill = <span class="branch-0 cbranch-no" title="branch not covered" >`#eef2ff`,</span>
+    itemStroke = <span class="branch-0 cbranch-no" title="branch not covered" >`#c7d2fe`,</span>
+    labelColor = <span class="branch-0 cbranch-no" title="branch not covered" >`#3730a3`,</span>
+    margin = <span class="branch-0 cbranch-no" title="branch not covered" >[10, 10],</span>
+    rowHeight = <span class="branch-0 cbranch-no" title="branch not covered" >150,</span>
+  } = <span class="cstat-no" title="statement not covered" >options;</span>
 &nbsp;
-  const [marginX, marginY] = margin;
-  const colWidth = calcColWidth(containerWidth, marginX, colNum);
+  const [marginX, marginY] = <span class="cstat-no" title="statement not covered" >margin;</span>
+  const colWidth = <span class="cstat-no" title="statement not covered" >calcColWidth(containerWidth, marginX, colNum);</span>
 &nbsp;
-  const bottomRow = layout.reduce((max, item) =&gt; Math.max(max, item.y + item.h), 0);
-  const totalHeight = bottomRow &gt; 0 ? calcGridItemWH(bottomRow, rowHeight, marginY) + marginY : marginY;
+  const bottomRow = <span class="cstat-no" title="statement not covered" >layout.<span class="fstat-no" title="function not covered" >reduce((m</span>ax, item) =&gt; <span class="cstat-no" title="statement not covered" >Math.max(max, item.y + item.h), 0</span>);</span>
+  const totalHeight = <span class="cstat-no" title="statement not covered" >bottomRow &gt; 0 ? calcGridItemWH(bottomRow, rowHeight, marginY) + marginY : marginY;</span>
 &nbsp;
-  const escapeXml = (value: string): string =&gt;
-    value.replace(/&amp;/g, `&amp;amp;`).replace(/&lt;/g, `&amp;lt;`).replace(/&gt;/g, `&amp;gt;`).replace(/"/g, `&amp;quot;`);
+  const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >escapeXml = (v</span>alue: string): string =&gt;</span>
+<span class="cstat-no" title="statement not covered" >    value.replace(/&amp;/g, `&amp;amp;`).replace(/&lt;/g, `&amp;lt;`).replace(/&gt;/g, `&amp;gt;`).replace(/"/g, `&amp;quot;`);</span>
 &nbsp;
-  const rects = layout
-    .map(item =&gt; {
-      const pixelX = colWidth * item.x + (item.x + 1) * marginX;
-      const pixelY = rowHeight * item.y + (item.y + 1) * marginY;
-      const pixelW = calcGridItemWH(item.w, colWidth, marginX);
-      const pixelH = calcGridItemWH(item.h, rowHeight, marginY);
-      const label = escapeXml(String(item.i));
+  const rects = <span class="cstat-no" title="statement not covered" >layout</span>
+    .<span class="fstat-no" title="function not covered" >map(i</span>tem =&gt; {
+      const pixelX = <span class="cstat-no" title="statement not covered" >colWidth * item.x + (item.x + 1) * marginX;</span>
+      const pixelY = <span class="cstat-no" title="statement not covered" >rowHeight * item.y + (item.y + 1) * marginY;</span>
+      const pixelW = <span class="cstat-no" title="statement not covered" >calcGridItemWH(item.w, colWidth, marginX);</span>
+      const pixelH = <span class="cstat-no" title="statement not covered" >calcGridItemWH(item.h, rowHeight, marginY);</span>
+      const label = <span class="cstat-no" title="statement not covered" >escapeXml(String(item.i));</span>
 &nbsp;
-      return [
+<span class="cstat-no" title="statement not covered" >      return [</span>
         `&lt;rect x="${pixelX}" y="${pixelY}" width="${pixelW}" height="${pixelH}"`,
         ` fill="${itemFill}" stroke="${itemStroke}" stroke-width="1" rx="8" ry="8" /&gt;`,
         `&lt;text x="${pixelX + pixelW / 2}" y="${pixelY + pixelH / 2}" fill="${labelColor}"`,
@@ -395,9 +395,9 @@ export function exportLayoutAsSvg(layout: TLayout, options: IExportLayoutAsSvgOp
     })
     .join(``);
 &nbsp;
-  const background = backgroundColor ? `&lt;rect width="100%" height="100%" fill="${backgroundColor}" /&gt;` : ``;
+  const background = <span class="cstat-no" title="statement not covered" >backgroundColor ? `&lt;rect width="100%" height="100%" fill="${backgroundColor}" /&gt;` : ``;</span>
 &nbsp;
-  return `&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${containerWidth} ${totalHeight}" width="${containerWidth}" height="${totalHeight}"&gt;${background}${rects}&lt;/svg&gt;`;
+<span class="cstat-no" title="statement not covered" >  return `&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${containerWidth} ${totalHeight}" width="${containerWidth}" height="${totalHeight}"&gt;${background}${rects}&lt;/svg&gt;`;</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -406,7 +406,7 @@ export function exportLayoutAsSvg(layout: TLayout, options: IExportLayoutAsSvgOp
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-23T13:00:51.625Z
+                at 2026-08-29T19:15:03.098Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

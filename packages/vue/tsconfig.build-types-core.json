@@ -9,7 +9,6 @@
     "src/**/__tests__/*",
     "src/**/*.cy.ts",
     "**/*.spec.ts",
-    "vitepress-docs/*",
     "tests/*",
     "sandbox/",
     "demo/",

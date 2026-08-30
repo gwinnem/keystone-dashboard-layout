@@ -32,8 +32,16 @@ export function correctBounds(layout: TLayout, bounds: { cols: number }, distrib
       if(!collidesWith.includes(l) && l.x + l.w > bounds.cols) {
         moveToCorrectPlace(l, bounds, collidesWith);
       }
-    } else if(!distributeEvenly) {
+    } else {
       // Overflows right, move item to the left
+      // (`distributeEvenly` is a strict `boolean` here, not optional/
+      // nullable — the only way to reach this branch at all is the
+      // preceding `if(distributeEvenly)` having already been false, so
+      // an explicit `else if(!distributeEvenly)` was always redundant:
+      // its own condition can never itself be false once reached.
+      // Simplified to a plain `else` rather than adding a v8-ignore
+      // comment for an unreachable branch that shouldn't have existed
+      // as a branch at all.)
       if(l.x + l.w > bounds.cols) {
         l.x = bounds.cols - l.w;
       }

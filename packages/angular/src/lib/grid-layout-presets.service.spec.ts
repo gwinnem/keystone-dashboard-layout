@@ -123,6 +123,30 @@ describe(`GridLayoutPresetsService`, () => {
     expect(service.hasPreset(`dashboard`, `compact`, storage)).toBe(false);
   });
 
+  // The array test above isolates only the third of three chained
+  // conditions (parsed && typeof parsed === 'object' &&
+  // !Array.isArray(parsed)) — an array is truthy AND typeof 'object',
+  // so only its own !Array.isArray check is what actually fails there.
+  // Each test below isolates one of the other two instead.
+  it(`Should treat stored data that parses to a falsy value (null) as if nothing were stored at all`, () => {
+    // JSON.parse('null') is the JS value null — falsy, isolating the
+    // first condition ("parsed &&") specifically, since typeof null is
+    // 'object' (a well-known JS quirk) and Array.isArray(null) is false
+    // — both of the OTHER conditions would actually pass here.
+    storage.setItem(`dashboard`, `null`);
+
+    expect(service.listPresets(`dashboard`, storage)).toEqual([]);
+  });
+
+  it(`Should treat stored data that parses to a non-object primitive (e.g. a string) as if nothing were stored at all`, () => {
+    // JSON.parse('"hello"') is the string "hello" — truthy (passing the
+    // first condition) but typeof 'string', not 'object', isolating the
+    // second condition specifically.
+    storage.setItem(`dashboard`, JSON.stringify(`hello`));
+
+    expect(service.listPresets(`dashboard`, storage)).toEqual([]);
+  });
+
   it(`Should treat stored data that isn't even valid JSON as if nothing were stored at all, not throw`, () => {
     storage.setItem(`dashboard`, `{not valid json`);
 

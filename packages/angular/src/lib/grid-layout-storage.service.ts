@@ -5,8 +5,7 @@ import type { TLayout } from '@keystone-dashboard-layout/core';
 const hasWindow = (): boolean => typeof window !== `undefined`;
 
 /**
- * Phase 9 of the Angular port (see `docs/IMPLEMENTATION_PLAN.md`) — the
- * Angular equivalent of Vue's own `useLayoutStorage.ts` composable /
+ * The Angular equivalent of Vue's own `useLayoutStorage.ts` composable /
  * React's equivalent hook: persists a layout to browser storage (or any
  * `Storage`-compatible backend) and restores it later, removing the
  * boilerplate every consumer doing this by hand otherwise has to
@@ -26,8 +25,8 @@ const hasWindow = (): boolean => typeof window !== `undefined`;
  * Angular-idiomatic equivalent of "a ref this service can read and
  * write on its own" to bind to without reintroducing exactly the kind
  * of implicit, framework-magic state this whole port's own `@Input()`/
- * `@Output()` convention was chosen to avoid (see
- * `docs/PARITY_GAP_ANGULAR.md`'s own locked-in decision on this).
+ * `@Output()` convention was chosen to avoid (a deliberate, locked-in
+ * design decision, not an oversight).
  * `save()`/`load()` here instead take/return a plain `TLayout` value
  * directly — the consumer calls `save(myComponent.layout)` from
  * wherever they already own that state, and applies `load()`'s return

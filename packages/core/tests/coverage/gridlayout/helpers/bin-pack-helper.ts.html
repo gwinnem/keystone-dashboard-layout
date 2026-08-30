@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>11/11</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>7/7</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -160,16 +160,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">13x</span>
-<span class="cline-any cline-yes">75x</span>
-<span class="cline-any cline-yes">81x</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { ILayoutItem, TLayout } from '../../layout-definition';
 import { collides } from '@/core/gridlayout/helpers/collision-helper';
@@ -213,17 +213,17 @@ import { collides } from '@/core/gridlayout/helpers/collision-helper';
  *                genuinely is no gap anywhere, not a fallback masking
  *                a bug.
  */
-export function findFirstFitSlot(layout: TLayout, colNum: number, w: number, h: number): { x: number; y: number } {
-  const maxY = layout.reduce((max, item) =&gt; Math.max(max, item.y + item.h), 0);
-  for(let y = 0; y &lt;= maxY; y++) {
-    for(let x = 0; x &lt;= colNum - w; x++) {
-      const candidate = { h, i: `__find-first-fit-slot-candidate__`, w, x, y } as ILayoutItem;
-      if(!layout.some(item =&gt; collides(candidate, item))) {
-        return { x, y };
+export function <span class="fstat-no" title="function not covered" >findFirstFitSlot(l</span>ayout: TLayout, colNum: number, w: number, h: number): { x: number; y: number } {
+  const maxY = <span class="cstat-no" title="statement not covered" >layout.<span class="fstat-no" title="function not covered" >reduce((m</span>ax, item) =&gt; <span class="cstat-no" title="statement not covered" >Math.max(max, item.y + item.h), 0</span>);</span>
+<span class="cstat-no" title="statement not covered" >  for(let y = <span class="cstat-no" title="statement not covered" >0; y</span> &lt;= maxY; y++) {</span>
+<span class="cstat-no" title="statement not covered" >    for(let x = <span class="cstat-no" title="statement not covered" >0; x</span> &lt;= colNum - w; x++) {</span>
+      const candidate = <span class="cstat-no" title="statement not covered" >{ h, i: `__find-first-fit-slot-candidate__`, w, x, y } as ILayoutItem;</span>
+<span class="cstat-no" title="statement not covered" >      if(!layout.<span class="fstat-no" title="function not covered" >some(i</span>tem =&gt; <span class="cstat-no" title="statement not covered" >collides(candidate, item))</span>) {</span>
+<span class="cstat-no" title="statement not covered" >        return { x, y };</span>
       }
     }
   }
-  return { x: 0, y: maxY };
+<span class="cstat-no" title="statement not covered" >  return { x: 0, y: maxY };</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -232,7 +232,7 @@ export function findFirstFitSlot(layout: TLayout, colNum: number, w: number, h: 
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-23T13:00:51.625Z
+                at 2026-08-29T19:15:03.098Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

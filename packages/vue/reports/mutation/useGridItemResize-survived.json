@@ -1,0 +1,1517 @@
+[
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 505
+      },
+      "start": {
+        "column": 50,
+        "line": 503
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "NoCoverage"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 68,
+        "line": 547
+      },
+      "start": {
+        "column": 53,
+        "line": 547
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "props.isStatic",
+    "status": "NoCoverage"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 625
+      },
+      "start": {
+        "column": 19,
+        "line": 623
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "NoCoverage"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 31,
+        "line": 116
+      },
+      "start": {
+        "column": 17,
+        "line": 116
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 18,
+        "line": 99
+      },
+      "start": {
+        "column": 13,
+        "line": 99
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 4,
+        "line": 103
+      },
+      "start": {
+        "column": 31,
+        "line": 98
+      }
+    },
+    "mutatorName": "ObjectLiteral",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 101
+      },
+      "start": {
+        "column": 12,
+        "line": 101
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 30,
+        "line": 119
+      },
+      "start": {
+        "column": 16,
+        "line": 119
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 79,
+        "line": 140
+      },
+      "start": {
+        "column": 74,
+        "line": 140
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 85,
+        "line": 146
+      },
+      "start": {
+        "column": 52,
+        "line": 146
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "rowHeight.value - margin.value[1]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 31,
+        "line": 123
+      },
+      "start": {
+        "column": 17,
+        "line": 123
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 21,
+        "line": 145
+      },
+      "start": {
+        "column": 8,
+        "line": 145
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 53,
+        "line": 170
+      },
+      "start": {
+        "column": 29,
+        "line": 170
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "leftPx + margin.value[0]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 60,
+        "line": 171
+      },
+      "start": {
+        "column": 13,
+        "line": 171
+      }
+    },
+    "mutatorName": "MethodExpression",
+    "replacement": "Math.min(Math.min(gridX, cols.value - newW), 0)",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 55,
+        "line": 171
+      },
+      "start": {
+        "column": 38,
+        "line": 171
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "cols.value + newW",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 30,
+        "line": 126
+      },
+      "start": {
+        "column": 16,
+        "line": 126
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 90,
+        "line": 177
+      },
+      "start": {
+        "column": 57,
+        "line": 177
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "rowHeight.value - margin.value[1]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 52,
+        "line": 177
+      },
+      "start": {
+        "column": 29,
+        "line": 177
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "topPx + margin.value[1]",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 63,
+        "line": 178
+      },
+      "start": {
+        "column": 13,
+        "line": 178
+      }
+    },
+    "mutatorName": "MethodExpression",
+    "replacement": "Math.min(Math.min(gridY, maxRows.value - newH), 0)",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 59,
+        "line": 178
+      },
+      "start": {
+        "column": 22,
+        "line": 178
+      }
+    },
+    "mutatorName": "MethodExpression",
+    "replacement": "Math.max(gridY, maxRows.value - newH)",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 58,
+        "line": 178
+      },
+      "start": {
+        "column": 38,
+        "line": 178
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "maxRows.value + newH",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 70,
+        "line": 205
+      },
+      "start": {
+        "column": 27,
+        "line": 205
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "!editModeEnabled.value || props.isResizable",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 70,
+        "line": 205
+      },
+      "start": {
+        "column": 27,
+        "line": 205
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 49,
+        "line": 205
+      },
+      "start": {
+        "column": 27,
+        "line": 205
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "editModeEnabled.value",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 215
+      },
+      "start": {
+        "column": 91,
+        "line": 212
+      }
+    },
+    "mutatorName": "ObjectLiteral",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 43,
+        "line": 257
+      },
+      "start": {
+        "column": 29,
+        "line": 257
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 43,
+        "line": 257
+      },
+      "start": {
+        "column": 29,
+        "line": 257
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.height >= 0",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 78,
+        "line": 292
+      },
+      "start": {
+        "column": 57,
+        "line": 292
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "resizing.value.right",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 59,
+        "line": 284
+      },
+      "start": {
+        "column": 20,
+        "line": 284
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "coreEvent.deltaY * transformScale.value",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 29,
+        "line": 322
+      },
+      "start": {
+        "column": 14,
+        "line": 322
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 24,
+        "line": 332
+      },
+      "start": {
+        "column": 12,
+        "line": 332
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 58,
+        "line": 355
+      },
+      "start": {
+        "column": 33,
+        "line": 355
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 10,
+        "line": 371
+      },
+      "start": {
+        "column": 30,
+        "line": 369
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 63,
+        "line": 359
+      },
+      "start": {
+        "column": 29,
+        "line": 359
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "newSize.height / aspectRatio.value",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 50,
+        "line": 360
+      },
+      "start": {
+        "column": 21,
+        "line": 360
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 50,
+        "line": 360
+      },
+      "start": {
+        "column": 21,
+        "line": 360
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "drivingWidth || drivingHeight",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 25,
+        "line": 362
+      },
+      "start": {
+        "column": 16,
+        "line": 362
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 67,
+        "line": 363
+      },
+      "start": {
+        "column": 29,
+        "line": 363
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "prevTop - (prevHeight - derivedHeight)",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 66,
+        "line": 363
+      },
+      "start": {
+        "column": 40,
+        "line": 363
+      }
+    },
+    "mutatorName": "ArithmeticOperator",
+    "replacement": "prevHeight + derivedHeight",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 369
+      },
+      "start": {
+        "column": 12,
+        "line": 369
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 369
+      },
+      "start": {
+        "column": 12,
+        "line": 369
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 8,
+        "line": 407
+      },
+      "start": {
+        "column": 7,
+        "line": 405
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "default:",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 76,
+        "line": 398
+      },
+      "start": {
+        "column": 55,
+        "line": 398
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "resizing.value.right",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 53,
+        "line": 395
+      },
+      "start": {
+        "column": 32,
+        "line": 395
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "resizing.value.width",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 55,
+        "line": 396
+      },
+      "start": {
+        "column": 33,
+        "line": 396
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "resizing.value.height",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 27,
+        "line": 416
+      },
+      "start": {
+        "column": 8,
+        "line": 416
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.w <= props.minW!",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 99,
+        "line": 398
+      },
+      "start": {
+        "column": 79,
+        "line": 398
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "resizing.value.left",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 49,
+        "line": 397
+      },
+      "start": {
+        "column": 30,
+        "line": 397
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "resizing.value.top",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 27,
+        "line": 419
+      },
+      "start": {
+        "column": 8,
+        "line": 419
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.w >= props.maxW!",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 27,
+        "line": 422
+      },
+      "start": {
+        "column": 8,
+        "line": 422
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.h <= props.minH!",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 27,
+        "line": 425
+      },
+      "start": {
+        "column": 8,
+        "line": 425
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.h >= props.maxH!",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 429
+      },
+      "start": {
+        "column": 8,
+        "line": 429
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.h <= 1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 432
+      },
+      "start": {
+        "column": 8,
+        "line": 432
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.w <= 1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 64,
+        "line": 445
+      },
+      "start": {
+        "column": 32,
+        "line": 445
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 46,
+        "line": 455
+      },
+      "start": {
+        "column": 21,
+        "line": 455
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 56,
+        "line": 462
+      },
+      "start": {
+        "column": 8,
+        "line": 462
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 56,
+        "line": 462
+      },
+      "start": {
+        "column": 34,
+        "line": 462
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 56,
+        "line": 462
+      },
+      "start": {
+        "column": 34,
+        "line": 462
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "innerH.value === pos.h",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 34,
+        "line": 465
+      },
+      "start": {
+        "column": 8,
+        "line": 465
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 8,
+        "line": 519
+      },
+      "start": {
+        "column": 50,
+        "line": 517
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 106,
+        "line": 547
+      },
+      "start": {
+        "column": 14,
+        "line": 547
+      }
+    },
+    "mutatorName": "ObjectLiteral",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 68,
+        "line": 547
+      },
+      "start": {
+        "column": 25,
+        "line": 547
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 68,
+        "line": 547
+      },
+      "start": {
+        "column": 25,
+        "line": 547
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "Boolean(resizable.value) || !props.isStatic",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 68,
+        "line": 547
+      },
+      "start": {
+        "column": 25,
+        "line": 547
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 78,
+        "line": 583
+      },
+      "start": {
+        "column": 52,
+        "line": 583
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "slots?.default?.()[0].elm",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 509
+      },
+      "start": {
+        "column": 25,
+        "line": 507
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 48,
+        "line": 503
+      },
+      "start": {
+        "column": 8,
+        "line": 503
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 66,
+        "line": 583
+      },
+      "start": {
+        "column": 52,
+        "line": 583
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "slots.default",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 18,
+        "line": 521
+      },
+      "start": {
+        "column": 10,
+        "line": 521
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 542
+      },
+      "start": {
+        "column": 45,
+        "line": 540
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 23,
+        "line": 507
+      },
+      "start": {
+        "column": 8,
+        "line": 507
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 48,
+        "line": 517
+      },
+      "start": {
+        "column": 10,
+        "line": 517
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 56,
+        "line": 520
+      },
+      "start": {
+        "column": 24,
+        "line": 520
+      }
+    },
+    "mutatorName": "OptionalChaining",
+    "replacement": "resizeHandleRefs[edgeKey].value",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 43,
+        "line": 540
+      },
+      "start": {
+        "column": 8,
+        "line": 540
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 4,
+        "line": 556
+      },
+      "start": {
+        "column": 41,
+        "line": 553
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 79,
+        "line": 584
+      },
+      "start": {
+        "column": 24,
+        "line": 584
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 59,
+        "line": 589
+      },
+      "start": {
+        "column": 55,
+        "line": 589
+      }
+    },
+    "mutatorName": "BooleanLiteral",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 18,
+        "line": 590
+      },
+      "start": {
+        "column": 8,
+        "line": 590
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 597
+      },
+      "start": {
+        "column": 10,
+        "line": 597
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.w >= props.maxW",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 591
+      },
+      "start": {
+        "column": 10,
+        "line": 591
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.w <= props.minW",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 18,
+        "line": 602
+      },
+      "start": {
+        "column": 8,
+        "line": 602
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "true",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 603
+      },
+      "start": {
+        "column": 10,
+        "line": 603
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.h <= props.minH",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 623
+      },
+      "start": {
+        "column": 8,
+        "line": 623
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.h <= 1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 28,
+        "line": 609
+      },
+      "start": {
+        "column": 10,
+        "line": 609
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.h >= props.maxH",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 626
+      },
+      "start": {
+        "column": 8,
+        "line": 626
+      }
+    },
+    "mutatorName": "EqualityOperator",
+    "replacement": "pos.w <= 1",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 17,
+        "line": 623
+      },
+      "start": {
+        "column": 8,
+        "line": 623
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 56,
+        "line": 630
+      },
+      "start": {
+        "column": 34,
+        "line": 630
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 62,
+        "line": 634
+      },
+      "start": {
+        "column": 37,
+        "line": 634
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 62,
+        "line": 634
+      },
+      "start": {
+        "column": 8,
+        "line": 634
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "previousW.value !== pos.w && previousH.value !== pos.h",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 56,
+        "line": 630
+      },
+      "start": {
+        "column": 8,
+        "line": 630
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "innerW.value !== pos.w && innerH.value !== pos.h",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 30,
+        "line": 630
+      },
+      "start": {
+        "column": 8,
+        "line": 630
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 66,
+        "line": 667
+      },
+      "start": {
+        "column": 29,
+        "line": 667
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 33,
+        "line": 634
+      },
+      "start": {
+        "column": 8,
+        "line": 634
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 66,
+        "line": 667
+      },
+      "start": {
+        "column": 55,
+        "line": 667
+      }
+    },
+    "mutatorName": "StringLiteral",
+    "replacement": "``",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 107,
+        "line": 547
+      },
+      "start": {
+        "column": 7,
+        "line": 547
+      }
+    },
+    "mutatorName": "ArrowFunction",
+    "replacement": "() => undefined",
+    "status": "RuntimeError"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 4,
+        "line": 679
+      },
+      "start": {
+        "column": 42,
+        "line": 676
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 94,
+        "line": 667
+      },
+      "start": {
+        "column": 8,
+        "line": 667
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 94,
+        "line": 667
+      },
+      "start": {
+        "column": 8,
+        "line": 667
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "(!props.autoHeight || typeof ResizeObserver === `undefined`) && !autoHeightWrapper.value",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 66,
+        "line": 667
+      },
+      "start": {
+        "column": 8,
+        "line": 667
+      }
+    },
+    "mutatorName": "LogicalOperator",
+    "replacement": "!props.autoHeight && typeof ResizeObserver === `undefined`",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 66,
+        "line": 667
+      },
+      "start": {
+        "column": 8,
+        "line": 667
+      }
+    },
+    "mutatorName": "ConditionalExpression",
+    "replacement": "false",
+    "status": "Survived"
+  },
+  {
+    "location": {
+      "end": {
+        "column": 6,
+        "line": 669
+      },
+      "start": {
+        "column": 96,
+        "line": 667
+      }
+    },
+    "mutatorName": "BlockStatement",
+    "replacement": "{}",
+    "status": "Survived"
+  }
+]

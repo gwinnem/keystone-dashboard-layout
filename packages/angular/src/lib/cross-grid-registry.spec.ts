@@ -1,0 +1,126 @@
+import { findCrossGridZoneAt, registerCrossGridZone } from './cross-grid-registry';
+import { ICrossGridZone } from './cross-grid.interfaces';
+
+/**
+ * No dedicated test file existed for this module at all before this —
+ * only indirect coverage via grid-layout.component.spec.ts's own
+ * cross-grid-drag integration tests, which never exercised this
+ * module's own boundary conditions precisely (confirmed via a real
+ * mutation report: 46.88%, the lowest of every file in this package).
+ */
+const makeZone = (overrides: Partial<ICrossGridZone> = {}): ICrossGridZone => ({
+  acceptDrop: () => {},
+  getRect: () => ({ bottom: 100, height: 100, left: 0, right: 100, top: 0, width: 100 } as DOMRect),
+  isExternalDropDisabled: () => false,
+  layoutId: `zone-a`,
+  rejectDrop: () => {},
+  ...overrides,
+});
+
+describe(`cross-grid-registry`, () => {
+  it(`Should find a registered zone whose rect contains the given point`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-a` }));
+    try {
+      const found = findCrossGridZoneAt(50, 50, `some-other-id`);
+      expect(found?.layoutId).toBe(`zone-a`);
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should return undefined when no registered zone's rect contains the point`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-b` }));
+    try {
+      const found = findCrossGridZoneAt(5000, 5000, `some-other-id`);
+      expect(found).toBeUndefined();
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should never match a zone against its own excludeLayoutId (a grid can't drop onto itself)`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-c` }));
+    try {
+      const found = findCrossGridZoneAt(50, 50, `zone-c`);
+      expect(found).toBeUndefined();
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should skip zones with no measurable rect (getRect returning null)`, () => {
+    const unregister = registerCrossGridZone(makeZone({ getRect: () => null, layoutId: `zone-d` }));
+    try {
+      const found = findCrossGridZoneAt(50, 50, `some-other-id`);
+      expect(found).toBeUndefined();
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should stop returning a zone once it's unregistered`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-e` }));
+    unregister();
+
+    const found = findCrossGridZoneAt(50, 50, `some-other-id`);
+    expect(found).toBeUndefined();
+  });
+
+  it(`Should find the correct zone among multiple registered zones`, () => {
+    const unregisterA = registerCrossGridZone(
+      makeZone({ getRect: () => ({ bottom: 100, height: 100, left: 0, right: 100, top: 0, width: 100 } as DOMRect), layoutId: `left` }),
+    );
+    const unregisterB = registerCrossGridZone(
+      makeZone({ getRect: () => ({ bottom: 100, height: 100, left: 200, right: 300, top: 0, width: 100 } as DOMRect), layoutId: `right` }),
+    );
+    try {
+      expect(findCrossGridZoneAt(50, 50, `none`)?.layoutId).toBe(`left`);
+      expect(findCrossGridZoneAt(250, 50, `none`)?.layoutId).toBe(`right`);
+    } finally {
+      unregisterA();
+      unregisterB();
+    }
+  });
+
+  // The tests above use points clearly inside or clearly outside the
+  // rect (50,50 vs 5000,5000) — neither distinguishes an inclusive
+  // boundary (>=/<=) from an exclusive one (>/<), since those only
+  // diverge exactly AT the edge itself. Each test below places one
+  // coordinate exactly on one edge, with the other coordinate safely
+  // mid-rect, confirming the boundary itself counts as "inside".
+  it(`Should treat a point exactly on the left edge (x === rect.left) as inside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-f` }));
+    try {
+      expect(findCrossGridZoneAt(0, 50, `some-other-id`)?.layoutId).toBe(`zone-f`);
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should treat a point exactly on the right edge (x === rect.right) as inside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-g` }));
+    try {
+      expect(findCrossGridZoneAt(100, 50, `some-other-id`)?.layoutId).toBe(`zone-g`);
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should treat a point exactly on the top edge (y === rect.top) as inside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-h` }));
+    try {
+      expect(findCrossGridZoneAt(50, 0, `some-other-id`)?.layoutId).toBe(`zone-h`);
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should treat a point exactly on the bottom edge (y === rect.bottom) as inside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-i` }));
+    try {
+      expect(findCrossGridZoneAt(50, 100, `some-other-id`)?.layoutId).toBe(`zone-i`);
+    } finally {
+      unregister();
+    }
+  });
+});
