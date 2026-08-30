@@ -1831,7 +1831,7 @@ describe(`GridLayoutComponent`, () => {
       // it always leaves an empty array whether the filter predicate is
       // correct (keep items where i !== event.i) or a mutant that keeps
       // nothing at all, never distinguishing the two.
-      const { target } = setupTwoGrids();
+      setupTwoGrids();
       const sourceContainer = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
       component.layout = [...component.layout, { h: 2, i: `staying`, w: 2, x: 6, y: 0 }];
       component.ngOnChanges({ layout: {} } as unknown as SimpleChanges);
