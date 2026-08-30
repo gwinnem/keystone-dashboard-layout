@@ -27,6 +27,47 @@ override, and a distinct header slot per item. See the
 
 ## What's still open
 
+### Pushing the pnpm-version CI fix, and confirming a real green run
+
+Every workflow (`ci.yml`/`mutation-testing.yml`/`release.yml`) has been
+failing immediately at "Setup pnpm" — a hardcoded `version: '9'` in
+each workflow conflicting with root `package.json`'s own
+`packageManager: pnpm@11.22.0`. Fixed in source (the hardcoded version
+removed, letting the action auto-detect from `package.json` instead),
+but not yet pushed — no workflow has actually re-run with the fix.
+This is why `mutation-test-vue`'s own 82.08% (below) is confirmed via
+local runs only, not a real CI run.
+
+### Live test/coverage numbers
+
+The test suite and coverage gate are both confirmed real (see
+[Production readiness](/vue/guide/project/production-readiness/)) —
+but live pass/fail counts and the current coverage percentage haven't
+been captured by directly running `pnpm test`/`pnpm test:coverage` in
+this pass.
+
+### Paying down the ~800 pre-existing lint issues
+
+Confirmed via `.github/workflows/ci.yml`'s own comment: this package
+carries roughly 800 pre-existing ESLint issues from before it had a
+working config at all, which is why the `lint` CI step runs advisory
+(`continue-on-error: true`) rather than blocking. Flipping it to a hard
+gate is blocked on actually paying this down, not on any remaining
+configuration work.
+
+### Confirming current npm publish status
+
+Not independently re-verified in this pass whether the current
+`@keystone-dashboard-layout/vue` npm registry state matches what's
+actually in this repository — check the registry directly rather than
+trust a prior claim.
+
+### Branch protection & repository secrets
+
+Not checkable from source at all — needs a repository admin to confirm
+directly whether branch protection rules and the `NPM_TOKEN` secret
+`release.yml` needs to actually publish are configured.
+
 ### A Nuxt module, paired with a real SSR audit
 
 One concrete SSR-breaking spot (an unguarded `navigator.userAgent` read

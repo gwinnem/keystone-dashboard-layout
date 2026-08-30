@@ -1,0 +1,102 @@
+---
+title: Architecture
+description: How GridLayout and GridItem talk to each other, and how the codebase is organized.
+---
+
+The map worth knowing before digging deeper into how this port is
+built — `GridLayout` and `GridItem` carry almost the entire
+implementation, and their relationship isn't obvious from reading either
+file in isolation. This package is a genuine React implementation, not
+a thin wrapper generated from the Vue source — the underlying grid math
+is shared via `@keystone-dashboard-layout/core`, but the component
+layer itself is idiomatic React throughout.
+
+## Two entry points
+
+The main package entry (`GridLayout`, `GridItem`, and everything that
+needs a live component instance or DOM) is one thing; a separate
+`@keystone-dashboard-layout/core` package is the pure grid-layout math
+those components are built on — collision detection, compaction,
+movement, alignment guides, breakpoint resolution, serialization, and
+validation — with zero React dependency and no live DOM required for
+the vast majority of it. This is the same `core` package the Vue port
+uses underneath, not a separate copy.
+
+## A fully controlled component
+
+`GridLayout` never mutates its `layout` prop in place. Every internal
+change (a drag tick, a resize tick, the compaction that follows either)
+is mirrored into local state *and* reported via `onLayoutChange` —
+matching `react-grid-layout`'s own established contract for this class
+of component, since that's the idiomatic React pattern here rather than
+Vue's `v-model:layout` two-way binding. Compaction re-runs on every
+single drag/resize tick, not only at the gesture's end — this is what
+produces the "other items shuffle out of the way live, while you're
+still dragging" feedback, not just a final snap-into-place at drop.
+
+## How GridLayout and GridItem talk to each other
+
+A consumer renders `GridItem`s themselves, as `GridLayout`'s `children`
+— `GridLayout` doesn't create your items for you.
+
+Vue's own port uses a `$parent`-lookup-plus-eventBus contract for this
+relationship (see that port's own [Architecture](/vue/guide/project/architecture/)
+page). This package expresses the identical relationship using React's
+own `createContext`/`useContext` instead, since that's the idiomatic
+mechanism for "many descendants read shared ancestor state and report
+back up" in React:
+
+- **Top-down**: a single `GridContext` value carries the live working
+  layout, every relevant grid-wide setting (`colNum`, `margin`,
+  `isDraggable`, `resizeHandles`, resolved ARIA labels, and so on), and
+  the callbacks a `GridItem` calls to report its own drag/resize/click
+  activity.
+- **Bottom-up**: `GridItem` calls `onItemDrag`/`onItemResize`/
+  `onItemClick` (all part of the same context value) to report gesture
+  ticks — `GridLayout`'s own handlers resolve collisions/bounds and
+  update the working layout in response.
+
+A `GridItem` rendered outside a `GridLayout` throws a clear error
+(`GridItem must be rendered inside a GridLayout.`) rather than silently
+reading `undefined` fields — the same "reachable only in this
+configuration" invariant Vue's own `$parent` lookup already depends on,
+made explicit here instead of failing confusingly later.
+
+## Render-props instead of slots
+
+Vue's own `GridItem`/`GridLayout` expose scoped slots (`#header`,
+`#resize-handle`, `#placeholder`) for customizing rendered content. This
+package uses React's own idiomatic equivalent — render props
+(`header`, `renderResizeHandle`, `renderPlaceholder`) — rather than
+introducing a slot-like abstraction React doesn't otherwise have. See
+[GridLayout props](/react/components/grid-layout/props/) and
+[GridItem props](/react/components/grid-item/props/) for the full list.
+
+## Native drag/resize engine
+
+Both drag and resize wire up a native, Pointer Events-based engine —
+the same one Vue's port uses, from `@keystone-dashboard-layout/core`
+(`createNativeDraggable`/`createNativeResizable`). No third-party
+drag/resize library at all, and no separate React-specific copy of this
+engine — it's genuinely framework-agnostic (built on the plain Pointer
+Events API), so both ports share one implementation. Each gesture is
+guarded to one pointer at a time per element, so a second concurrent
+pointer (two fingers, an accidental palm touch mid-drag) can't silently
+hijack tracking.
+
+## Cross-grid drag/drop
+
+`allowCrossGridDrag` needs separate `GridLayout` instances — frequently
+with no React ancestor/descendant relationship to each other at all —
+to find one another. Same answer as Vue's port: a plain, module-level
+registry (not React state, not Context), where every participating grid
+registers itself on mount and deregisters on unmount. See
+[Drag, drop from grid to grid](/react/examples/cross-grid-drag-drop/).
+
+## Testing implications
+
+`GridLayout` and `GridItem` are tested together, rendering a real
+`GridLayout` with real `GridItem` children — the only way to exercise
+the Context contract the way production actually uses it. See
+[Testing philosophy](/react/guide/project/testing/) for the fuller
+picture.

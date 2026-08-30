@@ -10,6 +10,22 @@ holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
 forever."
 :::
 
+:::caution[A real, confirmed CI-wide failure was found and fixed while checking this]
+Every workflow run visible on GitHub (`ci.yml`, `mutation-testing.yml`,
+`release.yml`) has been failing immediately at the "Setup pnpm" step —
+"Multiple versions of pnpm specified" (`version: '9'` hardcoded in each
+workflow file vs. root `package.json`'s own `packageManager:
+pnpm@11.22.0`). This means **none of the CI-enforced claims below have
+actually been exercised in real CI recently** — every job failed before
+reaching typecheck, lint, tests, or any build/audit step. Fixed by
+removing the hardcoded version from all three workflow files, letting
+`pnpm/action-setup@v4` auto-detect from `package.json` instead — but
+this fix hasn't been pushed/re-run yet, so it's confirmed as a source
+change, not yet as a passing CI run. Every "blocking gate" claim in the
+sections below describes what the workflow is *configured* to do, not
+a recent, actual green run.
+:::
+
 ## Code quality
 
 - **Typecheck clean** — `vue-tsc --project tsconfig.json --noEmit`. A real, substantial bug was found and fixed here: the monorepo split had left `tsconfig.json` without an explicit `rootDir`, so every cross-package `@/core/*` import fell outside TypeScript's auto-computed root, cascading into ~50 `TS6059` errors from one root cause. Fixed by setting `rootDir` to the common ancestor of `vue/src` and `core/src`.
@@ -19,8 +35,8 @@ forever."
   - **`vue`**: overall mutation score **82.08%**, confirmed via a real run. 7 of 8 composable-level files sit above 80% individually (`useGridItemKeyboard.ts` 97.73%, `useUndoRedo.ts` 95.16%, `useLayoutStorage.ts` 90.57%, `useMultiSelect.ts` 87.84%, `useLayoutPresets.ts` 84.48%, `useCrossGridDrag.ts` 83.08%, `useResponsiveLayout.ts` 81.82%, `useGridItemDrag.ts` 80.34%, `useOutsideDrop.ts` 81.43%) — `useGridItemResize.ts` remains the one holdout at 74.23%, improving steadily each pass but not yet closed.
   - **`react`**: overall mutation score **82.93%**, confirmed via a real run, up from 79.42% at the previous check.
   - **`core`**: mutation testing infrastructure added for the first time this pass (previously nonexistent) — a straightforward setup compared to `vue`'s, since `core`'s own `@/core` alias is self-referential (points to its own `src/`), not cross-package. Actively being improved file by file as of this snapshot; not yet at a stable, final overall number worth quoting here — check a fresh run rather than assume a specific score.
-- **Lint** — not independently re-verified as of this snapshot; re-run `pnpm lint`/`pnpm lint:style` before trusting either is still clean, especially given the volume of new test files added across all three packages since the last confirmed-clean state.
-- **`npm audit`** — not re-run as of this snapshot.
+- **Lint** — confirmed real, with a known, quantified number, not just "not re-verified": `eslint`/`eslint-plugin-vue` are genuinely configured, and `.github/workflows/ci.yml`'s own comment states this package "carries ~800 pre-existing issues from before it had a working ESLint config at all" — known technical debt, tracked and visible on every PR (the lint step runs with `continue-on-error: true`, so it's advisory, not blocking), not a silent gap. Current exact count not independently re-run in this pass.
+- **`npm audit`** — confirmed covered, not skipped: `ci.yml`'s own dedicated `audit` job runs `pnpm audit --prod --audit-level=high` (blocking) and a broader advisory audit from the monorepo root on every push/PR, covering this package. A blocking production-dependency license check also runs.
 - **A real reactivity bug found and fixed**: every item-level prop with the same null-means-inherit pattern (`isDraggable`/`isResizable`/`isBounded`/`showCloseButton`/`enableEditMode`/`useBorderRadius`/`borderRadiusPx`) had a direct watcher re-syncing its resolved value when the prop changed reactively after mount — `resizeHandles` never got one. Found via e2e testing (a demo control toggling it had no visible effect), fixed with the missing watcher plus a regression test.
 
 ## Runtime dependencies
@@ -29,12 +45,16 @@ forever."
 
 ## Build & packaging
 
-- **Bundle size, library/demo/docs builds, and the pack-and-install smoke test** — not re-measured as of this snapshot; typecheck being clean is a prerequisite for the build but doesn't itself confirm any of these.
+- **Bundle size** — now directly re-measured, correcting a stale figure: the actual current built ES bundle (`dist/keystone-dashboard-layout-vue.es.js`) is **80.67 KB raw / 22.29 KB gzip** — notably smaller than this script's own `docs/BUNDLE_ANALYSIS.md`-derived comment claiming "~42.6 KB gzip" as the current baseline (that comment is now stale; the real, current number leaves roughly 33 KB of headroom under the 55 KB budget rather than the ~12 KB the comment implies). Confirmed via a direct read of `ci.yml`: this check is *configured* to run **without** `continue-on-error` for this package (unlike the identical checks for React/Angular, both of which are `continue-on-error: true`) — but see the CI-wide pnpm caution above: it hasn't actually executed successfully in real CI recently, since every job fails before reaching it.
+- **`check:package-install` (pack-and-install smoke test)** — same distinction: configured to run **without** `continue-on-error` for this package — but, same caveat, not actually exercised in a real CI run recently.
+- **The library, demo, and docs-site builds** — all three are separate steps in `ci.yml`'s own `verify` job, confirmed present in the workflow — but, again, not confirmed passing in an actual recent CI run given the pnpm setup failure above.
 - **Publish status** — not independently verified as of this snapshot. The package publishes as `@keystone-dashboard-layout/vue` (the post-monorepo-split name) — check the current npm registry state directly rather than trusting a prior claim about what's published.
 
 ## CI/CD & repository hygiene
 
-- Three GitHub Actions workflows present: `ci.yml`, `mutation-testing.yml`, `release.yml`.
+- Three GitHub Actions workflows present: `ci.yml`, `mutation-testing.yml`, `release.yml` — confirmed via a direct read, not just cited from memory.
+- **A real, confirmed root cause for every recent CI failure across all three workflows**: `pnpm/action-setup@v4` was given both an explicit `version: '9'` in each workflow file *and* an implicit version via root `package.json`'s own `packageManager: pnpm@11.22.0` field — the action refuses to run at all when both are set and they disagree, failing every job in 7–13 seconds, before checkout even finishes installing dependencies. Confirmed by inspecting real, failed run logs directly ("Multiple versions of pnpm specified"), not inferred. Fixed by removing the hardcoded `version` from all three workflow files, letting the action auto-detect from `package.json` instead — **this fix is a local source change only; it hasn't been pushed, so no workflow has actually re-run with it yet.**
+- `mutation-testing.yml`'s own `mutation-test-vue` job's 82.08% figure is confirmed via local runs only — every actual scheduled/on-demand CI run of it has failed at the same pnpm step above, not passed.
 - Branch protection and an `NPM_TOKEN` secret for `release.yml` to actually publish — both open, and both need a repo admin (not something fixable from source alone).
 - CODEOWNERS and Husky/lint-staged both confirmed wired up correctly.
 
@@ -69,4 +89,4 @@ Genuinely unimplemented as of this snapshot — see the [Roadmap](/vue/guide/pro
 
 ## The short version
 
-**Code quality and the e2e suite**: freshly verified as of this snapshot, in good shape, with one honestly-unresolved Firefox-specific gap recorded rather than hidden. **Build/packaging/publish status, lint, and mutation testing**: not independently confirmed in this same pass — re-run before trusting a specific number. **Feature completeness**: several genuinely large items remain open on the roadmap — see [Roadmap](/vue/guide/project/roadmap/) for the current, accurate list.
+**A real, confirmed CI-wide bug was found and fixed this pass**: every workflow (`ci.yml`/`mutation-testing.yml`/`release.yml`) has been failing immediately at "Setup pnpm" due to a version mismatch between the workflow files and root `package.json` — fixed in source, not yet pushed/re-verified. **Everything described as CI-enforced in this checklist reflects configuration, not a recent actual green run** — treat every "blocking gate" claim above as "correctly configured to block" rather than "recently confirmed passing." **Code quality and the e2e suite**: freshly verified via direct local runs, in good shape, with one honestly-unresolved Firefox-specific gap. **Bundle size**: corrected from a stale ~42.6 KB estimate to a real, current 22.29 KB gzip. **Lint**: real and configured, with a known, already-quantified ~800-issue backlog. **Feature completeness**: several genuinely large items remain open on the roadmap — see [Roadmap](/vue/guide/project/roadmap/) for the current, accurate list, including this CI fix's own follow-up (push it, confirm a real green run).

@@ -1,0 +1,77 @@
+---
+title: Layout types
+description: TLayout, TResponsiveLayout, TBreakpoint, and TBreakpoints.
+---
+
+All four live in `@keystone-dashboard-layout/core`, not this package's
+own barrel:
+
+```ts
+import type {
+  TLayout,
+  TResponsiveLayout,
+  TBreakpoint,
+  TBreakpoints,
+} from '@keystone-dashboard-layout/core';
+```
+
+```ts
+type TLayout<TMeta = unknown> = ILayoutItem<TMeta>[];
+```
+
+The full layout for a `GridLayout` — one `ILayoutItem` per rendered
+`GridItem`. See [Layout interface](/react/api/interfaces/layout/) for what
+`TMeta` is for.
+
+```ts
+type TResponsiveLayout = {
+  xxl?: TLayout;
+  xl?: TLayout;
+  lg?: TLayout;
+  md?: TLayout;
+  sm?: TLayout;
+  xs?: TLayout;
+  xxs?: TLayout;
+  [key: string]: TLayout | undefined;
+};
+```
+
+Pre-defined layouts keyed by breakpoint name, for `GridLayout`'s own
+`responsiveLayouts` prop. Every key is optional — a breakpoint with no
+explicit entry gets an auto-generated layout the first time it's
+entered. See [Responsive predefined layouts](/react/examples/responsive-predefined-layouts/).
+
+:::note[Custom breakpoint names type-check, but aren't resolvable]
+The type accepts any string key, but the breakpoint-resolution logic
+that actually picks which entry to use can only ever resolve to one of
+the 7 standard names (`xxl`/`xl`/`lg`/`md`/`sm`/`xs`/`xxs`) — the same
+7 names `breakpoints`/`cols` are fixed to. A `responsiveLayouts` entry
+under any other key compiles, but is never actually looked up by the
+normal breakpoint-resolution path.
+:::
+
+```ts
+type TBreakpoint = string;
+```
+
+A breakpoint name, e.g. `'lg'`, `'md'`, `'xs'`. Not restricted to the
+built-in set at the type level, since `breakpoints`/`cols` can define
+custom names (even though, per the note above, only the 7 standard ones
+are ever actually resolved to).
+
+```ts
+type TBreakpoints = {
+  xxl?: number;
+  xl?: number;
+  lg?: number;
+  md?: number;
+  sm?: number;
+  xs?: number;
+  xxs?: number;
+};
+```
+
+Container-width thresholds per breakpoint name. Structurally identical
+to `IBreakpoints` (see [GridLayout props](/react/components/grid-layout/props/));
+both exist in the codebase — prefer `IBreakpoints` for new code
+involving `GridLayout` props specifically.

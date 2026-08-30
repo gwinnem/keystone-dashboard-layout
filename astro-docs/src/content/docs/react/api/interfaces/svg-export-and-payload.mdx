@@ -1,0 +1,79 @@
+---
+title: SVG export & outside-drop payload
+description: exportLayoutAsSvg and readOutsideDropPayload — two standalone utility functions.
+---
+
+## `exportLayoutAsSvg`
+
+```ts
+function exportLayoutAsSvg(layout: TLayout, options?: IExportLayoutAsSvgOptions): string;
+```
+
+```ts
+interface IExportLayoutAsSvgOptions {
+  colNum?: number;          // default: 12
+  rowHeight?: number;       // default: 150
+  margin?: [number, number]; // default: [10, 10]
+  containerWidth?: number;  // default: 1200 — must be supplied explicitly; see note below
+  itemFill?: string;        // default: '#eef2ff'
+  itemStroke?: string;      // default: '#c7d2fe'
+  labelColor?: string;      // default: '#3730a3'
+  backgroundColor?: string | null; // default: null (transparent)
+}
+```
+
+Renders a `TLayout` as a standalone SVG string, each item drawn as a
+labeled rectangle from the layout data alone — not a snapshot of
+whatever's actually rendered inside each `GridItem`. Good for a
+structural thumbnail of the layout itself, not a substitute for a real
+screenshot of custom `children` content. Never throws: an empty layout
+produces a valid, empty SVG.
+
+`containerWidth` has to be passed explicitly, unlike `GridLayout`
+itself, which measures its own container automatically — there's no
+DOM element for this standalone function to measure. Pass the same
+width your actual grid renders at for a matching result.
+
+The returned string is a complete `<svg>...</svg>` document — usable
+directly, downloaded as a `.svg` file via a `Blob`, or drawn onto a
+`<canvas>` first if a raster PNG/JPEG is specifically needed. See
+[Export layout as SVG](/react/examples/svg-export/) for a full example.
+
+Not re-exported from this package's own barrel — import it directly
+from `@keystone-dashboard-layout/core` instead, same as the Vue port:
+
+```ts
+import { exportLayoutAsSvg } from '@keystone-dashboard-layout/core';
+```
+
+## `readOutsideDropPayload`
+
+```ts
+function readOutsideDropPayload<T>(
+  dataTransfer: DataTransfer | null | undefined,
+  mimeType?: string, // default: 'text/plain'
+): T | null;
+```
+
+Reads and JSON-parses a native `DataTransfer` payload by MIME type —
+every consumer of `allowOutsideDrop`'s `onOutsideDrop` callback
+otherwise re-implements the same `dataTransfer.getData(mimeType)`/
+`JSON.parse` parsing by hand. Never throws: a missing MIME type or
+malformed JSON both return `null`. Performs no runtime shape validation
+against `T` — that's the caller's own responsibility, since the payload
+is whatever the consumer's own drag source chose to attach.
+
+:::caution[A real gotcha with native drag-and-drop]
+`dataTransfer.getData()` only returns real values during the `drop`
+event itself — not `dragenter`/`dragover`.
+:::
+
+Same as `exportLayoutAsSvg` above, this isn't re-exported from this
+package's own barrel either:
+
+```ts
+import { readOutsideDropPayload } from '@keystone-dashboard-layout/core';
+```
+
+See [outsideDropAccept & readOutsideDropPayload](/react/examples/outside-drop-accept-payload/)
+for a full working example.

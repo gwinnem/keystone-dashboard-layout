@@ -227,6 +227,19 @@ export default defineConfig({
               items: [
                 { label: 'Introduction', slug: 'react/guide/introduction' },
                 { label: 'Installation', slug: 'react/guide/installation' },
+                {
+                  label: 'Project',
+                  items: [
+                    { label: 'Architecture', slug: 'react/guide/project/architecture' },
+                    { label: 'Testing philosophy', slug: 'react/guide/project/testing' },
+                    { label: 'Accessibility scope', slug: 'react/guide/project/accessibility' },
+                    { label: 'Comparison: alternatives', slug: 'react/guide/project/comparison-alternatives' },
+                    { label: 'Comparison: commercial', slug: 'react/guide/project/comparison-commercial' },
+                    { label: 'Roadmap', slug: 'react/guide/project/roadmap' },
+                    { label: 'Production readiness', slug: 'react/guide/project/production-readiness' },
+                  ],
+                },
+                { label: 'Changelog', slug: 'react/guide/changelog' },
               ],
             },
             { label: 'Features', slug: 'react/features' },
@@ -244,8 +257,14 @@ export default defineConfig({
               items: [
                 { label: 'Overview', slug: 'react/api' },
                 { label: 'Imperative handle (IGridLayoutHandle)', slug: 'react/api/interfaces/imperative-handle' },
+                { label: 'Layout interface', slug: 'react/api/interfaces/layout' },
+                { label: 'ARIA labels', slug: 'react/api/interfaces/aria-labels' },
+                { label: 'Pluggable compaction', slug: 'react/api/interfaces/compactor' },
                 { label: 'Layout persistence', slug: 'react/api/interfaces/layout-persistence' },
+                { label: 'SVG export & outside-drop payload', slug: 'react/api/interfaces/svg-export-and-payload' },
                 { label: 'Cross-grid & outside-drop event payloads', slug: 'react/api/interfaces/event-payloads' },
+                { label: 'Layout types', slug: 'react/api/types/layout' },
+                { label: 'ECompactType', slug: 'react/api/enums/compact-type' },
               ],
             },
             {
@@ -323,6 +342,19 @@ export default defineConfig({
               items: [
                 { label: 'Introduction', slug: 'angular/guide/introduction' },
                 { label: 'Installation', slug: 'angular/guide/installation' },
+                {
+                  label: 'Project',
+                  items: [
+                    { label: 'Architecture', slug: 'angular/guide/project/architecture' },
+                    { label: 'Testing philosophy', slug: 'angular/guide/project/testing' },
+                    { label: 'Accessibility scope', slug: 'angular/guide/project/accessibility' },
+                    { label: 'Comparison: alternatives', slug: 'angular/guide/project/comparison-alternatives' },
+                    { label: 'Comparison: commercial', slug: 'angular/guide/project/comparison-commercial' },
+                    { label: 'Roadmap', slug: 'angular/guide/project/roadmap' },
+                    { label: 'Production readiness', slug: 'angular/guide/project/production-readiness' },
+                  ],
+                },
+                { label: 'Changelog', slug: 'angular/guide/changelog' },
               ],
             },
             { label: 'Features', slug: 'angular/features' },

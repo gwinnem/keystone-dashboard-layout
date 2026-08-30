@@ -32,23 +32,31 @@ name: Mutation testing
 #     a documented, unresolved case of specific mutants surviving despite
 #     100%-confirmed real test coverage — not yet root-caused, don't
 #     assume more tests alone will fix it if picking this up again.
-#   - angular: 71.47% overall mutation score, confirmed via a real run
-#     completing cleanly with zero dry-run failures — this was the last
-#     of the four to get here. Getting this far needed two real fixes,
-#     both now confirmed (not just reasoned through): (1) an explicit
-#     `testEnvironment: 'jsdom'` in jest.config.ts, since
-#     @stryker-mutator/jest-runner's own sandbox resolved
-#     jest-preset-angular's implicit default differently than plain
-#     `jest` does, previously surfacing as 'ReferenceError: document is
-#     not defined' plus an Angular DI circular-dependency cascade; (2) a
+#   - angular: 81.14% overall mutation score (up from an earlier 71.47%
+#     snapshot, confirmed via a real run completing cleanly with zero
+#     dry-run failures), after two real fixes, both confirmed (not just
+#     reasoned through): (1) an explicit `testEnvironment: 'jsdom'` in
+#     jest.config.ts, since @stryker-mutator/jest-runner's own sandbox
+#     resolved jest-preset-angular's implicit default differently than
+#     plain `jest` does, previously surfacing as 'ReferenceError: document
+#     is not defined' plus an Angular DI circular-dependency cascade; (2) a
 #     genuine source bug this then surfaced — grid-layout.component.ts's
 #     own `hasInitializedUndoTracking` flag, guarding against a false
 #     '0 -> N items' transition on first population being misread as a
 #     user-driven undo-worthy change. See packages/angular/stryker.conf.json's
 #     own '_comment_resolved_limitation' for the full account of both.
-#     Lowest of the four scores — cross-grid-registry.ts (46.88%) and
-#     grid-layout.component.ts (66.73%, but by far the largest file) are
-#     the two biggest remaining opportunities, neither touched yet.
+#     Every individual file now sits above 80% (cross-grid-registry.ts and
+#     grid-layout.component.ts, the two lowest scorers at the 71.47%
+#     snapshot, are now at 90.63% and 80.23% respectively) — this job has
+#     only been confirmed via local runs so far, not yet re-verified as
+#     green in a real, live CI run specifically — and, as of this same
+#     writing, couldn't have been: every job in this workflow (and in
+#     ci.yml/release.yml) was failing immediately at "Setup pnpm" with
+#     "Multiple versions of pnpm specified" (version '9' hardcoded here
+#     vs. root package.json's own packageManager: pnpm@11.22.0) — fixed
+#     by removing the hardcoded version and letting pnpm/action-setup@v4
+#     auto-detect from package.json instead, the same fix applied to all
+#     three workflow files.
 on:
   schedule:
     - cron: '0 3 * * 1' # every Monday at 03:00 UTC
@@ -65,8 +73,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: '9'
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -98,8 +104,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: '9'
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -136,8 +140,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: '9'
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -169,8 +171,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: '9'
 
       - name: Setup Node
         uses: actions/setup-node@v4

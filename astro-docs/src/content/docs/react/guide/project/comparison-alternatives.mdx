@@ -1,0 +1,94 @@
+---
+title: "Comparison: alternatives"
+description: How Keystone Dashboard Layout for React compares to react-grid-layout and gridstack.js.
+---
+
+## Scope
+
+This compares projects in the same category as this library —
+**draggable/resizable dashboard layout engines** (position arbitrary
+widgets on a grid, drag/resize them, responsive breakpoints) — not data
+tables/grids, which solve a different problem. For commercial
+layout-engine peers, see
+[Comparison: commercial](/react/guide/project/comparison-commercial/)
+instead.
+
+Projects compared: **`react-grid-layout`** (the long-established
+incumbent in this exact category, recently rewritten with a hooks-based
+v2) and **`gridstack.js`** (framework-agnostic, ships an official React
+wrapper).
+
+## A different landscape than Vue's own comparison
+
+Unlike the Vue port's own [Comparison: alternatives](/vue/guide/project/comparison-alternatives/)
+page — where the most-starred option still has no official Vue 3
+release, and the field is a handful of differently-maintained community
+forks — React's own landscape has a genuine, well-established incumbent:
+`react-grid-layout` is mature, widely adopted, and actively maintained,
+recently rewritten with a hooks-based v2. This is the honest starting
+point for a React-specific comparison: this package is the newer
+entrant here, not filling an obvious gap the way the Vue port arguably
+is.
+
+## Feature comparison
+
+The facts below for `react-grid-layout` v2 and `gridstack.js` are the
+same ones already verified for the Vue port's own comparison page — the
+features themselves are properties of those two projects, not of which
+framework is being compared against.
+
+| Feature | This project | `react-grid-layout` v2 | `gridstack.js` |
+|---|---|---|---|
+| Cross-grid drag/drop (independent instances) | Yes | No | Via nested sub-grids — a different mechanism |
+| Drag-and-drop from outside the component | Yes | Yes | Yes |
+| Magnetic snap-to-grid | Yes | No | No |
+| Visual alignment guides | Yes | No | No |
+| Blocked-move feedback event | Yes | No | No |
+| Named layout presets | Yes | No | No |
+| First-party persistence helper | Yes | No | Yes, built into the core engine |
+| Grid-to-SVG export | Yes | No | No |
+| Localizable UI/ARIA strings | Yes | No | No |
+| Per-item live-resyncing autoHeight | Yes | No | Partial — content-driven initial sizing only |
+| Keyboard-only move/resize | Yes | No | No |
+| Multi-select + group move/resize | Yes | Not confirmed | Not confirmed |
+| Pluggable compaction algorithm | Yes | Yes | — |
+| Framework-agnostic core as public API | Yes | Yes | Yes (core is framework-agnostic by design) |
+| Undo/redo | Yes | No | No |
+| Dependency footprint | Zero runtime dependencies | Zero | Zero (core) |
+
+## Where this project genuinely leads
+
+Cross-referencing the table above against `react-grid-layout`
+specifically: magnetic snap-to-grid, visual alignment guides, the
+blocked-move feedback event, named layout presets, grid-to-SVG export,
+localizable ARIA strings, live-resyncing per-item `autoHeight`, and
+multi-select with group move/resize all have no equivalent there. None
+of these are exotic — they're the kind of real-world friction points a
+dedicated roadmap process exists specifically to find and close one at
+a time.
+
+## Where this project is genuinely behind
+
+- **Ecosystem size and battle-testing.** `react-grid-layout` has years
+  more production usage across far more companies — not a feature gap
+  this library can close by writing code, just a newer project.
+- **Framework breadth.** `gridstack.js` covers Vue, React, and Angular
+  from one core engine. This project ships genuinely separate Vue,
+  React, and Angular packages rather than one universal wrapper — a
+  different tradeoff, not strictly worse, but a real difference worth
+  naming.
+- **Sub-grids / nesting.** `gridstack.js` supports grids-within-grids as
+  first-class nested structures. This project's cross-grid feature is
+  sibling-to-sibling dragging between independent grid instances — a
+  different capability, not a nesting system.
+- **Swap-on-drag.** In `gridstack.js`'s default top-gravity mode,
+  dragging one item onto another of the same size swaps their
+  positions. This project only pushes items aside via compaction.
+
+## Bottom line
+
+Against a genuinely established incumbent like `react-grid-layout`,
+this project's case rests on a meaningfully larger feature set —
+several with no equivalent in `react-grid-layout` at all — at the cost
+of being the newer, smaller-community option without the multi-year
+production track record `react-grid-layout` can claim.

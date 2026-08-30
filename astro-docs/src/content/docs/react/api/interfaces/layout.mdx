@@ -1,0 +1,94 @@
+---
+title: Layout interface (ILayoutItem)
+description: One entry in a GridLayout's layout array — every field a layout item can carry.
+---
+
+One entry in a `GridLayout`'s `layout` array. Unlike Vue's own
+`GridItem` (which also accepts most of these directly as component
+props), this package's `GridItem` is deliberately minimal — only `i`
+is required — so these fields on the matching layout entry are the
+*only* way to configure per-item behavior at all, not just an
+alternative to component props.
+
+```ts
+interface ILayoutItemRequired {
+  i: string | number;
+  h: number;
+  w: number;
+  x: number;
+  y: number;
+}
+
+interface ILayoutItem<TMeta = unknown> extends ILayoutItemRequired {
+  // ...optional fields below
+}
+```
+
+`ILayoutItemRequired` is exported separately too, in case you need to
+type just the required fields on their own (a minimal seed object before
+optional fields are added, say).
+
+## Required fields
+
+| Field | Type | Description |
+|---|---|---|
+| `i` | `string \| number` | Unique identifier, matched against a `GridItem`'s `i` prop. |
+| `h` | `number` | Height, in grid row units. |
+| `w` | `number` | Width, in grid column units. |
+| `x` | `number` | Horizontal position, in grid column units. |
+| `y` | `number` | Vertical position, in grid row units. |
+
+## Optional fields
+
+| Field | Type | Description |
+|---|---|---|
+| `isDraggable` | `boolean` | Per-item drag override. |
+| `isResizable` | `boolean` | Per-item resize override. |
+| `isStatic` | `boolean` | Excludes this item from dragging, resizing, and collision cascades. |
+| `maxH` / `maxW` / `minH` / `minW` | `number` | Per-item size constraints. |
+| `zIndex` | `number \| null` | CSS `z-index` override, winning over the static/dragging/resizing CSS-class defaults. |
+| `showCloseButton` | `boolean` | Per-item override; `undefined` defers to the grid-wide default. |
+| `autoScroll` | `boolean` | Per-item override for native auto-scroll near a container edge during drag/resize. |
+| `preserveAspectRatio` | `boolean` | Per-item override for locking width/height ratio while resizing. |
+| `ariaLabels` | `IGridAriaLabels` | Per-item override, merged over the grid-wide `ariaLabels` prop and the built-in English defaults. |
+| `dragAllowFrom` / `dragIgnoreFrom` | `string \| null` | CSS selectors restricting where a drag can/can't start. |
+| `resizeIgnoreFrom` | `string \| null` | CSS selector for elements that shouldn't start a resize. |
+| `dragActivationDistance` | `TDragActivationDistance \| null` | Minimum pointer movement, in pixels, before a pointerdown counts as a drag — one value for every pointer type, or distinct values per mouse/touch/pen. |
+| `isBounded` | `boolean \| null` | Per-item override for restricting dragging to within the container. |
+| `resizeHandles` | `TResizeHandle[] \| null` | Restricts which of the 8 resize-hint spans render/activate for this item. An empty array is a valid "no handle-driven resize" value, distinct from `isResizable: false`. |
+| `isMirrored` | `boolean` | Whether this item participates in the grid's own RTL mirroring. Default `true`. |
+| `enableEditMode` | `boolean` | Per-item override for the master interactivity switch. |
+| `borderRadiusPx` / `useBorderRadius` | `number` / `boolean` | Per-item border radius override. |
+| `showResizeHandles` / `resizeHandleColor` | `boolean` / `string` | Per-item visible resize-handle override. |
+| `autoHeight` | `boolean` | Re-runs this item's own size measurement whenever its rendered content changes size. No grid-wide equivalent. |
+| `moved` | `boolean` | Set internally by compaction/collision helpers to short-circuit infinite loops — not meant to be set by consumers. |
+| `data` | `TMeta` | Optional, consumer-defined payload — never read or written by the library itself. Round-trips through serialize/deserialize like any other field, as long as it's JSON-serializable. |
+
+## `TMeta` — attaching typed data to a layout item
+
+```tsx
+interface IWidgetConfig {
+  chartType: 'bar' | 'line';
+}
+
+const [layout, setLayout] = useState<TLayout<IWidgetConfig>>([
+  { h: 2, i: '0', w: 2, x: 0, y: 0, data: { chartType: 'bar' } },
+]);
+```
+
+Attach whatever payload an item needs directly on the layout item,
+instead of maintaining a parallel array keyed by `i` to look it up
+separately. Every existing usage of `ILayoutItem`/`TLayout` without a
+type argument keeps working unchanged — the default (`unknown`) only
+matters if you actually read `.data` and want it typed as something
+more specific.
+
+## `TLayoutItem`
+
+Structurally identical to `ILayoutItem`. Both exist in the codebase;
+prefer `ILayoutItem` for new code — `TLayoutItem` is kept for backwards
+compatibility with existing type annotations.
+
+See [GridItem props](/react/components/grid-item/props/) for the full
+table of these fields alongside `GridItem`'s own (much smaller) set of
+actual component props.

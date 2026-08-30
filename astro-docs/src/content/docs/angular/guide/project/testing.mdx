@@ -1,0 +1,78 @@
+---
+title: Testing philosophy
+description: How Keystone Dashboard Layout for Angular is tested — unit, component, and what's left to a human.
+---
+
+## Unit & component tests — Jest + jest-preset-angular
+
+Pure-function tests for the grid math live in
+`@keystone-dashboard-layout/core` (shared with the Vue and React
+ports). This package's own tests cover `GridLayoutComponent`,
+`GridItemComponent`, `GridItemDragHandleComponent`,
+`GridItemCloseButtonComponent`, and the two services
+(`GridLayoutStorageService`, `GridLayoutPresetsService`), run against
+`jsdom`.
+
+```sh
+pnpm test              # single run
+pnpm test:coverage     # single run with coverage
+pnpm test:mutation     # mutation tests (Stryker)
+```
+
+Jest + `jest-preset-angular` was chosen over Karma for unit/component
+testing — mature, widely used for Angular testing, and (unlike the
+Vitest-based paths this project tried first) actually available for
+this package's Angular `^19.0.0` target: Angular's own first-party
+Vitest builder only exists from v20 (experimental) / v21 (stable), and
+the third-party Vite/Angular integration route hit a genuinely
+unresolved upstream ecosystem bug. Karma (`angular.json`'s own
+project-scoped `test` architect target, plus `karma.conf.js`) is kept
+in the repository for a possible future full-app browser-flow e2e
+layer, but isn't used for unit/component tests at all.
+
+### A real, confirmed Stryker/Jest interaction worth knowing about
+
+`@stryker-mutator/jest-runner`'s own sandbox resolved
+`jest-preset-angular`'s implicit `testEnvironment` default differently
+than plain `jest` does — surfacing as `ReferenceError: document is not
+defined` plus an Angular DI circular-dependency cascade, not a subtle
+timing issue. Fixed with an explicit `testEnvironment: 'jsdom'` in
+`jest.config.ts`. Worth knowing if a future change to the test config
+resurfaces something similar.
+
+### Component testing approach
+
+`GridLayoutComponent` and `GridItemComponent` are tested together,
+rendering a real `GridLayoutComponent` with real `GridItemComponent`
+children projected into it — the same shape actual usage takes, so the
+`GridEventBusService` contract (see
+[Architecture](/angular/guide/project/architecture/)) behaves exactly
+as it does in production, rather than relying on a hand-rolled fake
+service.
+
+A few things need handling, since `jsdom` can't provide them natively:
+
+- **`ResizeObserver`** — `jsdom` doesn't implement it at all.
+  Replaced with a stub for most tests.
+- **The native drag/resize engine's own pointer handling** — shared
+  with the Vue and React ports via `@keystone-dashboard-layout/core`;
+  tests invoke the component's actual drag/resize handling logic
+  directly rather than simulating a full, real pointer gesture through
+  `jsdom`.
+
+## End-to-end tests
+
+No Playwright (or other browser-automation) e2e suite exists for this
+package as of this writing — unlike the Vue and React ports, which both
+have one. Karma's own project-scoped config is present in the
+repository (see above) as a possible foundation for a future one, but
+isn't wired up or run today. Track this on the
+[Roadmap](/angular/guide/project/roadmap/).
+
+## Manual testing
+
+With no e2e suite yet, manual testing in a real browser currently
+covers meaningfully more ground for this package than for Vue/React —
+cross-browser drag/resize/responsive behavior, touch/mobile input, and
+screen-reader scenarios all need a human today, not just the harder-to-
+automate scenarios Vue/React's own e2e suites also leave to one.

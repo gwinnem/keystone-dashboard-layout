@@ -1,0 +1,81 @@
+---
+title: "Comparison: alternatives"
+description: How Keystone Dashboard Layout for Angular compares to gridstack.js — and an honest note on what hasn't been surveyed yet.
+---
+
+## Scope
+
+This compares projects in the same category as this library —
+**draggable/resizable dashboard layout engines** — not data
+tables/grids, which solve a different problem. For a commercial
+layout-engine peer, see
+[Comparison: commercial](/angular/guide/project/comparison-commercial/)
+instead.
+
+## An honest gap, not a claim of "nothing else exists"
+
+Unlike the Vue port's own [Comparison: alternatives](/vue/guide/project/comparison-alternatives/)
+page (which surveys several Vue-specific community options) or the
+React port's own [equivalent page](/react/guide/project/comparison-alternatives/)
+(which compares directly against the established `react-grid-layout`),
+this page has **not** had the same dedicated survey of Angular-specific
+alternatives — a library along the lines of what `react-grid-layout` is
+for React may well exist for Angular specifically, and hasn't been
+identified and compared here yet. Rather than guess or fabricate a
+feature table against something unverified, this page is scoped to the
+one framework-agnostic alternative already confirmed (via the Vue
+port's own comparison work) to ship a real Angular wrapper:
+**`gridstack.js`**.
+
+## Feature comparison
+
+| Feature | This project | `gridstack.js` |
+|---|---|---|
+| Cross-grid drag/drop (independent instances) | Yes | Via nested sub-grids — a different mechanism |
+| Drag-and-drop from outside the component | Yes | Yes |
+| Magnetic snap-to-grid | Yes | No |
+| Visual alignment guides | Yes | No |
+| Blocked-move feedback event | Yes | No |
+| Named layout presets | Yes | No |
+| First-party persistence helper | Yes | Yes, built into the core engine |
+| Grid-to-SVG export | Yes | No |
+| Localizable UI/ARIA strings | Yes | No |
+| Per-item live-resyncing autoHeight | Yes | Partial — content-driven initial sizing only |
+| Keyboard-only move/resize | Yes | No |
+| Pluggable compaction algorithm | Yes | — |
+| Framework-agnostic core as public API | Yes | Yes (core is framework-agnostic by design) |
+| Undo/redo | Yes | No |
+| Dependency footprint | Zero runtime dependencies | Zero (core) |
+
+## Where this project genuinely leads
+
+Magnetic snap-to-grid, visual alignment guides, the blocked-move
+feedback event, named layout presets, grid-to-SVG export, localizable
+ARIA strings, live-resyncing per-item `autoHeight`, and undo/redo all
+have no equivalent in `gridstack.js`.
+
+## Where this project is genuinely behind
+
+- **Ecosystem size and battle-testing.** `gridstack.js` has years more
+  production usage across far more companies.
+- **Sub-grids / nesting.** `gridstack.js` supports grids-within-grids as
+  first-class nested structures. This project's cross-grid feature is
+  sibling-to-sibling dragging between independent grid instances — a
+  different capability, not a nesting system.
+- **Swap-on-drag.** In `gridstack.js`'s default top-gravity mode,
+  dragging one item onto another of the same size swaps their
+  positions. This project only pushes items aside via compaction.
+- **No dedicated e2e test suite yet for this package specifically** —
+  see [Testing philosophy](/angular/guide/project/testing/). This is a
+  gap in this project's own verification, not a `gridstack.js`
+  comparison point, but worth naming here for the same "honest, not
+  marketing" reason the rest of this page exists.
+
+## Bottom line
+
+Against `gridstack.js`, this project has a meaningfully larger feature
+set — several with no equivalent at all — at the cost of ecosystem
+maturity and, for this package specifically, less independent
+verification than the Vue/React ports currently have. A fuller survey
+of Angular-specific alternatives remains open — see the
+[Roadmap](/angular/guide/project/roadmap/).

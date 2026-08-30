@@ -1,0 +1,117 @@
+---
+title: Roadmap
+description: What's suggested next for Keystone Dashboard Layout for Angular — not a task list nobody's committed to.
+---
+
+Forward-looking — what's suggested next, not a commitment. For what's
+already built, see [Features](/angular/features/).
+
+## Recently completed
+
+This package's own introduction describes full feature parity with the
+Vue and React ports — see [Production readiness](/angular/guide/project/production-readiness/)
+for what's actually been independently re-confirmed as of this writing
+(mutation testing, specifically) versus what still needs a fresh check.
+
+## What's still open
+
+### A real end-to-end test suite
+
+Unlike the Vue and React ports (both with a working Playwright suite),
+this package has none yet. Karma's own project-scoped config is present
+in the repository as a possible foundation, but isn't wired up or run
+today. See [Testing philosophy](/angular/guide/project/testing/).
+
+### An ESLint setup
+
+Confirmed via a direct source check: this package has **no ESLint
+script or config at all** (`package.json`'s own `_comment_scripts`
+field says so explicitly) — only `lint:style` (Stylelint, for SCSS).
+Vue and React both have real ESLint configs. See
+[Production readiness](/angular/guide/project/production-readiness/).
+
+### A real `check:bundle-size` methodology, not just a verified number
+
+The script exists and now has a real, measured number behind it (see
+[Production readiness](/angular/guide/project/production-readiness/)),
+but it currently sums the entire npm package output — including the
+packed `.tgz`, `README.md`, `LICENSE`, and every `.d.ts` file — rather
+than just the runtime bundle a consumer's own bundler actually imports.
+Worth pointing it at just the `fesm2022/` output specifically before
+relying on it as a real regression gate.
+
+### A confirmed-passing `check:package-install` smoke test
+
+Still genuinely unverified — the script has never actually been run
+successfully end to end, per `ci.yml`'s own comment keeping it
+`continue-on-error: true`.
+
+### Pushing the pnpm-version CI fix, and confirming a real green run
+
+Every workflow (`ci.yml`/`mutation-testing.yml`/`release.yml`) has been
+failing immediately at "Setup pnpm" — a hardcoded `version: '9'` in
+each workflow conflicting with root `package.json`'s own
+`packageManager: pnpm@11.22.0`. Fixed in source (the hardcoded version
+removed, letting the action auto-detect from `package.json` instead),
+but not yet pushed — no workflow has actually re-run with the fix.
+This is why `mutation-test-angular`'s own 81.14% (below) is confirmed
+via local runs only, not a real CI run.
+
+### Live test/coverage numbers
+
+The test suite and coverage gate are both confirmed real and
+CI-enforced (Jest + jest-preset-angular — see
+[Production readiness](/angular/guide/project/production-readiness/)),
+but the actual current pass/fail count and coverage percentage haven't
+been captured as live numbers by directly running `pnpm test` and
+`pnpm test:coverage`. No lint number to capture here at all, since
+there's no ESLint config to run (see the item above).
+
+### A real, live CI run of `mutation-test-angular`
+
+Confirmed present in `.github/workflows/mutation-testing.yml` and
+confirmed passing via local runs (81.14% overall, every file above
+80%) — but see the pnpm fix item above: every actual scheduled/
+on-demand CI run of this job has been failing at "Setup pnpm," not
+passing.
+
+### Branch protection & repository secrets
+
+Not checkable from source at all — needs a repository admin to confirm
+directly whether branch protection rules and any release-related
+secrets are configured for this package.
+
+### Project-level documentation parity
+
+This page, [Architecture](/angular/guide/project/architecture/),
+[Testing philosophy](/angular/guide/project/testing/), and
+[Accessibility scope](/angular/guide/project/accessibility/) are new as
+of this writing — the first of their kind for this package. Comparison
+pages against alternatives/commercial competitors exist now too, but
+haven't had the same repeated revision the Vue port's own versions have
+had over time.
+
+### The shared `core`-level roadmap
+
+The following items are genuinely open at the `core` level, so they're
+shared with the Vue and React ports rather than being separate,
+per-framework efforts — see the Vue port's own
+[Roadmap](/vue/guide/project/roadmap/) "What's still open" section for
+the fuller writeup of each: swap-on-drag collision mode, maximize/
+restore an item, async persistence backends, an open pluggable CSS
+positioning strategy, a fast large-layout compaction algorithm, and a
+worker-based layout engine.
+
+## Known limitations (tracked, not silently ignored)
+
+Keyboard support is deliberately scoped to single-unit-step move/resize
+— see [Accessibility scope](/angular/guide/project/accessibility/) for
+the full reasoning. `core`-provided types/enums/interfaces this
+package's own barrel doesn't re-export (see [API](/angular/api/)) are a
+deliberate design choice, not an oversight — but this package's own
+dedicated reference pages for them (matching what React now has) are
+still open.
+
+## Have a request?
+
+Open an issue on [GitHub](https://github.com/gwinnem/keystone-dashboard-layout/issues).

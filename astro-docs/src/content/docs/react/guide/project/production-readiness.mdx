@@ -10,55 +10,72 @@ holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
 forever."
 :::
 
+:::caution[A real, confirmed CI-wide failure was found and fixed while checking this]
+Every workflow run on GitHub (`ci.yml`, `mutation-testing.yml`,
+`release.yml`) has been failing immediately at the "Setup pnpm" step —
+"Multiple versions of pnpm specified" (`version: '9'` hardcoded in each
+workflow file vs. root `package.json`'s own `packageManager:
+pnpm@11.22.0`). Every "CI confirms X" claim below describes what the
+workflow is *configured* to enforce, not a recent, actual green run —
+every job has been failing before reaching typecheck, lint, tests, or
+any build/audit/e2e step. Fixed by removing the hardcoded version from
+all three workflow files so `pnpm/action-setup@v4` auto-detects from
+`package.json` instead — a local source change only, not yet pushed or
+re-run.
+:::
+
 ## Code quality
 
-- **Unit/component/hook tests passing** — a real, substantial test suite exists across `GridLayout`/`GridItem`, every exported hook, and the drag/resize/cross-grid-drag internals; not independently re-counted in this exact pass — re-run `pnpm test` for a current total rather than trusting a specific figure here.
-- **Test coverage** — not independently re-confirmed in this pass; re-run `pnpm test:coverage` for a current number.
+- **Unit/component/hook tests passing** — confirmed via a direct read of `.github/workflows/ci.yml`: this package's own test suite is real and substantial, not a `passWithNoTests` placeholder (the workflow's own top comment states this explicitly) — exact current pass/fail counts still need `pnpm test` run directly for a live number.
+- **Test coverage** — `pnpm test:coverage` runs as a blocking CI step (`ci.yml`'s own "Unit + component tests (with coverage gate)" step) on every push/PR — so a coverage regression genuinely fails CI, not just a local check nobody enforces. The exact current percentage still needs a direct run to quote a live number.
 - **Mutation testing (Stryker)** — a real, confirmed capability, not just configured-but-untested: **overall mutation score 82.93%**, verified via a real run (up from 79.42% at an earlier check). Per-file breakdown as of the last confirmed run:
   - `useCrossGridDrag.ts` — 91.49%
   - `useGridItemDrag.ts` — 87.37%
   - `useGridItemResize.ts` — 78.05% at the last confirmed run; a further test fix (correcting a `calcWH` boundary value that didn't actually distinguish a `+`/`-` arithmetic mutant) was applied afterward but never re-confirmed with a fresh run — check current state rather than assume this crossed 80%.
   - `useLayoutPresets.ts` — 71.67%, and a known, deliberately-not-chased gap: most of its remaining survived mutants are on `useCallback`/`useMemo` dependency arrays (which don't affect a function's behavior when called, only whether React recreates it between renders) or on a `savePreset`/`deletePreset` early-return guard that's very likely a genuine equivalent mutant (bypassing it still routes through `readAllPresets`'s own separate, downstream null-storage guard, so there's no observable behavioral difference to test against). Not pursued further once the package's own overall score cleared 80%.
   - `useLayoutStorage.ts` — 86.27%.
-- **Lint** — not independently re-verified in this pass.
-- **`npm audit`** — not re-run in this pass.
+- **Lint** — confirmed present and real: `eslint.config.js` exists for this package, and `pnpm lint` runs in CI (`ci.yml`'s own "Lint — advisory, not yet blocking" step) — but genuinely advisory (`continue-on-error: true`), not a merge-blocking gate. Actual current pass/fail output still needs a direct `pnpm lint` run to confirm.
+- **`npm audit`** — confirmed covered, not skipped: `ci.yml`'s own dedicated `audit` job runs `pnpm audit --prod --audit-level=high` (blocking) and a broader `pnpm audit --audit-level=high` (advisory) from the monorepo root on every push/PR, which covers this package's own dependency tree along with every other package's. A production-dependency license check (`pnpm run check:licenses`) also runs, blocking. Not independently re-run by hand in this specific pass, but continuously enforced by CI rather than a one-off, unverified claim.
 
 ## Runtime dependencies
 
-Built on the same shared `@keystone-dashboard-layout/core` engine the Vue package uses (zero runtime dependencies itself) — not independently re-audited in this pass for the `react` package's own `package.json`; check its current dependency list directly rather than assume parity with Vue's own zero-dependency claim.
+Confirmed via a direct read of this package's own `package.json`: **zero external runtime dependencies** — only `@keystone-dashboard-layout/core` (a workspace dependency, not an external package) is listed under `dependencies`. Matches Vue's own zero-dependency claim exactly, not just assumed parity.
 
 ## Build & packaging
 
-Not independently re-measured in this pass — bundle size, the library build, and a pack-and-install smoke test all need a fresh check rather than an assumed-good state.
+- **Bundle size** — now directly measured, not assumed: this package's own built ES bundle (`dist/keystone-dashboard-layout-react.es.js`) is **59.75 KB raw / 17.97 KB gzip**, comfortably under the `check:bundle-size` script's own `BUDGET_KB = 60` placeholder (that script's own top comment previously called this budget unverified against a real build — it's now been checked, and the placeholder happens to already have ~42 KB of headroom to spare). `ci.yml` still runs this check with `continue-on-error: true`, since the *script itself* (not just the number) had never been confirmed to run successfully end-to-end before this — worth flipping to blocking now that a real run confirms it works.
+- **`check:package-install` (pack-and-install smoke test)** — still genuinely unverified: `ci.yml`'s own comment states this script "has never actually been run" and keeps it `continue-on-error: true` for that reason. Not resolved in this pass — needs someone to actually run `pnpm --filter @keystone-dashboard-layout/react run check:package-install` for real and confirm it passes before this can be trusted or made blocking.
+- **The library build itself** — confirmed working, since the bundle-size measurement above required a real, successful `dist/` build to already exist.
 
 ## CI/CD & repository hygiene
 
-Not independently re-verified in this pass which GitHub Actions workflows exist for this package specifically, or whether branch protection/secrets are configured for it. Check the repository's own `.github/workflows/` directly.
+Confirmed via a direct read of `.github/workflows/`: three workflows exist — `ci.yml` (typecheck, lint:style, lint-advisory, coverage-gated tests, build, bundle-size/package-install checks for all three framework packages, a Vue demo build, and a docs-site build, plus a separate `e2e` job and a separate `audit` job, all *configured* to run on every push/PR across Node 18/20/22), `mutation-testing.yml` (weekly + on-demand; this package's own 82.93% is confirmed via local runs, not a passing scheduled CI run — see the caution above), and `release.yml` (present, not independently re-verified in this pass). Branch protection and repository secrets themselves aren't checkable from source — that still needs a repo admin to confirm directly.
 
 ## Documentation
 
-The guide, feature list, component reference, and API reference exist and are current as of this snapshot. This package does **not yet have** the kind of project-level docs (`roadmap`, `accessibility`, `testing`, `architecture`, `comparison-alternatives`/`comparison-commercial`) that exist for the Vue package — this document itself is the first of that kind for React.
+The guide, feature list, component reference, and API reference exist and are current as of this snapshot. This package **now has** the full set of project-level docs the Vue package has —
+[Architecture](/react/guide/project/architecture/), [Testing philosophy](/react/guide/project/testing/), [Accessibility scope](/react/guide/project/accessibility/), [Comparison: alternatives](/react/guide/project/comparison-alternatives/), [Comparison: commercial](/react/guide/project/comparison-commercial/), and [Roadmap](/react/guide/project/roadmap/) were all added after the version of this page that used to say this package didn't have them yet.
 
 ## Testing depth
 
-Not independently re-verified in this pass whether an e2e suite (Playwright or otherwise) exists and passes for this package, or across which browsers. Check directly rather than assume parity with Vue's own e2e coverage.
+Confirmed via a direct read of `.github/workflows/ci.yml` and this package's own `e2e/` directory: a real Playwright e2e suite exists and is wired into CI's own dedicated `e2e` job (installed and run for this package specifically, alongside Vue's — Angular's own package is excluded from that job, since it has no `test:e2e` script). 12 spec files cover basic grid rendering, drag & resize, keyboard accessibility, dynamic items, responsive breakpoints, external/cross-grid drop, multi-select, RTL, touch input, per-item overrides, and advanced features (blocked-move feedback, `compactNow()`, `duplicateItem`, `snapToGrid`, save/load layout) — see [Testing philosophy](/react/guide/project/testing/) for the full breakdown. Not independently re-run in this pass to confirm all 12 currently pass, but the suite's own existence and CI wiring are now confirmed, not assumed.
 
 ## Accessibility
 
-Not independently re-verified in this pass. The package's own introduction describes feature parity with Vue, which does have keyboard move/resize and ARIA labeling implemented and tested — but that claim hasn't been independently re-checked against this package's own source and test suite in this pass.
+Confirmed via a direct read of `GridItem.tsx`'s own source, not just the package's introduction claiming parity: keyboard-focusable non-static items (`tabIndex={0}`), arrow-key move / Shift+arrow resize (each a synthetic `dragstart`+`dragend` or `resizestart`+`resizeend` pair, so compaction/collision/`multiSelect` group-move handling applies identically to keyboard and mouse input), `role="group"`, `aria-roledescription`, and `aria-describedby`-linked move/resize instructions, all overridable via `IGridAriaLabels`. See [Accessibility scope](/react/guide/project/accessibility/) for the full writeup, including what's deliberately out of scope.
 
 ## Security
 
-Not independently re-audited in this pass. No known reason to suspect an issue, but that's an inference from the shared architecture, not a direct check of this package specifically.
+Zero external runtime dependencies (confirmed above) is the strongest possible position on third-party runtime-dependency risk. `ci.yml`'s own `audit` job runs a blocking production-dependency audit and a license-allowlist check on every push/PR, covering this package. No `eval`/dynamic code execution found in a direct read of this package's own drag/resize/Context logic.
 
 ## Browser/runtime support
 
-Not independently re-verified in this pass.
+Node engine range (`^18.0.0 || ^20.0.0 || >=22.0.0`) declared in `package.json` and exercised directly — `ci.yml`'s own `verify` job runs its full check matrix across all three (18/20/22). Browser support itself (which actual browser versions) isn't independently re-verified in this pass beyond what the Playwright e2e suite's own configured browser projects cover.
 
 ## Known, open, and deliberately deferred
 
-No dedicated roadmap document exists for this package yet (see [Documentation](#documentation) above) — check the Vue package's own [Roadmap](/vue/guide/project/roadmap/) for the shared-core feature list, keeping in mind some items there may be Vue-specific rather than applying to every framework.
+This package now has its own dedicated [Roadmap](/react/guide/project/roadmap/) — see that page for the current, accurate list, rather than only pointing to Vue's. The two concrete, still-open gaps from this checklist specifically: the `check:package-install` smoke test has never been confirmed to actually pass, and exact current test-pass-counts/coverage-percentage/lint-output haven't been captured as live numbers in this pass (all three are enforced continuously by CI, just not independently re-run by hand here).
 
 ## The short version
 
-**Mutation testing**: genuinely verified, in good shape overall (82.93%), with one known file (`useLayoutPresets.ts`) whose remaining gap is very likely mostly equivalent mutants rather than a real testing hole, and one file (`useGridItemResize.ts`) close to the 80% mark but not confirmed past it. **Everything else in this checklist**: not independently re-verified in this specific pass — this is a narrower, mutation-testing-focused snapshot rather than the full sweep the Vue document represents, and each other section should be treated as "needs a fresh check," not "assumed fine."
+**A real, confirmed CI-wide bug was found and fixed this pass**: every workflow has been failing immediately at "Setup pnpm" due to a version mismatch between the workflow files and root `package.json` — fixed in source, not yet pushed/re-verified. Every CI-enforced claim in this checklist describes configuration, not a recent actual green run. **Mutation testing**: genuinely verified via local runs, in good shape overall (82.93%), with one known file (`useLayoutPresets.ts`) whose remaining gap is very likely mostly equivalent mutants, and one file (`useGridItemResize.ts`) close to the 80% mark but not confirmed past it. **Bundle size, e2e suite existence, accessibility implementation, and runtime dependencies**: all directly confirmed via source inspection or direct measurement, not just assumed. **Still genuinely open**: the `check:package-install` smoke test has never been run successfully, live test-count/coverage/lint numbers still need a direct command run, and — now the most pressing item — the pnpm fix needs pushing and a real green CI run needs confirming.

@@ -1,0 +1,102 @@
+---
+title: Accessibility scope
+description: What keyboard and screen-reader support Keystone Dashboard Layout for Angular actually provides — and what it deliberately doesn't (yet).
+---
+
+Same scope and reasoning as the Vue port's own
+[Accessibility scope](/vue/guide/project/accessibility/) — this page
+documents this package's own implementation specifically, confirmed
+directly against `grid-item.component.ts`'s own source.
+
+## What's implemented
+
+### Keyboard move and resize
+
+Every non-static, editable `GridItemComponent` is keyboard-focusable
+(`[attr.tabindex]` resolves `0`) and operable:
+
+- **Arrow keys** move it by one grid unit, if it's draggable.
+- **Shift + arrow keys** resize it by one grid unit, if it's resizable.
+
+Each keypress is treated as a complete, atomic gesture — `handleKeydown`
+emits a synthetic `dragstart` immediately followed by `dragend` (or
+`resizestart`/`resizeend`) via the eventBus, the same two calls a real
+mouse gesture's start and release would produce, so
+`GridLayoutComponent`'s own compaction/collision/`multiSelect`
+group-move handling applies identically regardless of which input
+method triggered the change. This two-call shape (not just a single
+synthetic `dragend`) is a real, confirmed fix in this port's own
+history — an earlier version emitted only `dragend`, which meant a
+keyboard-driven move of a selected item never brought the rest of the
+`multiSelect` selection along with it, since the group-move snapshot is
+taken at `dragstart` specifically.
+
+**Works with `multiSelect`'s group move/resize too** — see
+[Multi-select & group move/resize](/angular/features/) for the feature
+overview.
+
+**Deliberately scoped to single-unit steps**, not a full
+[WAI-ARIA grid](https://www.w3.org/WAI/ARIA/apg/patterns/grid/) or
+[application](https://www.w3.org/WAI/ARIA/apg/patterns/) widget pattern.
+This library isn't a traditional data grid — it's a freeform draggable
+canvas — so the full APG grid pattern doesn't map cleanly onto it.
+
+### Screen reader support
+
+- Each interactive item gets `role="group"` and
+  `aria-roledescription` (default `"Draggable, resizable item"`), so a
+  screen reader announces it as something other than a plain, silent
+  `<div>`.
+- `aria-describedby` points to a visually-hidden instructions string
+  ("Press arrow keys to move." / "Press shift plus arrow keys to
+  resize.", each only included if that action actually applies to the
+  item) — discoverable on focus, not a mandatory upfront announcement.
+- A visible focus outline, so a keyboard user can actually see which
+  item currently has focus.
+
+A real, confirmed gap existed here until this was implemented: despite
+`GridLayoutComponent`'s own `scrollToItem`/`focusItem` doc comments
+already claiming items "get `tabindex='0'` via `GridItemComponent`'s
+own host bindings," no `tabindex` binding of any kind existed on this
+component beforehand — confirmed via a direct grep turning up zero
+matches. `focusItem()` calling `.focus()` on a genuinely non-focusable
+element was a real, silent no-op in any actual browser.
+
+### A deliberate, non-obvious design decision worth calling out
+
+Keyboard move/resize **ignores `dragAllowFrom`/`dragIgnoreFrom`/
+`resizeIgnoreFrom`** entirely — `handleKeydown` reads only
+`resolvedIsDraggable`/`resolvedIsResizable` and never touches any of
+the three. Those fields restrict which DOM element a *mouse* drag/
+resize gesture can originate from, which doesn't map onto keyboard
+interaction at all. A keyboard user who focuses the item gets full
+move/resize access regardless of whether a mouse user is restricted to
+a specific handle — intentional, matching the Vue/React ports' own
+identical reasoning.
+
+### Localizable ARIA strings
+
+The close button's label, `aria-roledescription`, and the keyboard
+move/resize instructions are all overridable rather than hardcoded
+English literals, via the same `IGridAriaLabels` interface Vue and
+React use — see [ARIA labels](/vue/api/interfaces/aria-labels/) (this
+package's own API reference for the interface itself is still a
+[known gap](/angular/api/)).
+
+## What's not covered (tracked, not silently ignored)
+
+- **No roving-tabindex grid navigation.** Tabbing moves through items in
+  DOM order, the same as any other focusable elements on a page.
+- **No keyboard equivalent for the drag-from-outside / drag-between-grids
+  features** — those are consumer-level example code, not library
+  internals.
+- **Not independently audited against WCAG success criteria** or run
+  through an automated tool (axe, Lighthouse, etc.).
+- **Color contrast and the default item styling generally** haven't
+  been reviewed.
+
+## Verifying this
+
+`grid-item.component.spec.ts` covers keyboard-accessibility scenarios,
+including focus attributes present/absent correctly based on static/
+edit-mode state, arrow-key movement, and shift+arrow resize.

@@ -19,7 +19,14 @@ concurrency:
 
 env:
   NODE_VERSION_DEFAULT: '20'
-  PNPM_VERSION: '9'
+  # No PNPM_VERSION here on purpose — pnpm/action-setup@v4 auto-detects
+  # the version from this repo's own root package.json "packageManager"
+  # field when no explicit version is passed. Pinning both here and in
+  # package.json is what caused every job in this workflow to fail
+  # immediately ("Multiple versions of pnpm specified") once package.json
+  # was bumped to pnpm@11.22.0 without this file being updated to match —
+  # letting this auto-detect means a future pnpm bump only ever needs to
+  # touch package.json.
 
 jobs:
   verify:
@@ -37,8 +44,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node ${{ matrix.node }}
         uses: actions/setup-node@v4
@@ -137,8 +142,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -179,8 +182,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node
         uses: actions/setup-node@v4

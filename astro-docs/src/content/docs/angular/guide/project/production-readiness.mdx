@@ -10,57 +10,85 @@ holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
 forever."
 :::
 
-:::caution[Much less independently re-verified than the Vue/React equivalents]
-This package's own production-readiness picture hasn't had anywhere near
-the same recent, direct scrutiny as Vue's or React's — most sections
-below are honestly marked as unverified rather than guessed at. Treat
-this as a starting checklist to work through, not a confirmed state.
+:::caution[Substantially more of this page is now confirmed than earlier snapshots — but not all of it]
+Mutation testing, bundle size, CI/CD workflow presence, e2e-suite
+absence, accessibility implementation, and runtime dependencies have
+all since been directly confirmed via source/config inspection (see
+each section below). Live test-pass counts, coverage percentage,
+lint/audit output, and `check:package-install`'s own pass/fail status
+still need a direct command run rather than a cited number.
+:::
+
+:::caution[A real, confirmed CI-wide failure was found and fixed while checking this]
+Every workflow run on GitHub (`ci.yml`, `mutation-testing.yml`,
+`release.yml`) has been failing immediately at the "Setup pnpm" step —
+"Multiple versions of pnpm specified" (`version: '9'` hardcoded in each
+workflow file vs. root `package.json`'s own `packageManager:
+pnpm@11.22.0`). Every "CI confirms X" claim below describes what the
+workflow is *configured* to enforce, not a recent, actual green run.
+Fixed by removing the hardcoded version from all three workflow files
+so `pnpm/action-setup@v4` auto-detects from `package.json` instead — a
+local source change only, not yet pushed or re-run.
 :::
 
 ## Code quality
 
-- **Unit/component tests passing** — not independently re-confirmed in this pass; re-run this package's own test command for a current count.
-- **Test coverage** — not independently re-confirmed in this pass.
-- **Mutation testing (Stryker)** — the least-confirmed of the three framework packages. A specific fix exists (`hasInitializedUndoTracking`, addressing a false-positive `canUndo` bug) from earlier work, but it was never re-verified with a live mutation run — its own CI job (`mutation-test-angular` or similarly named, if `.github/workflows/mutation-testing.yml` follows the same pattern as Vue's) was removed pending that confirmation and, as of this snapshot, still is. Unlike Vue and React (both confirmed working via real runs at 82%+ overall this pass), this package's mutation testing status is genuinely unknown until someone runs it.
-- **Lint** — not independently re-verified in this pass.
-- **`npm audit`** — not re-run in this pass.
+- **Unit/component tests passing** — confirmed real, not a placeholder: `.github/workflows/ci.yml`'s own top comment states this package has "real, extensive test suites now too (Vitest and Jest respectively)" alongside Vue/React — exact current pass/fail counts still need `pnpm test` run directly for a live number.
+- **Test coverage** — `pnpm test:coverage` runs as a blocking CI step on every push/PR, covering this package along with Vue/React — the exact current percentage still needs a direct run to quote a live number.
+- **Mutation testing (Stryker)** — confirmed via a real run: **overall mutation score 81.14%**, up from 71.47% at the previous confirmed check. The earlier `hasInitializedUndoTracking` fix (addressing a false-positive `canUndo` bug) is included in and reflected by this run. Every individual file now sits above 80%:
+  - `grid-layout.component.ts` — 80.23%
+  - `grid-item.component.ts` — 80.61%
+  - `grid-layout-presets.service.ts` — 81.63%
+  - `cross-grid-registry.ts` — 90.63%
+  - `grid-event-bus.service.ts`, `grid-item-close-button.component.ts`, `grid-item-drag-handle.component.ts`, `grid-layout-storage.service.ts` — 100% each
+
+  `.github/workflows/mutation-testing.yml`'s own `mutation-test-angular`
+  job has been present since this package's own mutation-testing setup
+  was fixed — not something newly added alongside this confirmation.
+  This 81.14% figure is confirmed via local runs only — every actual
+  scheduled/on-demand CI run of this job has been failing at "Setup
+  pnpm" (see the caution above), not passing.
+- **Lint** — a real, confirmed gap, not just unverified: this package has **no ESLint script or config at all** — confirmed directly via `package.json`'s own `_comment_scripts` field, which explicitly states "dev/lint/lint:fix/test:e2e intentionally still omitted." Only `lint:style` (Stylelint, for the SCSS source) exists. This is a genuine, meaningful difference from Vue and React, both of which have real ESLint configs — not a parity gap this page can paper over.
+- **`npm audit`** — confirmed covered, not skipped: `ci.yml`'s own dedicated `audit` job runs a blocking production-dependency audit and an advisory full-dependency audit from the monorepo root on every push/PR, covering this package's own dependency tree too. A blocking production-dependency license check also runs. Not independently re-run by hand in this specific pass, but continuously enforced by CI.
 
 ## Runtime dependencies
 
-Built on the same shared `@keystone-dashboard-layout/core` engine (zero runtime dependencies itself) the Vue and React packages use — not independently re-audited in this pass for this package's own `package.json` specifically; check its current dependency list directly.
+**Correction to this page's own earlier phrasing**: this package is **not** zero-runtime-dependencies the way Vue and React are. Confirmed via a direct read of `package.json`'s own `dependencies` field: `@keystone-dashboard-layout/core` (workspace, shared with Vue/React) **and `tslib` (^2.6.0)** — a real, external npm dependency, not just a workspace reference. `tslib` is an extremely common, small (a few KB), near-universal helper library for compiled TypeScript/Angular output — not a cause for concern in practice — but the previous "zero runtime dependencies... the Vue and React packages use" phrasing on this page was factually imprecise for this specific package and has been corrected here.
 
 ## Build & packaging
 
-Not independently re-measured in this pass.
+- **Bundle size** — now substantially measured, not assumed. The actual runtime code a consumer's bundler imports (`dist/keystone-dashboard-layout-angular/fesm2022/keystone-dashboard-layout-angular.mjs`) is **204.24 KB raw / 50.88 KB gzip** — meaningfully larger than React's own 17.97 KB gzip bundle, consistent with Angular's own decorator/DI metadata overhead. Separately: this package's own `check:bundle-size` script has a real, confirmed methodology issue, not just an unverified budget — it sums the gzipped size of *every file* in the whole `dist/keystone-dashboard-layout-angular/` output directory (its own top comment already acknowledges this coarser approach), which includes the packaged `.tgz` tarball, `README.md`, `LICENSE`, `package.json`, and every `.d.ts` type-declaration file (measured at **114.61 KB raw** across 10 files, dominated by `grid-layout.component.d.ts` at 50.90 KB and `grid-item.component.d.ts` at 36.36 KB — both carrying substantial JSDoc comment text into the emitted declarations) alongside the real code. None of those extra files reflect what actually ships to a browser at runtime. The script's own total (precisely measured for the four largest contributors, estimated for the rest) comes to roughly **~97 KB gzip**, still comfortably under the script's own `BUDGET_KB = 150` placeholder — but the *number itself* is measuring "everything in the npm tarball" rather than "runtime bundle size," which is worth fixing (e.g. pointing at just the `fesm2022/` output) before tightening the budget or making this check blocking.
+- **`check:package-install` (pack-and-install smoke test)** — still genuinely unverified: `ci.yml` keeps this `continue-on-error: true` since the script's own assumptions about `ng-packagr`'s generated `package.json`/`exports` shape haven't been checked against a real build. Not resolved in this pass.
+- **The library build itself** — confirmed working (`ng-packagr`), since the bundle-size measurement above required a real, successful `dist/` build to already exist.
 
 ## CI/CD & repository hygiene
 
-Not independently re-verified in this pass which workflows exist and are currently green for this package, beyond the one specific, known gap noted above (`mutation-test-angular` removed pending re-verification).
+Confirmed via a direct read of `.github/workflows/`: the same three workflows Vue/React have — `ci.yml` (typecheck, coverage-gated tests, build, bundle-size/package-install checks — both `continue-on-error` for this package, a docs-site build, and a separate `audit` job, all *configured* to run across Node 18/20/22), `mutation-testing.yml` (confirmed working at 81.14% via local runs only — see the pnpm caution above), and `release.yml` (present, not independently re-verified). One confirmed, meaningful gap versus Vue/React: `ci.yml`'s own `e2e` job explicitly excludes this package (turbo skips it, since it has no `test:e2e` script — see [Testing philosophy](/angular/guide/project/testing/)). Branch protection and repository secrets aren't checkable from source.
 
 ## Documentation
 
-The guide, feature list, component reference, and API reference exist as of this snapshot; their currency hasn't been independently re-checked in this pass. This package does **not yet have** the kind of project-level docs (`roadmap`, `accessibility`, `testing`, `architecture`, `comparison-alternatives`/`comparison-commercial`) that exist for the Vue package — this document itself is the first of that kind for Angular.
+The guide, feature list, component reference, and API reference exist as of this snapshot. This package **now has** the full set of project-level docs Vue/React have — [Architecture](/angular/guide/project/architecture/), [Testing philosophy](/angular/guide/project/testing/), [Accessibility scope](/angular/guide/project/accessibility/), [Comparison: alternatives](/angular/guide/project/comparison-alternatives/), [Comparison: commercial](/angular/guide/project/comparison-commercial/), and [Roadmap](/angular/guide/project/roadmap/) were all added after the version of this page that used to say this package didn't have them yet.
 
 ## Testing depth
 
-Not independently re-verified in this pass whether an e2e suite exists and passes for this package, or across which browsers.
+Confirmed, not just "not yet checked": this package has **no e2e suite** — no Playwright config, and `ci.yml`'s own `e2e` job doesn't run for it at all (turbo skips any package without a `test:e2e` script, and this one deliberately has none — see `package.json`'s own `_comment_scripts`). Karma's own project-scoped config (`angular.json`'s `test` architect target, `karma.conf.js`) is present in the repository as a possible foundation for a future browser-flow e2e layer, but isn't wired up or run today. See [Testing philosophy](/angular/guide/project/testing/) for the fuller picture — unit/component coverage itself (Jest + jest-preset-angular) is real and CI-enforced; this gap is specifically about end-to-end browser testing.
 
 ## Accessibility
 
-Not independently re-verified in this pass. The package's own introduction describes feature parity with Vue and React — but that claim hasn't been independently re-checked against this package's own source and test suite in this pass.
+Confirmed via a direct read of `grid-item.component.ts`'s own source, not just the package's introduction claiming parity: keyboard-focusable non-static items (`[attr.tabindex]` resolving `0`), arrow-key move / Shift+arrow resize (`handleKeydown` emits a synthetic `dragstart`+`dragend` or `resizestart`+`resizeend` pair via the eventBus, so compaction/collision/`multiSelect` group-move handling applies identically to keyboard and mouse input), `role="group"`, `aria-roledescription`, and `aria-describedby`-linked move/resize instructions. A real, confirmed gap existed here until it was fixed: no `tabindex` binding of any kind existed on this component before, despite `GridLayoutComponent`'s own doc comments already claiming otherwise. See [Accessibility scope](/angular/guide/project/accessibility/) for the full writeup.
 
 ## Security
 
-Not independently re-audited in this pass.
+Not zero runtime dependencies (see [Runtime dependencies](#runtime-dependencies) above — `tslib` is a real, if minimal, dependency), but no known reason for concern there specifically. `ci.yml`'s own `audit` job runs a blocking production-dependency audit and a license-allowlist check on every push/PR, covering this package. No `eval`/dynamic code execution found in a direct read of this package's own drag/resize/eventBus logic.
 
 ## Browser/runtime support
 
-Not independently re-verified in this pass.
+Node engine range (`^18.0.0 || ^20.0.0 || >=22.0.0`) declared in `package.json`, matching Vue/React, and exercised directly by `ci.yml`'s own `verify` job across all three. Browser support itself isn't independently re-verified in this pass — and, per [Testing depth](#testing-depth) above, isn't backed by an e2e suite the way Vue/React's own browser coverage is.
 
 ## Known, open, and deliberately deferred
 
-No dedicated roadmap document exists for this package yet (see [Documentation](#documentation) above) — check the Vue package's own [Roadmap](/vue/guide/project/roadmap/) for the shared-core feature list, keeping in mind some items there may be Vue-specific rather than applying to every framework. The one specific, known open item for this package is the unverified `hasInitializedUndoTracking` mutation-testing fix noted under [Code quality](#code-quality) above.
+This package now has its own dedicated [Roadmap](/angular/guide/project/roadmap/) — see that page for the current, accurate list. The concrete, still-open gaps from this checklist specifically: no e2e suite exists yet; the `check:bundle-size` script measures the whole npm package rather than just the runtime bundle (a real methodology fix, not just a number to update); the `check:package-install` smoke test has never been confirmed to pass; and there's no ESLint setup at all for this package.
 
 ## The short version
 
-**One specific, known gap**: the `hasInitializedUndoTracking` fix needs a real mutation-testing run to confirm it actually resolved the `canUndo` false-positive it was meant to, before its CI job can be restored. **Everything else in this checklist**: not independently re-verified in this pass at all — this document exists to name the gaps honestly rather than claim parity with Vue/React's own, much more recently and thoroughly checked state.
+**A real, confirmed CI-wide bug was found and fixed this pass**: every workflow has been failing immediately at "Setup pnpm" due to a version mismatch between the workflow files and root `package.json` — fixed in source, not yet pushed/re-verified. Every CI-enforced claim in this checklist describes configuration, not a recent actual green run. **Mutation testing**: genuinely verified via local runs, in good shape (81.14% overall, every file above 80%). **Bundle size, e2e-suite absence, accessibility implementation, and audit/license coverage**: all directly confirmed via source inspection or direct measurement in this pass. **Two real, confirmed gaps this pass surfaced, not previously named this precisely**: this package has no ESLint at all (Vue/React both do), and it is not actually zero-runtime-dependencies (`tslib` is a real dependency). **Still genuinely open**: no e2e suite, an unverified `check:package-install` script, a `check:bundle-size` script whose methodology needs fixing, and — now the most pressing item — the pnpm fix needs pushing and a real green CI run needs confirming.

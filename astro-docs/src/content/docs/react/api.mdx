@@ -39,7 +39,7 @@ full prop documentation. Their prop types (`IGridLayoutProps`,
 `IGridItemProps`) are directly importable, useful for typing a wrapper
 component's own props.
 
-### GridItemDragHandle {#griditemdraghandle}
+### GridItemDragHandle
 
 A small, ready-made drag-handle widget — the React port of Vue's own
 `CustomDragElement.vue`. Not used internally by `GridItem`/`GridLayout`
@@ -56,7 +56,7 @@ See [Custom drag handle & close button](/react/examples/custom-drag-handle-close
 for it in context, or reach for a plain element with `dragAllowFrom`
 instead when you want full control over markup and styling.
 
-### GridItemCloseButton {#griditemclosebutton}
+### GridItemCloseButton
 
 The default close button rendered inside a `GridItem` when its own
 `showCloseButton` resolves `true` — the React port of Vue's own
@@ -86,12 +86,12 @@ same removal logic manually.
 | `useLayoutStorage` | A hook wrapping `localStorage` (or any `Storage`-compatible backend) persistence for a `layout` array |
 | `useLayoutPresets` | Save and switch between several named layout arrangements |
 
-## From `@keystone-dashboard-layout/core` instead
+## From `@keystone-dashboard-layout/core`
 
-The layout-data shape and framework-agnostic grid math are shared with
-the Vue package, and live in `core` rather than being re-exported here.
-Import these directly from `@keystone-dashboard-layout/core` when you
-need them:
+The layout-data shape and framework-agnostic grid math live in `core`
+rather than being re-exported from this package's own barrel. Import
+these directly from `@keystone-dashboard-layout/core` when you need
+them:
 
 ```ts
 import type {
@@ -104,17 +104,17 @@ import type {
 import { ECompactType } from '@keystone-dashboard-layout/core';
 ```
 
-These are identical for both frameworks (React reads/writes exactly
-the same shapes), so rather than a second, separately-maintained copy
-of the same reference here, see the Vue package's own pages for the
-full field-by-field breakdown of each:
+`core` is the same package the Vue port uses underneath, so the shapes
+themselves are identical either way — see this package's own reference
+pages for the full field-by-field breakdown of each, framed for this
+package specifically:
 
-- [Layout interface (ILayoutItem)](/vue/api/interfaces/layout/)
-- [ARIA labels (IGridAriaLabels)](/vue/api/interfaces/aria-labels/)
-- [Pluggable compaction (ICompactor)](/vue/api/interfaces/compactor/)
-- [SVG export options](/vue/api/interfaces/svg-export-and-payload/)
-- [Layout types (TLayout, TResponsiveLayout, TBreakpoint, TBreakpoints)](/vue/api/types/layout/)
-- [ECompactType](/vue/api/enums/compact-type/)
+- [Layout interface (ILayoutItem)](/react/api/interfaces/layout/)
+- [ARIA labels (IGridAriaLabels)](/react/api/interfaces/aria-labels/)
+- [Pluggable compaction (ICompactor)](/react/api/interfaces/compactor/)
+- [SVG export & outside-drop payload](/react/api/interfaces/svg-export-and-payload/)
+- [Layout types (TLayout, TResponsiveLayout, TBreakpoint, TBreakpoints)](/react/api/types/layout/)
+- [ECompactType](/react/api/enums/compact-type/)
 
 See [GridLayout props](/react/components/grid-layout/props/) and
 [GridItem props](/react/components/grid-item/props/) for where each of

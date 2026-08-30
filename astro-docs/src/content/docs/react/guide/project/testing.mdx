@@ -1,0 +1,95 @@
+---
+title: Testing philosophy
+description: How Keystone Dashboard Layout for React is tested — unit, component, end-to-end, and what's left to a human.
+---
+
+## Unit & component tests — Vitest + React Testing Library
+
+Pure-function tests for the grid math live in `@keystone-dashboard-layout/core`
+(shared with the Vue port). This package's own tests cover `GridLayout`,
+`GridItem`, `GridItemDragHandle`, `GridItemCloseButton`, and every
+exported hook (`useLayoutStorage`, `useLayoutPresets`,
+`useCrossGridDrag`, `useGridItemDrag`, `useGridItemResize`), rendered
+via React Testing Library against jsdom.
+
+```sh
+pnpm test            # watch mode
+pnpm test:ui         # Vitest UI
+pnpm test:coverage   # single run with coverage
+pnpm test:mutation   # mutation tests (Stryker)
+```
+
+### Coverage gate
+
+A **90% minimum** (lines, statements, functions, branches) is enforced
+over the library's own source — the same gate the Vue port uses.
+Excluded: pure type-declaration files (no emitted JS to cover), the
+package's own public barrel (`src/index.ts` — a genuine "does the
+barrel actually export what it claims" check belongs to a
+pack-and-install smoke test, not unit-test line coverage), and test
+infrastructure (`__tests__/test-helpers.ts`).
+
+### Component testing approach
+
+`GridLayout` and `GridItem` are tested together, rendering a real
+`GridLayout` with real `GridItem` children — the same shape actual
+usage takes, so the Context contract (see
+[Architecture](/react/guide/project/architecture/)) behaves exactly as
+it does in production, rather than relying on a hand-rolled fake
+provider value.
+
+A few things need mocking, since jsdom can't provide them:
+
+- **`ResizeObserver`** — jsdom doesn't implement it at all. Replaced
+  with a stub for most tests; the initial container-width measurement
+  is handled separately.
+- **The native drag/resize engine's own pointer handling** — real,
+  trusted pointer events and native layout aren't something jsdom can
+  produce faithfully. Tests invoke the component's actual drag/resize
+  handling logic directly, rather than trying to simulate a full, real
+  mouse gesture through jsdom.
+
+## End-to-end tests — Playwright
+
+Browser tests that drive real drag/resize/responsive interactions
+against a real demo app, across Chromium, Firefox, and WebKit —
+matching the Vue port's own e2e setup and coverage shape.
+
+```sh
+npx playwright install   # first time only — downloads browser binaries
+npm run test:e2e          # headless, all three browser engines
+npm run test:e2e:ui       # interactive UI mode, good for writing new tests
+npm run test:e2e:report   # open the HTML report from the last run
+```
+
+### What's covered
+
+| Area | Spec file |
+|---|---|
+| Basic grid | `basic-grid.spec.ts` |
+| Drag & resize | `drag-and-resize.spec.ts` |
+| Keyboard accessibility | `keyboard-accessibility.spec.ts` |
+| Dynamic items (add/remove) | `dynamic-items.spec.ts` |
+| Responsive breakpoints | `responsive.spec.ts` |
+| External (outside) drop | `external-drop.spec.ts` |
+| Cross-grid drag | `cross-grid.spec.ts` |
+| Multi-select | `multi-select.spec.ts` |
+| RTL mirroring | `rtl.spec.ts` |
+| Touch input | `touch-input.spec.ts` |
+| Per-item overrides | `item-overrides.spec.ts` |
+| Advanced features (blocked-move feedback, `compactNow()`, `duplicateItem`, `snapToGrid`, save/load layout) | `advanced-features.spec.ts` |
+
+### Notes on interaction tests
+
+Drag and resize tests drive real pointer input (mouse down → move in
+steps → up) rather than clicking a locator, since the native engine
+needs a real sequence of pointer events to recognize a drag/resize
+gesture — a single click won't trigger it. Same rationale, and the same
+underlying native engine, as the Vue port's own e2e tests.
+
+## Manual testing
+
+Neither Vitest nor the e2e suite covers everything. Cross-browser
+scenarios with zero automated coverage in this project's current
+environment, and screen-reader scenarios specifically, still need a
+human in a real browser.

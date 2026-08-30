@@ -24,14 +24,13 @@ import path from 'path';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BUNDLE_PATH = path.resolve(__dirname, '../dist/keystone-dashboard-layout-vue.es.js');
 
-// Current measured size (see docs/BUNDLE_ANALYSIS.md) is ~42.6 KB gzip,
-// after a large feature batch (compactNow/rearrange, duplicateItem,
-// blocked-move feedback, per-item autoHeight, snapToGrid, configurable
-// resize-hint appearance, outsideDropAccept, the outside-drop payload
-// helper). 55 KB gives roughly the same ~20% headroom over that new
-// baseline the original budget gave over its own, rather than just
-// bumping by the minimum needed to pass — leaving room for normal,
-// incremental growth again before this needs another deliberate bump.
+// Current measured size, re-confirmed via a direct build measurement:
+// ~22.3 KB gzip (an earlier docs/BUNDLE_ANALYSIS.md-derived comment here
+// claimed ~42.6 KB — that was stale; the real, current bundle is
+// meaningfully smaller). 55 KB gives substantial headroom over this
+// real baseline for normal, incremental growth before this needs
+// another deliberate bump — consider tightening this budget closer to
+// the real ~22-25 KB range if a tighter regression gate is wanted.
 const BUDGET_KB = 55;
 
 function formatKb(bytes) {

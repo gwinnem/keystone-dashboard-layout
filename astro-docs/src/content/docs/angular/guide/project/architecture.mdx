@@ -1,0 +1,89 @@
+---
+title: Architecture
+description: How GridLayoutComponent and GridItemComponent talk to each other, and how the codebase is organized.
+---
+
+The map worth knowing before digging deeper into how this port is
+built — `GridLayoutComponent` and `GridItemComponent` carry almost the
+entire implementation, and their relationship isn't obvious from
+reading either file in isolation. This package is a genuine Angular
+implementation, not a thin wrapper generated from the Vue source — the
+underlying grid math is shared via `@keystone-dashboard-layout/core`,
+but the component layer itself is idiomatic Angular throughout
+(standalone components, `OnPush` change detection, RxJS).
+
+## Two entry points
+
+The main package entry (`GridLayoutComponent`, `GridItemComponent`, and
+everything that needs a live component instance or DOM) is one thing; a
+separate `@keystone-dashboard-layout/core` package is the pure
+grid-layout math those components are built on — collision detection,
+compaction, movement, alignment guides, breakpoint resolution,
+serialization, and validation — with zero Angular dependency for the
+vast majority of it. This is the same `core` package the Vue and React
+ports use underneath, not a separate copy.
+
+## How GridLayoutComponent and GridItemComponent talk to each other
+
+A consumer renders `GridItemComponent`s themselves, projected via
+`<ng-content>` — `GridLayoutComponent` doesn't create your items for
+you.
+
+Vue's own port uses a `$parent`-lookup-plus-eventBus contract for this
+relationship; React's own uses Context. This package uses **Angular's
+own dependency injection**, via a dedicated `GridEventBusService`:
+
+```ts
+@Component({
+  providers: [GridEventBusService],
+  // ...
+})
+export class GridLayoutComponent { /* ... */ }
+```
+
+Provided at the `GridLayoutComponent` level (not `providedIn: 'root'`)
+— Angular's DI naturally scopes it to that component's own subtree, one
+independent instance per `GridLayout`, matching Vue's own per-instance
+eventBus rather than a single app-wide singleton. Two directions of
+traffic:
+
+- **Top-down**: `BehaviorSubject`s for grid-wide state a late-subscribing
+  `GridItemComponent` still needs immediately (`containerWidth$`,
+  `colNum$`, `gridDefaults$`, and so on) — the RxJS analog of Vue's own
+  `thisLayout?.propName` reads.
+- **Bottom-up**: plain `Subject`s for one-shot gesture events
+  (`itemDrag$`, `itemResize$`, `itemClicked$`) — `GridItemComponent`
+  reports a drag/resize/click tick; `GridLayoutComponent` subscribes and
+  resolves collisions/compaction in response.
+
+RxJS was the deliberate choice here over porting `core`'s own
+mitt-style event emitter directly — `BehaviorSubject`/`Subject` are the
+idiomatic Angular primitives for exactly this "current value plus a
+stream of one-shot events" shape.
+
+## A duplicated cross-grid registry — for a real, confirmed reason
+
+`allowCrossGridDrag` needs separate `GridLayoutComponent` instances —
+frequently with no Angular ancestor/descendant injector relationship to
+each other at all — to find one another. Vue and React both solve this
+with a plain, module-level registry living in
+`@keystone-dashboard-layout/core` itself. This package keeps its own
+**local copy** of that same registry (`cross-grid-registry.ts`) instead
+of importing `core`'s — not a stylistic choice or an oversight, but a
+confirmed, long-standing `ng-packagr` limitation: `ng-packagr`'s own
+Ivy partial compilation can't reliably resolve a *linked* workspace
+dependency's secondary `exports` subpaths (the same subpath mechanism
+React's own `useCrossGridDrag.ts` relies on to resolve cleanly). The
+logic itself is still a direct port — Angular's own `handleCrossGridDragEnd`
+was written by reading React's own `useCrossGridDrag.ts` directly, since
+that file is already a clean, framework-agnostic reference with nothing
+React-specific left in it beyond its own hook wrapper.
+
+## Testing implications
+
+`GridLayoutComponent` and `GridItemComponent` are tested together,
+mounting a real `GridLayoutComponent` with real `GridItemComponent`
+children projected into it — the only way to exercise the
+`GridEventBusService` contract the way production actually uses it. See
+[Testing philosophy](/angular/guide/project/testing/) for the fuller
+picture.
