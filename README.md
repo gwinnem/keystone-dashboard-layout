@@ -136,6 +136,14 @@ the steps above.
 └── tsconfig.base.json
 ```
 
+## Donate
+
+If you enjoyed this project — or just feeling generous, consider buying me a 🍺. Cheers!
+
+<a href="https://paypal.me/gwinnem/">
+    <img src="https://raw.githubusercontent.com/gwinnem/vue-responsive-grid-layout/dev/docs/paypal-images/blue.svg" height="40" alt="paypal">
+</a>
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).

@@ -2,6 +2,7 @@
   "name": "keystone-dashboard-layout-angular-examples",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "A real, standalone Angular CLI app (not part of the pnpm workspace, same as astro-docs) hosting live, deployable examples of @keystone-dashboard-layout/angular — the intended replacement for embedding examples inline in astro-docs via @analogjs/astro-angular, which proved too fragile against this monorepo's specific Angular/vite-plugin-angular version combination.",
   "scripts": {
     "dev": "ng serve",

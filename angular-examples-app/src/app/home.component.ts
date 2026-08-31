@@ -19,7 +19,7 @@ import { RouterLink } from '@angular/router';
     <h1>Examples</h1>
     <p class="gallery-intro">
       Every example below renders the real, published component — not a
-      screenshot. All 52 are ported; grouped here the same way the
+      screenshot. All 53 are ported; grouped here the same way the
       <a href="https://kdl.winnem.tech/angular/features/" target="_blank" rel="noopener">Features</a>
       guide groups its own categories, so a bullet there and an example
       here always mean the same thing.
@@ -37,6 +37,7 @@ import { RouterLink } from '@angular/router';
       <li><a routerLink="/examples/39-auto-scroll"><strong>autoScroll</strong></a> — scroll a container automatically near its edge during drag/resize.</li>
       <li><a routerLink="/examples/51-drag-activation-distance"><strong>Drag activation distance</strong></a> — minimum pointer movement before a pointerdown becomes a drag.</li>
       <li><a routerLink="/examples/52-restrict-resize-handles"><strong>Restricting resize handles to specific edges</strong></a> — resize only from the edges/corners you choose.</li>
+      <li><a routerLink="/examples/53-resize-direction-toggles"><strong>Resize direction toggles</strong></a> — toggle any of the 8 resize edges/corners live and watch resizeHandles update.</li>
       <li><a routerLink="/examples/49-per-item-z-index"><strong>Per-item zIndex override</strong></a> — pin one item permanently above every other.</li>
     </ul>
 

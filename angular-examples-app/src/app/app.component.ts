@@ -129,6 +129,7 @@ const SITE_ROOT_URL = isDevMode() ? `http://localhost:4321/` : `https://kdl.winn
           <li><a routerLink="/examples/50-height-modes" routerLinkActive="is-active">50 — Height modes (heightMode)</a></li>
           <li><a routerLink="/examples/51-drag-activation-distance" routerLinkActive="is-active">51 — Drag activation distance</a></li>
           <li><a routerLink="/examples/52-restrict-resize-handles" routerLinkActive="is-active">52 — Restricting resize handles to specific edges</a></li>
+          <li><a routerLink="/examples/53-resize-direction-toggles" routerLinkActive="is-active">53 — Resize direction toggles</a></li>
         </ul>
       </aside>
       <main class="app-main">

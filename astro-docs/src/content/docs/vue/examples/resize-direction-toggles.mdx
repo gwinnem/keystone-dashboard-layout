@@ -1,0 +1,19 @@
+---
+title: Resize direction toggles
+description: Toggle any of the 8 resize edges/corners live and watch resizeHandles update in real time.
+---
+import ResizeDirectionToggles from '../../../../components/examples/53-resize-direction-toggles.vue';
+import ResizeDirectionTogglesSource from '../../../../components/examples/53-resize-direction-toggles.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={ResizeDirectionTogglesSource} filename="resize-direction-toggles.vue">
+  <ResizeDirectionToggles client:visible />
+</ExampleTryIt>
+
+Unlike [Restricting resize handles to specific edges](/vue/examples/restrict-resize-handles/)
+(a fixed `resizeHandles` array set once, per item), every direction
+here is independently switchable — unchecking every toggle leaves
+`resizeHandles` as an empty array (`[]`), a deliberate, valid "no
+handle-driven resize for this item" value, distinct from
+`isResizable: false`. Keyboard arrow-key resize still works with `[]`;
+it doesn't with `isResizable: false`.

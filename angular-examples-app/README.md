@@ -84,13 +84,15 @@ replacing the current single, non-functional
 
 ## Current status
 
-All 52 examples now exist under `src/app/examples/`, matching the
-full example set the Vue and React packages already have, each with
-its own route in `app.routes.ts` and its own sidebar link in
-`app.component.ts` (navigation lives there now, not in
-`home.component.ts`, which is just a plain welcome message for the
-`''` route). Not yet deployed publicly (see “Once deployed” above) —
-currently only verified via `pnpm dev` (`http://localhost:4200/`).
+All 53 examples now exist under `src/app/examples/`, matching the
+full example set the Vue and React packages already have (52 from
+the original set, plus a 53rd, resize direction toggles, added to
+all three frameworks together afterward), each with its own route in
+`app.routes.ts` and its own sidebar link in `app.component.ts`
+(navigation lives there now, not in `home.component.ts`, which is now
+the full examples gallery, not a plain welcome message). Not yet
+deployed publicly (see “Once deployed” above) — currently only
+verified via `pnpm dev` (`http://localhost:4200/`).
 
 Verification depth varies by example: 33–45 were individually
 live-verified against real browser interaction this session (drag/
@@ -104,3 +106,15 @@ verified in an earlier session. Examples 46–52 exist as files but
 weren’t part of either verification pass — treat them with the same
 caution 33–45 were treated with before this session’s own pass
 through them.
+
+## Donate
+
+If you enjoyed this project — or just feeling generous, consider buying me a 🍺. Cheers!
+
+<a href="https://paypal.me/gwinnem/">
+    <img src="https://raw.githubusercontent.com/gwinnem/vue-responsive-grid-layout/dev/docs/paypal-images/blue.svg" height="40" alt="paypal">
+</a>
+
+## License
+
+MIT — see [LICENSE](./LICENSE).

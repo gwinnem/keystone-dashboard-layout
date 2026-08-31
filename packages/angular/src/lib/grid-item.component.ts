@@ -476,6 +476,31 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * exist yet regardless of this value).
    */
   private lastResizableAndNotStatic: boolean | undefined;
+  /**
+   * The last-known *contents* of `resolvedResizeHandles`, compared
+   * against on every `ngOnChanges()` call to detect a genuine set
+   * change worth re-wiring the native resize engine over. A real,
+   * confirmed bug existed without this: `createNativeResizable()` is
+   * wired to a fixed set of `@ViewChild` element references, captured
+   * once (see `setupNativeResizable()`'s own doc comment). Toggling
+   * `isResizable` itself off then back on already re-wires correctly
+   * via `checkResizableToggle()` below, but that check is gated purely
+   * on the *boolean* `isResizableAndNotStatic` — it never fires when
+   * `resizeHandles`'s own *contents* change while `isResizable` stays
+   * `true` throughout, which is exactly what happens when a consumer
+   * enables a previously-disabled handle (e.g. `w`/`nw`/`sw`) via this
+   * `@Input()` after initial render. The handle's own `<span>` element
+   * renders correctly (the template's own `@if` reacts to
+   * `resolvedResizeHandles` immediately), but `createNativeResizable()`
+   * was never called again to actually attach a pointer listener to
+   * that newly-rendered element — it looked and positioned like a real
+   * handle, but silently did nothing when dragged. Confirmed live: a
+   * grid item starting with `resizeHandles: ['n','s','e']`, then given
+   * `['n','s','e','w']` later, rendered a `w` handle that never
+   * resized anything at all until this field's own comparison was
+   * added.
+   */
+  private lastResolvedResizeHandlesKey = ``;
   private readonly autoScrollEngine: INativeAutoScroll = createNativeAutoScroll();
   /** The most recently received (or, absent any eventBus, standalone-usage-default) `IGridDefaults` snapshot — kept so `resolveGridDefaults()` can be re-run from `ngOnChanges` whenever this item's own `isDraggable`/`isResizable`/`isBounded`/`isMirrored`/`maxRows` change, without needing to wait for the grid's own next emission too. */
   private latestGridDefaults: IGridDefaults = { ariaLabels: {}, borderRadiusPx: 10, enableEditMode: true, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false };
@@ -607,6 +632,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     // call below, which recomputes unconditionally for the identical
     // reason.
     this.resolveGridDefaults();
+    this.checkResizeHandlesContentChange();
     if(changes[`autoHeight`] && !changes[`autoHeight`].firstChange) {
       this.teardownAutoHeight();
       // Deferred to the next microtask, not called synchronously here:
@@ -697,6 +723,36 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       return;
     }
     this.lastResizableAndNotStatic = this.isResizableAndNotStatic;
+    this.scheduleNativeResizableRewire();
+  }
+
+  /**
+   * Detects a genuine change in which handles `resolvedResizeHandles`
+   * actually contains — not just how many, order-sensitive comparison
+   * isn't needed since this array is always built in the same fixed
+   * n/s/e/w/ne/nw/se/sw order regardless of which are present — and,
+   * if so, schedules the same deferred re-wire `checkResizableToggle()`
+   * above uses. See `lastResolvedResizeHandlesKey`'s own doc comment
+   * for why this check exists at all: `checkResizableToggle()`'s own
+   * boolean gate never catches a handle being newly enabled while
+   * `isResizable` stays `true` throughout. Runs on every `ngOnChanges()`
+   * call (this field starts as `''`, so the very first real call
+   * always schedules one initial, harmless re-wire on top of
+   * `ngAfterViewInit()`'s own — teardown-then-setup against the same
+   * unchanged elements is a no-op in practice, and correctness here
+   * matters far more than skipping one redundant call at mount).
+   */
+  private checkResizeHandlesContentChange(): void {
+    const key = this.resolvedResizeHandles.join(`,`);
+    if(key === this.lastResolvedResizeHandlesKey) {
+      return;
+    }
+    this.lastResolvedResizeHandlesKey = key;
+    this.scheduleNativeResizableRewire();
+  }
+
+  /** Shared by `checkResizableToggle()` and `checkResizeHandlesContentChange()` above — deferred to a microtask for the identical reason `checkResizableToggle()`'s own doc comment explains: this runs *during* the current change-detection pass, before Angular has finished rendering whichever `@if`-gated handle `<span>`s just changed, so `@ViewChild` queries against them can't resolve correctly yet. */
+  private scheduleNativeResizableRewire(): void {
     Promise.resolve().then(() => {
       this.teardownNativeResizable();
       this.setupNativeResizable();

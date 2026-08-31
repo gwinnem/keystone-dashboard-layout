@@ -52,6 +52,7 @@ import { PerItemZIndexPageComponent } from './pages/49-per-item-z-index.page.com
 import { HeightModesPageComponent } from './pages/50-height-modes.page.component';
 import { DragActivationDistancePageComponent } from './pages/51-drag-activation-distance.page.component';
 import { RestrictResizeHandlesPageComponent } from './pages/52-restrict-resize-handles.page.component';
+import { ResizeDirectionTogglesPageComponent } from './pages/53-resize-direction-toggles.page.component';
 
 export const ROUTES: Routes = [
   { path: '', component: HomeComponent },
@@ -107,4 +108,5 @@ export const ROUTES: Routes = [
   { path: 'examples/50-height-modes', component: HeightModesPageComponent },
   { path: 'examples/51-drag-activation-distance', component: DragActivationDistancePageComponent },
   { path: 'examples/52-restrict-resize-handles', component: RestrictResizeHandlesPageComponent },
+  { path: 'examples/53-resize-direction-toggles', component: ResizeDirectionTogglesPageComponent },
 ];

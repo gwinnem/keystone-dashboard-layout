@@ -233,6 +233,14 @@ the Vue and React packages do (Karma is present but reserved for a
 possible future one, not currently used for anything) — a genuine,
 open gap rather than an oversight.
 
+## Donate
+
+If you enjoyed this project — or just feeling generous, consider buying me a 🍺. Cheers!
+
+<a href="https://paypal.me/gwinnem/">
+    <img src="https://raw.githubusercontent.com/gwinnem/vue-responsive-grid-layout/dev/docs/paypal-images/blue.svg" height="40" alt="paypal">
+</a>
+
 ## License
 
 MIT
