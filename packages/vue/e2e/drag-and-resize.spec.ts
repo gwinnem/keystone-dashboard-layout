@@ -411,12 +411,36 @@ test.describe('Drag & resize', () => {
     await page.waitForTimeout(300);
 
     const grid = page.getByTestId('drag-resize-grid');
-    const heightBefore = (await grid.boundingBox())!.height;
+    // `.vue-grid-layout` itself has `transition: height ... 200ms` —
+    // a fixed wait after each margin change risks capturing a reading
+    // mid-transition rather than the final, settled value. Confirmed,
+    // real, reproduced flakiness: a Firefox-only failure read 91.92 —
+    // between the pre-change height and the fully-settled 3*(delta)
+    // value below, consistent with a transition still in progress at
+    // the moment `boundingBox()` was called, not a logic bug in the
+    // height formula itself. Polling for two consecutive identical
+    // readings (same idiom `stableBoundingBox` in ./helpers already
+    // uses for the analogous container-*width*-measurement race)
+    // waits out the transition regardless of how long the browser
+    // actually takes to finish painting it, rather than gambling on a
+    // fixed margin over the nominal 200ms duration.
+    const stableHeight = async (): Promise<number> => {
+      let previous: number | null = null;
+      let consecutiveStable = 0;
+      await expect.poll(async () => {
+        const current = (await grid.boundingBox())!.height;
+        consecutiveStable = previous !== null && current === previous ? consecutiveStable + 1 : 0;
+        previous = current;
+        return consecutiveStable;
+      }).toBeGreaterThanOrEqual(3);
+      return previous!;
+    };
+
+    const heightBefore = await stableHeight();
 
     await marginVInput.fill('40');
     await marginVInput.blur();
-    await page.waitForTimeout(300);
-    const heightAfter = (await grid.boundingBox())!.height;
+    const heightAfter = await stableHeight();
 
     // Container height = bottomY * (rowHeight + marginV) + marginV
     // (see GridLayout.vue's own updateHeight()) — for this view's

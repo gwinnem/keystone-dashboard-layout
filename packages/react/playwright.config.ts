@@ -17,7 +17,19 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  // 2 retries in CI (a fresh dev-server/browser instance each run, so a
+  // retry there is nearly always testing a genuine flake, not masking
+  // a real bug). 1 retry locally too, not 0 — a real, confirmed local
+  // failure (`page.goto('/')` itself timing out, not an assertion
+  // failure about app behavior) turned out to be exactly the class of
+  // transient issue retries exist for: `fullyParallel` runs many
+  // workers across 3 browser projects against a single shared,
+  // `reuseExistingServer`-kept dev server instance, and under real
+  // local-machine load a navigation can occasionally exceed 30s even
+  // though the server itself is healthy and would have responded a
+  // little later. A genuine app bug still fails again on retry and
+  // surfaces normally; this only self-heals the environmental case.
+  retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: 'http://localhost:5175',

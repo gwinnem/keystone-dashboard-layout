@@ -97,6 +97,12 @@ package's own API reference for the interface itself is still a
 
 ## Verifying this
 
-`grid-item.component.spec.ts` covers keyboard-accessibility scenarios,
-including focus attributes present/absent correctly based on static/
-edit-mode state, arrow-key movement, and shift+arrow resize.
+`grid-item.component.spec.ts` covers keyboard-accessibility scenarios
+at the unit level, including focus attributes present/absent correctly
+based on static/edit-mode state, arrow-key movement, and shift+arrow
+resize. `e2e/keyboard-accessibility.spec.ts` covers the same ground in
+a real browser — a focused item moving/resizing via real key presses,
+Tab reachability, and a non-arrow key press correctly doing nothing —
+part of this package's own real Playwright e2e suite; see
+[Testing philosophy](/angular/guide/project/testing/) for the full
+coverage table.

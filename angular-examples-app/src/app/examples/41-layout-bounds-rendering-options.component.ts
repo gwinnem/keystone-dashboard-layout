@@ -91,9 +91,23 @@ export class LayoutBoundsRenderingOptionsDemoComponent implements AfterViewInit 
   // inline style back out of the rendered DOM makes the effect visible
   // here. setTimeout defers this to the next tick, after Angular's own
   // change detection for this pass has actually rendered the update.
+  //
+  // Bug fix: this used to query `[data-grid-item-id="0"] > div` — an
+  // inner child div — on the assumption that positioning styles lived
+  // there. They don't: `GridItemComponent` applies its entire computed
+  // style (`position`/`transform`/`top`/`left`/width/height) directly
+  // to its own host element via a `[style]` binding, not to any inner
+  // wrapper div (confirmed directly against `grid-item.component.ts`'s
+  // own `hostStyle` getter and its doc comment, which documents this as
+  // a deliberate fix for an earlier, real bug where applying it to a
+  // child instead of the host left the host itself with zero size).
+  // Querying an inner div found an element with neither style ever set,
+  // so this readout stayed permanently blank regardless of the
+  // `useCssTransforms` toggle — confirmed live, not assumed. Querying
+  // the host directly (no ` > div`) reads the real, current values.
   private refreshPositioningReadout(): void {
     setTimeout(() => {
-      const el = this.containerRef?.nativeElement.querySelector<HTMLElement>('[data-grid-item-id="0"] > div');
+      const el = this.containerRef?.nativeElement.querySelector<HTMLElement>('[data-grid-item-id="0"]');
       if (!el) return;
       this.positioningMechanism = el.style.transform ? `transform: ${el.style.transform}` : `top: ${el.style.top}, left: ${el.style.left}`;
     }, 0);

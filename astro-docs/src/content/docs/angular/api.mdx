@@ -47,11 +47,21 @@ fix before relying on these five specifically.
 
 `GridLayoutComponent`, `GridItemComponent` — see
 [Components](/angular/components/) for full `@Input()`/`@Output()`
-documentation, including the standalone `GridItemDragHandleComponent`/
-`GridItemCloseButtonComponent` utility components. `GridItemHeaderDirective`
+documentation. `GridItemHeaderDirective`
 is a marker directive with no inputs/outputs of its own — see
 [GridItemComponent props](/angular/components/grid-item/props/#header-content)
 for how it's used.
+
+:::caution[A real, confirmed gap in this page's own earlier claim]
+This section used to also claim coverage of "the standalone
+`GridItemDragHandleComponent`/`GridItemCloseButtonComponent` utility
+components" under [Components](/angular/components/) — checked
+directly against that directory, and no such page exists there or
+anywhere else in this package's docs. Both components are real and
+exported (see above), just not yet documented with their own
+reference page. See [Documentation parity gap](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/astro-docs/DOCUMENTATION_PARITY_GAP.md)
+for the fuller accounting of gaps like this one.
+:::
 
 ## Interfaces & members
 

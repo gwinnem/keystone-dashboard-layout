@@ -10,118 +10,50 @@ holds. Treat a ✅ below as "verified as of a real check," not "guaranteed
 forever."
 :::
 
-:::caution[A real, layered CI investigation — confirmed via live pushes: 10 bugs found, 9 confirmed fixed, bug 10 not yet re-verified]
-**Bug 1 — confirmed fixed via a live push**: pnpm version conflict at
-"Setup pnpm" across every workflow. Gone.
+:::tip[CI is fully green — confirmed via a real, complete run]
+A real, layered investigation across this pass found and fixed 10
+distinct bugs, each one only surfacing once the previous one was fixed,
+in a CI pipeline that had simply never run this far before:
 
-**Bug 2 — confirmed fixed via a live push**: pnpm 11 requires Node 22+,
-but most CI jobs targeted Node 18/20. Pinned `packageManager` to
-`pnpm@10.32.0`. Confirmed: Node 18/20 jobs are no longer even in the
-matrix (see bug 4), and Node 22 now runs the real pipeline for real.
+1. **pnpm version conflict** at "Setup pnpm" across every workflow
+   (hardcoded `version: '9'` vs. root `package.json`'s own
+   `packageManager`).
+2. **pnpm 11 requires Node 22+**, but most CI jobs targeted Node 18/20
+   — pinned `packageManager` to `pnpm@10.32.0`.
+3. **This package's own `test:coverage` failure** — a genuine
+   TypeScript compile error (`TS6133`) in `grid-layout.component.spec.ts`
+   from an unused destructured variable, not a real test or
+   Node-version regression.
+4. **Node.js 18/20 both reached end-of-life** (April 2025 / April
+   2026) while still declared supported — narrowed `engines.node` and
+   the CI matrix to Node 22 only.
+5. **`check:licenses` failing on the root workspace package itself** —
+   a `license-checker-rseidelsohn` quirk marking any `"private": true`
+   package `"UNLICENSED"` regardless of its own `license` field.
+6. **React's own `useGridItemResize.hook.spec.tsx` failed to import at
+   all** — a pre-existing typo in its relative import path
+   (`../../../hooks/...` instead of `../hooks/...`).
+7. **Null-ref timing bug in that same file's test harness** —
+   `onReady()` read `rootRef.current` during render, before React's
+   commit phase populates it. Fixed via `useEffect`.
+8. **React's automatic batching** deferred the flush of a state update
+   triggered from outside React's own event system. Fixed by wrapping
+   the native handler call in `act()`.
+9. **A stale-snapshot bug via destructuring** — `const { result } =
+   createContext(...)` evaluated a live getter once and froze it,
+   so tests never saw post-dispatch state updates. Fixed by reading
+   `ctx.result.xxx` fresh at each point instead.
+10. **Vue's own `check:package-install`** hit a real, already-documented
+    structural limit: `@keystone-dashboard-layout/core` has never been
+    published to npm standalone, so installing the packed Vue tarball
+    404s on that dependency. Marked `continue-on-error: true`, matching
+    React/Angular's own equivalent steps (likely the same root cause).
 
-**Bug 3 (this package's own) — confirmed fixed via a live push**: this
-package's own `test:coverage` step was failing in CI. Root cause,
-found via the actual Jest output: **not** a real test failure and
-**not** Node-22-specific as first suspected — a genuine TypeScript
-compile error (`TS6133: 'target' is declared but its value is never
-read`) in `grid-layout.component.spec.ts` at a `const { target } =
-setupTwoGrids()` destructure whose `target` was never actually used in
-that one test (three sibling tests destructure the same way and do use
-it — confirmed by reading each). All 227 real tests in the other 7
-spec files already passed cleanly; this one file simply failed to
-compile at all. Fixed by removing the unused destructure. **Confirmed
-fixed** — this package's own `test:coverage` step no longer appears in
-any subsequent failed-job annotation.
-
-**Bug 4 — confirmed fixed via a live push**: Node.js 18 (EOL April
-2025) and Node.js 20 (EOL April 2026) were both still in this project's
-`engines` field and CI matrix, and Node 18 additionally couldn't even
-build `packages/core` (a `rolldown`/`node:util.styleText` incompatibility).
-Narrowed `engines.node` to `>=22.0.0` everywhere and the CI matrix to
-Node 22 only. Confirmed: the matrix now shows exactly one job, `Verify
-(Node 22)`.
-
-**Bug 5 — confirmed fixed via a live push**: `check:licenses` was
-failing on the root workspace package itself (a `license-checker-
-rseidelsohn` quirk marking any `"private": true` package `"UNLICENSED"`
-regardless of its own `license` field). Fixed with
-`--excludePrivatePackages`. Confirmed: `Dependency audit` is now green.
-
-**Bug 6 (React's own, surfaced only after bug 3's fix) — confirmed
-fixed via a live push**: with bug 3 fixed, `packages/react`'s own
-`test:coverage` failed next — again all 354 real tests passed, one
-spec file simply failed to even load: `Error: Failed to resolve import
-"../../../hooks/useGridItemResize"`. Root cause: a genuine,
-pre-existing typo in that test file's own relative import path, never
-caught before because this specific file never got far enough to run
-in any prior CI attempt. Fixed by correcting
-`../../../hooks/useGridItemResize` to `../hooks/useGridItemResize`.
-Confirmed fixed: the file now genuinely imports and its 14 tests
-actually run for the first time ever.
-
-**Bug 7 (React's own, surfaced only after bug 6's fix) — fixed, not
-yet re-verified**: with the import fixed, 10 of that same file's 14
-tests failed with `TypeError: Cannot read properties of null (reading
-'__nativeResizeHandler')`. Root cause: the test harness's own
-`onReady(result, rootRef.current!)` was called directly in the
-component's render body — but React only populates a ref's `.current`
-during its commit phase, *after* render returns, so `rootRef.current`
-was always `null` at the point it was read, permanently. A real,
-pre-existing bug in the harness, never caught for the same reason as
-bug 6 (this file never ran before). Fixed by moving the `onReady` call
-into a `useEffect`, which fires after commit — `render()` from Testing
-Library flushes effects synchronously, so the ref is populated by the
-time `render()` returns. **Confirmed fixed via a live push**: this
-resolved 5 of the file's 10 then-failing tests.
-
-**Bug 8 (React's own, surfaced only after bug 7's fix) — confirmed
-fixed via a live push**: 5 tests in that same file still failed after
-bug 7, with `result.isResizing`/`result.resizing` reading stale or
-`undefined` values right after a `dispatch()` call. Root cause: the
-native resize handler runs synchronously (confirmed by reading `core`'s
-own `createNativeResizable`), so it wasn't a timing/batching issue —
-it was React's automatic batching deferring the *flush* of a state
-update triggered from outside React's own event system. Fixed by
-wrapping the handler invocation in `act()`, which forces the update to
-flush before `dispatch()` returns.
-
-**Bug 9 (React's own, surfaced only after bug 8's fix) — confirmed
-fixed via a live push, the big one for this file**: the same 5 tests
-still failed identically even with `act()`. Real root cause, found by
-reading `createContext`'s own return shape: `result` is exposed via a
-`get result()` getter specifically so callers see the *latest* value —
-but every failing test destructured `const { dispatch, result } =
-createContext(...)`, which evaluates that getter once, immediately,
-freezing a stale snapshot from before any `dispatch()` call ever ran.
-Tests calling stable `useCallback` functions (`calcPosition`,
-`autoSize`) never noticed; tests reading raw state (`isResizing`,
-`resizing`) always got the frozen, pre-dispatch snapshot. Fixed by
-changing those 5 tests to read `ctx.result.xxx` fresh at each point,
-not a destructured snapshot. **Confirmed**: this package's own
-`test:coverage` is now genuinely green — all 36 spec files, 369/369
-tests passing.
-
-**Also found and fixed in this same investigation**: React's own e2e
-test asserting an absolute page-coordinate threshold that never
-accounted for the test fixture's real page layout — confirmed via a
-live push: `End-to-end tests` is now green.
-
-**Bug 10 (Vue's own, surfaced only once bugs 1–9 cleared the way) —
-fixed, not yet re-verified**: with every test suite finally passing,
-Vue's own `check:package-install` step failed for the first time ever:
-`npm error 404 '@keystone-dashboard-layout/core@0.1.0' is not in this
-registry`. Root cause, confirmed via the script's own pre-existing
-comment: this is a known, structural limitation, not a bug — `pnpm
-pack` correctly rewrites the `workspace:*` dependency on `core` to a
-real version, but `core` has never actually been published to npm on
-its own, so that install step 404s until it is. Fixed by marking this
-step `continue-on-error: true` in `ci.yml`, matching React/Angular's
-already-`continue-on-error` equivalents — which very likely share this
-exact same root cause, not three separate unknowns as earlier phrased.
-Not yet pushed.
-
-With bugs 1–9 confirmed and bug 10 addressing the one remaining real
-blocker, a fully green CI run is expected on the next push.
+**Confirmed via a complete, real CI run** (`Doc update and ci
+adjustment`, 6m 52s, all jobs green): `Verify (Node 22)`, `End-to-end
+tests`, and `Dependency audit` all passed. Every claim below that
+describes CI-enforced behavior now reflects that actual green run, not
+just configuration.
 :::
 
 ## Code quality
@@ -138,10 +70,12 @@ blocker, a fully green CI run is expected on the next push.
   `.github/workflows/mutation-testing.yml`'s own `mutation-test-angular`
   job has been present since this package's own mutation-testing setup
   was fixed — not something newly added alongside this confirmation.
-  This 81.14% figure is confirmed via local runs only — every actual
-  scheduled/on-demand CI run of this job has been failing at "Setup
-  pnpm" (see the caution above), not passing.
-- **Lint** — a real, confirmed gap, not just unverified: this package has **no ESLint script or config at all** — confirmed directly via `package.json`'s own `_comment_scripts` field, which explicitly states "dev/lint/lint:fix/test:e2e intentionally still omitted." Only `lint:style` (Stylelint, for the SCSS source) exists. This is a genuine, meaningful difference from Vue and React, both of which have real ESLint configs — not a parity gap this page can paper over.
+  This 81.14% figure is still confirmed via local runs only —
+  `mutation-testing.yml` runs on its own weekly/on-demand schedule, so
+  a real CI run of it hasn't happened since `ci.yml`'s own pnpm/Node
+  fixes landed; it should now succeed given the same fixes apply, but
+  that's still to be confirmed on its own schedule.
+- **Lint** — **correction to this page's own earlier claim**: this package now has a real `eslint.config.mjs` (flat config) plus `lint`/`lint:fix` scripts, ported from Vue's/React's own rule set with `angular-eslint` layered on top for component/directive-selector rules and inline-template linting. Not yet confirmed to actually resolve and lint cleanly against this package's own code — written without shell access to run it, the same "added, not yet run" caveat `check:package-install` below already carries for a different script. `lint:style` (Stylelint, for the SCSS source) already existed and still does.
 - **`npm audit`** — confirmed covered, not skipped: `ci.yml`'s own dedicated `audit` job runs a blocking production-dependency audit and an advisory full-dependency audit from the monorepo root on every push/PR, covering this package's own dependency tree too. A blocking production-dependency license check also runs. Not independently re-run by hand in this specific pass, but continuously enforced by CI.
 
 ## Runtime dependencies
@@ -151,20 +85,22 @@ blocker, a fully green CI run is expected on the next push.
 ## Build & packaging
 
 - **Bundle size** — now substantially measured, not assumed. The actual runtime code a consumer's bundler imports (`dist/keystone-dashboard-layout-angular/fesm2022/keystone-dashboard-layout-angular.mjs`) is **204.24 KB raw / 50.88 KB gzip** — meaningfully larger than React's own 17.97 KB gzip bundle, consistent with Angular's own decorator/DI metadata overhead. Separately: this package's own `check:bundle-size` script has a real, confirmed methodology issue, not just an unverified budget — it sums the gzipped size of *every file* in the whole `dist/keystone-dashboard-layout-angular/` output directory (its own top comment already acknowledges this coarser approach), which includes the packaged `.tgz` tarball, `README.md`, `LICENSE`, `package.json`, and every `.d.ts` type-declaration file (measured at **114.61 KB raw** across 10 files, dominated by `grid-layout.component.d.ts` at 50.90 KB and `grid-item.component.d.ts` at 36.36 KB — both carrying substantial JSDoc comment text into the emitted declarations) alongside the real code. None of those extra files reflect what actually ships to a browser at runtime. The script's own total (precisely measured for the four largest contributors, estimated for the rest) comes to roughly **~97 KB gzip**, still comfortably under the script's own `BUDGET_KB = 150` placeholder — but the *number itself* is measuring "everything in the npm tarball" rather than "runtime bundle size," which is worth fixing (e.g. pointing at just the `fesm2022/` output) before tightening the budget or making this check blocking.
-- **`check:package-install` (pack-and-install smoke test)** — still genuinely unverified: `ci.yml` keeps this `continue-on-error: true` since the script's own assumptions about `ng-packagr`'s generated `package.json`/`exports` shape haven't been checked against a real build. Not resolved in this pass.
+- **`check:package-install` (pack-and-install smoke test)** — confirmed running in real CI as of the green run above, `continue-on-error: true` since the script's own assumptions about `ng-packagr`'s generated `package.json`/`exports` shape haven't been independently verified against a real build — its pass/fail status specifically isn't visible from the job's own overall (successful) status, since a failure here wouldn't change that.
 - **The library build itself** — confirmed working (`ng-packagr`), since the bundle-size measurement above required a real, successful `dist/` build to already exist.
 
 ## CI/CD & repository hygiene
 
-Confirmed via a direct read of `.github/workflows/`: the same three workflows Vue/React have — `ci.yml` (typecheck, coverage-gated tests, build, bundle-size/package-install checks — both `continue-on-error` for this package, a docs-site build, and a separate `audit` job, all *configured* to run on Node 22 only, narrowed from an earlier 18/20/22 matrix — see the caution above), `mutation-testing.yml` (confirmed working at 81.14% via local runs only — see the pnpm caution above), and `release.yml` (present, not independently re-verified). One confirmed, meaningful gap versus Vue/React: `ci.yml`'s own `e2e` job explicitly excludes this package (turbo skips it, since it has no `test:e2e` script — see [Testing philosophy](/angular/guide/project/testing/)). Branch protection and repository secrets aren't checkable from source.
+Confirmed via a direct read of `.github/workflows/`: the same three workflows Vue/React have — `ci.yml` (typecheck, coverage-gated tests, build, bundle-size/package-install checks — both `continue-on-error` for this package, a docs-site build, and a separate `audit` job, all confirmed passing in a real, complete green run on Node 22 only, narrowed from an earlier 18/20/22 matrix — see the caution above), `mutation-testing.yml` (81.14% confirmed via local runs; a live CI run hasn't happened since the pnpm/Node fixes landed, given its own weekly schedule), and `release.yml` (present, not independently re-verified). **Correction to this page's own earlier claim**: `ci.yml`'s own `e2e` job runs for this package the same as it does for Vue/React — this package's own `test:e2e` script exists (`playwright test`), and its own top comment confirms all three framework packages "have full feature parity and real test suites today, including e2e." See [Testing philosophy](/angular/guide/project/testing/) for what that suite covers. Branch protection and repository secrets aren't checkable from source.
 
 ## Documentation
 
-The guide, feature list, component reference, and API reference exist as of this snapshot. This package **now has** the full set of project-level docs Vue/React have — [Architecture](/angular/guide/project/architecture/), [Testing philosophy](/angular/guide/project/testing/), [Accessibility scope](/angular/guide/project/accessibility/), [Comparison: alternatives](/angular/guide/project/comparison-alternatives/), [Comparison: commercial](/angular/guide/project/comparison-commercial/), and [Roadmap](/angular/guide/project/roadmap/) were all added after the version of this page that used to say this package didn't have them yet.
+The guide, feature list, component reference, and API reference exist as of this snapshot. This package **now has** the full set of *project-level* docs Vue/React have — [Architecture](/angular/guide/project/architecture/), [Testing philosophy](/angular/guide/project/testing/), [Accessibility scope](/angular/guide/project/accessibility/), [Comparison: alternatives](/angular/guide/project/comparison-alternatives/), [Comparison: commercial](/angular/guide/project/comparison-commercial/), and [Roadmap](/angular/guide/project/roadmap/) were all added after the version of this page that used to say this package didn't have them yet.
+
+**A real, confirmed gap this page's own earlier claim didn't address**: project-level parity isn't the same as overall documentation parity. Excluding examples (this package's own examples are maintained in the standalone `angular-examples-app` rather than as `astro-docs` pages — a deliberate choice, not a gap), a direct, page-by-page count against Vue found this package has **19 non-example documentation pages against Vue's 39** — concentrated in Components (3 vs Vue's 14) and API (4 vs 13). See [`astro-docs/DOCUMENTATION_PARITY_GAP.md`](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/astro-docs/DOCUMENTATION_PARITY_GAP.md) for the full accounting, and [Roadmap](/angular/guide/project/roadmap/) for what's prioritized first.
 
 ## Testing depth
 
-Confirmed, not just "not yet checked": this package has **no e2e suite** — no Playwright config, and `ci.yml`'s own `e2e` job doesn't run for it at all (turbo skips any package without a `test:e2e` script, and this one deliberately has none — see `package.json`'s own `_comment_scripts`). Karma's own project-scoped config (`angular.json`'s `test` architect target, `karma.conf.js`) is present in the repository as a possible foundation for a future browser-flow e2e layer, but isn't wired up or run today. See [Testing philosophy](/angular/guide/project/testing/) for the fuller picture — unit/component coverage itself (Jest + jest-preset-angular) is real and CI-enforced; this gap is specifically about end-to-end browser testing.
+**Correction to this page's own earlier claim**: this package now has a real, extensive Playwright e2e suite — confirmed via a direct, complete run, not assumed. 11 spec files (`basic-grid`, `drag-and-resize`, `keyboard-accessibility`, `dynamic-items`, `responsive`, `external-drop`, `cross-grid`, `multi-select`, `rtl`, `item-overrides`, `advanced-features`), 160 tests total, **all passing across Chromium, Firefox, and WebKit** in a real, complete run. `ci.yml`'s own `e2e` job runs it — this package's own `test:e2e` script (`playwright test`) exists and is picked up by turbo the same way Vue/React's are; the suite runs against a dedicated `e2e-fixture/` Angular application (its own `angular.json` project, served via the Angular CLI's own dev-server rather than Vite — `@analogjs/vite-plugin-angular` hit the same unresolved upstream bug that ruled out a Vitest-based unit-test setup). See [Testing philosophy](/angular/guide/project/testing/) for the full coverage table and what that run found and fixed along the way (a compaction guard that never fired, a CSS stacking-context escape, a header-detection gap, an RTL resize-math bug, and a resize-hint gating gap — five genuine library bugs, not just test-harness issues).
 
 ## Accessibility
 
@@ -176,12 +112,12 @@ Not zero runtime dependencies (see [Runtime dependencies](#runtime-dependencies)
 
 ## Browser/runtime support
 
-Node engine range (`>=22.0.0`, narrowed from a previous `^18.0.0 || ^20.0.0 || >=22.0.0` — see the caution above for why) declared in `package.json`, matching Vue/React, and exercised directly by `ci.yml`'s own `verify` job (now Node 22 only). Browser support itself isn't independently re-verified in this pass — and, per [Testing depth](#testing-depth) above, isn't backed by an e2e suite the way Vue/React's own browser coverage is.
+Node engine range (`>=22.0.0`, narrowed from a previous `^18.0.0 || ^20.0.0 || >=22.0.0` — see the caution above for why) declared in `package.json`, matching Vue/React, and exercised directly by `ci.yml`'s own `verify` job (now Node 22 only). Browser support itself: **correction to this page's own earlier claim** — per [Testing depth](#testing-depth) above, this package's own e2e suite now confirms real Chromium/Firefox/WebKit behavior (160 tests, all passing), the same three engines Vue/React's own browser coverage exercises.
 
 ## Known, open, and deliberately deferred
 
-This package now has its own dedicated [Roadmap](/angular/guide/project/roadmap/) — see that page for the current, accurate list. The concrete, still-open gaps from this checklist specifically: no e2e suite exists yet; the `check:bundle-size` script measures the whole npm package rather than just the runtime bundle (a real methodology fix, not just a number to update); the `check:package-install` smoke test has never been confirmed to pass; and there's no ESLint setup at all for this package.
+This package now has its own dedicated [Roadmap](/angular/guide/project/roadmap/) — see that page for the current, accurate list. The concrete, still-open gaps from this checklist specifically: the `check:bundle-size` script measures the whole npm package rather than just the runtime bundle (a real methodology fix, not just a number to update); the `check:package-install` smoke test has never been confirmed to pass; the newly-added ESLint setup hasn't been confirmed to actually run cleanly yet either; the e2e suite has no dedicated touch-input spec the way the React port does; and a 20-page non-example documentation gap versus Vue, concentrated in Components and API (see Documentation above and [`astro-docs/DOCUMENTATION_PARITY_GAP.md`](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/astro-docs/DOCUMENTATION_PARITY_GAP.md)).
 
 ## The short version
 
-**A real, layered CI investigation across 10 bugs, 9 confirmed via live green results**: pnpm version conflict, pnpm/Node compatibility, this package's own TypeScript compile error, Node 18/20 EOL removal, the license-checker quirk, an unrelated React e2e test bug, and three further React-specific test-harness bugs (a null-ref timing issue, missing `act()` wrapping, and a stale-snapshot-via-destructuring bug) — each one only visible once the previous one was fixed, in a codebase whose CI had simply never run this far before. Bug 10 (Vue's own `check:package-install`, a known structural limitation until `core` gets its first real npm publish) is fixed in source, pending confirmation. **Mutation testing**: genuinely verified via local runs, in good shape (81.14% overall, every file above 80%). **Bundle size, e2e-suite absence, accessibility implementation, and audit/license coverage**: all directly confirmed via source inspection or direct measurement in this pass. **Two real, confirmed gaps this pass surfaced, not previously named this precisely**: this package has no ESLint at all (Vue/React both do), and it is not actually zero-runtime-dependencies (`tslib` is a real dependency). **Still genuinely open**: no e2e suite and a `check:bundle-size` script whose methodology needs fixing.
+**CI is fully green, confirmed via a real, complete run** (`Doc update and ci adjustment`, 6m 52s — `Verify (Node 22)`, `End-to-end tests`, and `Dependency audit` all passed). This pass found and fixed 10 distinct bugs across the monorepo — a pnpm version conflict, pnpm/Node compatibility, this package's own TypeScript compile error, Node 18/20 EOL removal, a license-checker quirk, an unrelated React e2e test bug, three layered React test-harness bugs (null-ref timing, missing `act()`, and a stale-snapshot destructuring bug), and Vue's own `check:package-install` hitting a known, already-documented structural limit (`core` has never been published to npm standalone) — each one only visible once the previous one was fixed, in a codebase whose CI had simply never run this far before. **Mutation testing**: genuinely verified via local runs, in good shape (81.14% overall, every file above 80%); a live CI run of it specifically is still pending its own weekly schedule. **Bundle size, accessibility implementation, and audit/license coverage**: all directly confirmed via source inspection, direct measurement, or the green run above. **A real e2e suite now exists and passes in full**: 160 tests across 11 spec files, all passing on Chromium/Firefox/WebKit — correcting this page's own earlier claim that no such suite existed; that same run surfaced and fixed five genuine library bugs along the way (auto-compaction, cross-grid stacking, header-projection detection, RTL resize math, and resize-hint gating), not just test-harness issues. **Two real, confirmed gaps this pass surfaced, not previously named this precisely**: this package is not actually zero-runtime-dependencies (`tslib` is a real dependency) — the ESLint gap named alongside it in an earlier version of this summary has since been closed (see Code quality above), though not yet confirmed to run cleanly. A separate, larger pass found this package's own non-example documentation covers only 19 of the 39 comparable pages Vue's docs have (examples are deliberately excluded — this package's are maintained in a standalone app, not as docs pages), concentrated in Components and API. **Still genuinely open**: a `check:bundle-size` script whose methodology needs fixing, no dedicated touch-input e2e coverage yet, and that 20-page Components/API documentation gap.

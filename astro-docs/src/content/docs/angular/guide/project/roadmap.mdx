@@ -13,22 +13,84 @@ Vue and React ports — see [Production readiness](/angular/guide/project/produc
 for what's actually been independently re-confirmed as of this writing
 (mutation testing, specifically) versus what still needs a fresh check.
 
-## What's still open
-
 ### A real end-to-end test suite
 
-Unlike the Vue and React ports (both with a working Playwright suite),
-this package has none yet. Karma's own project-scoped config is present
-in the repository as a possible foundation, but isn't wired up or run
-today. See [Testing philosophy](/angular/guide/project/testing/).
+**Correction to this page's own earlier claim**: this package now has a
+real, extensive Playwright e2e suite, matching the Vue and React
+ports' own setup and coverage shape — 11 spec files, 160 tests total,
+all passing across Chromium, Firefox, and WebKit in a real, complete
+run. Runs against a dedicated `e2e-fixture/` Angular application (its
+own `angular.json` project, served via the Angular CLI's own
+dev-server rather than Vite). That same run surfaced and fixed five
+genuine library bugs along the way, not just test-harness issues — an
+auto-compaction guard that silently never fired, a CSS
+stacking-context escape affecting static items' own negative z-index,
+a header-projection detection gap, an RTL resize-math bug, and a
+resize-hint gating gap. See [Testing philosophy](/angular/guide/project/testing/)
+for the full coverage table. The e2e suite still has no dedicated
+touch-input spec the way the React port's own `touch-input.spec.ts`
+does — see "What's still open" below.
 
-### An ESLint setup
+### A real survey of Angular-specific alternatives
 
-Confirmed via a direct source check: this package has **no ESLint
-script or config at all** (`package.json`'s own `_comment_scripts`
-field says so explicitly) — only `lint:style` (Stylelint, for SCSS).
-Vue and React both have real ESLint configs. See
-[Production readiness](/angular/guide/project/production-readiness/).
+**Correction to this page's own earlier state**: [Comparison: alternatives](/angular/guide/project/comparison-alternatives/)
+used to scope itself to just `gridstack.js`, with an explicit note that
+a dedicated Angular-specific survey hadn't been done. It now covers
+`gridstack.js`, Katoid Angular Grid Layout, and `angular-gridster2` with
+a real feature-comparison table. [Comparison: commercial](/angular/guide/project/comparison-commercial/)
+now also covers Syncfusion Angular Dashboard Layout, Sencha Ext JS
+Dashboard, and Vaadin Dashboard as commercial competitors alongside
+Kendo TileLayout and DevExpress Dashboard. [Comparison: alternatives](/angular/guide/project/comparison-alternatives/)
+also now covers Ignite UI Tile Manager (Infragistics' own tile-layout
+web component, recently made MIT-licensed) alongside `gridstack.js`,
+Katoid Angular Grid Layout, and `angular-gridster2`. Every claim on
+both pages was independently verified against each vendor/project's
+own current documentation, README, API reference, and (for the
+open-source options) GitHub issue tracker — not relayed from a single
+secondary source. That direct research turned up several corrections
+along the way: `angular-gridster2` does support RTL (confirmed via its
+own `dirType` option and a real history of RTL bug fixes) and
+swap-on-drag (`swapWhileDragging`); Katoid Angular Grid Layout only
+resizes from one corner and doesn't yet support static items, both
+confirmed as open items in its own README's own TODO list;
+`gridstack.js` has a 2017 keyboard-accessibility request closed
+`wontfix`; Kendo's own documentation contradicts itself about whether
+TileLayout has keyboard support at all; Ext JS Dashboard turns out to
+resize vertical-only via a column-stack-with-splitters model, not
+freeform per-item resize; and Vaadin Dashboard has a genuinely real
+keyboard-accessibility story (confirmed directly from its own
+engineering writeup) but no dedicated Angular integration at all.
+
+## What's still open
+
+### Touch-input e2e coverage
+
+The React port has a dedicated `touch-input.spec.ts`; this package's
+own e2e suite doesn't yet. Touch/mobile input still needs a human in a
+real browser for now — see [Testing philosophy](/angular/guide/project/testing/).
+
+### An ESLint setup — added, not yet confirmed to run cleanly
+
+**Correction to this page's own earlier state**: this package now has a
+real `eslint.config.mjs` (flat config, ESLint 9/10) plus real `lint`/
+`lint:fix` scripts — previously it had neither at all, confirmed via a
+direct source check (`package.json`'s own `_comment_scripts` field said
+so explicitly). The rule set is a direct port of Vue's and React's own
+generic/TypeScript rules, with `angular-eslint` layered on top for
+component-selector/directive-selector enforcement (`kdl` prefix) and
+inline-template linting (every template in this package is written
+inline, confirmed directly — no `.html` files exist under `src/` — so
+`angular.processInlineTemplates` is what makes template rules apply at
+all here). What's genuinely still open: this was written without shell
+access to actually run it against the real codebase, so
+`pnpm install && pnpm --filter @keystone-dashboard-layout/angular lint`
+hasn't been confirmed to resolve its new `angular-eslint` dependency
+correctly or to actually lint cleanly yet — the same "written, not yet
+run" caveat this page's own `check:package-install` item below already
+carries for a different script. `pnpm lint` is advisory, not blocking,
+across this whole monorepo, so whatever it surfaces (or fails to
+resolve) won't silently break CI — but it's still a real, open
+verification step, not a completed one.
 
 ### A real `check:bundle-size` methodology, not just a verified number
 
@@ -100,9 +162,33 @@ This page, [Architecture](/angular/guide/project/architecture/),
 [Testing philosophy](/angular/guide/project/testing/), and
 [Accessibility scope](/angular/guide/project/accessibility/) are new as
 of this writing — the first of their kind for this package. Comparison
-pages against alternatives/commercial competitors exist now too, but
-haven't had the same repeated revision the Vue port's own versions have
-had over time.
+pages against alternatives/commercial competitors have now had a real
+survey pass too (see "Recently completed" above) — the concrete gap
+remaining is actually installing and exercising `angular-gridster2` and
+Katoid Angular Grid Layout directly, rather than relying on their own
+documentation, the way [Comparison: alternatives](/angular/guide/project/comparison-alternatives/)'s
+own "Bottom line" section notes.
+
+### The API/components docs gap — the real, remaining one
+
+**Correction to this page's own earlier framing**: "project-level
+documentation parity" above is real, but it's a narrow slice —
+project-level guide pages are only 10 of Vue's 39 non-example
+documentation pages. (Angular's own `examples/` directory being empty
+is a deliberate architectural choice, not a gap — this package's
+examples are maintained in the standalone `angular-examples-app`
+rather than as `astro-docs` pages the way Vue's/React's are, so example
+pages are excluded from this comparison entirely.) A direct,
+page-by-page count of everything else found this package has **19
+non-example documentation pages against Vue's 39** — a 20-page gap,
+concentrated entirely in Components (3 pages vs Vue's 14) and API (4
+vs 13), including one confirmed, now-fixed documentation bug: [API](/angular/api/)
+used to claim coverage of the standalone drag-handle/close-button
+components under Components that didn't actually exist anywhere — the
+claim is corrected, but the actual page still needs writing. See
+[`astro-docs/DOCUMENTATION_PARITY_GAP.md`](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/astro-docs/DOCUMENTATION_PARITY_GAP.md)
+for the full page-by-page accounting, including which gaps are genuine
+missing content versus legitimate Angular/Vue paradigm differences.
 
 ### The shared `core`-level roadmap
 

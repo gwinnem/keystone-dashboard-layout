@@ -49,6 +49,19 @@ const config: Config = {
     // reason; this is the equivalent exclusion for Jest's own test
     // discovery specifically.
     `<rootDir>/.stryker-tmp/`,
+    // Playwright's own e2e specs (e2e/*.spec.ts) — confirmed necessary via
+    // a real, failing test run: these import `@playwright/test`, whose
+    // own test framework has a completely different execution model
+    // from Jest's (its own global `test`/`expect`, its own process/
+    // worker orchestration) and cannot be loaded inside a Jest run at
+    // all — doing so throws `TypeError: Class extends value undefined
+    // is not a constructor or null` at the very first `import { expect,
+    // test } from '@playwright/test'` line, for every file under this
+    // directory. These specs are meant to run only via `pnpm test:e2e`
+    // (`playwright test`), never via `pnpm test` (`jest`) — this
+    // exclusion is what actually keeps the two runners from stepping on
+    // each other.
+    `<rootDir>/e2e/`,
     // Karma-only (its own real-entry-file requirement, not a real test
     // suite) — confirmed necessary via a fresh Jest run, which
     // otherwise picks this up and fails it directly, since it calls

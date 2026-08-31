@@ -16,19 +16,23 @@ biggest thing that speeds up a fix.
 - **`@angular/common` / `@angular/core`:** `^17.0.0 || ^18.0.0 || ^19.0.0`
   (peer dependencies)
 - **`rxjs`:** `^7.8.0` (peer dependency)
-- **Node.js:** `^18.0.0 || ^20.0.0 || >=22.0.0` (see `engines` in
-  `package.json`)
+- **Node.js:** `>=22.0.0` (see `engines` in `package.json` — narrowed
+  from an earlier, wider range once Node 18/20 both reached
+  end-of-life and this project's own build tooling stopped supporting
+  Node 18 outright)
 - Standalone components throughout — no `NgModule` required.
 
-## A known, open gap
+## End-to-end testing
 
-This package does not yet have a real end-to-end browser test layer
-the way the Vue and React packages in this family do (Karma is present
-in this package but reserved for a possible future one, not currently
-exercising anything). A real, extensive unit/component test suite
-(Jest + `jest-preset-angular`) with Stryker mutation testing covers it
-in the meantime. Stated here plainly as a genuine gap, not glossed
-over.
+A real Playwright e2e suite now exists (`e2e/`), running against a
+dedicated `e2e-fixture/` application — a genuine, separate `angular.json`
+project, served via the Angular CLI's own dev-server rather than Vite
+(`@analogjs/vite-plugin-angular` hit a genuinely unresolved upstream bug
+for this project's Angular target, the same reason unit tests use Jest
+rather than Vitest — see `package.json`'s own `_comment_scripts` field).
+Karma (`angular.json`'s own separate, project-scoped `test` architect
+target + `karma.conf.js`) predates this and is no longer needed for it —
+still present, but not currently exercising anything.
 
 ## Versioning and maintenance model
 

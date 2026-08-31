@@ -26,15 +26,28 @@ describe(`layoutValidator`, () => {
     expect(result).toBe(true);
   });
 
-  // TODO Fix this test it should be working
-  // it(`Should return false When layout with required keys is invalid`, () => {
-  //   const data = Array.from({ length: 5 }, () => invalidRequiredLayout);
-  //   const result = layoutValidator(data);
+  it(`Should return false when a required key has the wrong type (y as a string, not a number)`, () => {
+    // Previously disabled with a `// TODO Fix this test it should be
+    // working` note. Root cause found and fixed directly in
+    // `layout-validator.ts`: its own type-check ternary tested whether
+    // the *reference value* was truthy, not whether the key was
+    // *present* — since the merged reference shape's own `i`/`x`/`y`
+    // (among others) all resolve to `0`, their type check was silently
+    // skipped for every layout item, which is exactly why `y: 'a'`
+    // (a string, where every other field here is a number) went
+    // undetected. Fixed to use `Object.hasOwn(...)` instead. Verified by
+    // hand against every other test in this file before re-enabling —
+    // none of them change outcome under the fix, since each of their own
+    // affected fields either was already checked (truthy reference
+    // value) or happens to share the same runtime type as the reference
+    // value even where the actual value differs.
+    const data = Array.from({ length: 5 }, () => invalidRequiredLayout);
+    const result = layoutValidator(data);
 
-  //   expect(result).toBe(false);
-  // });
+    expect(result).toBe(false);
+  });
 
-  it(`Should return false When layout with required keys is invalid`, () => {
+  it(`Should return false when a required key is missing entirely (y absent, not just wrong-typed)`, () => {
     const data = Array.from({ length: 5 }, () => invalidRequiredLayoutTwo);
     const result = layoutValidator(data);
 

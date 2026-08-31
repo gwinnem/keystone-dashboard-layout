@@ -4,10 +4,15 @@ name: CI
 # task (typecheck, lint, test, build, ...) per package, automatically
 # skipping any package whose package.json doesn't define that script.
 # packages/vue, packages/react, and packages/angular all have full feature
-# parity and real test suites today; each still defines a slightly
-# different task set (e.g. Angular deliberately omits dev/lint/test:e2e —
-# see that package's own package.json _comment_scripts field for why),
-# which is exactly what turbo's own skip-if-undefined behavior is for.
+# parity and real test suites today, including e2e (packages/angular's own
+# test:e2e was added after the other two, running against a dedicated
+# angular.json application project rather than a Vite dev server, since
+# @analogjs/vite-plugin-angular hit a genuinely unresolved upstream bug for
+# this project's Angular target — see that package's own
+# package.json _comment_scripts field); each still defines a slightly
+# different task set otherwise (Angular deliberately omits dev/lint/
+# lint:fix — see that same field), which is exactly what turbo's own
+# skip-if-undefined behavior is for.
 on:
   push:
     branches: [main]
@@ -178,17 +183,45 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        # packages/vue and packages/react both define playwright.config.ts
-        # today (packages/angular deliberately has no e2e layer yet — see
-        # that package's own SUPPORT.md). This installs browsers once for
-        # whichever packages need them.
+        # packages/vue, packages/react, and packages/angular all define
+        # playwright.config.ts and pin the identical @playwright/test
+        # version — browsers are a single, version-keyed shared cache, so
+        # installing once here covers all three; no per-package install
+        # step needed.
         run: pnpm --filter @keystone-dashboard-layout/vue exec playwright install --with-deps
 
       - name: Run e2e tests
-        # turbo skips any package without a test:e2e script (packages/vue
-        # and packages/react both define one; packages/angular
-        # deliberately doesn't yet — see that package's own SUPPORT.md).
+        # turbo skips any package without a test:e2e script — all three
+        # framework packages define one today. NOTE, found while adding
+        # Angular's own explicit step below: a real, confirmed CI run
+        # showed this generic, turbo-orchestrated command only actually
+        # executing vue:test:e2e and react:test:e2e ("Tasks: 6
+        # successful, 6 total" — 4 builds + those 2 — despite turbo's own
+        # "Running test:e2e in 4 packages" scope line implying Angular
+        # was in scope too) — Angular's own test:e2e was silently absent
+        # from the task graph entirely, not failing. Root cause not
+        # fully isolated (Angular's own package.json does define
+        # "test:e2e": "playwright test", and turbo.json's own pipeline
+        # has no per-package override that would explain excluding it),
+        # but rather than chase a flaky task-discovery issue further,
+        # the explicit step below guarantees Angular's own suite actually
+        # runs and is clearly attributed in the log — matching this same
+        # job's own established pattern (bundle-size/package-install are
+        # already explicit per-package steps below, not one blanket
+        # command relied on for every package).
         run: pnpm test:e2e
+
+      - name: Run e2e tests (Angular package)
+        # Explicit, not folded into the generic step above — see that
+        # step's own comment for why: turbo's own task graph silently
+        # dropped this package's test:e2e in a real, observed CI run,
+        # despite the script existing. Confirmed working via a real
+        # local run (160 tests passing) before this was added — this
+        # isn't a guess at a fix, it's making an already-working suite
+        # actually reachable from CI. Uses --filter directly (bypassing
+        # turbo's own generic discovery) rather than retrying the
+        # identical command that already silently skipped it above.
+        run: pnpm --filter @keystone-dashboard-layout/angular run test:e2e
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Deliberately a single URL, not one entry per example — unlike astro-
+  docs' own sitemap (Starlight's built-in support, activated by setting
+  `site` in astro.config.mjs), which lists a real, separate static page
+  per example. This app is a client-side, hash-routed SPA
+  (main.ts's own withHashLocation()): every /#/examples/... route is
+  the exact same server response (this same index.html) with a
+  fragment identifier that never reaches the server at all, so search
+  engines have no separate URL to crawl or index per example — listing
+  52 hash fragments here would just be misleading, not genuinely more
+  indexable. The real per-example content (titles, descriptions) is
+  indexed instead through astro-docs' own docs pages, which link out to
+  each specific example route (see astro.config.mjs's own Angular
+  sidebar there) — this sitemap's only job is pointing crawlers at the
+  one real page this app actually serves.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://kdla.winnem.tech/</loc>
+  </url>
+</urlset>

@@ -101,7 +101,7 @@ export const layoutValidator = (layout: TLayout): boolean => {
     // `: true` branch already handles correctly.
     const validLayoutIndexable = validLayout as Record<string, unknown>;
     return layoutItemKeys
-      .map(k => (validLayoutIndexable[k] ? typeof l[k] === typeof validLayoutIndexable[k] : true))
+      .map(k => (Object.hasOwn(validLayoutIndexable, k) ? typeof l[k] === typeof validLayoutIndexable[k] : true))
       .includes(false);
   });
   return !validTypes.includes(true);

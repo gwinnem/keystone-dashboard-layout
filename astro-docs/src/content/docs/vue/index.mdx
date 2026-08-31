@@ -1,14 +1,81 @@
 ---
-title: Vue
-description: A draggable, resizable dashboard grid for Vue 3 — Composition API, fully typed, zero runtime dependencies.
+title: Vue Dashboard Grid Layout
+description: Draggable, resizable dashboard grid layout for Vue 3. Drag-and-drop widgets, responsive breakpoints, undo/redo, and zero runtime dependencies — a modern alternative to vue-grid-layout and grid-layout-plus.
 tableOfContents: false
 ---
 
-A draggable, resizable dashboard grid built on the Composition API — drag, resize, multi-select, and breakpoint-aware layouts, zero runtime dependencies.
+**Keystone Dashboard Layout for Vue** is a draggable, resizable
+dashboard grid component for Vue 3, built on the Composition API. If
+you're building a customizable analytics dashboard, a widget-based
+admin panel, a BI tool, or any screen where users rearrange their own
+content by dragging and resizing panels, this is the grid-layout engine
+underneath it — drag, resize from any of 8 edges/corners, multi-select
+with group move/resize, undo/redo, and breakpoint-aware responsive
+layouts, all with zero runtime dependencies.
 
 ```sh
 npm i @keystone-dashboard-layout/vue
 ```
+
+## Why teams pick this over `vue-grid-layout`
+
+The most well-known Vue grid-layout library, `vue-grid-layout`, has
+never shipped an official Vue 3 release — years after Vue 3 became the
+default. What filled that gap is a handful of independently maintained
+community forks (`grid-layout-plus` chief among them), each roughly
+matching the original's own feature set rather than extending it. This
+library is a ground-up Vue 3 implementation with a materially larger
+feature set: cross-grid drag-and-drop between independent grid
+instances, magnetic snap-to-grid, visual alignment guides, named
+layout presets, grid-to-SVG export, localizable ARIA strings, and
+undo/redo — none of which any Vue grid-layout alternative currently
+offers. See [Comparison: alternatives](/vue/guide/project/comparison-alternatives/)
+for the full, honestly-scored feature table.
+
+## A quick look
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GridLayout, GridItem } from '@keystone-dashboard-layout/vue';
+import type { TLayout } from '@keystone-dashboard-layout/core';
+
+const layout = ref<TLayout>([
+  { i: 'a', x: 0, y: 0, w: 2, h: 2 },
+  { i: 'b', x: 2, y: 0, w: 2, h: 2 },
+]);
+</script>
+
+<template>
+  <GridLayout v-model:layout="layout">
+    <GridItem v-for="item in layout" :key="item.i" :i="item.i">
+      Panel {{ item.i }}
+    </GridItem>
+  </GridLayout>
+</template>
+```
+
+That's a working, draggable, resizable, responsive dashboard grid — no
+manual position math, no separate drag library to wire up.
+
+## What you get
+
+- **Drag & resize** every panel, from any edge or corner, with
+  min/max size constraints and optional aspect-ratio locking.
+- **Automatic compaction** — other items move out of the way as you
+  drag or resize, with five pluggable compaction strategies (or bring
+  your own).
+- **Responsive breakpoints** — auto-generate a layout per breakpoint,
+  or hand it exact, pre-defined ones.
+- **Multi-select & group move/resize**, undo/redo, magnetic
+  snap-to-grid, and Figma-style alignment guides.
+- **Cross-grid drag-and-drop** between independent grid instances, and
+  native HTML5 drag-and-drop from entirely outside the grid.
+- **Full keyboard support** — arrow keys move, Shift+arrow resizes, no
+  mouse required.
+- **TypeScript-first**, with every prop, event, and type exported from
+  one entry point — see [Features](/vue/features/) for the complete,
+  categorized list.
 
 ## Jump in
 
@@ -17,4 +84,3 @@ npm i @keystone-dashboard-layout/vue
 - **[Components](/vue/components/)** — `GridLayout` and `GridItem`, every prop, event, and slot.
 - **[API reference](/vue/api/)** — interfaces, types, and enums exported from the package root.
 - **[Examples](/vue/examples/)** — 52 interactive, live-running examples — try before you copy.
-

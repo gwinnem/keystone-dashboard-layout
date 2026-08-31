@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>18/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>17/17</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -197,39 +197,39 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">19x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -281,40 +281,40 @@ export interface IEventEmitter&lt;Events extends Record&lt;string, unknown&gt;&g
  * `GridLayout`, exactly like `mitt()` was called once per instance
  * before this.
  */
-export function <span class="fstat-no" title="function not covered" >createEventEmitter&lt;Events extends Record&lt;string, unknown&gt;&gt;(): IEventEmitter&lt;Events&gt; {</span>
-  const listeners = <span class="cstat-no" title="statement not covered" >new Map&lt;keyof Events, Set&lt;TEventHandler&lt;Events[keyof Events]&gt;&gt;&gt;();</span>
+export function createEventEmitter&lt;Events extends Record&lt;string, unknown&gt;&gt;(): IEventEmitter&lt;Events&gt; {
+  const listeners = new Map&lt;keyof Events, Set&lt;TEventHandler&lt;Events[keyof Events]&gt;&gt;&gt;();
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return {</span>
-<span class="fstat-no" title="function not covered" >    on(t</span>ype, handler) {
-      let set = <span class="cstat-no" title="statement not covered" >listeners.get(type);</span>
-<span class="cstat-no" title="statement not covered" >      if(!set) {</span>
-<span class="cstat-no" title="statement not covered" >        set = new Set();</span>
-<span class="cstat-no" title="statement not covered" >        listeners.set(type, set);</span>
+  return {
+    on(type, handler) {
+      let set = listeners.get(type);
+      if(!set) {
+        set = new Set();
+        listeners.set(type, set);
       }
-<span class="cstat-no" title="statement not covered" >      set.add(handler as TEventHandler&lt;Events[keyof Events]&gt;);</span>
+      set.add(handler as TEventHandler&lt;Events[keyof Events]&gt;);
     },
-<span class="fstat-no" title="function not covered" >    off(t</span>ype, handler) {
-      const set = <span class="cstat-no" title="statement not covered" >listeners.get(type);</span>
-<span class="cstat-no" title="statement not covered" >      if(!set) {</span>
-<span class="cstat-no" title="statement not covered" >        return;</span>
+    off(type, handler) {
+      const set = listeners.get(type);
+      if(!set) {
+        return;
       }
-<span class="cstat-no" title="statement not covered" >      if(handler) {</span>
-<span class="cstat-no" title="statement not covered" >        set.delete(handler as TEventHandler&lt;Events[keyof Events]&gt;);</span>
+      if(handler) {
+        set.delete(handler as TEventHandler&lt;Events[keyof Events]&gt;);
       } else {
-<span class="cstat-no" title="statement not covered" >        set.clear();</span>
+        set.clear();
       }
     },
-<span class="fstat-no" title="function not covered" >    emit(t</span>ype: keyof Events, event?: Events[keyof Events]) {
-      const set = <span class="cstat-no" title="statement not covered" >listeners.get(type);</span>
-<span class="cstat-no" title="statement not covered" >      if(!set || set.size === 0) {</span>
-<span class="cstat-no" title="statement not covered" >        return;</span>
+    emit(type: keyof Events, event?: Events[keyof Events]) {
+      const set = listeners.get(type);
+      if(!set || set.size === 0) {
+        return;
       }
       // Snapshot via Array.from before iterating: a handler calling
       // `off()` on itself (or registering a new listener via `on()`)
       // during emit must not affect the set of handlers this specific
       // emit call runs — the same iteration-safety guarantee mitt's
       // own array-based handler lists provide.
-<span class="cstat-no" title="statement not covered" >      Array.from(set).<span class="fstat-no" title="function not covered" >forEach(h</span>andler =&gt; <span class="cstat-no" title="statement not covered" >handler(event as Events[keyof Events]))</span>;</span>
+      Array.from(set).forEach(handler =&gt; handler(event as Events[keyof Events]));
     },
   } as IEventEmitter&lt;Events&gt;;
 }
@@ -325,7 +325,7 @@ export function <span class="fstat-no" title="function not covered" >createEvent
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-29T19:15:03.098Z
+                at 2026-08-31T06:45:16.373Z
             </div>
         <script src="../prettify.js"></script>
         <script>

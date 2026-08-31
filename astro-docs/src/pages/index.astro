@@ -1,9 +1,46 @@
+---
+// Angular's own examples live in a real, separate, standalone Angular
+// app, not an astro-docs page (that page/folder was removed — see
+// Header.astro's own comment for the same link, used there for the
+// docs site's own top nav). import.meta.env.DEV points this at a real,
+// locally-running instance during local development; a real production
+// build points at the actual deployed subdomain.
+const ANGULAR_EXAMPLES_APP_URL = import.meta.env.DEV ? `http://localhost:4200` : `https://kdla.winnem.tech`;
+---
 
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Keystone Dashboard Layout — a draggable, resizable dashboard grid for Vue, React &amp; Angular</title>
+  <meta name="description" content="A draggable, resizable dashboard grid layout for Vue, React &amp; Angular — one framework-agnostic engine, minimal runtime dependencies, idiomatic components for all three. Collision handling, breakpoints, and undo/redo built in.">
+  <link rel="canonical" href="https://kdl.winnem.tech/">
+  <!-- Open Graph / Twitter — previously entirely absent from this page (a plain Astro page, not part of the Starlight `docs` collection, so the astro-og-canvas + route-middleware setup covering every other page on this site — see src/routeData.ts — doesn't reach this one; handled by hand here instead). og:image points at the same astro-og-canvas endpoint's own hand-added 'home' entry (src/pages/og/[...slug].ts), kept in sync with that file's own title/description for this page. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Keystone Dashboard Layout">
+  <meta property="og:title" content="Keystone Dashboard Layout — a draggable, resizable dashboard grid for Vue, React &amp; Angular">
+  <meta property="og:description" content="A draggable, resizable dashboard grid layout for Vue, React &amp; Angular — one framework-agnostic engine, minimal runtime dependencies, idiomatic components for all three.">
+  <meta property="og:url" content="https://kdl.winnem.tech/">
+  <meta property="og:image" content="https://kdl.winnem.tech/og/home.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Keystone Dashboard Layout — a draggable, resizable dashboard grid for Vue, React &amp; Angular">
+  <meta name="twitter:description" content="A draggable, resizable dashboard grid layout for Vue, React &amp; Angular — one framework-agnostic engine, minimal runtime dependencies, idiomatic components for all three.">
+  <meta name="twitter:image" content="https://kdl.winnem.tech/og/home.png">
+  <!-- JSON-LD — SoftwareApplication describing the overall, framework-agnostic project (distinct from the per-framework SoftwareSourceCode entries on each framework's own docs home page — see src/routeData.ts — which describe the individual npm packages specifically). -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Keystone Dashboard Layout',
+    description: 'A draggable, resizable dashboard grid layout for Vue, React & Angular — one framework-agnostic engine, minimal runtime dependencies, idiomatic components for all three.',
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Any',
+    url: 'https://kdl.winnem.tech/',
+    codeRepository: 'https://github.com/gwinnem/keystone-dashboard-layout',
+    license: 'https://opensource.org/licenses/MIT',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  })} />
   <script is:inline>
     // Runs before the body paints, so the correct theme is already
     // applied by the time anything is visible — doing this in the
@@ -188,6 +225,8 @@
     .picker-card-core .picker-links{margin-top:14px;}
     .picker-title{font-family:var(--kg-font-display);font-weight:600;font-size:18px;}
     .picker-desc{font-size:14px;line-height:1.55;color:var(--page-text-lo);}
+    .picker-stats{display:flex;flex-wrap:wrap;row-gap:4px;column-gap:14px;font-family:var(--kg-font-mono);font-size:11.5px;color:var(--page-text-lo);}
+    .picker-stats strong{color:var(--page-text);font-weight:500;}
     .picker-links{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
     .picker-link{font-family:var(--kg-font-mono);font-size:12.5px;display:flex;align-items:center;gap:6px;}
     .link-live{color:var(--link-live-color);}
@@ -327,11 +366,10 @@
             <li>
               <a
                 class="fw-select-option"
-                href="/angular/"
+                href={ANGULAR_EXAMPLES_APP_URL}
                 role="option">
                 <svg viewBox="0 0 24 24" fill="#DD0031"><path d="M16.712 17.711H7.288l-1.204 2.916L12 24l5.916-3.373-1.204-2.916ZM14.692 0l7.832 16.855.814-12.856L14.692 0ZM9.308 0 .662 3.999l.814 12.856L9.308 0Zm-.405 13.93h6.198L12 6.396 8.903 13.93Z"/></svg>
                 <span>Angular</span>
-                <span class="fw-select-option-status">SOON</span>
               </a>
             </li>
           </ul>
@@ -428,9 +466,20 @@
         <h1 class="headline">Drag it. Drop it.<br>Make it <span class="accent">yours.</span></h1>
         <p class="hero-sub">A draggable, resizable grid layout for dashboards — collision handling, breakpoints, and undo/redo built in. One framework-agnostic engine, zero runtime dependencies, with idiomatic components for <span class="fw-inline"><svg viewBox="0 0 24 24" fill="#42B883"><path d="M24,1.61H14.06L12,5.16,9.94,1.61H0L12,22.39ZM12,14.08,5.16,2.23H9.59L12,6.41l2.41-4.18h4.43Z"/></svg>Vue</span>, <span class="fw-inline"><svg viewBox="0 0 24 24" fill="#61DAFB"><path d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.345-.034-.46 0-.915.01-1.36.034.44-.572.895-1.096 1.345-1.565zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.345.034.46 0 .915-.01 1.36-.034-.44.572-.895 1.095-1.345 1.565-.455-.47-.91-.993-1.36-1.565z"/></svg>React</span>, and <span class="fw-inline"><svg viewBox="0 0 24 24" fill="#DD0031"><path d="M16.712 17.711H7.288l-1.204 2.916L12 24l5.916-3.373-1.204-2.916ZM14.692 0l7.832 16.855.814-12.856L14.692 0ZM9.308 0 .662 3.999l.814 12.856L9.308 0Zm-.405 13.93h6.198L12 6.396 8.903 13.93Z"/></svg>Angular</span>.</p>
         <div class="hero-meta">
-          <span><strong>21.8 KB</strong> gzip</span>
-          <span><strong>0</strong> dependencies</span>
-          <span><strong>99%</strong> statement coverage</span>
+          <!-- Framework-agnostic claims only — a single bundle-size/coverage
+               number can't honestly represent all three packages (real,
+               CI-confirmed spread: 17.96–96.77 KB gzip, 99.49%–100%
+               coverage; Angular's own build ships unminified ng-packagr
+               output, a real structural difference, not a regression).
+               Per-framework numbers now live on each picker card below
+               instead. "0 dependencies" is scoped explicitly to the
+               shared core (confirmed true: its own package.json has zero
+               runtime `dependencies`) rather than implying it for every
+               published package — Angular's own has one real external
+               dependency (tslib), unlike Vue/React's sole `dependency`
+               entry (the internal, bundled-away core workspace package). -->
+          <span><strong>0</strong> dependencies in the shared core</span>
+          <span><strong>99%+</strong> statement coverage, all three</span>
         </div>
       </div>
 
@@ -496,6 +545,8 @@
           <div class="picker-icon icon-vue"><svg viewBox="0 0 24 24" fill="#42B883"><path d="M24,1.61H14.06L12,5.16,9.94,1.61H0L12,22.39ZM12,14.08,5.16,2.23H9.59L12,6.41l2.41-4.18h4.43Z"/></svg></div>
           <div class="picker-title">Vue 3</div>
           <p class="picker-desc">Composition API, fully typed, 52 live interactive examples.</p>
+          <!-- Real, CI-confirmed numbers (run #16, packages/vue/scripts/check-bundle-size.js and vitest coverage/e2e output) — not the previous single blanket hero stat borrowed from this one package. -->
+          <div class="picker-stats"><span><strong>22.3 KB</strong> gzip</span><span><strong>100%</strong> coverage</span><span><strong>581</strong> unit tests</span><span><strong>184</strong> e2e tests</span></div>
           <div class="picker-links">
             <a class="picker-link link-live" href="/vue/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>Read the docs →</a>
             <a class="picker-link link-npm" href="https://www.npmjs.com/package/@keystone-dashboard-layout/vue" rel="noopener" target="_blank">View on <svg viewBox="0 0 24 24" fill="#CB3837"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg></a>
@@ -505,6 +556,8 @@
           <div class="picker-icon icon-react"><svg viewBox="0 0 24 24" fill="#61DAFB"><path d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.345-.034-.46 0-.915.01-1.36.034.44-.572.895-1.096 1.345-1.565zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.345.034.46 0 .915-.01 1.36-.034-.44.572-.895 1.095-1.345 1.565-.455-.47-.91-.993-1.36-1.565z"/></svg></div>
           <div class="picker-title">React</div>
           <p class="picker-desc">Same core engine, fully typed, 52 live interactive examples.</p>
+          <!-- Real, CI-confirmed numbers (run #16) — React's own bundle is smaller than Vue's, not the same 21.8 KB the old shared hero stat implied. -->
+          <div class="picker-stats"><span><strong>18.0 KB</strong> gzip</span><span><strong>99%</strong> coverage</span><span><strong>369</strong> unit tests</span><span><strong>180</strong> e2e tests</span></div>
           <div class="picker-links">
             <a class="picker-link link-live" href="/react/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>Read the docs →</a>
             <a class="picker-link link-npm" href="https://www.npmjs.com/package/@keystone-dashboard-layout/react" rel="noopener" target="_blank">View on <svg viewBox="0 0 24 24" fill="#CB3837"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg></a>
@@ -513,7 +566,9 @@
         <div class="picker-card is-live">
           <div class="picker-icon icon-angular"><svg viewBox="0 0 24 24" fill="#DD0031"><path d="M16.712 17.711H7.288l-1.204 2.916L12 24l5.916-3.373-1.204-2.916ZM14.692 0l7.832 16.855.814-12.856L14.692 0ZM9.308 0 .662 3.999l.814 12.856L9.308 0Zm-.405 13.93h6.198L12 6.396 8.903 13.93Z"/></svg></div>
           <div class="picker-title">Angular</div>
-          <p class="picker-desc">Standalone components, full feature parity with Vue and React.</p>
+          <p class="picker-desc">Standalone components, full feature parity with Vue and React, 52 live interactive examples.</p>
+          <!-- Real, CI-confirmed numbers (run #16) — genuinely larger than Vue/React: this package's own ng-packagr build ships unminified (a real, structural convention for Angular libraries, not a regression), so the raw comparison isn't apples-to-apples with Vite's already-minified Vue/React output. e2e count (160) is from a manual local run, not this CI run — this package has no e2e job in CI at all yet (confirmed — only vue:test:e2e/react:test:e2e ran there). -->
+          <div class="picker-stats"><span><strong>96.8 KB</strong> gzip</span><span><strong>100%</strong> coverage</span><span><strong>430</strong> unit tests</span><span><strong>160</strong> e2e tests</span></div>
           <div class="picker-links">
             <a class="picker-link link-live" href="/angular/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>Read the docs →</a>
             <a class="picker-link link-npm" href="https://www.npmjs.com/package/@keystone-dashboard-layout/angular" rel="noopener" target="_blank">View on <svg viewBox="0 0 24 24" fill="#CB3837"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg></a>
@@ -531,6 +586,8 @@
           <div class="picker-body">
             <div class="picker-title">Core</div>
             <p class="picker-desc">The framework-agnostic grid engine underneath all three — usable standalone, zero framework dependency.</p>
+            <!-- Real, CI-confirmed coverage (run #16). No gzip figure shown — unlike Vue/React/Angular, this package has no check:bundle-size script at all (confirmed via its own package.json), so there's no measured number to report; inventing one would repeat the exact mistake this whole pass was fixing. "0 dependencies" is confirmed directly: no `dependencies` field at all in this package's own package.json. No e2e count — this is the framework-agnostic engine, not a UI layer; it has no browser-driven e2e suite of its own to count at all (confirmed via package.json's own scripts), not merely an unmeasured one. -->
+            <div class="picker-stats"><span><strong>0</strong> dependencies</span><span><strong>99.9%</strong> coverage</span><span><strong>437</strong> unit tests</span></div>
             <div class="picker-links">
               <a class="picker-link link-live" href="/core/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>Read the docs →</a>
               <a class="picker-link link-npm" href="https://www.npmjs.com/package/@keystone-dashboard-layout/core" rel="noopener" target="_blank">View on <svg viewBox="0 0 24 24" fill="#CB3837"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"/></svg></a>
@@ -602,9 +659,9 @@
     // transition can never animate from. Each closes on an outside
     // click or Escape, and opening one closes any other that's already
     // open. Vue is marked is-current in each list as the default
-    // selection shown first — both Vue and React are LIVE now (their
-    // own picker cards and status badges reflect that); Angular is the
-    // only one still marked SOON.
+    // selection shown first — all three frameworks are LIVE now (their
+    // own picker cards and Examples dropdown entries reflect that; no
+    // status badge remains anywhere on this page).
     const fwSelects = Array.from(document.querySelectorAll('.fw-select'));
 
     const closeMenu = (fwSelect) => {

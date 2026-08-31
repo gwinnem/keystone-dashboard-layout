@@ -8,7 +8,7 @@
 </div>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/gwinnem/keystone-dashboard-layout/main/packages/vue/docs/Data%20Grid.svg" height="200" alt="logo">
+  <img src="https://raw.githubusercontent.com/gwinnem/keystone-dashboard-layout/main/packages/vue/docs/dashboard-preview.svg" width="500" alt="Keystone Dashboard Layout — a draggable, resizable dashboard grid preview">
 </p>
 
 <h1 align="center">@keystone-dashboard-layout/core</h1>

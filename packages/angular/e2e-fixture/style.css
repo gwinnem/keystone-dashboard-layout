@@ -1,0 +1,61 @@
+/* Minimal, utilitarian styling for the e2e test fixture only — not a
+   showcase/demo stylesheet. Just enough for items to have a visible,
+   non-zero bounding box for Playwright assertions; the library's own
+   src/styles/index.scss (imported via angular.json's own `styles`
+   array) already handles the real positioning/transition mechanics. */
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+}
+
+.fixture-nav button {
+  cursor: pointer;
+  margin: 4px;
+  padding: 6px 12px;
+}
+
+.fixture-main {
+  padding: 16px;
+}
+
+.fixture-item-content {
+  align-items: center;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  box-sizing: border-box;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+/*
+ * cross-grid.spec.ts's own grid B — starts with an empty layout, and
+ * heightMode's own default ('auto') computes an empty grid's own
+ * height as an explicit inline `height: 10px` (the empty-layout
+ * formula). A real, confirmed bug this rule had until now: it targeted
+ * `.kdl-grid-layout` itself (the host element), but that's *not* what
+ * `GridLayoutComponent`'s own cross-grid drop-target lookup actually
+ * measures — `zone.getRect()` reads `containerRef.nativeElement.
+ * getBoundingClientRect()`, and `containerRef` is a *plain, unclassed
+ * inner `<div>`* the host's own template wraps around its projected
+ * content (`<kdl-grid-layout><div #container>...</div></kdl-grid-
+ * layout>`, confirmed via a direct source read). That inner div gets
+ * its own *explicit* inline `height` from `containerStyle` — a fixed
+ * pixel value, not `height: 100%` of its parent — so it never inherits
+ * any size from the host at all, including whatever the host's own
+ * `min-height` resolves to. Confirmed live, via direct browser
+ * inspection during an actual cross-grid drag: the host itself
+ * correctly measured 200px throughout, while `zone.getRect()`'s own
+ * live read of the *inner div* reported exactly 10px (0 * (rowHeight +
+ * marginV) + marginV, i.e. the empty-layout formula) at the precise
+ * moment a drop landed inside it — genuinely too small an area to hit,
+ * which is why a drop aimed at grid B's own visual center kept missing
+ * silently. `> div` targets that real, load-bearing inner element
+ * directly, rather than the host whose own size turned out not to
+ * matter here at all.
+ */
+.cross-grid-empty-target > div {
+  min-height: 200px;
+}

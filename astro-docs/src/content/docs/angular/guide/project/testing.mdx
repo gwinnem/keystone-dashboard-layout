@@ -1,6 +1,6 @@
 ---
 title: Testing philosophy
-description: How Keystone Dashboard Layout for Angular is tested — unit, component, and what's left to a human.
+description: How Keystone Dashboard Layout for Angular is tested — unit, component, end-to-end, and what's left to a human.
 ---
 
 ## Unit & component tests — Jest + jest-preset-angular
@@ -27,8 +27,8 @@ Vitest builder only exists from v20 (experimental) / v21 (stable), and
 the third-party Vite/Angular integration route hit a genuinely
 unresolved upstream ecosystem bug. Karma (`angular.json`'s own
 project-scoped `test` architect target, plus `karma.conf.js`) is kept
-in the repository for a possible future full-app browser-flow e2e
-layer, but isn't used for unit/component tests at all.
+in the repository, predating the real e2e layer below, but isn't used
+for unit/component tests at all.
 
 ### A real, confirmed Stryker/Jest interaction worth knowing about
 
@@ -60,19 +60,81 @@ A few things need handling, since `jsdom` can't provide them natively:
   directly rather than simulating a full, real pointer gesture through
   `jsdom`.
 
-## End-to-end tests
+## End-to-end tests — Playwright
 
-No Playwright (or other browser-automation) e2e suite exists for this
-package as of this writing — unlike the Vue and React ports, which both
-have one. Karma's own project-scoped config is present in the
-repository (see above) as a possible foundation for a future one, but
-isn't wired up or run today. Track this on the
-[Roadmap](/angular/guide/project/roadmap/).
+**Correction to this page's own earlier claim**: a real Playwright e2e
+suite now exists for this package — confirmed via a direct, complete
+run, not assumed. Browser tests drive real drag/resize/responsive
+interactions against a dedicated test fixture app, across Chromium,
+Firefox, and WebKit, matching the Vue and React ports' own e2e setup
+and coverage shape.
+
+```sh
+npx playwright install    # first time only — downloads browser binaries
+pnpm test:e2e             # headless, all three browser engines
+pnpm test:e2e:ui          # interactive UI mode, good for writing new tests
+pnpm test:e2e:report      # open the HTML report from the last run
+```
+
+One genuine structural difference from Vue/React's own e2e setup: this
+suite runs against `e2e-fixture/` — a real, separate `angular.json`
+application project, served via the Angular CLI's own dev-server —
+rather than a Vite dev server. `@analogjs/vite-plugin-angular` hit a
+genuinely unresolved upstream ecosystem bug for this package's own
+Angular target (the same one that ruled out a Vitest-based unit-test
+setup above), so this package's own `playwright.config.ts` points at
+that dedicated fixture app instead.
+
+### What's covered
+
+| Area | Spec file |
+|---|---|
+| Basic grid | `basic-grid.spec.ts` |
+| Drag & resize | `drag-and-resize.spec.ts` |
+| Keyboard accessibility | `keyboard-accessibility.spec.ts` |
+| Dynamic items (add/remove) | `dynamic-items.spec.ts` |
+| Responsive breakpoints | `responsive.spec.ts` |
+| External (outside) drop | `external-drop.spec.ts` |
+| Cross-grid drag | `cross-grid.spec.ts` |
+| Multi-select | `multi-select.spec.ts` |
+| RTL mirroring | `rtl.spec.ts` |
+| Per-item overrides | `item-overrides.spec.ts` |
+| Advanced features (blocked-move feedback, `compactNow()`, `duplicateItem`, `snapToGrid`, save/load layout, `showGridLines`) | `advanced-features.spec.ts` |
+
+**Confirmed via a real, complete run**: all 160 tests pass, across all
+three browser engines (5 additional tests are browser-specific and
+correctly skip on engines they don't apply to). This run surfaced and
+fixed several genuine bugs in the library itself along the way — not
+just test-harness issues — including a compaction guard that silently
+never fired on an externally-driven layout change, a CSS
+stacking-context escape that let a static item's own negative
+`z-index` paint behind its container instead of just behind its
+siblings, a header-projection detection gap that only ever checked
+once at mount instead of reacting to a later toggle, an RTL resize-math
+bug where resizing from the left edge shifted the item's own right
+edge instead of holding it fixed, and a resize-hint gating gap where
+the 8 resize-hint spans rendered regardless of `isResizable`. Each is
+now covered by a dedicated assertion in the suite above, not just fixed
+and left unverified.
+
+### Notes on interaction tests
+
+Drag and resize tests drive real pointer input (mouse down → move in
+steps → up) rather than clicking a locator, since the native engine
+needs a real sequence of pointer events to recognize a drag/resize
+gesture — a single click won't trigger it. Same rationale, and the same
+underlying native engine (`@keystone-dashboard-layout/core`), as the
+Vue and React ports' own e2e tests. A few assertions specifically use a
+`stableBoundingBox()` helper (`e2e/helpers.ts`) rather than a single
+`boundingBox()` read — a CSS transition still settling at the exact
+moment of measurement was a real, confirmed source of flakiness in
+early runs, not a hypothetical one.
 
 ## Manual testing
 
-With no e2e suite yet, manual testing in a real browser currently
-covers meaningfully more ground for this package than for Vue/React —
-cross-browser drag/resize/responsive behavior, touch/mobile input, and
-screen-reader scenarios all need a human today, not just the harder-to-
-automate scenarios Vue/React's own e2e suites also leave to one.
+The e2e suite above covers real cross-browser drag/resize/responsive/
+keyboard/RTL behavior — meaningfully narrowing what still needs a
+human here relative to this page's own earlier state. Touch/mobile
+input (no dedicated touch-input spec exists yet, unlike the React
+port's own `touch-input.spec.ts`) and screen-reader scenarios still
+need a human in a real browser today.

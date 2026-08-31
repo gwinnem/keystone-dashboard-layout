@@ -151,6 +151,7 @@ interface ISpacingIndicatorStyle {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(click)': 'handleBackgroundClick($event)',
+    '[class.kdl-grid-layout--active-drag]': 'isDragging',
     class: `kdl-grid-layout`,
   },
   imports: [NgStyle, NgTemplateOutlet],
@@ -183,7 +184,7 @@ interface ISpacingIndicatorStyle {
   `,
 })
 export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy, OnInit {
-  /** The layout array — used here only for `autoSize`'s own container-height calculation and as the basis for collision resolution during a drag/resize; rendering each item is the consumer's own responsibility (see this class's own doc comment). Required. */
+  /** The layout array — used here only for `autoSize`'s own container-height calculation and as the basis for collision resolution during a drag/resize; rendering each item is the consumer's own responsibility (see this class's own doc comment). Reassigning this from outside (e.g. adding/removing an item) is automatically compacted — matching Vue's own `GridLayout.vue` behavior — so the standard `y: Infinity` "push it, let compaction find a real position" convention works the same way here as it does there; see `ngOnChanges`'s own doc comment for the full history of this. Required. */
   @Input({ required: true }) layout!: TLayout;
   /** Maximum number of columns. Ignored while `responsive` (below) is on, in favor of the resolved breakpoint's own column count. Default `12`, matching Vue/React's own default. */
   @Input() colNum = 12;
@@ -361,7 +362,27 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
   /** The measured container pixel width. Public for a consumer who wants to read it directly. */
   containerWidth = 0;
-  containerStyle: Record<string, string | number> = { position: `relative` };
+  /**
+   * Bug fix, found via a live e2e run (not assumed): without
+   * `isolation: isolate` here, a static item's own negative `z-index`
+   * (`.kdl-grid-item--static { z-index: -1; }`) can escape *this*
+   * inner container's own stacking order entirely and resolve against
+   * the *host*'s own stacking context instead (`.kdl-grid-layout`'s own
+   * `isolation: isolate`) — since this container has `position:
+   * relative` but no `z-index` of its own, it doesn't itself establish
+   * a stacking context, so a negative-z-index descendant's own
+   * "nearest stacking-context ancestor" resolves one level further up
+   * than its immediate DOM parent. Confirmed live: a static item with
+   * `z-index: -1` painted *behind this very container*, not merely
+   * behind its non-static siblings — `document.elementFromPoint()` at
+   * the static item's own center returned this container `<div>`
+   * itself, not the item. Establishing this container's own stacking
+   * context keeps a negative-z-index child contained within it, exactly
+   * matching what `.kdl-grid-item--static`'s own doc comment already
+   * assumes happens ("stays below its siblings," not "stays below its
+   * own immediate container too").
+   */
+  containerStyle: Record<string, string | number> = { isolation: `isolate`, position: `relative` };
   /** Currently-selected item ids (`multiSelect`) — a `Set` for O(1) `.has()` lookups, matching Vue's own `selectedItemIds`. Empty whenever `multiSelect` is off. */
   selectedItemIds = new Set<string | number>();
   /** Pixel-ready alignment-guide lines for the template — empty whenever `showAlignmentGuides` is off or nothing currently aligns. */
@@ -559,6 +580,56 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       // commit rather than relying on any of those other call sites.
       if(this.workingLayout.length !== previousLength && this.hasInitializedUndoTracking) {
         this.commitFromLastSnapshot();
+      }
+      // Auto-compact on any externally-driven layout change — a real,
+      // confirmed feature-parity gap against Vue's own GridLayout.vue,
+      // found via a live e2e run: that file's own `layoutUpdate()`
+      // (`watch(() => props.layout, ...)`) unconditionally runs
+      // compaction whenever its own `layout` prop changes at all, not
+      // just on a length change — this method, before this fix, never
+      // ran compaction on an externally-supplied layout at all, only on
+      // this component's own internal drag/resize/compactNow/
+      // duplicateItem call sites. Without it, a consumer using the
+      // standard `y: Infinity` "push it, let compaction find a real
+      // position" convention never got a resolved position at all —
+      // confirmed directly: the pushed item's own `y` stayed literally
+      // `Infinity` forever.
+      //
+      // The deep-equality check below is required, not optional: every
+      // `ICompactor.compact()` call returns a brand-new array reference
+      // regardless of whether anything actually moved (that interface's
+      // own contract) — comparing by reference alone would treat every
+      // single external layout change as "compaction changed something,"
+      // re-emitting `layoutChange` even against an already-settled
+      // layout. Since the natural consumer binding is `(layoutChange)=
+      // "layout = $event"`, that reassignment would re-trigger this
+      // exact branch again, forever. A `JSON.stringify` comparison
+      // (matching this class's own identical guard in
+      // `commitUndoPoint`) is what actually breaks that loop.
+      //
+      // Bug fix, found via a live e2e run (not assumed): the built-in
+      // compactors (`compactItem`, in `core`'s own `utils.ts`) mutate
+      // each layout item's own `y`/`x` *in place* on the array passed
+      // in — despite `ICompactor.compact()`'s own doc comment claiming
+      // "must not mutate the input" (a contract for a *custom*
+      // compactor to follow; the built-ins don't follow it themselves).
+      // Comparing `compacted` against `this.workingLayout` *after*
+      // calling `compact(this.workingLayout, ...)` was therefore always
+      // comparing the same, already-mutated objects against themselves
+      // — the guard below saw no difference on *every* call, not just
+      // redundant ones, silently skipping this branch unconditionally.
+      // Confirmed directly: a freshly-added item's own `y: Infinity`
+      // never resolved to a real position at all, even though the
+      // compactor itself correctly resolves `Infinity` when actually
+      // invoked (`compactItem`'s own `Number.isFinite` check) — the
+      // emit this depends on simply never fired. A snapshot taken
+      // *before* `compact()` mutates anything is what the comparison
+      // actually needs.
+      const beforeCompact = JSON.stringify(this.workingLayout);
+      const compacted = this.resolveCompactor().compact(this.workingLayout, this.effectiveColNum, { compactType: this.compactType });
+      if(JSON.stringify(compacted) !== beforeCompact) {
+        this.workingLayout = compacted;
+        this.layoutChange.emit(compacted);
       }
     }
     if(changes[`colNum`]) {
@@ -1743,6 +1814,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     // matching Vue's own containerOverflow() exactly.
     const overflowY = mode === `scroll` || mode === `fit` ? `auto` : undefined;
     this.containerStyle = {
+      isolation: `isolate`,
       position: `relative`,
       ...cssVars,
       ...(height !== undefined ? { height } : {}),

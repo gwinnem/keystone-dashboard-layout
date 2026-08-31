@@ -1446,21 +1446,25 @@ describe(`GridItemComponent`, () => {
     it(`Should apply an explicit zIndex as an inline style`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, w: 2, x: 0, y: 0, zIndex: 42 });
 
-      expect(fixture.nativeElement.querySelector(`div`)?.style.zIndex).toBe(`42`);
+      // Queries the host directly, not a child <div> — hostStyle is bound
+      // via `[style]: 'hostStyle'` on the component's own host (see that
+      // getter's own doc comment: applying it to an inner div instead was
+      // a real, confirmed bug, fixed by moving it to the host entirely).
+      expect((fixture.nativeElement as HTMLElement).style.zIndex).toBe(`42`);
     });
 
     it(`Should apply --kdl-resize-handle-color as transparent when showResizeHandles is explicitly false`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, showResizeHandles: false, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement.querySelector(`div`) as HTMLElement)?.style;
-      expect(style?.getPropertyValue(`--kdl-resize-handle-color`)).toBe(`transparent`);
+      const style = (fixture.nativeElement as HTMLElement).style;
+      expect(style.getPropertyValue(`--kdl-resize-handle-color`)).toBe(`transparent`);
     });
 
     it(`Should not set --kdl-resize-handle-color at all when showResizeHandles is left at its own default (null)`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement.querySelector(`div`) as HTMLElement)?.style;
-      expect(style?.getPropertyValue(`--kdl-resize-handle-color`)).toBe(``);
+      const style = (fixture.nativeElement as HTMLElement).style;
+      expect(style.getPropertyValue(`--kdl-resize-handle-color`)).toBe(``);
     });
 
     it(`Should render only the resizeHandles subset specified per-item, not all 8`, () => {
@@ -1523,15 +1527,15 @@ describe(`GridItemComponent`, () => {
     it(`Should apply the explicit resizeHandleColor when showResizeHandles is true`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, resizeHandleColor: `rgb(1, 2, 3)`, showResizeHandles: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement.querySelector(`div`) as HTMLElement)?.style;
-      expect(style?.getPropertyValue(`--kdl-resize-handle-color`)).toBe(`rgb(1, 2, 3)`);
+      const style = (fixture.nativeElement as HTMLElement).style;
+      expect(style.getPropertyValue(`--kdl-resize-handle-color`)).toBe(`rgb(1, 2, 3)`);
     });
 
     it(`Should fall back to the default resize-handle color when showResizeHandles is true but resizeHandleColor isn't set`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, showResizeHandles: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement.querySelector(`div`) as HTMLElement)?.style;
-      expect(style?.getPropertyValue(`--kdl-resize-handle-color`)).toBe(`rgb(94 94 94 / 45%)`);
+      const style = (fixture.nativeElement as HTMLElement).style;
+      expect(style.getPropertyValue(`--kdl-resize-handle-color`)).toBe(`rgb(94 94 94 / 45%)`);
     });
 
     it(`Should reflect isSelected via the eventBus's own selectedItemIds$, and drive the kdl-grid-item--selected host class`, () => {
@@ -2499,41 +2503,41 @@ describe(`GridItemComponent`, () => {
     it(`Should not apply a border-radius style at all when useBorderRadius is false (the default), but still set --kdl-close-button-inset to its own 4px baseline`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement.querySelector(`div`) as HTMLElement)?.style;
-      expect(style?.borderRadius).toBe(``);
-      expect(style?.getPropertyValue(`--kdl-close-button-inset`)).toBe(`4px`);
+      const style = (fixture.nativeElement as HTMLElement).style;
+      expect(style.borderRadius).toBe(``);
+      expect(style.getPropertyValue(`--kdl-close-button-inset`)).toBe(`4px`);
     });
 
     it(`Should apply border-radius and grow --kdl-close-button-inset with the radius when useBorderRadius is true`, () => {
       setInputsAndDetectChanges({ borderRadiusPx: 10, containerWidth: 1220, h: 2, i: `0`, useBorderRadius: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement.querySelector(`div`) as HTMLElement)?.style;
-      expect(style?.borderRadius).toBe(`10px`);
+      const style = (fixture.nativeElement as HTMLElement).style;
+      expect(style.borderRadius).toBe(`10px`);
       // min(4 + round(10*0.293), 24) = min(4+3, 24) = 7
-      expect(style?.getPropertyValue(`--kdl-close-button-inset`)).toBe(`7px`);
+      expect(style.getPropertyValue(`--kdl-close-button-inset`)).toBe(`7px`);
     });
 
     it(`Should compute the inset formula correctly at 0px (the 4px floor)`, () => {
       setInputsAndDetectChanges({ borderRadiusPx: 0, containerWidth: 1220, h: 2, i: `0`, useBorderRadius: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement.querySelector(`div`) as HTMLElement)?.style;
-      expect(style?.getPropertyValue(`--kdl-close-button-inset`)).toBe(`4px`);
+      const style = (fixture.nativeElement as HTMLElement).style;
+      expect(style.getPropertyValue(`--kdl-close-button-inset`)).toBe(`4px`);
     });
 
     it(`Should compute the inset formula correctly at a larger radius, below the cap`, () => {
       setInputsAndDetectChanges({ borderRadiusPx: 50, containerWidth: 1220, h: 2, i: `0`, useBorderRadius: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement.querySelector(`div`) as HTMLElement)?.style;
+      const style = (fixture.nativeElement as HTMLElement).style;
       // min(4 + round(50*0.293), 24) = min(4+15, 24) = 19
-      expect(style?.getPropertyValue(`--kdl-close-button-inset`)).toBe(`19px`);
+      expect(style.getPropertyValue(`--kdl-close-button-inset`)).toBe(`19px`);
     });
 
     it(`Should cap the inset formula at 24px for an extreme radius`, () => {
       setInputsAndDetectChanges({ borderRadiusPx: 100, containerWidth: 1220, h: 2, i: `0`, useBorderRadius: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement.querySelector(`div`) as HTMLElement)?.style;
+      const style = (fixture.nativeElement as HTMLElement).style;
       // min(4 + round(100*0.293), 24) = min(4+29, 24) = 24 (capped)
-      expect(style?.getPropertyValue(`--kdl-close-button-inset`)).toBe(`24px`);
+      expect(style.getPropertyValue(`--kdl-close-button-inset`)).toBe(`24px`);
     });
 
     it(`Should add the kdl-grid-item--use-radius host class only when resolvedUseBorderRadius is true`, () => {

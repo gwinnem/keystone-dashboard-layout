@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -166,17 +166,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -185,19 +181,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { ICrossGridZone } from '../interfaces/cross-grid.interfaces';
 &nbsp;
@@ -234,13 +234,13 @@
  * boundary at all, so it can't break this way regardless of where or
  * how this file ends up being loaded from.
  */
-const zones = <span class="cstat-no" title="statement not covered" >new Set&lt;ICrossGridZone&gt;();</span>
+const zones = new Set&lt;ICrossGridZone&gt;();
 &nbsp;
 /** Registers a zone; returns a function that deregisters it (call from `onBeforeUnmount`). */
-export function <span class="fstat-no" title="function not covered" >registerCrossGridZone(z</span>one: ICrossGridZone): () =&gt; void {
-<span class="cstat-no" title="statement not covered" >  zones.add(zone);</span>
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >  return () =&gt; {</span></span>
-<span class="cstat-no" title="statement not covered" >    zones.delete(zone);</span>
+export function registerCrossGridZone(zone: ICrossGridZone): () =&gt; void {
+  zones.add(zone);
+  return () =&gt; {
+    zones.delete(zone);
   };
 }
 &nbsp;
@@ -252,20 +252,20 @@ export function <span class="fstat-no" title="function not covered" >registerCro
  * layout can change between one drag and the next — or even during one,
  * if a page is scrollable.
  */
-export function <span class="fstat-no" title="function not covered" >findCrossGridZoneAt(x</span>: number, y: number, excludeLayoutId: string): ICrossGridZone | undefined {
-<span class="cstat-no" title="statement not covered" >  for(const zone of zones) {</span>
-<span class="cstat-no" title="statement not covered" >    if(zone.layoutId === excludeLayoutId) {</span>
-<span class="cstat-no" title="statement not covered" >      continue;</span>
+export function findCrossGridZoneAt(x: number, y: number, excludeLayoutId: string): ICrossGridZone | undefined {
+  for(const zone of zones) {
+    if(zone.layoutId === excludeLayoutId) {
+      continue;
     }
-    const rect = <span class="cstat-no" title="statement not covered" >zone.getRect();</span>
-<span class="cstat-no" title="statement not covered" >    if(!rect) {</span>
-<span class="cstat-no" title="statement not covered" >      continue;</span>
+    const rect = zone.getRect();
+    if(!rect) {
+      continue;
     }
-<span class="cstat-no" title="statement not covered" >    if(x &gt;= rect.left &amp;&amp; x &lt;= rect.right &amp;&amp; y &gt;= rect.top &amp;&amp; y &lt;= rect.bottom) {</span>
-<span class="cstat-no" title="statement not covered" >      return zone;</span>
+    if(x &gt;= rect.left &amp;&amp; x &lt;= rect.right &amp;&amp; y &gt;= rect.top &amp;&amp; y &lt;= rect.bottom) {
+      return zone;
     }
   }
-<span class="cstat-no" title="statement not covered" >  return undefined;</span>
+  return undefined;
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -274,7 +274,7 @@ export function <span class="fstat-no" title="function not covered" >findCrossGr
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-29T19:15:03.098Z
+                at 2026-08-31T06:45:16.373Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

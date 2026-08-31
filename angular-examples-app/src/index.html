@@ -3,9 +3,53 @@
 <head>
   <meta charset="utf-8" />
   <title>Keystone Dashboard Layout — Angular Examples</title>
+  <meta name="description" content="52 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages. Every example is the real, running component, not a screenshot.">
+  <!-- Canonical/OG/Twitter all point at the app's own root — see
+       sitemap.xml's own comment for why: this is a client-side,
+       hash-routed SPA (main.ts's own withHashLocation()), so every
+       /#/examples/... route is server-identical to this same page —
+       there's no separate static page per example to give its own
+       distinct meta tags the way astro-docs' own per-example pages
+       can. A single, accurate description of the whole app is more
+       honest here than fabricating per-route metadata that can't
+       actually vary. -->
+  <link rel="canonical" href="https://kdla.winnem.tech/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Keystone Dashboard Layout">
+  <meta property="og:title" content="Keystone Dashboard Layout — Angular Examples">
+  <meta property="og:description" content="52 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages.">
+  <meta property="og:url" content="https://kdla.winnem.tech/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Keystone Dashboard Layout — Angular Examples">
+  <meta name="twitter:description" content="52 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages.">
+  <!-- No og:image/twitter:image here — astro-docs' own equivalent tags
+       point at a per-page image generated at build time by
+       astro-og-canvas (src/pages/og/[...slug].ts); replicating that
+       dynamic generation for this plain Angular SPA is real, separate
+       work not done yet, not an oversight to paper over with a made-up
+       image URL. Add real og:image/twitter:image tags here once a
+       matching static (or generated) image actually exists. -->
+  <!-- SoftwareApplication JSON-LD, mirroring astro-docs' own landing
+       page (index.astro) structure, describing this app specifically
+       rather than duplicating that page's own project-wide entry. -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Keystone Dashboard Layout — Angular Examples",
+      "description": "52 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "url": "https://kdla.winnem.tech/",
+      "codeRepository": "https://github.com/gwinnem/keystone-dashboard-layout",
+      "license": "https://opensource.org/licenses/MIT",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "isPartOf": { "@type": "SoftwareApplication", "name": "Keystone Dashboard Layout", "url": "https://kdl.winnem.tech/" }
+    }
+  </script>
   <base href="/" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 </head>
 <body>
   <app-root></app-root>

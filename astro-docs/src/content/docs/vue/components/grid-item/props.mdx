@@ -10,7 +10,7 @@ Props that can defer to a `GridLayout` default (`isDraggable`,
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `h` | `number` (required) | — | Height, in grid row units. |
-| `i` | `string \| number` (required) | — | Unique identifier, matching this item's entry in the parent's `layout` array. |
+| `i` | `string \| number` (required) | — | Unique identifier, matching this item's entry in the parent's `layout` array. Must be either a non-empty string or a finite number — never both at once. String matching is case-insensitive (`'Widget-1'` matches `'widget-1'`); number matching is exact. |
 | `w` | `number` (required) | — | Width, in grid column units. |
 | `x` | `number` (required) | — | Starting horizontal position, in grid column units. |
 | `y` | `number` (required) | — | Starting vertical position, in grid row units. |

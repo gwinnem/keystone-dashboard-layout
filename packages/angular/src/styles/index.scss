@@ -75,8 +75,24 @@
   z-index: 1;
 }
 
+/**
+ * `display: block` — a real, confirmed bug this port had until now,
+ * found via a live e2e run (Playwright's own `toBeVisible()` correctly
+ * reporting every item as zero-size/hidden, despite screenshots
+ * showing them rendered) then confirmed directly via
+ * `getComputedStyle()` in a live browser: `<kdl-grid-item>`, like any
+ * unrecognized custom element, defaults to `display: inline` unless
+ * CSS says otherwise — unlike `.kdl-grid-layout` above, this rule never
+ * actually set it. An inline host with only absolutely-positioned
+ * children inside contributes *zero* width/height of its own to the
+ * page, even though that positioned content still paints normally
+ * (it's out of flow) — which is exactly why this went unnoticed
+ * visually for so long despite being a real, structural defect the
+ * whole time.
+ */
 .kdl-grid-item {
   box-sizing: border-box;
+  display: block;
   transition:
     left var(--grid-transition-duration, 200ms) var(--grid-transition-timing, ease),
     top var(--grid-transition-duration, 200ms) var(--grid-transition-timing, ease),
@@ -114,7 +130,40 @@
   box-shadow: 0 0 0 2px rgb(37 99 235 / 80%);
 }
 
-/* header content (GridItemHeaderDirective) — only applied when actually projected (see the `kdl-grid-item--has-header` host-class binding), so the no-header case's layout is completely unaffected. The header shrinks to fit its own content; the body (`.kdl-grid-item-body`) takes the remaining space and scrolls internally if its content overflows, rather than pushing the item's own fixed pixel height (which the grid's own layout math depends on staying accurate). */
+/*
+ * The plain wrapping `<div>` immediately inside `<kdl-grid-item>`'s own
+ * template — every other rule in this file targeting this item's own
+ * internal layout (`.kdl-grid-item--has-header`'s own `display: flex`,
+ * `.kdl-grid-item-content`'s own `height: 100%`) assumes this element
+ * is what it's styling, since the host itself (`<kdl-grid-item>`) has
+ * exactly one direct child: this div. A real, confirmed bug this port
+ * had until now, found via a live e2e run (not assumed) — this element
+ * had no CSS of its own at all before this rule, and `[class.kdl-grid-
+ * item--has-header]` was (wrongly) bound on the *host* instead of
+ * here, so that class's own `display: flex; flex-direction: column;`
+ * rule never actually applied to the element that contains the header/
+ * body children it needs to lay out (the host's only flex child is
+ * *this* div, not the header/body divs nested another level inside
+ * it) — the header rendered using plain, unstyled block flow instead,
+ * confirmed live: it visually escaped the item's own bounds entirely,
+ * rendering as bare text above the item's own box rather than a
+ * proper header bar inside it. `height: 100%` here is equally load-
+ * bearing, independent of the header case: without it, this div's own
+ * height was left undefined (falling back to auto, i.e. "whatever its
+ * own content needs"), so `.kdl-grid-item-content`'s own `height:
+ * 100%` — meant to fill the item's real, already-correctly-computed
+ * positioned height (set via `hostStyle`, on the host, not this div)
+ * — had no real height to resolve against either, and the item's own
+ * visible box never actually matched its configured row-height at all.
+ * `[class.kdl-grid-item--has-header]` moved onto this div fixes the
+ * flex-layout gap; this rule fixes the height gap, for every item
+ * regardless of whether it has a header at all.
+ */
+.kdl-grid-item-inner {
+  height: 100%;
+}
+
+/* header content (GridItemHeaderDirective) — only applied when actually projected (see the `kdl-grid-item--has-header` class binding on `.kdl-grid-item-inner`, this item's own direct wrapping div — not the host itself, which has no other direct child to lay out), so the no-header case's layout is completely unaffected. The header shrinks to fit its own content; the body (`.kdl-grid-item-body`) takes the remaining space and scrolls internally if its content overflows, rather than pushing the item's own fixed pixel height (which the grid's own layout math depends on staying accurate). */
 .kdl-grid-item--has-header {
   display: flex;
   flex-direction: column;

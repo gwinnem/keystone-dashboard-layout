@@ -8,7 +8,8 @@ A draggable, resizable dashboard grid, built as standalone components
 (`layout` `@Input()` + `layoutChange` `@Output()`) on the same shared
 `@keystone-dashboard-layout/core` engine the Vue and React packages
 use — drag, resize, multi-select, undo/redo, and breakpoint-aware
-layouts, zero runtime dependencies beyond Angular itself and RxJS.
+layouts, with minimal runtime dependencies beyond Angular itself and
+RxJS (`tslib` and the shared `core` package).
 
 ```sh
 npm i @keystone-dashboard-layout/angular
@@ -22,8 +23,10 @@ npm i @keystone-dashboard-layout/angular
 The `@keystone-dashboard-layout/angular` package itself has reached
 full feature parity with Vue and React — every item in its own prop
 inventory is implemented, with a real, extensive unit/component test
-suite (Jest) and mutation testing (Stryker) configured. All of this
-package's own interactive examples have now been ported and verified
+suite (Jest), mutation testing (Stryker), and a real Playwright e2e
+suite (160 tests across 11 spec files, all passing on Chromium/
+Firefox/WebKit) all configured. All of this package's own interactive
+examples have now been ported and verified
 too, though they currently live in a separate, standalone Angular CLI
 app rather than as embedded Astro islands here (see
 [Features](/angular/features/) for why). Documentation is being

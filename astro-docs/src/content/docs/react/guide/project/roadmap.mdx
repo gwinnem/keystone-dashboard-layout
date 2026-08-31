@@ -70,11 +70,22 @@ eventbus-events/slots, `CustomCloseButton`, `CustomDragElement`, 3
 styling pages) and 13 API pages. This package has 4 Components pages
 and 10 [API](/react/api/) pages (6 of which are dedicated pages for the
 `core`-shared interfaces/types/enums, added after the earlier
-`react/api.mdx` fix). Whether
-the thinner Components section reflects a genuine paradigm difference
-(React's render-props/callback-props model doesn't need Vue's separate
-slots/emits split) or a real content gap hasn't been confirmed either
-way — worth a deliberate decision rather than leaving it ambiguous.
+`react/api.mdx` fix). A direct, page-by-page comparison (see
+[`astro-docs/DOCUMENTATION_PARITY_GAP.md`](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/astro-docs/DOCUMENTATION_PARITY_GAP.md))
+confirmed most of that gap is a legitimate paradigm difference, not
+missing content: this package's single `styling.mdx` covers the same
+ground as Vue's three styling pages combined, `imperative-handle.mdx`
+is a genuine equivalent of Vue's own `exposed-state.mdx` (same shape,
+same members), and Vue's `slots.mdx`/`eventbus.mdx` pages document
+Vue-specific internals (slots, an internal event-bus) this package's
+own children/callback-props model and architecture don't have a direct
+equivalent of. **Two real, concrete gaps that comparison did surface**:
+no `api/enums/grid-item-events.mdx` or `grid-layout-events.mdx` the way
+Vue has, and no `components/custom-close-button.mdx`/
+`custom-drag-element.mdx` pages — worth confirming this package
+actually exports comparable standalone utility components before
+deciding whether those two are pages to write or genuinely not
+applicable here.
 
 ### A real, live CI run of `mutation-test-react`
 

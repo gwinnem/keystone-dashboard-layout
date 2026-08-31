@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -156,7 +156,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -166,7 +166,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -175,7 +175,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -185,21 +185,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * Selects the built-in compaction strategy `GridLayout` uses (via its
@@ -225,7 +225,7 @@
  * `verticalCompact: true`, and RGL's own default) is the default here
  * too, for the same reason.
  */
-export <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >enum E</span>CompactType {</span>
+export enum ECompactType {
   /**
    * No compaction at all — items stay exactly where placed, gaps
    * included. Colliding items still get pushed down out of the way
@@ -235,7 +235,7 @@ export <span class="cstat-no" title="statement not covered" ><span class="fstat-
    * off" — turning compaction off has never meant turning collision
    * resolution off too, and this preserves that.
    */
-<span class="cstat-no" title="statement not covered" >  NONE = `none`,</span>
+  NONE = `none`,
   /**
    * Items compact leftward, floating to the smallest available `x`
    * without colliding with anything already placed. New: this project
@@ -244,7 +244,7 @@ export <span class="cstat-no" title="statement not covered" ><span class="fstat-
    * which direction a *colliding* item gets shifted during an active
    * drag, not how the resting layout settles).
    */
-<span class="cstat-no" title="statement not covered" >  HORIZONTAL = `horizontal`,</span>
+  HORIZONTAL = `horizontal`,
   /**
    * Horizontal compaction, but every non-static item is moved straight
    * to `x: 0` unconditionally, ignoring collisions entirely — matching
@@ -254,21 +254,21 @@ export <span class="cstat-no" title="statement not covered" ><span class="fstat-
    * concern this enum doesn't attempt to cover). Items may end up
    * visually overlapping as a result; nothing here resolves that.
    */
-<span class="cstat-no" title="statement not covered" >  HORIZONTAL_OVERLAP = `horizontal-overlap`,</span>
+  HORIZONTAL_OVERLAP = `horizontal-overlap`,
   /**
    * Items compact upward, floating to the smallest available `y`
    * without colliding with anything already placed. This project's own
    * pre-existing `verticalCompact: true` behavior, and the default for
    * both this enum and (previously) that removed boolean prop.
    */
-<span class="cstat-no" title="statement not covered" >  VERTICAL = `vertical`,</span>
+  VERTICAL = `vertical`,
   /**
    * Vertical compaction, but every non-static item is moved straight to
    * `y: 0` unconditionally, ignoring collisions entirely. Same
    * overlap-during-compaction semantics as `HORIZONTAL_OVERLAP` above,
    * applied to the vertical axis.
    */
-<span class="cstat-no" title="statement not covered" >  VERTICAL_OVERLAP = `vertical-overlap`,</span>
+  VERTICAL_OVERLAP = `vertical-overlap`,
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -277,7 +277,7 @@ export <span class="cstat-no" title="statement not covered" ><span class="fstat-
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-29T19:15:03.098Z
+                at 2026-08-31T06:45:16.373Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

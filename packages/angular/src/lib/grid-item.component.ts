@@ -1,4 +1,5 @@
 import {
+  AfterContentChecked,
   AfterContentInit,
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -18,7 +19,7 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { NgStyle, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { GridItemHeaderDirective } from './grid-item-header.directive';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest } from 'rxjs';
@@ -152,13 +153,14 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
     '[class.kdl-grid-item--selected]': 'isSelected',
     '[class.kdl-grid-item--static]': 'isStatic',
     '[class.kdl-grid-item--use-radius]': 'resolvedUseBorderRadius',
+    '[style]': 'hostStyle',
     class: `kdl-grid-item`,
   },
-  imports: [NgStyle, NgTemplateOutlet],
+  imports: [NgTemplateOutlet],
   selector: `kdl-grid-item`,
   standalone: true,
   template: `
-    <div [ngStyle]="hostStyle">
+    <div class="kdl-grid-item-inner" [class.kdl-grid-item--has-header]="hasHeaderContent">
       @if (resolvedShowCloseButton && !isStatic && resolvedEnableEditMode) {
         <button class="kdl-grid-item-close-button" type="button" (click)="handleCloseButtonClick($event)">
           <span aria-hidden="true" class="kdl-grid-item-close-button-icon"></span>
@@ -176,42 +178,42 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
           <ng-content select="[kdlGridItemHeader]"></ng-content>
         </div>
       }
-      @if (resolvedResizeHandles.includes('n')) {
+      @if (isResizableAndNotStatic && resolvedResizeHandles.includes('n')) {
         <span #nHandle class="kdl-resize-hint kdl-resize-hint--n">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'n', edge: 'n' }"></ng-container>
         </span>
       }
-      @if (resolvedResizeHandles.includes('s')) {
+      @if (isResizableAndNotStatic && resolvedResizeHandles.includes('s')) {
         <span #sHandle class="kdl-resize-hint kdl-resize-hint--s">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 's', edge: 's' }"></ng-container>
         </span>
       }
-      @if (resolvedResizeHandles.includes('e')) {
+      @if (isResizableAndNotStatic && resolvedResizeHandles.includes('e')) {
         <span #eHandle class="kdl-resize-hint kdl-resize-hint--e">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'e', edge: 'e' }"></ng-container>
         </span>
       }
-      @if (resolvedResizeHandles.includes('w')) {
+      @if (isResizableAndNotStatic && resolvedResizeHandles.includes('w')) {
         <span #wHandle class="kdl-resize-hint kdl-resize-hint--w">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'w', edge: 'w' }"></ng-container>
         </span>
       }
-      @if (resolvedResizeHandles.includes('ne')) {
+      @if (isResizableAndNotStatic && resolvedResizeHandles.includes('ne')) {
         <span #neHandle class="kdl-resize-hint kdl-resize-hint--ne">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'ne', edge: 'ne' }"></ng-container>
         </span>
       }
-      @if (resolvedResizeHandles.includes('nw')) {
+      @if (isResizableAndNotStatic && resolvedResizeHandles.includes('nw')) {
         <span #nwHandle class="kdl-resize-hint kdl-resize-hint--nw">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'nw', edge: 'nw' }"></ng-container>
         </span>
       }
-      @if (resolvedResizeHandles.includes('se')) {
+      @if (isResizableAndNotStatic && resolvedResizeHandles.includes('se')) {
         <span #seHandle class="kdl-resize-hint kdl-resize-hint--se">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'se', edge: 'se' }"></ng-container>
         </span>
       }
-      @if (resolvedResizeHandles.includes('sw')) {
+      @if (isResizableAndNotStatic && resolvedResizeHandles.includes('sw')) {
         <span #swHandle class="kdl-resize-hint kdl-resize-hint--sw">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'sw', edge: 'sw' }"></ng-container>
         </span>
@@ -222,7 +224,7 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
     </div>
   `,
 })
-export class GridItemComponent implements AfterContentInit, AfterViewInit, OnChanges, OnDestroy, OnInit {
+export class GridItemComponent implements AfterContentChecked, AfterContentInit, AfterViewInit, OnChanges, OnDestroy, OnInit {
   /** Unique identifier matching this item's entry in the parent `GridLayout`'s `layout` array. Required. */
   @Input({ required: true }) i!: string | number;
   /** Horizontal position, in grid column units. Required. */
@@ -425,10 +427,10 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
    */
   resolvedEnableEditMode = true;
   /**
-   * Whether header content was actually projected (Phase 22) — set
-   * once, in `ngAfterContentInit`, from `headerContentQuery`'s own
-   * resolved presence. The Angular equivalent of Vue's own reactive
-   * `!!$slots.header` check (`GridItem.vue`'s own `v-if="$slots.
+   * Whether header content was actually projected (Phase 22) — kept
+   * current every content-check cycle (see `ngAfterContentChecked`
+   * below), not just once at init. The Angular equivalent of Vue's own
+   * reactive `!!$slots.header` check (`GridItem.vue`'s own `v-if="$slots.
    * header"`) — Angular's named `<ng-content select="...">`
    * projection has no built-in way to ask this from within the
    * component class itself, hence `GridItemHeaderDirective`'s own
@@ -463,6 +465,17 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
   private autoHeightObserver: ResizeObserver | undefined;
   private nativeDraggable: { destroy: () => void } | undefined;
   private nativeResizable: { destroy: () => void } | undefined;
+  /**
+   * The last-known value of `isResizableAndNotStatic`, compared against
+   * on every `resolveGridDefaults()` call (from both `ngOnChanges` and
+   * the `gridDefaults$` subscription) to detect a genuine change worth
+   * re-wiring the native resize engine over — see `checkResizableToggle`'s
+   * own doc comment for why this re-wiring is necessary at all.
+   * `undefined` until `ngAfterViewInit` first runs (before that, the
+   * resize-hint spans this reads `@ViewChild` references from don't
+   * exist yet regardless of this value).
+   */
+  private lastResizableAndNotStatic: boolean | undefined;
   private readonly autoScrollEngine: INativeAutoScroll = createNativeAutoScroll();
   /** The most recently received (or, absent any eventBus, standalone-usage-default) `IGridDefaults` snapshot — kept so `resolveGridDefaults()` can be re-run from `ngOnChanges` whenever this item's own `isDraggable`/`isResizable`/`isBounded`/`isMirrored`/`maxRows` change, without needing to wait for the grid's own next emission too. */
   private latestGridDefaults: IGridDefaults = { ariaLabels: {}, borderRadiusPx: 10, enableEditMode: true, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false };
@@ -476,6 +489,38 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
 
   ngAfterContentInit(): void {
     this.hasHeaderContent = !!this.headerContentQuery;
+  }
+
+  /**
+   * Bug fix, found via a live e2e run (not assumed): `ngAfterContentInit`
+   * only ever runs once, right after this component's own *first*
+   * content-projection pass — it never re-fires when a consumer
+   * conditionally projects `[kdlGridItemHeader]` content *after* initial
+   * render (e.g. an `@if` in the consumer's own template, toggled later),
+   * which is exactly this project's own documented, supported use case
+   * (`GridItemHeaderDirective`'s own doc comment describes it as a
+   * queryable marker for *whether* header content is projected, with no
+   * caveat that this can only be decided once at mount). Confirmed live:
+   * toggling a consumer's own header-content `@if` on after the item had
+   * already rendered left `hasHeaderContent` permanently `false` — the
+   * `kdl-grid-item--has-header` host class, and the `.kdl-grid-item-
+   * header` wrapper div itself, never appeared at all. `ngAfterContentChecked`
+   * runs on every change-detection pass (after `@ContentChild` queries
+   * have been re-resolved against the current projected content), so
+   * re-reading `headerContentQuery` here keeps this current continuously
+   * — matching Vue's own `$slots.header` check, which is naturally
+   * reactive on every re-render. `markForCheck()` only when the resolved
+   * value actually changed — this component is `OnPush`, and calling it
+   * unconditionally on every single content-check cycle (which happens
+   * far more often than genuine header-content changes) would be needless
+   * churn.
+   */
+  ngAfterContentChecked(): void {
+    const next = !!this.headerContentQuery;
+    if(next !== this.hasHeaderContent) {
+      this.hasHeaderContent = next;
+      this.changeDetectorRef.markForCheck();
+    }
   }
 
   ngOnInit(): void {
@@ -536,42 +581,8 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
   }
 
   ngAfterViewInit(): void {
-    const handles: Partial<Record<`e` | `n` | `ne` | `nw` | `s` | `se` | `sw` | `w`, HTMLElement>> = {};
-    if(this.nHandleRef) {
-      handles.n = this.nHandleRef.nativeElement;
-    }
-    if(this.sHandleRef) {
-      handles.s = this.sHandleRef.nativeElement;
-    }
-    if(this.eHandleRef) {
-      handles.e = this.eHandleRef.nativeElement;
-    }
-    if(this.wHandleRef) {
-      handles.w = this.wHandleRef.nativeElement;
-    }
-    if(this.neHandleRef) {
-      handles.ne = this.neHandleRef.nativeElement;
-    }
-    if(this.nwHandleRef) {
-      handles.nw = this.nwHandleRef.nativeElement;
-    }
-    if(this.seHandleRef) {
-      handles.se = this.seHandleRef.nativeElement;
-    }
-    if(this.swHandleRef) {
-      handles.sw = this.swHandleRef.nativeElement;
-    }
-
-    this.nativeResizable = createNativeResizable(
-      this.elementRef.nativeElement,
-      handles,
-      () => ({
-        enabled: this.resolvedIsResizable && !this.isStatic,
-        ignoreFrom: this.resizeIgnoreFrom,
-      }),
-      event => this.handleResize(event),
-    );
-
+    this.setupNativeResizable();
+    this.lastResizableAndNotStatic = this.isResizableAndNotStatic;
     this.setupAutoHeight();
   }
 
@@ -653,6 +664,94 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
     // other four above (confirmed via a direct read of Vue's own
     // GridItem.vue, not assumed symmetric with the others).
     this.resolvedMaxRows = this.eventBus ? this.latestGridDefaults.maxRows : this.maxRows;
+    this.checkResizableToggle();
+  }
+
+  /**
+   * Detects a genuine change in `isResizableAndNotStatic` (whichever of
+   * `isResizable`/`isStatic`/`enableEditMode` — direct `@Input()` or the
+   * grid-wide cascade — actually flipped the resolved value) and, if so,
+   * tears down and re-creates the native resize engine on a deferred
+   * microtask. Necessary, not merely tidy: the 8 resize-hint spans' own
+   * template condition now includes `isResizableAndNotStatic` (a real,
+   * confirmed bug fix — they previously rendered regardless of
+   * `isResizable` at all, contradicting this component's own
+   * `resizeHandles`'s own doc comment, and confirmed against React's own
+   * `GridItem.tsx`, which explicitly gates its own resize-hint spans on
+   * `resolvedResizable`). But `nativeResizable` (`createNativeResizable`)
+   * is wired to a fixed set of `HTMLElement` references read via
+   * `@ViewChild` — Angular's own static-query timing, unlike React's
+   * per-render ref callbacks. Toggling `isResizableAndNotStatic` off then
+   * back on destroys and recreates those 8 `<span>` elements as this
+   * structural `@if`'s own direct consequence, leaving the *original*
+   * `nativeResizable` instance pointing at DOM nodes that no longer
+   * exist. `@ViewChild` queries are themselves re-evaluated on every
+   * change-detection pass, so `this.nHandleRef` etc. do correctly resolve
+   * to the *new* elements once Angular's own rendering for this pass has
+   * completed — which is exactly why this defers via microtask rather
+   * than re-wiring synchronously (this method runs *during* that same
+   * change-detection pass, before the new nodes exist yet).
+   */
+  private checkResizableToggle(): void {
+    if(this.lastResizableAndNotStatic === undefined || this.lastResizableAndNotStatic === this.isResizableAndNotStatic) {
+      return;
+    }
+    this.lastResizableAndNotStatic = this.isResizableAndNotStatic;
+    Promise.resolve().then(() => {
+      this.teardownNativeResizable();
+      this.setupNativeResizable();
+    });
+  }
+
+  /**
+   * Reads the 8 resize-hint `@ViewChild` references (whichever are
+   * currently present — a per-item `resizeHandles` restriction means
+   * some or all are legitimately absent) and wires up `core`'s own
+   * `createNativeResizable` against them. Extracted into its own method
+   * (from `ngAfterViewInit`, its only call site) purely for readability
+   * — no behavior change from the original inline version.
+   */
+  private setupNativeResizable(): void {
+    const handles: Partial<Record<`e` | `n` | `ne` | `nw` | `s` | `se` | `sw` | `w`, HTMLElement>> = {};
+    if(this.nHandleRef) {
+      handles.n = this.nHandleRef.nativeElement;
+    }
+    if(this.sHandleRef) {
+      handles.s = this.sHandleRef.nativeElement;
+    }
+    if(this.eHandleRef) {
+      handles.e = this.eHandleRef.nativeElement;
+    }
+    if(this.wHandleRef) {
+      handles.w = this.wHandleRef.nativeElement;
+    }
+    if(this.neHandleRef) {
+      handles.ne = this.neHandleRef.nativeElement;
+    }
+    if(this.nwHandleRef) {
+      handles.nw = this.nwHandleRef.nativeElement;
+    }
+    if(this.seHandleRef) {
+      handles.se = this.seHandleRef.nativeElement;
+    }
+    if(this.swHandleRef) {
+      handles.sw = this.swHandleRef.nativeElement;
+    }
+
+    this.nativeResizable = createNativeResizable(
+      this.elementRef.nativeElement,
+      handles,
+      () => ({
+        enabled: this.resolvedIsResizable && !this.isStatic,
+        ignoreFrom: this.resizeIgnoreFrom,
+      }),
+      event => this.handleResize(event),
+    );
+  }
+
+  private teardownNativeResizable(): void {
+    this.nativeResizable?.destroy();
+    this.nativeResizable = undefined;
   }
 
   /** `multiSelect` support (Phase 7) — reports the click up to `GridLayoutComponent` via the eventBus, matching Vue's own `itemClickedHandler`. `stopPropagation()` is required, not optional: without it, the click also bubbles to `GridLayoutComponent`'s own host `(click)` binding (`handleBackgroundClick`), which would immediately clear the very selection this same click just set. A no-op with no eventBus present (standalone usage). */
@@ -873,7 +972,32 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
     this.eventBus?.emitItemResize({ eventType: `resizeend`, h, i: this.i, w, x: this.x, y: this.y });
   }
 
-  /** `zIndex`/`showResizeHandles`/`resizeHandleColor`, applied as an inline style on the projected `<div>` (not the host) so they combine cleanly with `style` (position/size) via `NgStyle`'s own object-merge, matching how Vue applies every one of these as part of the same single `:style` binding. */
+  /**
+   * `zIndex`/`showResizeHandles`/`resizeHandleColor`, merged with
+   * `computeStyle()`'s own position/transform/width/height and applied
+   * directly to this component's own host element (`<kdl-grid-item>`)
+   * via the `'[style]': 'hostStyle'` binding in `@Component`'s own
+   * `host` object above — matching Vue's own `GridItem.vue` exactly,
+   * which applies its entire equivalent style directly to its own root
+   * element the same way.
+   *
+   * A real, confirmed bug existed here until now: an earlier version
+   * applied this same object to an *inner* `<div>` instead of the host,
+   * found via a live e2e run (Playwright's own `toBeVisible()`
+   * correctly reporting every item as zero-size/hidden) and confirmed
+   * directly via `getComputedStyle()` in a live browser. Since
+   * `computeStyle()`'s own position is always `absolute` (taken out of
+   * normal flow), applying it only to a child left the host itself
+   * with no dimensions of its own — including `data-grid-item-id`, the
+   * attribute any real consumer's own tests query by. Moving the whole
+   * style to the host is the complete fix, not a partial one (e.g.
+   * copying only width/height to the host while leaving the full style
+   * on the inner div too was tried and reverted: with the host also
+   * `display: block`, per-item hosts then stacked in normal vertical
+   * block flow, each occupying real space one after another, instead of
+   * each being independently positioned via its own `position: absolute`
+   * the way a single, unified style application achieves).
+   */
   get hostStyle(): Record<string, string | number> {
     const merged: Record<string, string | number> = { ...this.style };
     if(this.zIndex !== null) {
@@ -1359,7 +1483,39 @@ export class GridItemComponent implements AfterContentInit, AfterViewInit, OnCha
 
     let newX = this.x;
     let newY = this.y;
-    const anchorEdgeActive = this.resolvedIsMirrored ? this.activeEdges.right : this.activeEdges.left;
+    // Bug fix, found via a live e2e run (not assumed) — a real, deterministic
+    // bug, not flakiness: this reproduced with byte-identical values on
+    // every single run ("Expected: 738, Received: 841", every time). In
+    // LTR, `x` (grid-unit, left-anchored) is the authoritative quantity:
+    // dragging the right edge changes `w` but genuinely leaves the left
+    // edge's own position untouched, so gating this recalculation on
+    // `activeEdges.left` specifically (only recompute when the *left*
+    // edge itself moved) is correct there. RTL breaks that symmetry:
+    // `x` is *always* a derived value there (`colNum - rightAnchorGridX
+    // - w`), never an independent anchor of its own — so even when only
+    // the *left* handle is active (`activeEdges.left`, not `right`) and
+    // `newSize.horizontal` (the right-anchor pixel value) never itself
+    // changes on that branch (see the `resizemove` case above: the
+    // `activeEdges.left` branch only ever reassigns `newSize.width`, never
+    // `newSize.horizontal`), the *same* right-anchor pixel value combined
+    // with the *new, larger* width still resolves to a genuinely
+    // different grid-unit `x` than before. Gating this on `this.
+    // activeEdges.right` alone (the old `anchorEdgeActive`, unconditionally
+    // reused for both directions) skipped that recalculation entirely
+    // whenever the *left* handle drove an RTL resize — `x` stayed at its
+    // stale, pre-resize value while `w` grew, which the RTL branch of
+    // `computeStyle()`'s own `right = colWidth*(colNum-x-w)+...` formula
+    // then resolves to a *smaller* `right`, visibly shifting the item's
+    // own right edge further right instead of holding it fixed — exactly
+    // the observed, reproduced failure. Recomputing whenever *either*
+    // horizontal edge is active in RTL (`activeEdges.left ||
+    // activeEdges.right`) closes this: the right-anchor pixel value used
+    // (`newSize.horizontal`) is already correct either way (unchanged when
+    // only the left edge moved, freshly updated when the right edge did),
+    // so re-deriving `x` from it plus the current, already-correct `pos.w`
+    // is safe and correct regardless of which edge actually drove the
+    // gesture.
+    const anchorEdgeActive = this.resolvedIsMirrored ? (this.activeEdges.left || this.activeEdges.right) : this.activeEdges.left;
     if(anchorEdgeActive && newSize.horizontal !== undefined) {
       const anchorGridX = this.pixelsToGridX(newSize.horizontal, pos.w);
       newX = this.resolvedIsMirrored ? this.colNum - anchorGridX - pos.w : anchorGridX;

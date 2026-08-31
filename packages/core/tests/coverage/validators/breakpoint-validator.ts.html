@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -99,7 +99,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -113,11 +113,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">28x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { keysValidator } from './keys-validator';
 import { TBreakpoints } from '../layout-definition';
@@ -127,7 +127,7 @@ import { TBreakpoints } from '../layout-definition';
  * exactly. Exported (rather than kept private) so `tests/breakpointValidator.spec.ts`
  * can reuse the same key list instead of duplicating it.
  */
-export const keysValidatorPayload = <span class="cstat-no" title="statement not covered" >{</span>
+export const keysValidatorPayload = {
   invalidKeys1: [`lg`, `md`, `sm`, `xs`, `xxs`],
   invalidKeys2: [`1`, `2`, `3`, `4`, `5`],
   validKeys: [`xxl`, `xl`, `lg`, `md`, `sm`, `xs`, `xxs`],
@@ -141,11 +141,11 @@ export const keysValidatorPayload = <span class="cstat-no" title="statement not 
  * @param cols The breakpoints or columns object to validate.
  * @returns `true` if every required key is present with a numeric value.
  */
-export const <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >breakpointsValidator = (c</span>ols: TBreakpoints): boolean =&gt; {</span>
-  const propColsKeys = <span class="cstat-no" title="statement not covered" >Object.keys(cols) as (keyof typeof cols)[];</span>
-  const colsValues = <span class="cstat-no" title="statement not covered" >propColsKeys.<span class="fstat-no" title="function not covered" >map(k</span> =&gt; <span class="cstat-no" title="statement not covered" >typeof cols[k] === `number`)</span>;</span>
+export const breakpointsValidator = (cols: TBreakpoints): boolean =&gt; {
+  const propColsKeys = Object.keys(cols) as (keyof typeof cols)[];
+  const colsValues = propColsKeys.map(k =&gt; typeof cols[k] === `number`);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return keysValidator(keysValidatorPayload.validKeys, propColsKeys) &amp;&amp; colsValues.indexOf(false) === -1;</span>
+  return keysValidator(keysValidatorPayload.validKeys, propColsKeys) &amp;&amp; colsValues.indexOf(false) === -1;
 };
 &nbsp;</pre></td></tr></table></pre>
 
@@ -154,7 +154,7 @@ export const <span class="cstat-no" title="statement not covered" ><span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-29T19:15:03.098Z
+                at 2026-08-31T06:45:16.373Z
             </div>
         <script src="../prettify.js"></script>
         <script>

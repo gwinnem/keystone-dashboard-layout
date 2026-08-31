@@ -14,7 +14,7 @@ fields on your layout data instead of on this component.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `i` | `string \| number` (required) | — | Matches this item to its entry in the parent `GridLayout`'s `layout` array. |
+| `i` | `string \| number` (required) | — | Matches this item to its entry in the parent `GridLayout`'s `layout` array. Must be either a non-empty string or a finite number — never both at once. String matching is case-insensitive (`'Widget-1'` matches `'widget-1'`); number matching is exact. |
 | `header` | `ReactNode` | — | Optional header content, rendered above `children` in a fixed-size row — `children` becomes a scrollable body below it. Omitting this prop entirely renders `children` exactly as before, unaffected. The render-prop equivalent of Vue's own `#header` slot. |
 | `children` | `ReactNode` | — | The item's own content — becomes the scrollable body region when `header` is also provided. |
 | `renderResizeHandle` | `(edge: TResizeHandle) => ReactNode` | — | Customizes a resize-hint span's own content (an icon, typically) — called once per actually-rendered edge/corner, with that edge's identifier. `undefined` renders each span empty. The render-prop equivalent of Vue's own `#resize-handle` slot. |

@@ -1,80 +1,192 @@
 ---
 title: "Comparison: commercial"
-description: How Keystone Dashboard Layout for Angular compares to Kendo TileLayout and DevExtreme's Dashboard Designer.
+description: How Keystone Dashboard Layout for Angular compares to Kendo UI TileLayout, Syncfusion Dashboard Layout, DevExpress Dashboard, Sencha Ext JS Dashboard, and Vaadin Dashboard — verified directly against each vendor's own documentation.
 ---
 
 ## Scope, and why this is separate from Comparison: alternatives
 
 [Comparison: alternatives](/angular/guide/project/comparison-alternatives/)
-scopes itself to open-source peers. This page covers two commercial
+scopes itself to open-source peers. This page covers five commercial
 products instead. Kendo's actual component is called **TileLayout**
 (available for jQuery, **Angular**, React, and Blazor) — this package
-has a real, direct competitor here, the same as the React port does
-(unlike the Vue port, which has no Kendo Vue build to compare against
-at all). DevExtreme's **Dashboard Designer** is a full BI platform, not
-a standalone layout component — this page compares against just its
-layout engine, since that's the only part in the same category as this
-library.
+has a real, direct competitor here. **Syncfusion** ships a dedicated
+**Angular Dashboard Layout** component, the closest of the five to a
+general-purpose drop-in competitor. **DevExpress Dashboard** is a full
+BI platform, not a standalone layout component — this page compares
+against just its layout-authoring piece, since that's the only part in
+the same category as this library. **Sencha Ext JS Dashboard**
+(`Ext.dashboard.Dashboard`, accessible from Angular via the commercial
+`@sencha/ext-angular` wrapper) is a real, long-standing dashboard
+component built on an architecture unlike any of the other four — see
+below. **Vaadin Dashboard** is a genuinely modern, actively-engineered
+component with a real accessibility story — confirmed as a paid
+Pro-tier component, not part of Vaadin's free Apache-2.0 core, and
+worth a licensing/Angular-fit note of its own too.
 
-## The bigger architectural difference
+Every claim below was independently verified against each vendor's own
+current documentation, README, and API reference — not taken from a
+single secondary report. The most load-bearing claims are quoted
+directly. **"Not established"** still means the reviewed documentation
+didn't confirm baseline-equivalent behavior, not proof the feature is
+absent.
 
-Both commercial products use a **recursive binary split-pane tree**:
-adding a new item splits the largest existing pane in half; resizing
-means dragging the separator line between two adjacent panes, not
-independent per-item resize handles. This library uses **freeform,
-independent `x`/`y`/`w`/`h` grid coordinates** instead. Neither approach
-is strictly better — a split-pane tree structurally guarantees no
-overlaps and no compaction step, at the cost of items never being fully
-independent of their neighbors; freeform coordinates give full
-independent placement, at the cost of needing an explicit collision/
-compaction system.
+A note on **Vaadin Dashboard**'s fit here specifically: Vaadin's own
+first-class framework integrations are Java (Flow) and React (Hilla) —
+there is no dedicated Angular package. The underlying `vaadin-dashboard`
+is a standard web component, so it's technically usable from Angular
+via `CUSTOM_ELEMENTS_SCHEMA`, the same pattern Ignite UI Tile Manager
+uses (see [Comparison: alternatives](/angular/guide/project/comparison-alternatives/))
+— but Vaadin's own docs, examples, and typed bindings don't cover
+Angular specifically, unlike the other four entries on this page.
+
+## Architecture: four different models, not one
+
+Kendo TileLayout and DevExpress Dashboard both build on structures
+where resizing means dragging a **separator line** between adjacent
+items, not independent per-item handles — Kendo's own docs describe
+its layout as CSS Grid-based with `colSpan`/`rowSpan`, while DevExpress
+Dashboard uses a recursive binary split-pane tree of layout groups.
+**Ext JS Dashboard** is a third variant on the same theme: a
+**column-stack layout**, confirmed directly in its own API docs —
+`Ext.layout.container.Dashboard` "extends `Ext.layout.container.Column`
+and adds splitters between adjacent columns allowing the user to
+resize them." Items ("Parts") stack vertically within a column and
+resize **only vertically**, dragged from the bottom edge — column
+*width* is what the splitters adjust, not individual item width. This
+library uses **freeform, independent `x`/`y`/`w`/`h` grid
+coordinates** instead — the same general shape Syncfusion's own
+Dashboard Layout and Vaadin Dashboard both use, though the two aren't
+identical to each other or to this library: Syncfusion uses
+grid-structured panels with upward-floating auto-arrangement,
+functionally similar to this library's own vertical compaction, while
+Vaadin's own docs describe widgets "placed in columns and rows
+automatically, in the order supplied" with the **column count itself
+adjusting responsively** to the dashboard's width — closer to a
+responsive masonry/auto-flow model than fixed freeform coordinates.
+None of these four approaches is strictly better — a constrained model
+(Kendo, DevExpress, Ext JS) structurally guarantees no overlaps at the
+cost of items never being fully independent of their neighbors;
+freeform or auto-flow coordinates (this library, Syncfusion, Vaadin)
+give more independent placement, at the cost of needing an explicit
+collision/compaction system.
 
 ## Feature comparison
 
-| Feature | This project | Kendo TileLayout | DevExtreme Dashboard (layout engine) |
-|---|---|---|---|
-| Layout model | Freeform x/y/w/h grid coordinates | CSS Grid, col/row/colSpan/rowSpan | Recursive binary split-pane tree |
-| Resize any of 8 edges/corners independently | Yes | No — bottom/right edges + bottom-right corner only | No — drag the separator between two adjacent panes |
-| Drag to an arbitrary free position | Yes | No — reorders within CSS Grid auto-flow | No — inserts into the tree at a new split point |
-| Click-to-select, click-to-place reorder (no drag gesture) | No | **Yes** — a real, non-drag accessibility alternative worth considering here | No |
-| Angular support | Native, ground-up | Yes — a real, direct competitor here | Via a wrapper layer over a shared core |
-| Licensing | MIT, free | Commercial (no free-tier note specific to the Angular build, unlike Kendo's React build) | Commercial, no free tier |
-| Cross-grid drag/drop between independent instances | Yes | No | No |
-| Drag-and-drop from outside the component | Yes | No | No — Toolbox is click-to-add, not a drag gesture |
-| Responsive breakpoints | Yes | No | Auto-stretches to fit its container — a different, non-breakpoint mechanism |
-| Undo/redo | Yes | No | No — dashboard-level save/reload only |
-| Magnetic snap-to-grid / alignment guides | Yes (both) | No | No |
-| Keyboard move/resize | Yes | Comparable, via Ctrl+arrow (resize) / Shift+arrow (reorder) | Not documented as a distinct mode |
-| Per-item lock against rearrangement | Yes (`isStatic`) | Yes | Closer to a dashboard-level view mode than a per-item flag |
-| **Maximize/restore an item to fill the surface** | **No — a real, confirmed gap** | No | **Yes** |
-| Save/restore layout state | Yes | Yes — comparable | Yes — comparable |
-| Export layout as image/SVG | Yes, dependency-free | No | Yes, but exports the dashboard's data visualizations, not a plain layout-shell export |
-| Data source binding, drill-down, BI charting | **Out of scope entirely — a deliberate boundary** | No (presentation-only, same category as this library) | **Yes — its entire reason to exist** |
+| Feature | This project | Kendo TileLayout | Syncfusion Dashboard Layout | DevExpress Dashboard (layout engine) | Ext JS Dashboard | Vaadin Dashboard |
+|---|---|---|---|---|---|---|
+| Layout model | Freeform x/y/w/h grid coordinates | CSS Grid, `colSpan`/`rowSpan`, auto-flow reordering | Grid-structured, upward-floating auto-arrangement | Recursive binary split-pane tree of layout groups/items | Column-stack with inter-column splitters (`Ext.layout.container.Column` + splitters) | Responsive auto-flow columns; column count adjusts to container width |
+| Resize any of 8 edges/corners independently | Yes | No — a single resize handler per tile, reflowing via `autoFlow` | Documented as resizable; exact granularity not established | No — drag the separator line between adjacent items/groups | **No — vertical-only**, confirmed directly in a real tutorial: *"Each part is resizable but they can be resized from the bottom"*; column *width* is adjusted via a separate splitter, not per-item | Documented as resizable; exact granularity not established |
+| Drag to an arbitrary free position | Yes | No — reorders within CSS Grid auto-flow | Documented drag/drop/reorder | No — separator-drag or Designer tools only | No — drag a part's header to move it to a different column/row slot, not a free x/y drop | No — auto-flow places widgets "in the order supplied"; reordering is drag-to-reorder within that flow, not a free x/y drop |
+| Angular support | Native, ground-up | Yes — `@progress/kendo-angular-layout` ships TileLayout as a real Angular component | Yes — a dedicated `ng add`-installable Angular package | Via a wrapper layer over a shared engine | Via `@sencha/ext-angular`, which exposes every Ext JS xtype (including `dashboard`) as an Angular component — confirmed directly, gated behind an Ext JS Enterprise license | **None** — first-class integrations are Java (Flow) and React (Hilla) only; Angular use would mean the raw `vaadin-dashboard` web component with no Angular-specific docs or bindings |
+| Licensing | MIT, free | Commercial (30-day free trial) | Commercial | Commercial, no free tier | Commercial, gated behind Ext JS Enterprise + a separate ExtAngular license | Commercial — confirmed directly: Vaadin's own pricing page states Pro "unlocks all commercial UI components, including Charts, **Dashboard**..."; not part of the free Apache-2.0 core |
+| Keyboard navigation | Yes, first-class (arrow keys move, Shift+arrow resizes) | **Confirmed, but Kendo's own docs are internally inconsistent about it.** TileLayout's own dedicated pages and API (`navigable` input) confirm it; a shared Layout-package overview page appears to exclude TileLayout from keyboard support entirely — the vendor's own docs disagree with each other | **Explicitly, unambiguously not supported.** Quoted directly: *"Keyboard support is not applicable for the Dashboard Layout."* Appears verbatim in both the Angular and React versions of this doc page | Not established | Not established | **Yes, confirmed directly and genuinely comparable to this library's own approach.** Vaadin's own engineering writeup states the component has *"keyboard-based equivalents, for moving and resizing widgets"* alongside pointer gestures, plus dedicated `[move-mode]`/`[resize-mode]` CSS states and a stated WCAG 2.1 AA conformance target |
+| RTL support | Yes | **Yes, at the package level** — *"the Layout controls support rendering in a right-to-left (RTL) direction"* | Documented, listed in its own accessibility matrix | Localization documented; RTL specifically not established | Not established | Not established |
+| Maximize/restore an item to fill the surface | **No — a real, confirmed gap** | No | Not established | **Yes — confirmed via real, named API methods**: `MaximizeDashboardItem(String)` and `RestoreDashboardItem()`, plus an `AllowMaximizeDashboardItems` flag | Not established | Not established |
+| Multi-selection and group move/resize | Yes | Not established | Not established | Has a distinct, differently-scoped "Multiselection" concept — a BI cross-filtering interaction, not layout-editing group move/resize | Not established | Not established |
+| Responsive breakpoints | Yes | No | Documented — auto-stacks to a single column, plus a configurable media-query breakpoint | Auto-stretches to fit its container — a different, non-breakpoint mechanism | Not established | Yes, in a real sense — column count is confirmed to auto-adjust to container width based on configured min/max column widths, though this is continuous reflow rather than named breakpoints |
+| Authored (pre-defined) layouts per breakpoint | Yes | Not established | Not established | Not established | Not established | Not established |
+| Per-item lock against drag/resize | Yes (`isStatic`) | Yes — each `TileLayoutItem` has its own `resizable`/`reorderable` overrides | Not established | Closer to a dashboard-level view mode than a per-item flag | **Yes, confirmed directly** — a real tutorial demonstrates configuring specific parts as "neither draggable nor resizable" while others remain interactive | Not established |
+| Undo/redo | Yes | No | Not established | No — dashboard-level save/reload only | Not established | Not established |
+| Magnetic snap-to-grid / alignment guides | Yes (both) | No | Not established | No | Not established | Not established |
+| Save/restore layout state | Yes | Yes — comparable | Documented, exact serialization API not established | Yes — comparable, including save/load to a file stream or XML | Yes — confirmed via its own "stateful" mechanism, preserving user sizing, collapsed state, and item order | Yes — its own engineering writeup confirms an internal model designed specifically to be persisted, e.g. to a user profile in a database |
+| Export layout as image/SVG | Yes, dependency-free | No | Not established | Covers data visualizations (PDF/image/Excel/CSV), not a plain layout-shell export | Not established | Not established |
+| Data source binding, drill-down, BI charting | **Out of scope entirely — a deliberate boundary** | No (presentation-only) | No (presentation-only) | **Yes — its entire reason to exist** | No (presentation-only) | No (presentation-only) |
 
 ## Honest summary
 
 Against **Kendo TileLayout**: a genuine, direct competitor for Angular
 consumers specifically — this library is ahead on nearly every drag/
-resize/layout-mechanics dimension: full 8-edge independent resize vs. a
-3-handle/axis-restricted model, freeform positioning vs. reorder-only,
-cross-grid drag, outside drop, snap/alignment guides, undo/redo.
-TileLayout's genuine advantages: being one component in a large
-commercial suite with paid support, and a mature click-move-click
-accessibility mode this library doesn't have.
+resize/layout-mechanics dimension: full 8-edge independent resize vs.
+a single resize handler plus CSS Grid auto-flow, freeform positioning
+vs. reorder-within-auto-flow, cross-grid drag, outside drop, snap/
+alignment guides, undo/redo, and multi-select group operations.
+Kendo's genuine advantages: being one component in a large commercial
+suite with paid support, and per-item lock-against-rearrangement
+documented directly (matching this library's own `isStatic`). One
+nuance worth being direct about: Kendo's own documentation is
+internally inconsistent on whether TileLayout has keyboard support at
+all — its dedicated docs and API say yes, its shared package-overview
+page says no.
 
-Against **DevExtreme Dashboard**: these aren't real competitors for
-most consumers — Dashboard Designer is a BI-authoring product where
-drag/resize layout is one supporting piece of a much larger
-data-analytics platform. The one genuine, worth-tracking gap even at
-the pure layout-mechanics level is **maximize/restore** — tracked on
-the [Roadmap](/angular/guide/project/roadmap/), not yet designed.
+Against **Syncfusion Dashboard Layout**: architecturally one of the
+closer matches of the five, since it uses a freeform-ish grid model
+with automatic compaction rather than separator-drag resizing — and
+the one commercial product here with a real, unambiguously documented
+accessibility gap this library specifically closes: Syncfusion's own
+accessibility documentation states, verbatim, that keyboard support
+does not apply to Dashboard Layout at all, where this library treats
+keyboard move/resize as a first-class, always-available interaction
+path (see [Accessibility scope](/angular/guide/project/accessibility/)).
+Beyond that, this library is ahead on cross-grid drag, outside drop,
+snap/alignment guides, undo/redo, multi-select, and SVG export — none
+of which Syncfusion's own reviewed documentation establishes.
+Syncfusion's genuine advantages: commercial support, built-in themes,
+and a responsive single-column auto-stacking behavior with a
+configurable media-query breakpoint that's more turnkey than authoring
+per-breakpoint layouts by hand.
 
-## What's not worth chasing from either
+Against **DevExpress Dashboard**: not a real competitor for most
+consumers — it's a BI-authoring product where drag/resize layout is
+one supporting piece of a much larger data-analytics platform, not a
+drop-in general-purpose layout primitive. The one genuine, real,
+API-confirmed gap even at the pure layout-mechanics level is
+**maximize/restore** (`MaximizeDashboardItem`/`RestoreDashboardItem`)
+— tracked on the [Roadmap](/angular/guide/project/roadmap/), not yet
+designed. Its own "Multiselection" feature is worth being precise
+about too: it's a BI cross-filtering interaction (select data points
+across items to filter a dashboard), a genuinely different concept
+from this library's own layout-editing multi-select group move/resize
+— not a feature this library is behind on, just a different one
+wearing a similar name.
 
-- **Kendo's CSS Grid-based, resize-restricted-to-3-handles model** —
-  adopting this would be a regression, not a gap to close.
-- **DevExtreme's recursive split-pane structure itself** — rebuilding
-  around that architecture would abandon the freeform positioning model
+Against **Sencha Ext JS Dashboard**: a real, long-standing component
+(the API class dates back years, still documented in current Ext JS
+releases), but built on a meaningfully more constrained architecture —
+column-stack with inter-column splitters, vertical-only per-item
+resize, and drag-to-a-different-column/row rather than free
+positioning. This library is ahead on essentially every layout-
+mechanics dimension: full 8-edge resize vs. vertical-only, freeform
+positioning vs. column-slot placement, cross-grid drag, snap/alignment
+guides, undo/redo, and multi-select. Ext JS Dashboard's own genuine
+strength, confirmed directly: **per-item lock against drag/resize**
+with a real, documented example (specific "parts" configured as
+neither draggable nor resizable while others stay interactive) — the
+same shape as this library's own `isStatic`, independently confirmed
+rather than assumed. Angular access is real but requires the
+commercial `@sencha/ext-angular` layer on top of an Ext JS Enterprise
+license — a meaningfully bigger commitment than installing an npm
+package.
+
+Against **Vaadin Dashboard**: the most interesting comparison on this
+page, and the one commercial product here with a genuinely comparable
+keyboard-accessibility story — Vaadin's own engineering writeup
+confirms dedicated keyboard-based equivalents for moving and resizing
+widgets, not just pointer gestures, with a stated WCAG 2.1 AA target.
+This library is still ahead on cross-grid drag, outside drop, snap/
+alignment guides, named presets, undo/redo, SVG export, and multi-select
+— none of which Vaadin's own reviewed documentation establishes — but
+Vaadin's responsive auto-flow column model (confirmed: column count
+adjusts automatically to the dashboard's width) is a genuinely
+different, well-engineered take on responsiveness worth knowing about
+even where it isn't a feature gap either way. The real practical
+caveat: Vaadin has no dedicated Angular integration at all — a
+consumer would be reaching for a raw web component with none of the
+Angular-specific documentation, typing, or examples the other four
+entries on this page provide.
+
+## What's not worth chasing from any of the five
+
+- **Kendo's CSS Grid-based, single-handle resize model** — adopting
+  this would be a regression, not a gap to close.
+- **DevExpress's recursive split-pane structure itself**, or **Ext JS
+  Dashboard's column-stack-with-splitters model** — rebuilding around
+  either architecture would abandon the freeform positioning model
   that's core to what this library is.
-- **DevExtreme's BI/data-analytics layer entirely** — a different
+- **DevExpress's BI/data-analytics layer entirely** — a different
   product category by design.
+- **DevExpress's "Multiselection" concept as named** — a data-filtering
+  feature, not a layout one; this library's own multi-select already
+  covers the layout-editing use case that name might suggest.
+- **Syncfusion's "keyboard support not applicable" stance** — this
+  library treats keyboard accessibility as a baseline requirement, not
+  an optional extra to skip.

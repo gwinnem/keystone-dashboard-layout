@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -103,19 +103,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { TLayout } from '../../layout-definition';
 import { EErrorMessage } from '@/core/common/enums/ErrorMessages';
@@ -129,20 +129,20 @@ import { EErrorMessage } from '@/core/common/enums/ErrorMessages';
  * @return {Number}       Bottom coordinate, in grid row units — `0` for an empty layout (see docs/REFACTORING.md #9/#33: no items means nothing occupies any row, not an error).
  * @throws {Error}        `EErrorMessage.INVALID_LAYOUT` if `layout` is `undefined` (still genuinely invalid — an empty array and a missing one aren't the same thing).
  */
-export function <span class="fstat-no" title="function not covered" >getBottomYCoordinate(l</span>ayout: TLayout): number {
-<span class="cstat-no" title="statement not covered" >  if(layout === undefined) {</span>
-<span class="cstat-no" title="statement not covered" >    throw new Error(EErrorMessage.INVALID_LAYOUT);</span>
+export function getBottomYCoordinate(layout: TLayout): number {
+  if(layout === undefined) {
+    throw new Error(EErrorMessage.INVALID_LAYOUT);
   }
-<span class="cstat-no" title="statement not covered" >  if(layout.length === 0) {</span>
-<span class="cstat-no" title="statement not covered" >    return 0;</span>
+  if(layout.length === 0) {
+    return 0;
   }
-  let max = <span class="cstat-no" title="statement not covered" >0;</span>
+  let max = 0;
   let bottomY;
-<span class="cstat-no" title="statement not covered" >  for(let i = <span class="cstat-no" title="statement not covered" >0, l</span>en = <span class="cstat-no" title="statement not covered" >layout.length; i</span> &lt; len; i++) {</span>
-<span class="cstat-no" title="statement not covered" >    bottomY = layout[i].y + layout[i].h;</span>
-<span class="cstat-no" title="statement not covered" >    if(bottomY &gt; max) <span class="cstat-no" title="statement not covered" >max = bottomY;</span></span>
+  for(let i = 0, len = layout.length; i &lt; len; i++) {
+    bottomY = layout[i].y + layout[i].h;
+    if(bottomY &gt; max) max = bottomY;
   }
-<span class="cstat-no" title="statement not covered" >  return max;</span>
+  return max;
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -151,7 +151,7 @@ export function <span class="fstat-no" title="function not covered" >getBottomYC
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-29T19:15:03.098Z
+                at 2026-08-31T06:45:16.373Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

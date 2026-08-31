@@ -13,7 +13,7 @@ explicitly per item in your own template's `@for` loop.
 
 | Input | Type | Description |
 |---|---|---|
-| `i` | `string \| number` (required) | Unique identifier matching this item's entry in the parent `layout` array. |
+| `i` | `string \| number` (required) | Unique identifier matching this item's entry in the parent `layout` array. Must be either a non-empty string or a finite number — never both at once. String matching is case-insensitive (`'Widget-1'` matches `'widget-1'`); number matching is exact. |
 | `x` | `number` (required) | Horizontal position, in grid column units. |
 | `y` | `number` (required) | Vertical position, in grid row units. |
 | `w` | `number` (required) | Width, in grid column units. |

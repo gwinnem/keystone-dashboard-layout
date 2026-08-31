@@ -31,7 +31,7 @@ optional fields are added, say).
 
 | Field | Type | Description |
 |---|---|---|
-| `i` | `string \| number` | Unique identifier, matched against a `GridItem`'s `i` prop. |
+| `i` | `string \| number` | Unique identifier, matched against a `GridItem`'s `i` prop. Must be either a non-empty string or a finite number — never both at once, and never an empty string. String matching against a `GridItem`'s own `i` prop is case-insensitive (`'Widget-1'` matches `'widget-1'`); number matching is exact. |
 | `h` | `number` | Height, in grid row units. |
 | `w` | `number` | Width, in grid column units. |
 | `x` | `number` | Horizontal position, in grid column units. |

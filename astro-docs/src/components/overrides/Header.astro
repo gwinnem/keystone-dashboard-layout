@@ -48,11 +48,24 @@ const REACT_NAV_LINKS: { label: string; href: string }[] = [
 	{ label: `API`, href: `/react/api/` },
 	{ label: `Examples`, href: `/react/examples/` },
 ];
+// Angular's own examples live in a real, separate, standalone
+// Angular app (../../angular-examples-app), not astro-docs pages at all
+// — see astro.config.mjs's own comment for why there's no Examples
+// section in Angular's left sidebar. This top-nav entry links straight
+// out to that app instead. import.meta.env.DEV — Vite's own standard
+// flag for "this is a dev server run" (astro dev), false for a real
+// `astro build` — points this at a real, locally-running instance
+// (`ng serve`, its own default port) during local development, without
+// needing the production deployment to exist yet; a real production
+// build always points at the actual deployed subdomain.
+const ANGULAR_EXAMPLES_APP_URL = import.meta.env.DEV ? `http://localhost:4200` : `https://kdla.winnem.tech`;
+
 const ANGULAR_NAV_LINKS: { label: string; href: string }[] = [
 	{ label: `Guide`, href: `/angular/guide/introduction/` },
 	{ label: `Features`, href: `/angular/features/` },
 	{ label: `Components`, href: `/angular/components/` },
 	{ label: `API`, href: `/angular/api/` },
+	{ label: `Examples`, href: ANGULAR_EXAMPLES_APP_URL },
 ];
 // Core deliberately has its own, much shorter list — it's the shared
 // framework-agnostic engine, not a UI component library, so it has no

@@ -1,81 +1,167 @@
 ---
 title: "Comparison: alternatives"
-description: How Keystone Dashboard Layout for Angular compares to gridstack.js — and an honest note on what hasn't been surveyed yet.
+description: How Keystone Dashboard Layout for Angular compares to GridStack.js, Katoid Angular Grid Layout, and angular-gridster2 — verified directly against each project's own source, docs, and issue tracker.
 ---
 
 ## Scope
 
 This compares projects in the same category as this library —
-**draggable/resizable dashboard layout engines** — not data
-tables/grids, which solve a different problem. For a commercial
-layout-engine peer, see
+**draggable/resizable dashboard layout engines** (position arbitrary
+widgets on a grid, drag/resize them, responsive breakpoints) — not data
+tables/grids, which solve a different problem. For commercial
+layout-engine peers, see
 [Comparison: commercial](/angular/guide/project/comparison-commercial/)
 instead.
 
-## An honest gap, not a claim of "nothing else exists"
+Projects compared: **`gridstack.js`** (framework-agnostic, ships
+official Angular/React/Vue wrappers), **Katoid Angular Grid Layout**
+(`@katoid/angular-grid-layout`, an Angular-native port of
+`react-grid-layout`'s own algorithm), **`angular-gridster2`** (the
+long-running, most widely-adopted Angular-specific dashboard grid),
+and **Ignite UI Tile Manager** (Infragistics' own tile-layout web
+component — new, and worth a methodology note of its own: see below).
 
-Unlike the Vue port's own [Comparison: alternatives](/vue/guide/project/comparison-alternatives/)
-page (which surveys several Vue-specific community options) or the
-React port's own [equivalent page](/react/guide/project/comparison-alternatives/)
-(which compares directly against the established `react-grid-layout`),
-this page has **not** had the same dedicated survey of Angular-specific
-alternatives — a library along the lines of what `react-grid-layout` is
-for React may well exist for Angular specifically, and hasn't been
-identified and compared here yet. Rather than guess or fabricate a
-feature table against something unverified, this page is scoped to the
-one framework-agnostic alternative already confirmed (via the Vue
-port's own comparison work) to ship a real Angular wrapper:
-**`gridstack.js`**.
+**Every claim below was independently verified this session** — READMEs
+and API docs read directly, GitHub issues opened and their actual
+status/labels checked, config-option source files read line by line —
+not taken from a single secondary report. Specific citations are
+called out inline. Where a feature genuinely couldn't be confirmed
+either way, this page still says so plainly: **"Not established"**
+means direct research didn't turn up evidence either way, not proof
+the feature is absent.
+
+A distinct note on **Ignite UI Tile Manager**: it's a genuinely
+different kind of entry on this page. Infragistics is a commercial
+component vendor, and Tile Manager itself is brand new (introduced in
+Ignite UI for Angular 19.2, April 2025) — but as of December 2025,
+Infragistics made Ignite UI open source (MIT license) across Angular,
+Blazor, React, and Web Components, Tile Manager included. It's listed
+here rather than in [Comparison: commercial](/angular/guide/project/comparison-commercial/)
+because it's genuinely free and MIT-licensed today, not because it
+lacks a commercial pedigree — worth knowing given how recent that
+licensing change is, and that it doesn't have the multi-year
+community track record the other three options on this page do.
 
 ## Feature comparison
 
-| Feature | This project | `gridstack.js` |
-|---|---|---|
-| Cross-grid drag/drop (independent instances) | Yes | Via nested sub-grids — a different mechanism |
-| Drag-and-drop from outside the component | Yes | Yes |
-| Magnetic snap-to-grid | Yes | No |
-| Visual alignment guides | Yes | No |
-| Blocked-move feedback event | Yes | No |
-| Named layout presets | Yes | No |
-| First-party persistence helper | Yes | Yes, built into the core engine |
-| Grid-to-SVG export | Yes | No |
-| Localizable UI/ARIA strings | Yes | No |
-| Per-item live-resyncing autoHeight | Yes | Partial — content-driven initial sizing only |
-| Keyboard-only move/resize | Yes | No |
-| Pluggable compaction algorithm | Yes | — |
-| Framework-agnostic core as public API | Yes | Yes (core is framework-agnostic by design) |
-| Undo/redo | Yes | No |
-| Dependency footprint | Zero runtime dependencies | Zero (core) |
+| Feature | This project | `gridstack.js` | Katoid Angular Grid Layout | `angular-gridster2` | Ignite UI Tile Manager |
+|---|---|---|---|---|---|
+| Native Angular support | Yes, ground-up | Yes, official wrapper (React and Vue wrappers also shipped as of a recent release) | Yes, Angular-native (Angular 16–19 supported per its own compatibility table) | Yes, Angular-native (standalone components; actively released, v22 as of this writing) | Via a raw web component (`igc-tile-manager`) plus `CUSTOM_ELEMENTS_SCHEMA` — not Angular-specific components/directives the way the other three are |
+| Resize from all 8 edges/corners independently | Yes | Yes | **No — only the bottom-right (`se`) corner.** Confirmed directly in its own README's "TODO features" list: *"Add all other resize options (now is only available 'se-resize')"* — an explicit, maintainer-acknowledged gap, not an oversight on this page's part | Yes — confirmed via its own `resizable.handles: { s, e, n, w, se, ne, sw, nw }` config option | Not established — its own docs describe "resizing them" generally without specifying edge/corner granularity |
+| Maximize/restore an item to fill the surface | **No — a real, confirmed gap for this project** | Not established | Not established | Not established | **Yes** — its own docs describe "managing the placement of tiles in maximized or normal state" as a base behavior |
+| Static items (locked obstacles) | Yes | Yes | **No — explicitly not yet implemented.** Its own README TODO list: *"Grid support for static grid items"* is still an open checkbox | Not established | Not established |
+| Cross-grid drag/drop (independent instances) | Yes | Via nested sub-grids (`subGridOpts`, `makeSubGrid()`) — a different mechanism | Not established | Not established | Not established |
+| Drag-and-drop from outside the component | Yes | Yes (`acceptWidgets`, confirmed in its own API docs) | Not established | Not established | Not established |
+| RTL layout support | Yes | Not established | Not established | **Yes** — confirmed via its own `dirType: DirTypes.LTR \| RTL` config option, with a real history of dedicated RTL bug fixes in its own release notes (e.g. *"fix issue with moving items when dirType: DirTypes.RTL"*, *"fix in RTL mode the most left column is not aligned with the grid"*) | Not established |
+| Swap-on-drag (dragging one item onto another of the same size swaps them) | No — this library only pushes items aside via compaction | Yes, in its default top-gravity mode | Not established | **Yes** — confirmed via its own `swapWhileDragging` config option | Not established |
+| Magnetic snap-to-grid | Yes | No | Not established | Not established | Not established |
+| Visual alignment guides | Yes | No | Not established | Not established | Not established |
+| Blocked-move feedback event | Yes | No | Not established | Not established | Not established |
+| Named layout presets | Yes | No | Not established | Not established | Not established |
+| Grid-to-SVG export | Yes | No | Not established | Not established | Not established |
+| Localizable UI/ARIA strings | Yes | No | Not established | Not established | Not established |
+| Per-item live-resyncing autoHeight | Yes | Partial — `sizeToContent: true` sizes to fit content, but appears to be initial/on-demand rather than a continuously live-resyncing `ResizeObserver` | Not established | Not established | Not established |
+| Keyboard-only move/resize | Yes | **No — and a real, maintainer-acknowledged gap.** GitHub issue [#830](https://github.com/gridstack/gridstack.js/issues/830), "Accessibility Review Required" (opened 2017), is labeled `status:wontfix`. A more recent release does note *"DOM matches the visual order when widgets are moved around (accessibility tabbing, regular printing)"* — a real, separate improvement to tab order, but not keyboard move/resize itself | Not established | Not established | Not established |
+| Multi-select + group move/resize | Yes, including its own click-to-select UI (click, Shift/Ctrl/Cmd+click to add, click background to clear) | **No — an open, unimplemented feature request.** GitHub issue [#466](https://github.com/gridstack/gridstack.js/issues/466), "select and drag multiple widgets" (2016), and no evidence of it in GridStack's own comprehensive API/feature documentation | **Partial, and worth being precise about.** `@Input() selectedItemsIds` lets a group of items move/resize together — but per its own API docs, *"the multi-selection of items is managed externally"*: Katoid provides the group-transform mechanics, not a built-in selection UI (click-to-select, Shift/Ctrl+click) the way this library does | Not established | Not established |
+| Undo/redo | Yes | No | Not established | Not established | Not established |
+| Pluggable compaction algorithm | Yes, including a custom-compactor interface | — (has `GridStack.registerEngine()` to swap the whole layout engine — a bigger, different kind of extension point than a compaction-strategy plug-in) | Partial — three built-in modes (vertical, horizontal, free; confirmed as *"exact same algorithm as React-Grid-Layout"* in its own README), not a custom-plugin surface | Partial — five built-in enum modes (`none`, `compactUp`, `compactLeft`, `compactUp&Left`, `compactLeft&Up`, confirmed directly in its own config source), not a custom-plugin surface | Not established — its own docs describe automatic placement in columns/rows, not a named set of compaction strategies |
+| Aspect-ratio preservation while resizing | Yes | Not established | Not established | Yes — confirmed via its own `itemAspectRatio` config option | Not established |
+| Bounded dragging | Yes | Not established | Not established | Yes — confirmed via its own `enableBoundaryControl` config option | Not established |
+| Framework-agnostic core as public API | Yes | Yes | No — Angular-specific throughout, and confirmed as having no separate core package | No — Angular-specific throughout | Yes, in a sense — it's a web component reused across Angular/React/Blazor/plain Web Components, though its own dev experience is more polished for React/Blazor than Angular specifically |
+| Dependency footprint | Minimal (`tslib` + the shared `core` package) | Zero (core) | **"No dependencies"** — a claim made directly in its own README features list | Real dependencies beyond Angular itself: `@angular/cdk`, `@angular/material`, `@angular/animations` are all listed in its own `package.json` | Requires the broader `igniteui-webcomponents` package |
+| Touch support | Not yet a dedicated e2e spec — see [Testing philosophy](/angular/guide/project/testing/) | Yes | Yes, listed directly in its own README features | Not established | Not established |
+| Auto-scroll while dragging | Yes (`autoScroll`) | Not established | Yes — confirmed via a real, linked commit in its own README changelog | Not established | Not established |
+| Maturity (as of this writing) | — | ~9.1k GitHub stars | 520 GitHub stars | ~1.3k GitHub stars | New (April 2025); no independent adoption metric found yet |
 
 ## Where this project genuinely leads
 
-Magnetic snap-to-grid, visual alignment guides, the blocked-move
-feedback event, named layout presets, grid-to-SVG export, localizable
-ARIA strings, live-resyncing per-item `autoHeight`, and undo/redo all
-have no equivalent in `gridstack.js`.
+Cross-referencing the table above, the features with **no equivalent
+confirmed in any of the four alternatives**: cross-grid drag-and-drop
+between independent grid instances (`gridstack.js` only offers nested
+sub-grids, a different capability; the other three don't document this
+at all), magnetic snap-to-grid, visual alignment guides, the
+blocked-move feedback event, named layout presets, grid-to-SVG
+export, localizable ARIA strings as a dedicated prop surface,
+live-resyncing per-item `autoHeight`, undo/redo, and a built-in
+click-to-select multi-selection UI (Katoid's own group-transform
+mechanics require the consumer to manage selection state externally).
+None of these are exotic — they're real-world friction points
+(hand-rolled persistence, a hand-wired collision-shake animation,
+English-only screen reader text) this library's own roadmap process
+exists specifically to find and close one at a time.
 
-## Where this project is genuinely behind
+Three gaps worth naming with real specificity, not just generic
+"ahead": **keyboard accessibility** — `gridstack.js` maintainers
+explicitly closed a 2017 accessibility request as `wontfix`, and
+neither Katoid, `angular-gridster2`, nor Tile Manager's own
+documentation establishes keyboard move/resize at all — where this
+library treats it as a baseline, always-available interaction.
+**Resize granularity** — Katoid's own README lists full 8-edge resize
+as an open TODO item, currently supporting only the bottom-right
+corner. And **maximize/restore**, addressed below.
 
-- **Ecosystem size and battle-testing.** `gridstack.js` has years more
-  production usage across far more companies.
-- **Sub-grids / nesting.** `gridstack.js` supports grids-within-grids as
-  first-class nested structures. This project's cross-grid feature is
-  sibling-to-sibling dragging between independent grid instances — a
-  different capability, not a nesting system.
-- **Swap-on-drag.** In `gridstack.js`'s default top-gravity mode,
-  dragging one item onto another of the same size swaps their
-  positions. This project only pushes items aside via compaction.
-- **No dedicated e2e test suite yet for this package specifically** —
-  see [Testing philosophy](/angular/guide/project/testing/). This is a
-  gap in this project's own verification, not a `gridstack.js`
-  comparison point, but worth naming here for the same "honest, not
-  marketing" reason the rest of this page exists.
+## Where this project is genuinely behind, or simply unconfirmed
+
+- **Maximize/restore an item to fill the surface.** Tile Manager's own
+  docs describe this as base, built-in behavior. This library doesn't
+  have it yet — the same real, confirmed gap noted against DevExpress
+  Dashboard on [Comparison: commercial](/angular/guide/project/comparison-commercial/),
+  now also true against a genuinely free, open-source option. Tracked
+  on the [Roadmap](/angular/guide/project/roadmap/).
+- **RTL support, specifically against `angular-gridster2`.** Its own
+  `dirType` config option and a real history of dedicated RTL bug
+  fixes confirm this is a mature, exercised feature there — this
+  library's own RTL support is real too (see
+  [Features](/angular/features/)), but the two haven't been compared
+  side by side for parity.
+- **Swap-on-drag**, present in both `gridstack.js` (default top-gravity
+  mode) and `angular-gridster2` (`swapWhileDragging`). This library only
+  pushes items aside via compaction — an item landing on another never
+  swaps with it. Not currently tracked on this library's own
+  [Roadmap](/angular/guide/project/roadmap/).
+- **Ecosystem size and battle-testing.** `angular-gridster2` in
+  particular has a multi-year history, hundreds of thousands of weekly
+  downloads, and roughly 1,300 GitHub stars — meaningfully more
+  production usage than this library can currently claim.
+- **Touch device support, confirmed and documented.** Both Katoid and
+  `gridstack.js` document touch support directly in their own READMEs.
+  This library's drag/resize engine is built on Pointer Events (which
+  spec-level covers touch), but no dedicated touch-input e2e spec
+  exists yet to confirm it end to end — see
+  [Testing philosophy](/angular/guide/project/testing/).
+- **Sub-grids / nesting.** `gridstack.js` supports grids-within-grids
+  as first-class nested structures (`subGridOpts`, `makeSubGrid()`).
+  This library's cross-grid feature is sibling-to-sibling dragging
+  between independent grid instances — a different capability, not a
+  nesting system.
+- **A framework-agnostic core, specifically.** `gridstack.js` ships one
+  core engine reused across its Angular/React/Vue wrappers, the same
+  architecture this library uses
+  (`@keystone-dashboard-layout/core` shared across the Vue/React/
+  Angular ports). Katoid and `angular-gridster2` are both
+  Angular-only throughout, with no separate framework-agnostic core to
+  point to.
 
 ## Bottom line
 
-Against `gridstack.js`, this project has a meaningfully larger feature
-set — several with no equivalent at all — at the cost of ecosystem
-maturity and, for this package specifically, less independent
-verification than the Vue/React ports currently have. A fuller survey
-of Angular-specific alternatives remains open — see the
-[Roadmap](/angular/guide/project/roadmap/).
+Against the three Angular-specific options, this project has a
+meaningfully larger feature set on the layout-mechanics and editor-UX
+side (cross-grid drag, snap/alignment guides, undo/redo, named
+presets, SVG export, a genuine built-in multi-select UI), backed by
+direct verification rather than assumption — including two real,
+maintainer-acknowledged gaps in Katoid specifically (resize
+granularity, static items) found by reading its own README's TODO
+list. `angular-gridster2` brings meaningfully more production maturity
+and ecosystem size to the table, plus two genuine features this
+project doesn't have (swap-on-drag, and RTL support that's been
+battle-tested through several real bug fixes). Ignite UI Tile Manager
+is the newest and least battle-tested of the four, but already has a
+real feature this project lacks — maximize/restore — and is worth
+watching given Infragistics' own resources behind it, even though its
+Angular support today is a raw web component rather than a first-class
+Angular API. `gridstack.js` remains the closest architectural peer (a
+shared, framework-agnostic core plus thin per-framework wrappers, now
+including React and Vue too) — with a comparably broad but
+differently-shaped feature set, and a real, citable accessibility gap
+(a 2017 keyboard-support request closed `wontfix`) this library
+specifically doesn't share.

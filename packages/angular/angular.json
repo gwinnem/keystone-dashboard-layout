@@ -20,6 +20,50 @@
           }
         }
       }
+    },
+    "e2e-fixture": {
+      "projectType": "application",
+      "root": "e2e-fixture",
+      "sourceRoot": "e2e-fixture",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist-e2e-fixture",
+            "index": "e2e-fixture/index.html",
+            "browser": "e2e-fixture/main.ts",
+            "polyfills": ["zone.js"],
+            "tsConfig": "e2e-fixture/tsconfig.json",
+            "assets": [],
+            "styles": ["src/styles/index.scss", "e2e-fixture/style.css"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [{ "type": "initial", "maximumWarning": "2mb", "maximumError": "4mb" }],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": { "buildTarget": "e2e-fixture:build:production" },
+            "development": { "buildTarget": "e2e-fixture:build:development" }
+          },
+          "defaultConfiguration": "development",
+          "options": {
+            "port": 4301
+          }
+        }
+      }
     }
   }
 }
