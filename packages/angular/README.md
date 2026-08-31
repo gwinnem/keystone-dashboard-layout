@@ -227,11 +227,15 @@ could drift out of sync.
 ## Testing
 
 A real, extensive unit/component test suite (Jest + `jest-preset-angular`)
-backs every feature, with Stryker mutation testing configured. This
-package doesn't yet have a real end-to-end browser test layer the way
-the Vue and React packages do (Karma is present but reserved for a
-possible future one, not currently used for anything) — a genuine,
-open gap rather than an oversight.
+backs every feature, with Stryker mutation testing configured. A real
+end-to-end browser test layer (Playwright) runs against a dedicated
+`e2e-fixture/` application — matching the Vue/React packages' own e2e
+setup, not a Vite dev server the way those two use, since this
+package's Angular target hit a genuinely unresolved upstream
+`@analogjs/vite-plugin-angular` bug. Karma (still present in this
+repo) predates the Playwright suite and is no longer needed for it —
+kept for now rather than removed in the same pass that added real e2e
+coverage.
 
 ## Donate
 

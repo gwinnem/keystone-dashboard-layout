@@ -7,6 +7,7 @@ import {
   computeDistributeAdjustments,
   computeRangeSelection,
   ECompactType,
+  EErrorMessage,
   exportLayoutAsSvg as coreExportLayoutAsSvg,
   findAlignmentGuides,
   findFirstFitSlot,
@@ -19,6 +20,7 @@ import {
   getColsFromBreakpoint,
   getCompactor,
   getLayoutItem,
+  layoutValidator,
   moveElement,
   resolveAriaLabels,
 } from '@keystone-dashboard-layout/core';
@@ -654,6 +656,32 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
+  }, []);
+
+  /**
+   * Mount-time layout validation — matches the Vue package's own
+   * GridLayout.vue exactly (its own onMounted hook, throwing
+   * EErrorMessage.INVALID_LAYOUT_VALIDATED against the same
+   * layoutValidator from @keystone-dashboard-layout/core), which this
+   * component previously had no equivalent of at all — a real,
+   * confirmed parity gap, not a deliberate omission: nothing here ever
+   * caught the same class of malformed layout (missing a required key,
+   * a wrong-typed optional field) Vue's own consumers get an explicit,
+   * loud failure for. Validates once, against the *initial* `layout`
+   * prop only — not re-run on a later change — matching Vue's own
+   * scope exactly (that hook also never re-validates after mount).
+   * Thrown directly inside a React effect, which (unlike Vue's own
+   * nested-nextTick-wrapped throw, which surfaces only as an
+   * asynchronous unhandled promise rejection) React's own error
+   * handling treats as a real, synchronous render-cycle error — a
+   * nearby error boundary catches it the same way it would any other
+   * render-phase throw.
+   */
+  useEffect(() => {
+    if(!layoutValidator(layout)) {
+      throw new Error(EErrorMessage.INVALID_LAYOUT_VALIDATED);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately validates only the initial `layout` value, once, matching Vue's own mount-only validation scope exactly — including `layout` here would re-run this on every later change, which Vue's own equivalent never does either.
   }, []);
 
   /**

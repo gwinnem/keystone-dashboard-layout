@@ -198,6 +198,37 @@ test.describe('Per-item overrides (edge cases)', () => {
     await expect.poll(async () => (await item.boundingBox())!.width).toBeGreaterThan(before!.width);
   });
 
+  test('re-checking a previously-unchecked resizeHandles edge makes that handle actually resize again, not just re-render its own span', async ({ page }) => {
+    // Regression test for a real, confirmed bug found in the Angular
+    // package specifically (GridItemComponent wires its native resize
+    // engine to a fixed set of @ViewChild element references, captured
+    // once — a newly re-enabled handle's own <span> rendered correctly
+    // but never got a pointer listener attached, until
+    // checkResizeHandlesContentChange() was added there directly). This
+    // package's own React refs/effect-driven wiring wasn't confirmed
+    // broken the same way, but the test is kept here too so a future
+    // refactor to this package's own resize-handle wiring can't silently
+    // reintroduce that same class of bug unnoticed.
+    const item = page.locator('[data-grid-item-id="0"]');
+    await page.getByTestId('toggle-resize-handle-w').uncheck();
+    await expect(item.locator('.kdl-resize-hint--w')).toHaveCount(0);
+
+    await page.getByTestId('toggle-resize-handle-w').check();
+    await expect(item.locator('.kdl-resize-hint--w')).toHaveCount(1);
+
+    const before = await stableBoundingBox(item);
+    expect(before).not.toBeNull();
+
+    const handle = item.locator('.kdl-resize-hint--w');
+    await handle.hover();
+    await page.mouse.down();
+    const handleBox = await handle.boundingBox();
+    await page.mouse.move(handleBox!.x + handleBox!.width / 2 - 80, handleBox!.y + handleBox!.height / 2, { steps: 15 });
+    await page.mouse.up();
+
+    await expect.poll(async () => (await item.boundingBox())!.width).toBeGreaterThan(before!.width);
+  });
+
   test('the header prop renders a distinct header region above the item content', async ({ page }) => {
     const item = page.locator('[data-grid-item-id="0"]');
     await expect(item.locator('.kdl-grid-item-header')).toHaveCount(0);

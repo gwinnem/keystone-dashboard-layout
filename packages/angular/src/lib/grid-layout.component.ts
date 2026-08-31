@@ -25,6 +25,7 @@ import {
   computeDistributeAdjustments,
   computeRangeSelection,
   ECompactType,
+  EErrorMessage,
   exportLayoutAsSvg as coreExportLayoutAsSvg,
   findAlignmentGuides,
   findOrGenerateResponsiveLayout,
@@ -36,6 +37,7 @@ import {
   getColsFromBreakpoint,
   getCompactor,
   getLayoutItem,
+  layoutValidator,
   moveElement,
 } from '@keystone-dashboard-layout/core';
 import type {
@@ -512,6 +514,22 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   ) {}
 
   ngOnInit(): void {
+    // Mount-time layout validation — matches the Vue package's own
+    // GridLayout.vue exactly (its own onMounted hook, throwing
+    // EErrorMessage.INVALID_LAYOUT_VALIDATED against the same
+    // layoutValidator from @keystone-dashboard-layout/core), which this
+    // component previously had no equivalent of at all — a real,
+    // confirmed parity gap, not a deliberate omission. Validates once,
+    // against the initial `layout` @Input() only — not re-run on a
+    // later change via ngOnChanges — matching Vue's own scope exactly
+    // (that hook also never re-validates after mount). Thrown directly
+    // here, synchronously during Angular's own component initialization
+    // — unlike Vue's own nested-nextTick-wrapped throw (which surfaces
+    // only as an asynchronous unhandled promise rejection), this
+    // propagates as an ordinary, synchronous constructor-time error.
+    if(!layoutValidator(this.layout)) {
+      throw new Error(EErrorMessage.INVALID_LAYOUT_VALIDATED);
+    }
     this.workingLayout = cloneLayout(this.layout);
     this.lastSnapshot = cloneLayout(this.layout);
     this.hasInitializedUndoTracking = true;

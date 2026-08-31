@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
-import { ECompactType } from '@keystone-dashboard-layout/core';
+import { ECompactType, EErrorMessage } from '@keystone-dashboard-layout/core';
 import type { TLayout } from '@keystone-dashboard-layout/core';
 import { GridLayout } from '../GridLayout';
 import { GridItem } from '../GridItem';
@@ -197,6 +197,36 @@ describe(`GridLayout`, () => {
 
   it(`Should not throw when the layout is empty`, () => {
     expect(() => render(<GridLayout layout={[]} />)).not.toThrow();
+  });
+
+  describe(`mount-time layout validation`, () => {
+    it(`Should throw when mounted with a layout that fails validation`, () => {
+      // Matches the Vue package's own identical test — this component
+      // previously had no mount-time validation at all (a real,
+      // confirmed parity gap, not a deliberate difference). Missing `h`
+      // — fails layoutValidator's own required-keys check.
+      const invalidLayout = [{ i: `0`, w: 2, x: 0, y: 0 }] as unknown as TLayout;
+
+      expect(() => render(<GridLayout layout={invalidLayout} />)).toThrow(EErrorMessage.INVALID_LAYOUT_VALIDATED);
+    });
+
+    it(`Should not throw when mounted with a valid layout, even one using string ids`, () => {
+      // Deliberately uses string ids ('0'/'1', basicLayout()'s own
+      // convention and the one this whole project actually uses almost
+      // everywhere) — a real, confirmed bug in layoutValidator itself
+      // (packages/core) rejected exactly this until fixed there
+      // directly: its own type-check compared a layout item's `i`
+      // against a reference shape whose own `i` is always numeric,
+      // silently failing validation for the id convention this project
+      // actually uses. Kept here as this package's own regression
+      // coverage for that fix, alongside the Vue package's identical test.
+      expect(() => render(
+        <GridLayout layout={basicLayout()}>
+          <GridItem i="0">Item 0</GridItem>
+          <GridItem i="1">Item 1</GridItem>
+        </GridLayout>,
+      )).not.toThrow();
+    });
   });
 
   it(`Should apply a custom className alongside its own root class`, () => {

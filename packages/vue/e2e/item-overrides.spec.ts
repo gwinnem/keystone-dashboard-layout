@@ -288,6 +288,37 @@ test.describe('Per-item overrides (edge cases)', () => {
     await expect.poll(async () => (await item.boundingBox())!.width).toBeGreaterThan(before!.width);
   });
 
+  test('re-checking a previously-unchecked resizeHandles edge makes that handle actually resize again, not just re-render its own span', async ({ page }) => {
+    // Vue's own computed() properly memoizes/re-derives resizeHandles
+    // reactively, so this scenario was never confirmed broken here the
+    // way Angular's equivalent genuinely was (GridItemComponent wires
+    // its native resize engine to a fixed set of @ViewChild element
+    // references, captured once — re-enabling a handle rendered its own
+    // <span> correctly but never re-attached a pointer listener to it,
+    // until checkResizeHandlesContentChange() was added there directly).
+    // Kept here anyway so a future refactor to this package's own
+    // reactive wiring can't silently reintroduce that same class of bug
+    // unnoticed in this package too.
+    const item = page.getByTestId('grid-item-0');
+    await page.getByTestId('toggle-resize-handle-w').uncheck();
+    await expect(item.locator('.vue-resize-hint--w')).toHaveCount(0);
+
+    await page.getByTestId('toggle-resize-handle-w').check();
+    await expect(item.locator('.vue-resize-hint--w')).toHaveCount(1);
+
+    const before = await stableBoundingBox(item);
+    expect(before).not.toBeNull();
+
+    const handle = item.locator('.vue-resize-hint--w');
+    await handle.hover();
+    await page.mouse.down();
+    const handleBox = await handle.boundingBox();
+    await page.mouse.move(handleBox!.x + handleBox!.width / 2 - 80, handleBox!.y + handleBox!.height / 2, { steps: 15 });
+    await page.mouse.up();
+
+    await expect.poll(async () => (await item.boundingBox())!.width).toBeGreaterThan(before!.width);
+  });
+
   test('the #header slot toggle renders a distinct header region above the item content', async ({ page }) => {
     const item = page.getByTestId('grid-item-0');
     await expect(item.locator('.vue-grid-item-header')).toHaveCount(0);

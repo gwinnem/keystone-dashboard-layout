@@ -99,4 +99,28 @@ describe(`layoutValidator`, () => {
 
     expect(result).toBe(false);
   });
+
+  it(`Should accept a layout item whose id (i) is a non-empty string, not just a number — regression test`, () => {
+    // Real, confirmed bug, found via GridLayout.vue's own onMounted
+    // validation call throwing on essentially every real-world layout:
+    // both validRequiredLayout.i (-1) and validOptionalLayout.i (0) are
+    // numbers, so the merged reference shape this validator's own type
+    // check compares against always had a numeric i — silently
+    // rejecting every layout item with a string id (the convention this
+    // whole project actually uses almost everywhere, '0'/'1'/etc.) even
+    // though a non-empty string is an equally valid id elsewhere in this
+    // same codebase (see isIValid/isValidIKeyString in the sibling
+    // keys-validator.ts). Every fixture in this file happens to use a
+    // numeric i, which is exactly why this went unnoticed here — this
+    // test uses a real, string id specifically to close that gap.
+    const result = layoutValidator([{ ...validRequiredLayout, i: `0` }]);
+
+    expect(result).toBe(true);
+  });
+
+  it(`Should still reject a layout item whose id (i) is an empty string — not any string counts, per isValidIKeyString's own rule elsewhere in this codebase`, () => {
+    const result = layoutValidator([{ ...validRequiredLayout, i: `` }]);
+
+    expect(result).toBe(false);
+  });
 });

@@ -180,6 +180,15 @@ export { keysValidator, validateLayoutItemRequiredKeys } from '@/core/validators
 export { layoutValidator } from '@/core/validators/layout-validator';
 export { marginValidator } from '@/core/validators/margin-validator';
 
+// The exact error message layoutValidator's own callers throw against
+// (see EErrorMessage.INVALID_LAYOUT_VALIDATED) — exported so React's
+// and Angular's own mount-time validation can throw the identical
+// string Vue's GridLayout.vue already does, matching the same
+// "one greppable source of truth" this enum's own doc comment
+// describes, rather than each framework package hardcoding its own
+// separate copy of the text that could silently drift out of sync.
+export { EErrorMessage } from '@/core/common/enums/ErrorMessages';
+
 // Shared enums/types small helpers above take or return.
 export { EMovingDirections } from '@/core/common/enums/EMovingDirections';
 export type { TMovingDirection } from '@/core/common/types/TMovingDirections';

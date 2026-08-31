@@ -101,7 +101,39 @@ export const layoutValidator = (layout: TLayout): boolean => {
     // `: true` branch already handles correctly.
     const validLayoutIndexable = validLayout as Record<string, unknown>;
     return layoutItemKeys
-      .map(k => (Object.hasOwn(validLayoutIndexable, k) ? typeof l[k] === typeof validLayoutIndexable[k] : true))
+      .map(k => {
+        // `i` is a real, confirmed bug fix, not part of the original
+        // logic below: both `validRequiredLayout.i` and
+        // `validOptionalLayout.i` are numbers (`-1`/`0`), so the merged
+        // reference shape's own `i` is *always* a number regardless of
+        // which one wins the spread — meaning the naive `typeof`
+        // comparison this ternary uses for every other key rejected
+        // every layout item with a string `i` outright, even though a
+        // non-empty string is an equally valid id (see `isIValid`/
+        // `isValidIKeyString` in this same directory's `keys-validator.ts`,
+        // which already encode that same either-or rule correctly — this
+        // function just never reused it, and isn't a straightforward
+        // import of it either, since those two both take the whole
+        // layout-item object rather than a single value). Confirmed as a
+        // real,
+        // reachable bug, not a hypothetical one: essentially every real
+        // layout throughout this whole project uses string ids
+        // ('0'/'1'/etc.), not numeric ones — `GridLayout.vue`'s own
+        // `onMounted` calls this validator unconditionally and throws
+        // on a `false` result, so this silently broke mounting any such
+        // grid the moment that mount-time check was added, surfacing
+        // only as unhandled promise rejections (the throw happens
+        // inside nested `nextTick()` callbacks) rather than a clean,
+        // single failing assertion — which is exactly why it went
+        // unnoticed by this function's own unit tests (`tests/
+        // layoutValidator.spec.ts`'s own fixtures all happen to use a
+        // numeric `i: -1`, never a string, so they never exercised this
+        // path at all).
+        if(k === `i`) {
+          return typeof l[k] === `number` || (typeof l[k] === `string` && (l[k] as string).length > 0);
+        }
+        return Object.hasOwn(validLayoutIndexable, k) ? typeof l[k] === typeof validLayoutIndexable[k] : true;
+      })
       .includes(false);
   });
   return !validTypes.includes(true);

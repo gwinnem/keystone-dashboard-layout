@@ -138,8 +138,7 @@ different UI on the same algorithms.
 * **Accessibility** — keyboard move/resize, `aria-roledescription`/
   `role="group"` on interactive items, and localizable UI/ARIA strings
   (`ariaLabels`) — not a full WAI-ARIA grid/application pattern by
-  design; see [`docs/ACCESSIBILITY.md`](./docs/ACCESSIBILITY.md) for
-  the explicit scope.
+  design.
 
 ## Built to a higher testing bar than most projects in this space
 
@@ -151,10 +150,6 @@ different UI on the same algorithms.
   [Vitest UI](https://vitest.dev/guide/ui.html#vitest-ui) test console
 * e2e tests via [Playwright](https://playwright.dev/) — see
   [`docs/TESTING.md`](./docs/TESTING.md)
-* Every finding — bug fixes, design decisions, things tried and
-  rejected — logged with root cause and verification method in
-  [`docs/REFACTORING.md`](./docs/REFACTORING.md), not just a changelog
-  line
 
 ## Shared engine, three frameworks
 
@@ -168,25 +163,12 @@ could drift out of sync.
 
 ## Documentation
 
-* [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — how `GridLayout`
-  and `GridItem` talk to each other, and the composable split
-* [`docs/BUNDLE_ANALYSIS.md`](./docs/BUNDLE_ANALYSIS.md) — measured
-  bundle composition, including the native drag/resize engine that
-  replaced `interact.js` (removing it as a runtime dependency
-  entirely)
-* [`docs/REFACTORING.md`](./docs/REFACTORING.md) — specific
-  refactoring findings from the current source
-* [`docs/REFACTOR_STRATEGY.md`](./docs/REFACTOR_STRATEGY.md) — full
-  roadmap: standardization, maintainability, testability, enterprise
-  readiness
 * [`docs/TESTING.md`](./docs/TESTING.md) — unit + e2e testing guide
 * [`docs/STRYKER.md`](./docs/STRYKER.md) — mutation testing: what it's
   for, how to run it, and what's in scope
-* [`docs/VISUAL_REGRESSION.md`](./docs/VISUAL_REGRESSION.md) —
-  screenshot-based regression testing: current status and one-time
-  setup
-* [`docs/ACCESSIBILITY.md`](./docs/ACCESSIBILITY.md) — keyboard
-  move/resize support, screen reader support, and what's not covered
+* [`docs/OPEN_ISSUES_IMPLEMENTATION_PLAN.md`](./docs/OPEN_ISSUES_IMPLEMENTATION_PLAN.md)
+  — every currently-open feature/tooling item, with an actual
+  recommended order and effort/risk grading per item
 * [`docs/FEATURE_RECOMMENDATIONS.md`](./docs/FEATURE_RECOMMENDATIONS.md)
   — source-grounded ideas for what might come next
 

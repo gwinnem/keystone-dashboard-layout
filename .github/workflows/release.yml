@@ -5,8 +5,8 @@ name: Release
 # and what version bump it implies — most pushes (docs, chores) result in
 # no release, which is expected.
 #
-# All three packages (Vue, React, Angular) publish today, each scoped to
-# commits touching only its own path via the `semantic-release-monorepo`
+# All four packages (Core, Vue, React, Angular) publish today, each scoped
+# to commits touching only its own path via the `semantic-release-monorepo`
 # plugin (`extends` in each package's own .releaserc.json) — without it,
 # plain semantic-release has no monorepo awareness at all and would
 # analyze every commit in the whole repo's history for every package,
@@ -14,13 +14,18 @@ name: Release
 # See https://github.com/pmowrer/semantic-release-monorepo for the plugin
 # itself.
 #
-# The three release jobs are deliberately chained (`needs:`), not run in
+# The four release jobs are deliberately chained (`needs:`), not run in
 # parallel: each one pushes its own release commit/tag to `main` via
-# @semantic-release/git, and three simultaneous pushes to the same branch
+# @semantic-release/git, and simultaneous pushes to the same branch
 # risk a non-fast-forward rejection race. Running them one after another
 # avoids that entirely, at the cost of a longer total workflow — an
 # acceptable trade for a release pipeline, which prioritizes correctness
-# over speed.
+# over speed. Core releases first since Vue/React/Angular all depend on
+# it (`workspace:*`, rewritten to a real version at publish time by
+# `@anolilab/semantic-release-pnpm`) — releasing it first isn't required
+# for the build itself to work (CI always builds from local workspace
+# source regardless of publish order), but keeps the published dependency
+# graph's own version numbers pointing forward, not sideways.
 #
 # REQUIRES an `NPM_TOKEN` repository secret (an npm automation token with
 # publish rights) before any of this can actually publish. Until that
@@ -41,8 +46,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release-vue:
-    name: Release @keystone-dashboard-layout/vue
+  release-core:
+    name: Release @keystone-dashboard-layout/core
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -50,6 +55,53 @@ jobs:
         with:
           # semantic-release needs full commit history to determine the
           # next version from conventional commits, not a shallow clone.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm --filter @keystone-dashboard-layout/core run typecheck
+
+      - name: Test (with coverage gate)
+        run: pnpm --filter @keystone-dashboard-layout/core run test:coverage
+
+      - name: Build library
+        run: pnpm --filter @keystone-dashboard-layout/core run build
+
+      # No check:bundle-size step here — unlike Vue/React/Angular, this
+      # package has no such script defined at all (confirmed via its own
+      # package.json); it's the framework-agnostic engine, not a UI
+      # layer shipped directly into a browser bundle the same way.
+
+      - name: Release
+        working-directory: packages/core
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release
+
+  release-vue:
+    name: Release @keystone-dashboard-layout/vue
+    needs: release-core
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Re-fetches after release-core's own commit/tag push above —
+          # needed so this job's own semantic-release sees the latest
+          # main, not the state main was in when this workflow started.
           fetch-depth: 0
           persist-credentials: false
 

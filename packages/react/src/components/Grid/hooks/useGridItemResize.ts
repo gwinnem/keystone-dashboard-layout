@@ -45,6 +45,17 @@ export interface IUseGridItemResizeOptions {
    */
   onItemResized?: (payload: { i: string | number; h: number; w: number; height: number; width: number }) => void;
   preserveAspectRatio: boolean;
+  /**
+   * The currently-resolved set of resize-hint edges/corners actually
+   * rendered by GridItem (its own `resolvedResizeHandleEdges`) — read
+   * here specifically so the native-resizable-wiring effect below can
+   * depend on it changing, not just for options.current's own general
+   * read-latest-values purpose every other field here serves. See that
+   * effect's own doc comment for why a plain `options.resizeHandles`
+   * read via `optionsRef` (the pattern every *other* field in this
+   * hook already uses) can't work for this one specifically.
+   */
+  resizeHandles: TResizeHandle[];
   rowHeight: number;
   transformScale: number;
   w: number;
@@ -402,6 +413,19 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     onResize(i, event.type, newX, newY, pos.w, pos.h);
   }, [calcPosition, calcWH, pixelsToGridX, pixelsToGridY]);
 
+  // A plain, per-render value (not read via optionsRef) — deliberately
+  // NOT the raw `options.resizeHandles` array itself as the wiring
+  // effect's own dependency below: arrays are a new reference on every
+  // render regardless of whether their contents actually changed,
+  // which would make that effect re-run (and needlessly tear down/
+  // recreate the native resize engine) on every single render, not
+  // just when the resolved handle set genuinely changes. A joined
+  // string is stable across renders unless the actual content differs
+  // — the same fix already applied in the Angular package's own
+  // GridItemComponent (`lastResolvedResizeHandlesKey`), for the
+  // identical underlying bug.
+  const resolvedResizeHandlesKey = options.resizeHandles.join(`,`);
+
   useEffect(() => {
     const root = rootRef.current;
     /* v8 ignore next 3 -- same class of genuinely-unreachable-in-practice guard as GridLayout.tsx's own container-ref check; see that file's comment for the full rationale. */
@@ -429,7 +453,29 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     return () => {
       native.destroy();
     };
-  }, [handleResize, handleRefs, rootRef]);
+    // Real, confirmed bug fix, not a stylistic dependency-list change:
+    // this effect reads each handle's own current ref value once, at
+    // whatever moment it runs, and wires createNativeResizable() to
+    // exactly that snapshot. Before `resolvedResizeHandlesKey` existed
+    // here, this effect's own dependency array ([handleResize,
+    // handleRefs, rootRef]) never actually changed across the lifetime
+    // of a mounted GridItem — handleRefs is a useMemo(..., []) whose
+    // own reference never changes, and handleResize/rootRef are
+    // similarly stable — so this effect only ever ran once, at mount.
+    // A handle that starts absent from `resizeHandles` (its own <span>
+    // never rendered, so its ref stays null at that first read) and is
+    // enabled later gets a real, correctly-positioned <span> the moment
+    // GridItem's own render includes it — but this effect never re-ran
+    // to attach a pointer listener to that newly-rendered element,
+    // leaving it visually present and inert. `resolvedResizeHandlesKey`
+    // (a joined string, not the raw array — arrays are a new reference
+    // every render regardless of content, which would defeat the whole
+    // point of a dependency check) is what makes this effect correctly
+    // re-run and re-wire whenever the actual *set* of rendered handles
+    // changes, not just at mount. Confirmed as a real, reachable bug
+    // via a live e2e run enabling a previously-disabled handle and
+    // dragging it — not a hypothetical found by inspection alone.
+  }, [handleResize, handleRefs, rootRef, resolvedResizeHandlesKey]);
 
   return { autoSize, calcPosition, handleRefs, isResizing, resizing };
 }

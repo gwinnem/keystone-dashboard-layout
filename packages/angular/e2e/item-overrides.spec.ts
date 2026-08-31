@@ -186,6 +186,38 @@ test.describe('Per-item overrides (edge cases)', () => {
     await expect.poll(async () => (await item.boundingBox())!.width).toBeGreaterThan(before!.width);
   });
 
+  test('re-checking a previously-unchecked resizeHandles edge makes that handle actually resize again, not just re-render its own span', async ({ page }) => {
+    // Regression test for a real, confirmed bug: createNativeResizable()
+    // is wired to a fixed set of @ViewChild element references, captured
+    // once. Toggling isResizable itself off then back on already
+    // re-wired correctly, but toggling *which* handles are enabled while
+    // isResizable stayed true throughout never did — a newly re-enabled
+    // handle's own <span> rendered and was positioned correctly, but no
+    // pointer listener was ever attached to it, so dragging it silently
+    // did nothing at all. Fixed in GridItemComponent directly (see
+    // checkResizeHandlesContentChange()'s own doc comment there for the
+    // full account) — kept here as a real-browser regression test so a
+    // future refactor can't reintroduce it unnoticed.
+    const item = page.locator('[data-grid-item-id="0"]');
+    await page.getByTestId('toggle-resize-handle-w').uncheck();
+    await expect(item.locator('.kdl-resize-hint--w')).toHaveCount(0);
+
+    await page.getByTestId('toggle-resize-handle-w').check();
+    await expect(item.locator('.kdl-resize-hint--w')).toHaveCount(1);
+
+    const before = await stableBoundingBox(item);
+    expect(before).not.toBeNull();
+
+    const handle = item.locator('.kdl-resize-hint--w');
+    await handle.hover();
+    await page.mouse.down();
+    const handleBox = await handle.boundingBox();
+    await page.mouse.move(handleBox!.x + handleBox!.width / 2 - 80, handleBox!.y + handleBox!.height / 2, { steps: 15 });
+    await page.mouse.up();
+
+    await expect.poll(async () => (await item.boundingBox())!.width).toBeGreaterThan(before!.width);
+  });
+
   test('the kdlGridItemHeader projection renders a distinct header region above the item content', async ({ page }) => {
     const item = page.locator('[data-grid-item-id="0"]');
     await expect(item.locator('.kdl-grid-item-header')).toHaveCount(0);

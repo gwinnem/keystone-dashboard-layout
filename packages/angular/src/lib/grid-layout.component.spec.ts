@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { GridLayoutComponent } from './grid-layout.component';
 import { GridItemComponent } from './grid-item.component';
 import { GridEventBusService } from './grid-event-bus.service';
-import { ECompactType } from '@keystone-dashboard-layout/core';
+import { ECompactType, EErrorMessage } from '@keystone-dashboard-layout/core';
 import type { ICompactor, TLayout } from '@keystone-dashboard-layout/core';
 import type { SimpleChanges } from '@angular/core';
 
@@ -63,6 +63,40 @@ describe(`GridLayoutComponent`, () => {
     component.ngOnChanges({ layout: {} } as unknown as SimpleChanges);
     fixture.detectChanges();
   };
+
+  describe(`mount-time layout validation`, () => {
+    it(`Should throw when created with a layout that fails validation`, () => {
+      // Matches the Vue package's own identical test — this component
+      // previously had no mount-time validation at all (a real,
+      // confirmed parity gap, not a deliberate difference). Missing `h`
+      // — fails layoutValidator's own required-keys check. Set directly
+      // (bypassing setInputsAndDetectChanges, which also calls
+      // ngOnChanges — the throw this test is after happens inside
+      // ngOnInit specifically, triggered by fixture.detectChanges()'s
+      // own first real change-detection pass, matching Angular's actual
+      // component-initialization order).
+      const invalidLayout = [{ i: `0`, w: 2, x: 0, y: 0 }] as unknown as TLayout;
+      Object.assign(component, { layout: invalidLayout });
+
+      expect(() => fixture.detectChanges()).toThrow(EErrorMessage.INVALID_LAYOUT_VALIDATED);
+    });
+
+    it(`Should not throw when created with a valid layout, even one using string ids`, () => {
+      // Deliberately uses string ids ('0'/'1', this whole test file's own
+      // convention and the one this whole project actually uses almost
+      // everywhere) — a real, confirmed bug in layoutValidator itself
+      // (packages/core) rejected exactly this until fixed there
+      // directly: its own type-check compared a layout item's `i`
+      // against a reference shape whose own `i` is always numeric,
+      // silently failing validation for the id convention this project
+      // actually uses. Kept here as this package's own regression
+      // coverage for that fix, alongside the Vue/React packages'
+      // identical tests.
+      Object.assign(component, { layout });
+
+      expect(() => fixture.detectChanges()).not.toThrow();
+    });
+  });
 
   it(`Should compute the auto-size container height from the tallest item's own bottom edge`, () => {
     setInputsAndDetectChanges({ autoSize: true, layout, margin: [10, 10], rowHeight: 100 });

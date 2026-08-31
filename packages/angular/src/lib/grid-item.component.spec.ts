@@ -1524,6 +1524,31 @@ describe(`GridItemComponent`, () => {
       }
     });
 
+    it(`Should actually wire a handle newly added to resizeHandles for real pointer interaction, not just render its own span — regression test for a real, confirmed bug: createNativeResizable() is wired to a fixed set of @ViewChild element references, captured once; the template's own @if correctly re-renders a newly-enabled handle's span, but nothing re-called setupNativeResizable() against it, so a real pointerdown on that exact span silently did nothing at all until checkResizeHandlesContentChange() was added specifically to catch a resizeHandles content change (not just isResizable's own boolean toggling, which checkResizableToggle() already handled)`, async () => {
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, h: 2, i: `0`, margin: [10, 10], resizeHandles: [`se`], rowHeight: 100, w: 2, x: 0, y: 0 });
+      expect(fixture.nativeElement.querySelector(`.kdl-resize-hint--w`)).toBeFalsy();
+
+      component.resizeHandles = [`se`, `w`];
+      component.ngOnChanges({ resizeHandles: {} } as unknown as SimpleChanges);
+      (component as unknown as { changeDetectorRef: { markForCheck: () => void } }).changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+
+      const wHandle = fixture.nativeElement.querySelector(`.kdl-resize-hint--w`) as HTMLElement;
+      expect(wHandle).toBeTruthy();
+      (wHandle as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
+
+      // The re-wire is deferred to a microtask (see
+      // scheduleNativeResizableRewire()'s own doc comment for why) —
+      // awaiting one real Promise tick here is what lets it actually run
+      // before this test dispatches a pointerdown on the newly-rendered
+      // element.
+      await Promise.resolve();
+
+      wHandle.dispatchEvent(mockPointerEvent(`pointerdown`, { button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+
+      expect(component.isResizing).toBe(true);
+    });
+
     it(`Should apply the explicit resizeHandleColor when showResizeHandles is true`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, resizeHandleColor: `rgb(1, 2, 3)`, showResizeHandles: true, w: 2, x: 0, y: 0 });
 
