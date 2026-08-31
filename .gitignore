@@ -51,3 +51,4 @@ yarn-error.log*
 **/.angular/
 dist/
 node_modules/
+packages/core/.npmrc
