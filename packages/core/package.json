@@ -1,5 +1,5 @@
 {
-  "name": "keystone-dashboard-layout/core",
+  "name": "keystone-dashboard-layout-core",
   "version": "1.0.0",
   "type": "module",
   "description": "Framework-agnostic grid-layout algorithms (bin-packing, collision detection, compaction, responsive breakpoints, alignment guides) shared by the Vue, React, and Angular packages in this monorepo. Zero framework dependency — every function takes plain data in, returns plain data out.",
