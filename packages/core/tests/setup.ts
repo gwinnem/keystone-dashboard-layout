@@ -1,4 +1,4 @@
-// Global Vitest setup for @keystone-dashboard-layout/core — runs once
+﻿// Global Vitest setup for keystone-dashboard-layout-core — runs once
 // before each test file. Mirrors packages/vue/tests/setup.ts; kept as a
 // separate copy since this package has no dependency on packages/vue
 // (nor should it — the dependency direction only goes the other way).

@@ -1,5 +1,5 @@
 /**
- * Base styles for `@keystone-dashboard-layout/angular` — adapted from
+ * Base styles for `keystone-dashboard-layout-angular` — adapted from
  * the React package's own `src/styles/index.css` (a plain global
  * stylesheet under the same `kdl-` class prefix; Angular has no
  * first-party CSS-scoping mechanism that would make sense to use for
@@ -351,7 +351,7 @@
 
 /*
  * isMirrored (RTL) — `setTransformRtl`/`setTopRight`
- * (`@keystone-dashboard-layout/core`) compute a right-anchored
+ * (`keystone-dashboard-layout-core`) compute a right-anchored
  * transform, which is only correct if the item's own *pre-transform*
  * static position is already anchored to the container's right edge.
  * Nothing else establishes that anchor — an RTL item's static position

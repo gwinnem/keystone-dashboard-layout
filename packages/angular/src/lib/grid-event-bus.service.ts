@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import type { IGridAriaLabels } from '@keystone-dashboard-layout/core';
+import type { IGridAriaLabels } from 'keystone-dashboard-layout-core';
 
 /** Phase 3's own bottom-up channel — the Angular equivalent of Vue's `dragEvent` eventBus message, reported by a `GridItemComponent` on every drag tick and consumed by its parent `GridLayoutComponent` to resolve collisions and commit the new layout. */
 export interface IItemDragEvent {

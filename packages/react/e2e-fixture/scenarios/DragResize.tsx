@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { GridItem, GridLayout } from '../../src/index';
-import { ECompactType } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { ECompactType } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 export default function DragResize(): React.JSX.Element {
   const [layout, setLayout] = useState<TLayout>([

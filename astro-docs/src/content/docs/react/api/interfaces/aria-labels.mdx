@@ -1,4 +1,4 @@
----
+﻿---
 title: ARIA labels (IGridAriaLabels)
 description: The interface backing localizable ARIA strings, plus the built-in English defaults exported alongside it.
 ---
@@ -29,10 +29,10 @@ The current English text as a real, importable constant — exported so
 overriding just one key can spread the rest from this rather than
 retyping every default. Not re-exported from this package's own
 barrel — both this constant and the `IGridAriaLabels` interface itself
-come from `@keystone-dashboard-layout/core` directly:
+come from `keystone-dashboard-layout-core` directly:
 
 ```tsx
-import { DEFAULT_ARIA_LABELS, type IGridAriaLabels } from '@keystone-dashboard-layout/core';
+import { DEFAULT_ARIA_LABELS, type IGridAriaLabels } from 'keystone-dashboard-layout-core';
 
 const gridAriaLabels: IGridAriaLabels = {
   ...DEFAULT_ARIA_LABELS,

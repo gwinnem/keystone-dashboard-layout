@@ -1,4 +1,4 @@
-import { ICrossGridZone } from '../interfaces/cross-grid.interfaces';
+﻿import { ICrossGridZone } from '../interfaces/cross-grid.interfaces';
 
 /**
  * Every mounted `GridLayout` with `allowCrossGridDrag` enabled registers
@@ -20,7 +20,7 @@ import { ICrossGridZone } from '../interfaces/cross-grid.interfaces';
  * relative path escaping the project root, resolved only via each
  * consuming package's own `vite.config.ts`/`vitest.config.ts` alias
  * definition. That broke this file specifically once it needed to be
- * reachable from *outside* `@keystone-dashboard-layout/core`'s own
+ * reachable from *outside* `keystone-dashboard-layout-core`'s own
  * build (via the package's new `./gridlayout/helpers/cross-grid-registry`
  * subpath export, added for React's own `useCrossGridDrag.ts` — see
  * that file's own comment): Stryker's own sandboxed test runs relocate

@@ -1,4 +1,4 @@
----
+﻿---
 title: Introduction
 description: What Keystone Dashboard Layout for React is, what you get, and where to go next.
 prev: false
@@ -10,7 +10,7 @@ use for a customizable analytics dashboard, a widget board, or any screen
 where users rearrange content themselves.
 
 It's a TypeScript-first library built on the exact same shared
-`@keystone-dashboard-layout/core` algorithms and native, Pointer
+`keystone-dashboard-layout-core` algorithms and native, Pointer
 Events-based drag/resize engine the Vue package uses — both frameworks
 share one implementation of the hard, easy-to-get-subtly-wrong parts
 (collision, compaction, responsive breakpoint math) rather than each
@@ -55,9 +55,9 @@ and any part of an item is a drag handle by default, restrictable via
 
 ```tsx
 import { useState } from 'react';
-import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
-import '@keystone-dashboard-layout/react/style.css';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayout, GridItem } from 'keystone-dashboard-layout-react';
+import 'keystone-dashboard-layout-react/style.css';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 function Dashboard() {
   const [layout, setLayout] = useState<TLayout>([

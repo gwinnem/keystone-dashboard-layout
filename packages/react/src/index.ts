@@ -1,5 +1,5 @@
 /**
- * Public entry point for `@keystone-dashboard-layout/react`.
+ * Public entry point for `keystone-dashboard-layout-react`.
  *
  * See `README.md` for the exact feature scope of this port.
  */

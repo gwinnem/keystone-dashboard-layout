@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import { useLayoutPresets } from '../../../hooks/useLayoutPresets';
 
 /** A minimal in-memory Storage implementation, so these tests exercise the custom-`storage` option explicitly rather than only ever going through jsdom's own localStorage. Mirrors the Vue package's own identical test double. */

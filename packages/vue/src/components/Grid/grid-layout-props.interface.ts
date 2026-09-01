@@ -1,11 +1,11 @@
-import { TLayout } from '@/components/Grid/layout-definition';
+﻿import { TLayout } from '@/components/Grid/layout-definition';
 import { IGridAriaLabels } from '@/core/common/interfaces/aria-labels.interface';
 import { ICompactor } from '@/core/gridlayout/helpers/compactor';
 import { ECompactType } from '@/core/gridlayout/enums/ECompactType';
 import { TResizeHandle } from '@/core/helpers/native-interaction';
-import type { IBreakpoints, IColumns } from '@keystone-dashboard-layout/core';
+import type { IBreakpoints, IColumns } from 'keystone-dashboard-layout-core';
 
-// `IBreakpoints`/`IColumns` now live in `@keystone-dashboard-layout/core`
+// `IBreakpoints`/`IColumns` now live in `keystone-dashboard-layout-core`
 // (they're plain data shapes with no Vue dependency, shared with the
 // React/Angular ports). `export type { ... } from '...'` below re-exports
 // them for every existing internal import of this file's own
@@ -14,7 +14,7 @@ import type { IBreakpoints, IColumns } from '@keystone-dashboard-layout/core';
 // is why the `import type` above exists too: `IGridLayoutProps` itself
 // uses both as field types (`breakpoints?: IBreakpoints`/`cols?:
 // IColumns` below), and would otherwise fail to resolve them at all.
-export type { IBreakpoints, IColumns } from '@keystone-dashboard-layout/core';
+export type { IBreakpoints, IColumns } from 'keystone-dashboard-layout-core';
 
 /**
  * Props accepted by the `GridLayout` component. Only `layout` is required;

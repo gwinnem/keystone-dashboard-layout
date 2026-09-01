@@ -1,4 +1,4 @@
-import {
+﻿import {
   AfterContentChecked,
   AfterContentInit,
   AfterViewInit,
@@ -37,7 +37,7 @@ import {
   setTopRight,
   setTransform,
   setTransformRtl,
-} from '@keystone-dashboard-layout/core';
+} from 'keystone-dashboard-layout-core';
 import type {
   IGridAriaLabels,
   INativeAutoScroll,
@@ -49,7 +49,7 @@ import type {
   ITransformStyle,
   TDragActivationDistance,
   TResizeHandle,
-} from '@keystone-dashboard-layout/core';
+} from 'keystone-dashboard-layout-core';
 import { GridEventBusService, IGridDefaults } from './grid-event-bus.service';
 
 /** Grid-unit x/y position — the output of {@link GridItemComponent.calcXY}, mirroring Vue's own `useGridItemDrag.ts` `ICalcXy`. */
@@ -130,7 +130,7 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
  * resize deltas, matching how Phase 7's own scope prioritized drag
  * first.
  *
- * Reuses `@keystone-dashboard-layout/core`'s own `createNativeDraggable`/
+ * Reuses `keystone-dashboard-layout-core`'s own `createNativeDraggable`/
  * `createNativeResizable`/`createNativeAutoScroll` directly, wired up in
  * `ngOnInit`/`ngAfterViewInit` respectively and torn down in
  * `ngOnDestroy`.

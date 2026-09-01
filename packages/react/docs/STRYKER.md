@@ -1,4 +1,4 @@
-# Mutation testing (Stryker)
+﻿# Mutation testing (Stryker)
 
 Same tool, same rationale, and largely the same configuration shape as
 the Vue package's own `docs/STRYKER.md` — read that document first for
@@ -70,7 +70,7 @@ this package's own actual behavior than Vue's own scope covers of its.
 
 Shared `core` package logic (collision detection, compaction,
 responsive-breakpoint resolution, the native pointer-driven drag/resize
-engine) is **not** in scope here — it's `@keystone-dashboard-layout/core`'s
+engine) is **not** in scope here — it's `keystone-dashboard-layout-core`'s
 own concern, mutation-tested (if at all) from that package directly,
 not duplicated into this config.
 
@@ -189,7 +189,7 @@ that path is computed from.
 instead of a relative path at all — stable regardless of where the
 importing file gets relocated to, sandboxed or otherwise:
 
-1. `@keystone-dashboard-layout/core`'s own `package.json` gained two
+1. `keystone-dashboard-layout-core`'s own `package.json` gained two
    dedicated subpath exports (`./gridlayout/helpers/cross-grid-registry`,
    `./gridlayout/interfaces/cross-grid.interfaces`), pointing directly
    at the source `.ts` files rather than through a build step — this

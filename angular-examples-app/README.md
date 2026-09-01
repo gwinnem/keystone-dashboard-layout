@@ -1,9 +1,9 @@
-# Keystone Dashboard Layout — Angular Examples (standalone app)
+﻿# Keystone Dashboard Layout — Angular Examples (standalone app)
 
 A real, standalone Angular CLI application — **not** part of the pnpm
 workspace (same deliberate choice as `astro-docs`; see its own
 `package.json` description) — hosting live, deployable examples of
-`@keystone-dashboard-layout/angular`.
+`keystone-dashboard-layout-angular`.
 
 ## Why this exists
 
@@ -29,7 +29,7 @@ pipeline at all.
 `packages/angular` has no working build output yet (`ng-packagr` was
 never actually run — see that package's own `package.json`/
 `ng-package.json` history). Rather than wait on that, `tsconfig.json`'s
-own `paths` field aliases `@keystone-dashboard-layout/angular` straight
+own `paths` field aliases `keystone-dashboard-layout-angular` straight
 to `../packages/angular/src/index.ts`, and `tsconfig.app.json`'s own
 `include` explicitly covers `../packages/angular/src/**/*.ts` too — a
 real, confirmed requirement (Angular's own compiler needs a file inside
@@ -38,7 +38,7 @@ decorators/templates at all). Once `packages/angular` has a real build,
 switch this to a normal `link:../packages/angular` dependency instead
 and drop the `paths` alias.
 
-`@keystone-dashboard-layout/core` *does* have a real build already, so
+`keystone-dashboard-layout-core` *does* have a real build already, so
 it's a normal `link:../packages/core` dependency here, no alias needed.
 
 ## Local development

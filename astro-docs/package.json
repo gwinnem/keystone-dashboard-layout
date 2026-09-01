@@ -23,8 +23,8 @@
     "react-dom": "^19.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@keystone-dashboard-layout/vue": "link:../packages/vue",
-    "@keystone-dashboard-layout/react": "link:../packages/react",
-    "@keystone-dashboard-layout/core": "link:../packages/core"
+    "keystone-dashboard-layout-vue": "link:../packages/vue",
+    "keystone-dashboard-layout-react": "link:../packages/react",
+    "keystone-dashboard-layout-core": "link:../packages/core"
   }
 }

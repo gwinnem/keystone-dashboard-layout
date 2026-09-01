@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { GridItemComponent } from '../../src/lib/grid-item.component';
 import { GridLayoutComponent } from '../../src/lib/grid-layout.component';
-import { ECompactType } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { ECompactType } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 /**
  * Real-browser coverage for `multiSelect` — click/Ctrl+click selection

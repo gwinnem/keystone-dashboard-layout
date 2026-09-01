@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 /**
  * `createNativeAutoScroll()` drives a real, `requestAnimationFrame`-based
@@ -19,8 +19,8 @@ import type { TLayout } from '@keystone-dashboard-layout/core';
  */
 const mockAutoScrollSpies = { start: vi.fn(), stop: vi.fn(), update: vi.fn() };
 
-vi.mock(`@keystone-dashboard-layout/core`, async importOriginal => {
-  const actual = await importOriginal<typeof import('@keystone-dashboard-layout/core')>();
+vi.mock(`keystone-dashboard-layout-core`, async importOriginal => {
+  const actual = await importOriginal<typeof import('keystone-dashboard-layout-core')>();
   return {
     ...actual,
     createNativeAutoScroll: vi.fn(() => mockAutoScrollSpies),

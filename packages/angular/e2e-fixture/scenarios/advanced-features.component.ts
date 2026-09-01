@@ -3,8 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { GridItemComponent } from '../../src/lib/grid-item.component';
 import { GridLayoutComponent } from '../../src/lib/grid-layout.component';
 import { GridLayoutStorageService } from '../../src/lib/grid-layout-storage.service';
-import { ECompactType } from '@keystone-dashboard-layout/core';
-import type { ICompactor, TLayout } from '@keystone-dashboard-layout/core';
+import { ECompactType } from 'keystone-dashboard-layout-core';
+import type { ICompactor, TLayout } from 'keystone-dashboard-layout-core';
 
 /**
  * A custom compactor that settles every non-static item *downward*

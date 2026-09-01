@@ -1,4 +1,4 @@
----
+﻿---
 title: Add or remove items
 description: A real first-fit bin-pack — removing an item from the middle of the grid opens a gap the next added item actually reuses.
 ---
@@ -20,7 +20,7 @@ clearly room higher up.
 
 This demo's own `addItem` does a real first-fit bin-pack instead, via
 this package's own exported `findFirstFitSlot` (from
-`@keystone-dashboard-layout/core`): remove an item from the middle of
+`keystone-dashboard-layout-core`): remove an item from the middle of
 the grid, then add a new one, and it lands in the gap left behind. The
 toggle demonstrates a second placement strategy — appending to the end
 of the first row specifically, falling back to the general bin-pack

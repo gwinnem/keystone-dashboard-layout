@@ -1,4 +1,4 @@
----
+﻿---
 title: Installation
 description: Add Keystone Dashboard Layout for Angular to your project.
 ---
@@ -6,7 +6,7 @@ description: Add Keystone Dashboard Layout for Angular to your project.
 ## Add the package
 
 ```sh
-npm install @keystone-dashboard-layout/angular
+npm install keystone-dashboard-layout-angular
 ```
 
 `@angular/common`/`@angular/core` (`^17.0.0 || ^18.0.0 || ^19.0.0`) and
@@ -20,7 +20,7 @@ cursors, the default close button). Import it once, anywhere it'll be
 loaded application-wide — typically your app's entry point:
 
 ```ts
-import '@keystone-dashboard-layout/angular/style.css';
+import 'keystone-dashboard-layout-angular/style.css';
 ```
 
 ## Use the components
@@ -35,8 +35,8 @@ Angular form-like input.
 
 ```ts
 import { Component } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 @Component({
   selector: 'app-dashboard',
@@ -72,8 +72,8 @@ items inside the container, and a close button:
 
 ```ts
 import { Component } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 @Component({
   selector: 'app-dashboard',
@@ -136,11 +136,11 @@ import {
   GridLayoutPresetsService,
   GridItemDragHandleComponent,
   GridItemCloseButtonComponent,
-} from '@keystone-dashboard-layout/angular';
+} from 'keystone-dashboard-layout-angular';
 ```
 
 Layout-level types (`TLayout`, `ILayoutItem`, and so on) come from the
-shared `@keystone-dashboard-layout/core` package instead — see
+shared `keystone-dashboard-layout-core` package instead — see
 [API](/angular/api/) once that page lands for the complete list.
 
 ## Requirements
@@ -162,8 +162,8 @@ switching between several named layouts:
 
 ```ts
 import { Component, inject } from '@angular/core';
-import { GridLayoutStorageService } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayoutStorageService } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 @Component({ /* ... */ })
 export class DashboardComponent {

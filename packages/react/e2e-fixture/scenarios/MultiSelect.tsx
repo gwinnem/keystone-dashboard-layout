@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { GridItem, GridLayout } from '../../src/index';
 import type { IGridLayoutHandle } from '../../src/index';
-import { ECompactType } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { ECompactType } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 /**
  * Real-browser coverage for `multiSelect` — click/Ctrl+click selection

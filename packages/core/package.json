@@ -1,6 +1,6 @@
 {
   "name": "keystone-dashboard-layout-core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Framework-agnostic grid-layout algorithms (bin-packing, collision detection, compaction, responsive breakpoints, alignment guides) shared by the Vue, React, and Angular packages in this monorepo. Zero framework dependency — every function takes plain data in, returns plain data out.",
   "author": "Geirr Winnem <geirr@winnem.tech>",
@@ -27,6 +27,7 @@
       "require": "./dist/cross-grid-interfaces.cjs.js"
     }
   },
+  "homepage": "https://kdl.winnem.tech/core/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gwinnem/keystone-dashboard-layout.git",

@@ -1,4 +1,4 @@
-<!--
+﻿<!--
   The grid container. Owns the layout array, breakpoint/responsive state,
   and the `eventBus` it provides to every `GridItem` rendered in its
   default slot. See docs/ARCHITECTURE.md for the full `$parent`/eventBus
@@ -636,7 +636,7 @@
       // Confirmed unreachable through either of this function's own two
       // callers (alignSelected/distributeSelected), not assumed — traced
       // directly into computeAlignAdjustments/computeDistributeAdjustments
-      // (@keystone-dashboard-layout/core): both already filter out any
+      // (keystone-dashboard-layout-core): both already filter out any
       // selected id that doesn't match a real layout item before ever
       // adding it to the returned Map (computeAlignAdjustments's own
       // `if(!item) { return; }` inside its forEach; computeDistributeAdjustments's
@@ -684,7 +684,7 @@
    * A no-op when fewer than 2 items are selected (nothing to align
    * against), including when `multiSelect` is off entirely (selection
    * is then always empty). See `computeAlignAdjustments`'s own doc
-   * comment (`@keystone-dashboard-layout/core`) for the exact
+   * comment (`keystone-dashboard-layout-core`) for the exact
    * per-edge/center math.
    */
   const alignSelected = (edge: TAlignEdge): void => {
@@ -701,7 +701,7 @@
    * "in between" move to close any uneven gaps. A no-op with fewer than
    * 3 items selected (nothing meaningfully in between). See
    * `computeDistributeAdjustments`'s own doc comment
-   * (`@keystone-dashboard-layout/core`) for the exact spacing math.
+   * (`keystone-dashboard-layout-core`) for the exact spacing math.
    */
   const distributeSelected = (axis: TDistributeAxis): void => {
     const selectedIds = Array.from(selectedItemIds.value);

@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GridItemComponent } from '../../src/lib/grid-item.component';
 import { GridLayoutComponent } from '../../src/lib/grid-layout.component';
-import { ECompactType, readOutsideDropPayload } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { ECompactType, readOutsideDropPayload } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 interface IWidgetPayload {
   label: string;

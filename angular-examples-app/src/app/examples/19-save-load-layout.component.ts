@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent, GridLayoutStorageService } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { Component, inject } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent, GridLayoutStorageService } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import { LayoutJsonViewerComponent } from '../harness/layout-json-viewer.component';
 
 const STORAGE_KEY = 'keystone-dashboard-layout-example-19-layout';

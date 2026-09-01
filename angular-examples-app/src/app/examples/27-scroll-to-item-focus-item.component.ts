@@ -1,6 +1,6 @@
-import { Component, ViewChild } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { Component, ViewChild } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import { LayoutJsonViewerComponent } from '../harness/layout-json-viewer.component';
 
 const initialLayout: TLayout = Array.from({ length: 6 }, (_, index) => ({ h: 2, i: String(index), w: 4, x: 0, y: index * 2 }));

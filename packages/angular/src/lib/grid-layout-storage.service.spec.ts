@@ -1,5 +1,5 @@
 import { GridLayoutStorageService } from './grid-layout-storage.service';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 /** A minimal, in-memory `Storage` double — avoids depending on jsdom's own `localStorage` implementation (or lack thereof) for these tests, and lets each test start from a genuinely empty, isolated store. */
 class FakeStorage implements Storage {

@@ -1,9 +1,9 @@
----
+﻿---
 title: Cross-grid & outside-drop event payloads
 description: The typed payloads for GridLayout's cross-grid and outside-drop callbacks.
 ---
 
-Shared with the Vue package via `@keystone-dashboard-layout/core` for
+Shared with the Vue package via `keystone-dashboard-layout-core` for
 the cross-grid shapes — import them from `core` directly, since this
 package doesn't re-export them through its own barrel.
 
@@ -34,7 +34,7 @@ nothing is added to `layout` automatically.
 ## `onCrossGridItemDropped`
 
 ```ts
-import type { ICrossGridItemDropped } from '@keystone-dashboard-layout/core';
+import type { ICrossGridItemDropped } from 'keystone-dashboard-layout-core';
 
 interface ICrossGridItemDropped {
   item: ILayoutItem;
@@ -49,7 +49,7 @@ grid — the moved layout item (already inserted into this grid's
 ## `onCrossGridDropRejected`
 
 ```ts
-import type { ICrossGridDropRejected } from '@keystone-dashboard-layout/core';
+import type { ICrossGridDropRejected } from 'keystone-dashboard-layout-core';
 
 interface ICrossGridDropRejected {
   itemId: string | number;

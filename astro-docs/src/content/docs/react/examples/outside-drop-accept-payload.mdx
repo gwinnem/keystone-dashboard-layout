@@ -1,4 +1,4 @@
----
+﻿---
 title: outsideDropAccept & readOutsideDropPayload
 description: Reject incompatible native drags before the placeholder appears, and read a richer, typed payload than the raw DataTransfer.
 ---
@@ -15,7 +15,7 @@ JSON-parses a `DataTransfer` payload by MIME type — never throws; a
 missing MIME type or malformed JSON both return `null` rather than
 propagating a `SyntaxError`. `mimeType` defaults to `'text/plain'`,
 matching `dataTransfer.setData`'s own default. Imported from
-`@keystone-dashboard-layout/core` directly — this package doesn't
+`keystone-dashboard-layout-core` directly — this package doesn't
 re-export it through its own barrel.
 
 :::note[Why this one starts inside a fixed-height frame]

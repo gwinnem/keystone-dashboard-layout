@@ -1,7 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import { ECompactType } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { Component, ViewChild } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import { ECompactType } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 const initialLayout: TLayout = [
   { h: 2, i: 'a', w: 2, x: 0, y: 0 },

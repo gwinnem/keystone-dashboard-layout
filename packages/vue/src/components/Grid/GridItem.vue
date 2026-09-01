@@ -1,4 +1,4 @@
-<!--
+﻿<!--
   A single draggable/resizable/static grid cell, rendered inside a
   `GridLayout`'s default slot. Dragging and resizing are each implemented
   in their own composable (`composables/useGridItemDrag.ts`/
@@ -1510,7 +1510,7 @@
 
   // isMirrored (RTL) + css-transforms — confirmed gap via a fresh e2e run
   // against the React port, which shares this same setTransformRtl()
-  // function from @keystone-dashboard-layout/core: `translate3d(-right,
+  // function from keystone-dashboard-layout-core: `translate3d(-right,
   // ...)` is only correct when the item's own *pre-transform* static
   // position is already anchored to the container's right edge.
   // `.css-transforms` above sets both `left`/`right` to `auto`

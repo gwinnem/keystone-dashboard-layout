@@ -1,4 +1,4 @@
-import type { IExportLayoutAsSvgOptions, TAlignEdge, TDistributeAxis } from '@keystone-dashboard-layout/core';
+import type { IExportLayoutAsSvgOptions, TAlignEdge, TDistributeAxis } from 'keystone-dashboard-layout-core';
 
 /**
  * The imperative API `GridLayout` exposes via `ref` — the React
@@ -73,7 +73,7 @@ export interface IGridLayoutHandle {
    * measured container width, so you don't need to re-supply values
    * already known here; any field in `options` still overrides its
    * corresponding pre-filled one. See `IExportLayoutAsSvgOptions`
-   * (`@keystone-dashboard-layout/core`) for the full option list and
+   * (`keystone-dashboard-layout-core`) for the full option list and
    * `exportLayoutAsSvg`'s own doc comment for what the output looks
    * like and how to use it (download as `.svg`, `innerHTML` directly,
    * etc.).

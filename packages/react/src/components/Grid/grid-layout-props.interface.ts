@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { ECompactType, IBreakpoints, IColumns, ICompactor, IGridAriaLabels, TBreakpoint, TLayout, TResizeHandle, TResponsiveLayout } from '@keystone-dashboard-layout/core';
+import type { ECompactType, IBreakpoints, IColumns, ICompactor, IGridAriaLabels, TBreakpoint, TLayout, TResizeHandle, TResponsiveLayout } from 'keystone-dashboard-layout-core';
 import type { ICrossGridDropRejected, ICrossGridItemDropped } from '@/core/gridlayout/interfaces/cross-grid.interfaces';
 
 /**
@@ -203,7 +203,7 @@ export interface IGridLayoutProps {
    * selected by `compactType`, unchanged — this is a purely additive
    * override, not a replacement for `compactType` (which keeps working
    * normally whether or not this is set). See `ICompactor`
-   * (`@keystone-dashboard-layout/core`) for the interface to implement
+   * (`keystone-dashboard-layout-core`) for the interface to implement
    * and its own worked example. Called after every drag end, resize
    * end, item add/remove, on mount, on a breakpoint/column-count
    * change, and by `compactNow()`/`rearrange()` on demand — the same
@@ -313,7 +313,7 @@ export interface IGridLayoutProps {
    * (e.g. only `closeButton`) doesn't require re-supplying the rest.
    * A per-item `ILayoutItem.ariaLabels` overrides this for just that
    * item, merged the same way. See `IGridAriaLabels`
-   * (`@keystone-dashboard-layout/core`) for the full field list (close
+   * (`keystone-dashboard-layout-core`) for the full field list (close
    * button label, item role description, move/resize keyboard
    * instructions).
    */

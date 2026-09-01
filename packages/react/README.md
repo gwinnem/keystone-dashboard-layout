@@ -46,7 +46,7 @@ npm install @keystone-dashboard-layout/react
 import { useState } from 'react';
 import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
 import '@keystone-dashboard-layout/react/style.css';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 function Dashboard() {
   const [layout, setLayout] = useState<TLayout>([
@@ -74,17 +74,17 @@ tick (and the compaction that follows it) is reported via
 matching one of `layout`'s own entries — position, size, and
 `isDraggable`/`isResizable`/`isStatic`/`minW`/`maxW`/`minH`/`maxH` all
 live directly on that layout-item entry (see `ILayoutItem` in
-`@keystone-dashboard-layout/core`) rather than as separate props on
+`keystone-dashboard-layout-core`) rather than as separate props on
 this component.
 
 **Using just the grid math, without React?**
-`@keystone-dashboard-layout/core` exports the same collision detection,
+`keystone-dashboard-layout-core` exports the same collision detection,
 compaction, movement, and alignment functions this package is built
 on — zero React dependency, no live DOM required, plain data in and
 out:
 
 ```ts
-import { collides, compactLayout, moveElement } from '@keystone-dashboard-layout/core';
+import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-core';
 ```
 
 ## Features
@@ -177,7 +177,7 @@ gridRef.current?.compactNow();
 
 This package, [`@keystone-dashboard-layout/vue`](https://www.npmjs.com/package/@keystone-dashboard-layout/vue),
 and [`@keystone-dashboard-layout/angular`](https://www.npmjs.com/package/@keystone-dashboard-layout/angular)
-all build on [`@keystone-dashboard-layout/core`](https://www.npmjs.com/package/@keystone-dashboard-layout/core)
+all build on [`keystone-dashboard-layout-core`](https://www.npmjs.com/package/keystone-dashboard-layout-core)
 for collision detection, compaction, responsive breakpoint math, and
 the native Pointer-Events-based drag/resize engine — one implementation
 of the hard parts, not three independently-maintained copies that

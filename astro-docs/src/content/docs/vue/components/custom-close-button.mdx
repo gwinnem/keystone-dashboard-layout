@@ -1,4 +1,4 @@
----
+﻿---
 title: CustomCloseButton
 description: The exact close button GridItem renders internally for showCloseButton — exported for standalone reuse.
 ---
@@ -11,7 +11,7 @@ yourself.
 
 ```vue
 <script setup lang="ts">
-import { CustomCloseButton } from '@keystone-dashboard-layout/vue';
+import { CustomCloseButton } from 'keystone-dashboard-layout-vue';
 
 function removeItem(id: string | number): void {
   layout.value = layout.value.filter((item) => item.i !== id);

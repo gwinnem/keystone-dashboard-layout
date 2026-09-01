@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import {
   calcColWidth,
@@ -7,14 +7,14 @@ import {
   createNativeResizable,
   offsetXYFromParentOf,
   RESIZE_EDGE_MAP,
-} from '@keystone-dashboard-layout/core';
+} from 'keystone-dashboard-layout-core';
 import type {
   ICalcWh,
   IGridItemPosition,
   IInteractEdges,
   INativeResizeEvent,
   TResizeHandle,
-} from '@keystone-dashboard-layout/core';
+} from 'keystone-dashboard-layout-core';
 import type { TGridGestureEventType } from '../grid-context';
 
 export interface IUseGridItemResizeOptions {
@@ -89,7 +89,7 @@ export interface IUseGridItemResizeReturn {
  * The React port of Vue's own `useGridItemResize.ts` composable — same
  * grid-unit math (`calcPosition`/`calcWH`/`pixelsToGridX`/
  * `pixelsToGridY`), same native pointer-driven engine
- * (`createNativeResizable`, shared via `@keystone-dashboard-layout/core`).
+ * (`createNativeResizable`, shared via `keystone-dashboard-layout-core`).
  * See `useGridItemDrag.ts`'s own doc comment for why a `ref` (not just
  * `useState`) holds the live pixel size during a gesture.
  *
@@ -166,7 +166,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
   const calcPosition = useCallback((x: number, y: number, w: number, h: number): IGridItemPosition => {
     const { containerWidth, margin, cols, rowHeight, isMirrored } = optionsRef.current;
     const colWidth = calcColWidth(containerWidth, margin[0], cols);
-    /* v8 ignore next -- the `=== Infinity` special case (an item that fills the rest of its row/column) is untestable through GridLayout's own render pipeline as currently built: `GridLayout` clones every layout via `cloneLayout()` (a JSON round-trip, in `@keystone-dashboard-layout/core`) on every state update, and `JSON.stringify(Infinity)` serializes to `null` — silently corrupting an `Infinity` h/w to `null` before it would ever reach this function. This is a genuine, separate, pre-existing gap shared with the Vue package (both use the same `cloneLayout`), not something a test here can route around; flagged rather than covered with a misleading test. */
+    /* v8 ignore next -- the `=== Infinity` special case (an item that fills the rest of its row/column) is untestable through GridLayout's own render pipeline as currently built: `GridLayout` clones every layout via `cloneLayout()` (a JSON round-trip, in `keystone-dashboard-layout-core`) on every state update, and `JSON.stringify(Infinity)` serializes to `null` — silently corrupting an `Infinity` h/w to `null` before it would ever reach this function. This is a genuine, separate, pre-existing gap shared with the Vue package (both use the same `cloneLayout`), not something a test here can route around; flagged rather than covered with a misleading test. */
     const height = h === Infinity ? h : Math.round(rowHeight * h + Math.max(0, h - 1) * margin[1]);
     /* v8 ignore next -- same Infinity/cloneLayout limitation as `height` above — not adjacent to it, so needs its own ignore comment rather than one "next N" covering both. */
     const width = w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * margin[0]);

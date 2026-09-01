@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { deserializeLayout, serializeLayout } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { deserializeLayout, serializeLayout } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 /** Options for {@link useLayoutStorage}, all optional. */
 export interface IUseLayoutStorageOptions {

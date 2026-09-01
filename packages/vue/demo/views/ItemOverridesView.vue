@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <h2>Per-item overrides</h2>
   <p class="demo-description">
     <code>GridItem</code>-level props that aren't covered by the "Drag &amp; resize" playground —
@@ -251,7 +251,7 @@
   import { computed, ref } from 'vue';
   import { GridItem, GridLayout } from '@/components';
   import type { TLayout } from '@/components';
-  import type { TResizeHandle } from '@keystone-dashboard-layout/core';
+  import type { TResizeHandle } from 'keystone-dashboard-layout-core';
 
   const layout = ref<TLayout>([
     { i: '0', x: 0, y: 0, w: 4, h: 2 },

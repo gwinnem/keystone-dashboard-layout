@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <GridLayout
     v-model:layout="layout"
     :col-num="12"
@@ -23,8 +23,8 @@
 
 <script lang="ts" setup>
   import { ref } from 'vue';
-  import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
-  import '@keystone-dashboard-layout/vue/style.css';
+  import { GridLayout, GridItem, type TLayout } from 'keystone-dashboard-layout-vue';
+  import 'keystone-dashboard-layout-vue/style.css';
 
   const layout = ref<TLayout>([
     { h: 2, i: '0', w: 3, x: 0, y: 0 },

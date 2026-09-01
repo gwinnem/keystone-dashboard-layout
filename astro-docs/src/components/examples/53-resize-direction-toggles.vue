@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="demo-controls">
     <ExampleToggle
       v-model="n"
@@ -48,9 +48,9 @@
 
 <script lang="ts" setup>
   import { computed, ref } from 'vue';
-  import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
-  import type { TResizeHandle } from '@keystone-dashboard-layout/core';
-  import '@keystone-dashboard-layout/vue/style.css';
+  import { GridLayout, GridItem, type TLayout } from 'keystone-dashboard-layout-vue';
+  import type { TResizeHandle } from 'keystone-dashboard-layout-core';
+  import 'keystone-dashboard-layout-vue/style.css';
   import ExampleToggle from '../harness/ExampleToggle.vue';
 
   const n = ref(true);

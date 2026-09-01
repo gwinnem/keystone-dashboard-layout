@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { Component } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 type THeightMode = 'auto' | 'fixed' | 'scroll' | 'fit';
 

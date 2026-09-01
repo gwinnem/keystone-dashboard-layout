@@ -2,7 +2,7 @@
 
 This package's own runtime dependencies are:
 
-- **`@keystone-dashboard-layout/core`** — a sibling package in this
+- **`keystone-dashboard-layout-core`** — a sibling package in this
   same family (installed as a normal dependency, not vendored or
   bundled into this package's own `dist/` output).
 - **[`tslib`](https://www.npmjs.com/package/tslib)** (Microsoft, MIT

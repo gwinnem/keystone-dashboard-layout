@@ -74,7 +74,7 @@ try {
   // Deliberately `pnpm pack`, not `npm pack` — a real, confirmed bug
   // found via a live run of this exact script, not a stylistic
   // preference: this package's own `dependencies` includes
-  // `"@keystone-dashboard-layout/core": "workspace:*"`, a pnpm-specific
+  // `"keystone-dashboard-layout-core": "workspace:*"`, a pnpm-specific
   // protocol plain `npm` has no concept of at all. `npm pack` copies
   // that literal string into the tarball's own package.json unchanged;
   // installing that tarball then fails outright with
@@ -87,7 +87,7 @@ try {
   // deliberately stays plain `npm`, not `pnpm` — simulating what an
   // actual downstream consumer using npm (not pnpm) would experience.
   execSync('pnpm pack', { cwd: ROOT });
-  // Known, expected limitation until @keystone-dashboard-layout/core's
+  // Known, expected limitation until keystone-dashboard-layout-core's
   // own first real npm release: the `npm install` below now correctly
   // resolves the rewritten "workspace:*" -> a real version number (e.g.
   // "0.1.0"), confirmed via a live run — but npm then tries to fetch

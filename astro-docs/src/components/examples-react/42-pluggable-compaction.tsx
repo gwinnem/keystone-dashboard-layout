@@ -1,8 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
-import { GridLayout, GridItem, type IGridLayoutHandle } from '@keystone-dashboard-layout/react';
-import '@keystone-dashboard-layout/react/style.css';
-import { ECompactType } from '@keystone-dashboard-layout/core';
-import type { ICompactor, TLayout } from '@keystone-dashboard-layout/core';
+﻿import { useMemo, useRef, useState } from 'react';
+import { GridLayout, GridItem, type IGridLayoutHandle } from 'keystone-dashboard-layout-react';
+import 'keystone-dashboard-layout-react/style.css';
+import { ECompactType } from 'keystone-dashboard-layout-core';
+import type { ICompactor, TLayout } from 'keystone-dashboard-layout-core';
 import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import '../examples-react/shared-example-item.css';
 import './42-pluggable-compaction.css';

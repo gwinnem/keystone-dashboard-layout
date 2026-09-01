@@ -1,4 +1,4 @@
----
+﻿---
 title: Pluggable compaction (ICompactor)
 description: The interface behind the compactor prop, its context object, and the five built-in strategies exported alongside it.
 ---
@@ -35,7 +35,7 @@ Exported individually, as a starting point for a custom compactor to
 delegate back to for part of a layout (e.g. compact everything except
 one pinned row) rather than reimplementing standard compaction from
 scratch. `ICompactor` itself and all five strategies below live in
-`@keystone-dashboard-layout/core`, not this package's own barrel:
+`keystone-dashboard-layout-core`, not this package's own barrel:
 
 ```ts
 import {
@@ -45,7 +45,7 @@ import {
   verticalOverlapCompactor,
   horizontalOverlapCompactor,
   getCompactor,
-} from '@keystone-dashboard-layout/core';
+} from 'keystone-dashboard-layout-core';
 ```
 
 | Export | Backs |

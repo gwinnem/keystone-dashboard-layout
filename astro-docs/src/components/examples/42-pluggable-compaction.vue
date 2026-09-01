@@ -44,8 +44,8 @@
 
 <script lang="ts" setup>
   import { computed, ref } from 'vue';
-  import { GridLayout, GridItem, ECompactType, type TLayout, type ICompactor } from '@keystone-dashboard-layout/vue';
-  import '@keystone-dashboard-layout/vue/style.css';
+  import { GridLayout, GridItem, ECompactType, type TLayout, type ICompactor } from 'keystone-dashboard-layout-vue';
+  import 'keystone-dashboard-layout-vue/style.css';
   import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   type TMode = 'vertical' | 'horizontal' | 'none' | 'vertical-overlap' | 'custom';

@@ -1,11 +1,11 @@
----
+﻿---
 title: Layout persistence
 description: "GridLayoutStorageService and GridLayoutPresetsService — providedIn: 'root' services for saving and loading a layout."
 ---
 
 Unlike the Vue package, this package doesn't re-export
 `serializeLayout`/`deserializeLayout` as standalone functions — import
-those from `@keystone-dashboard-layout/core` directly if you need the
+those from `keystone-dashboard-layout-core` directly if you need the
 raw building blocks for a backend other than `Storage` (a remote API,
 IndexedDB, anything else). Both services below already use them
 internally.
@@ -40,8 +40,8 @@ a server render rather than throwing.
 
 ```ts
 import { Component, inject } from '@angular/core';
-import { GridLayoutStorageService } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayoutStorageService } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 @Component({ /* ... */ })
 export class DashboardComponent {
@@ -84,8 +84,8 @@ another's, given the same `key`. SSR-safe, same guard as
 
 ```ts
 import { Component, inject } from '@angular/core';
-import { GridLayoutPresetsService } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayoutPresetsService } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 @Component({ /* ... */ })
 export class DashboardComponent {

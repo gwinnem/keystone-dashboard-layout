@@ -1,5 +1,5 @@
 {
-  "name": "@keystone-dashboard-layout/vue",
+  "name": "keystone-dashboard-layout-vue",
   "version": "1.0.0",
   "type": "module",
   "description": "Vue 3 Responsive & Dynamic Grid / Dashboard layout with drag, drop and resizable actions.",
@@ -108,7 +108,7 @@
     "test:e2e:visual:update": "cross-env RUN_VISUAL_REGRESSION=1 playwright test visual-regression --update-snapshots"
   },
   "dependencies": {
-    "@keystone-dashboard-layout/core": "workspace:*"
+    "keystone-dashboard-layout-core": "workspace:*"
   },
   "devDependencies": {
     "@anolilab/semantic-release-pnpm": "^1.1.11",

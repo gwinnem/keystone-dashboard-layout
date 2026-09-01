@@ -1,4 +1,4 @@
-import { ILayoutItem, TLayout } from '../layout-definition';
+﻿import { ILayoutItem, TLayout } from '../layout-definition';
 import { getFirstCollision } from '@/core/gridlayout/helpers/collision-helper';
 import { getAllStaticGridItems } from '@/core/common/helpers/grid-item-type-helpers';
 import { ITopLeftStyle, ITopRightStyle, ITransformStyle } from '@/core/common/interfaces/transform-style.interfaces';
@@ -20,7 +20,7 @@ import { sortLayoutItemsByColRow, sortLayoutItemsByRowCol } from '@/core/gridlay
  * carrying one passed through `cloneLayout` — which happens on
  * essentially every drag/resize tick and every controlled-component
  * sync in both the Vue and React packages, since both call this
- * function (directly, or via `@keystone-dashboard-layout/core`)
+ * function (directly, or via `keystone-dashboard-layout-core`)
  * constantly.
  *
  * Fixed with a custom replacer/reviver pair, the standard pattern for

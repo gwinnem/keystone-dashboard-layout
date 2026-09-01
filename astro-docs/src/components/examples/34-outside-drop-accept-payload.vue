@@ -44,8 +44,8 @@
 
 <script lang="ts" setup>
   import { ref } from 'vue';
-  import { GridLayout, GridItem, readOutsideDropPayload, type TLayout } from '@keystone-dashboard-layout/vue';
-  import '@keystone-dashboard-layout/vue/style.css';
+  import { GridLayout, GridItem, readOutsideDropPayload, type TLayout } from 'keystone-dashboard-layout-vue';
+  import 'keystone-dashboard-layout-vue/style.css';
 
   interface IWidgetPayload {
     kind: string;

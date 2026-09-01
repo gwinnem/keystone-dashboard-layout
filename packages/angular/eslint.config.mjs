@@ -52,7 +52,7 @@ import globals from 'globals';
  * fail CI outright, the same safety net Vue's own pre-existing issues
  * already rely on. This file has not yet been run against the real
  * codebase (no shell access to this project from the session that wrote
- * it) — running `pnpm install && pnpm --filter @keystone-dashboard-layout/angular lint`
+ * it) — running `pnpm install && pnpm --filter keystone-dashboard-layout-angular lint`
  * is the next real step to confirm it resolves and actually lints
  * cleanly (or to see what it flags).
  */

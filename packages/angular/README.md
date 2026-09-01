@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml/badge.svg)](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat)](https://github.com/prettier/prettier)
-[![npm](https://img.shields.io/npm/v/%40keystone-dashboard-layout%2Fvue)](https://www.npmjs.com/package/@keystone-dashboard-layout/vue)
-[![NPM](https://img.shields.io/npm/l/%40keystone-dashboard-layout%2Fvue)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/vue/LICENSE)
+[![npm](https://img.shields.io/npm/v/keystone-dashboard-layout-vue)](https://www.npmjs.com/package/keystone-dashboard-layout-vue)
+[![NPM](https://img.shields.io/npm/l/keystone-dashboard-layout-vue)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/vue/LICENSE)
 
 </div>
 
@@ -11,7 +11,7 @@
   <img src="https://raw.githubusercontent.com/gwinnem/keystone-dashboard-layout/main/packages/vue/docs/dashboard-preview.svg" width="500" alt="Keystone Dashboard Layout — a draggable, resizable dashboard grid preview">
 </p>
 
-<h1 align="center">@keystone-dashboard-layout/angular</h1>
+<h1 align="center">keystone-dashboard-layout-angular</h1>
 
 <p align="center">
   A draggable, resizable, responsive dashboard grid for Angular —
@@ -38,13 +38,13 @@ responsive breakpoint math).
 ## Quick start
 
 ```sh
-npm install @keystone-dashboard-layout/angular
+npm install keystone-dashboard-layout-angular
 ```
 
 ```ts
 import { Component } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 @Component({
   selector: 'app-dashboard',
@@ -72,7 +72,7 @@ Don't forget the stylesheet, imported once wherever it'll load
 application-wide:
 
 ```ts
-import '@keystone-dashboard-layout/angular/style.css';
+import 'keystone-dashboard-layout-angular/style.css';
 ```
 
 `@angular/common`/`@angular/core` (`^17.0.0 || ^18.0.0 || ^19.0.0`)
@@ -86,13 +86,13 @@ takes `i`/`x`/`y`/`w`/`h` as its own required `@Input()`s — bind each
 one explicitly per item in your own template's `@for` loop.
 
 **Using just the grid math, without Angular?**
-`@keystone-dashboard-layout/core` exports the same collision detection,
+`keystone-dashboard-layout-core` exports the same collision detection,
 compaction, movement, and alignment functions this package is built
 on — zero Angular dependency, no live DOM required, plain data in and
 out:
 
 ```ts
-import { collides, compactLayout, moveElement } from '@keystone-dashboard-layout/core';
+import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-core';
 ```
 
 ## Features
@@ -162,7 +162,7 @@ reference variable:
 
 ```ts
 import { Component, ViewChild } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
 
 @Component({
   standalone: true,
@@ -196,11 +196,11 @@ import {
   GridLayoutPresetsService,
   GridItemDragHandleComponent,
   GridItemCloseButtonComponent,
-} from '@keystone-dashboard-layout/angular';
+} from 'keystone-dashboard-layout-angular';
 ```
 
 Layout-level types (`TLayout`, `ILayoutItem`, `ECompactType`, and so
-on) come from `@keystone-dashboard-layout/core` instead — an Angular
+on) come from `keystone-dashboard-layout-core` instead — an Angular
 `@Component`'s own class already **is** its prop contract, so there's
 no separate props-interface convention to import here the way React's
 `IGridLayoutProps`/`IGridItemProps` work.
@@ -216,9 +216,9 @@ underlying behavior, expressed the way Angular actually works.
 
 ## Shared engine, three frameworks
 
-This package, [`@keystone-dashboard-layout/vue`](https://www.npmjs.com/package/@keystone-dashboard-layout/vue),
-and [`@keystone-dashboard-layout/react`](https://www.npmjs.com/package/@keystone-dashboard-layout/react)
-all build on [`@keystone-dashboard-layout/core`](https://www.npmjs.com/package/@keystone-dashboard-layout/core)
+This package, [`keystone-dashboard-layout-vue`](https://www.npmjs.com/package/keystone-dashboard-layout-vue),
+and [`keystone-dashboard-layout-react`](https://www.npmjs.com/package/keystone-dashboard-layout-react)
+all build on [`keystone-dashboard-layout-core`](https://www.npmjs.com/package/keystone-dashboard-layout-core)
 for collision detection, compaction, responsive breakpoint math, and
 the native Pointer-Events-based drag/resize engine — one implementation
 of the hard parts, not three independently-maintained copies that

@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
-import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
-import '@keystone-dashboard-layout/react/style.css';
-import type { TLayout, TResizeHandle } from '@keystone-dashboard-layout/core';
+﻿import { useMemo, useState } from 'react';
+import { GridLayout, GridItem } from 'keystone-dashboard-layout-react';
+import 'keystone-dashboard-layout-react/style.css';
+import type { TLayout, TResizeHandle } from 'keystone-dashboard-layout-core';
 import ExampleToggle from '../harness-react/ExampleToggle';
 import './53-resize-direction-toggles.css';
 

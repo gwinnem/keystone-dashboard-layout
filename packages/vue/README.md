@@ -79,13 +79,13 @@ Options-API usage works too — `GridLayout`/`GridItem` are plain
 components, not Composition-API-only.
 
 **Using just the grid math, without Vue?**
-`@keystone-dashboard-layout/core` exports the same collision detection,
+`keystone-dashboard-layout-core` exports the same collision detection,
 compaction, movement, and alignment functions the components above are
 built on — zero Vue dependency, no live DOM required, plain data in
 and out:
 
 ```ts
-import { collides, compactLayout, moveElement } from '@keystone-dashboard-layout/core';
+import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-core';
 ```
 
 Useful for validating a layout server-side, or building an entirely
@@ -155,7 +155,7 @@ different UI on the same algorithms.
 
 This package, [`@keystone-dashboard-layout/react`](https://www.npmjs.com/package/@keystone-dashboard-layout/react),
 and [`@keystone-dashboard-layout/angular`](https://www.npmjs.com/package/@keystone-dashboard-layout/angular)
-all build on [`@keystone-dashboard-layout/core`](https://www.npmjs.com/package/@keystone-dashboard-layout/core)
+all build on [`keystone-dashboard-layout-core`](https://www.npmjs.com/package/keystone-dashboard-layout-core)
 for collision detection, compaction, responsive breakpoint math, and
 the native Pointer-Events-based drag/resize engine — one implementation
 of the hard parts, not three independently-maintained copies that

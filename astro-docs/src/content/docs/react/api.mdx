@@ -1,4 +1,4 @@
----
+﻿---
 title: API
 description: Every interface and function exported from the package's main entry point.
 ---
@@ -24,13 +24,13 @@ import {
   type IUseLayoutStorageReturn,
   type IUseLayoutPresetsOptions,
   type IUseLayoutPresetsReturn,
-} from '@keystone-dashboard-layout/react';
+} from 'keystone-dashboard-layout-react';
 ```
 
 That's the complete list. Unlike the Vue package, this package doesn't
 re-export layout-data types, enums, or compaction/ARIA interfaces
 through its own barrel — those come from the shared
-`@keystone-dashboard-layout/core` package directly instead (see below).
+`keystone-dashboard-layout-core` package directly instead (see below).
 
 ## Components
 
@@ -86,11 +86,11 @@ same removal logic manually.
 | `useLayoutStorage` | A hook wrapping `localStorage` (or any `Storage`-compatible backend) persistence for a `layout` array |
 | `useLayoutPresets` | Save and switch between several named layout arrangements |
 
-## From `@keystone-dashboard-layout/core`
+## From `keystone-dashboard-layout-core`
 
 The layout-data shape and framework-agnostic grid math live in `core`
 rather than being re-exported from this package's own barrel. Import
-these directly from `@keystone-dashboard-layout/core` when you need
+these directly from `keystone-dashboard-layout-core` when you need
 them:
 
 ```ts
@@ -100,8 +100,8 @@ import type {
   IGridAriaLabels,
   ICompactor,
   IExportLayoutAsSvgOptions,
-} from '@keystone-dashboard-layout/core';
-import { ECompactType } from '@keystone-dashboard-layout/core';
+} from 'keystone-dashboard-layout-core';
+import { ECompactType } from 'keystone-dashboard-layout-core';
 ```
 
 `core` is the same package the Vue port uses underneath, so the shapes

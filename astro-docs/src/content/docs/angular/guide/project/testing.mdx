@@ -1,4 +1,4 @@
----
+﻿---
 title: Testing philosophy
 description: How Keystone Dashboard Layout for Angular is tested — unit, component, end-to-end, and what's left to a human.
 ---
@@ -6,7 +6,7 @@ description: How Keystone Dashboard Layout for Angular is tested — unit, compo
 ## Unit & component tests — Jest + jest-preset-angular
 
 Pure-function tests for the grid math live in
-`@keystone-dashboard-layout/core` (shared with the Vue and React
+`keystone-dashboard-layout-core` (shared with the Vue and React
 ports). This package's own tests cover `GridLayoutComponent`,
 `GridItemComponent`, `GridItemDragHandleComponent`,
 `GridItemCloseButtonComponent`, and the two services
@@ -55,7 +55,7 @@ A few things need handling, since `jsdom` can't provide them natively:
 - **`ResizeObserver`** — `jsdom` doesn't implement it at all.
   Replaced with a stub for most tests.
 - **The native drag/resize engine's own pointer handling** — shared
-  with the Vue and React ports via `@keystone-dashboard-layout/core`;
+  with the Vue and React ports via `keystone-dashboard-layout-core`;
   tests invoke the component's actual drag/resize handling logic
   directly rather than simulating a full, real pointer gesture through
   `jsdom`.
@@ -123,7 +123,7 @@ Drag and resize tests drive real pointer input (mouse down → move in
 steps → up) rather than clicking a locator, since the native engine
 needs a real sequence of pointer events to recognize a drag/resize
 gesture — a single click won't trigger it. Same rationale, and the same
-underlying native engine (`@keystone-dashboard-layout/core`), as the
+underlying native engine (`keystone-dashboard-layout-core`), as the
 Vue and React ports' own e2e tests. A few assertions specifically use a
 `stableBoundingBox()` helper (`e2e/helpers.ts`) rather than a single
 `boundingBox()` read — a CSS transition still settling at the exact

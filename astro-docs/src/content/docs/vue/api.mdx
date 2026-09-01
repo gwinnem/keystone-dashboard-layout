@@ -1,10 +1,10 @@
----
+﻿---
 title: API
 description: Every interface, type, enum, and function exported from the package's main entry point.
 ---
 
 Every prop, event, enum, interface, and utility function is exported
-from `@keystone-dashboard-layout/vue`'s own main entry point — nothing
+from `keystone-dashboard-layout-vue`'s own main entry point — nothing
 extra to install or configure for full TypeScript support.
 
 :::note[This page was rebuilt from the real, complete export list]
@@ -26,7 +26,7 @@ importable — useful for typing a wrapper component's own props, or a
 `ref<InstanceType<typeof GridItem>>()`:
 
 ```ts
-import type { IGridLayoutProps, IGridItemProps } from '@keystone-dashboard-layout/vue';
+import type { IGridLayoutProps, IGridItemProps } from 'keystone-dashboard-layout-vue';
 ```
 
 Each prop's own meaning is documented on [GridLayout props](/vue/components/grid-layout/props/)
@@ -110,9 +110,9 @@ import {
   type IOutsideItemDropped,
   type ICrossGridItemDropped,
   type ICrossGridDropRejected,
-} from '@keystone-dashboard-layout/vue';
+} from 'keystone-dashboard-layout-vue';
 ```
 
 For the framework-agnostic grid math these types describe (collision
 detection, compaction, movement — usable with zero Vue dependency), see
-`@keystone-dashboard-layout/core`.
+`keystone-dashboard-layout-core`.

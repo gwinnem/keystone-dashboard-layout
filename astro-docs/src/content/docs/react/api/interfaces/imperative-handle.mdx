@@ -1,4 +1,4 @@
----
+﻿---
 title: Imperative handle (IGridLayoutHandle)
 description: The ref-based API GridLayout exposes — the React equivalent of Vue's defineExpose template-ref methods.
 ---
@@ -9,7 +9,7 @@ Vue's own `defineExpose`'d template-ref methods, via `forwardRef`/
 
 ```tsx
 import { useRef } from 'react';
-import { GridLayout, type IGridLayoutHandle } from '@keystone-dashboard-layout/react';
+import { GridLayout, type IGridLayoutHandle } from 'keystone-dashboard-layout-react';
 
 function Dashboard() {
   const gridRef = useRef<IGridLayoutHandle>(null);

@@ -1,4 +1,4 @@
-# Working with this monorepo in VS Code
+﻿# Working with this monorepo in VS Code
 
 A practical guide for day-to-day development in `keystone-dashboard-layout`
 using VS Code. Covers setup, navigating the workspace, running/debugging
@@ -80,9 +80,9 @@ yet. Nothing fails; it's just a no-op for those packages.
 
 **Run a script in one specific package**, using pnpm's `--filter`:
 ```bash
-pnpm --filter @keystone-dashboard-layout/vue run dev
-pnpm --filter @keystone-dashboard-layout/vue run test:e2e
-pnpm --filter @keystone-dashboard-layout/react run typecheck
+pnpm --filter keystone-dashboard-layout-vue run dev
+pnpm --filter keystone-dashboard-layout-vue run test:e2e
+pnpm --filter keystone-dashboard-layout-react run typecheck
 ```
 This is equivalent to `cd packages/vue && pnpm run dev`, but works from
 anywhere in the repo and doesn't require you to actually change directory.

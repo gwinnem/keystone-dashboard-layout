@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { GridItemComponent } from '../../src/lib/grid-item.component';
 import { GridLayoutComponent } from '../../src/lib/grid-layout.component';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 /**
  * Two draggable/resizable items with default settings — a real
  * pointerdown/move/up sequence exercises the native drag/resize engine
- * end to end (`@keystone-dashboard-layout/core`'s own
+ * end to end (`keystone-dashboard-layout-core`'s own
  * `createNativeDraggable`/`createNativeResizable`), not a test-only
  * backdoor. Item "0" has plenty of room to move/grow into; item "1"
  * exists so a drag/resize that collides has something real to collide

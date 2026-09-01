@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { GridItemComponent } from '../../src/lib/grid-item.component';
 import { GridLayoutComponent } from '../../src/lib/grid-layout.component';
 import { GridItemHeaderDirective } from '../../src/lib/grid-item-header.directive';
-import type { TLayout, TResizeHandle } from '@keystone-dashboard-layout/core';
+import type { TLayout, TResizeHandle } from 'keystone-dashboard-layout-core';
 
 const ALL_HANDLES: TResizeHandle[] = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
 

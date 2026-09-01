@@ -1,5 +1,5 @@
 {
-  "name": "@keystone-dashboard-layout/react",
+  "name": "keystone-dashboard-layout-react",
   "version": "1.0.0",
   "type": "module",
   "description": "React port of the responsive & dynamic grid / dashboard layout with drag, drop and resizable actions.",
@@ -47,7 +47,7 @@
     "check:package-install": "node scripts/check-package-install.js"
   },
   "dependencies": {
-    "@keystone-dashboard-layout/core": "workspace:*"
+    "keystone-dashboard-layout-core": "workspace:*"
   },
   "devDependencies": {
     "@anolilab/semantic-release-pnpm": "^1.1.11",

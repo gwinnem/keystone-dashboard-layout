@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+﻿import { describe, expect, it, vi } from 'vitest';
 import { useEffect, useRef } from 'react';
 import { act, render } from '@testing-library/react';
 import { useGridItemResize } from '../hooks/useGridItemResize';
@@ -8,7 +8,7 @@ import type { IUseGridItemResizeOptions, IUseGridItemResizeReturn } from '../hoo
  * Same constants as Vue's own `tests/useGridItemResize.spec.ts` — this
  * hook is a near-line-for-line port, sharing the exact same pixel math
  * (`calcColWidth`, `calcPosition`, `calcWH`, `pixelsToGridX/Y` all come
- * from the same `@keystone-dashboard-layout/core` helpers) — so every
+ * from the same `keystone-dashboard-layout-core` helpers) — so every
  * precise numeric value verified there transfers directly here.
  * `containerWidth` chosen so `calcColWidth` (`(1210 - 10*13)/12`)
  * resolves to a clean `90`.
@@ -36,6 +36,7 @@ const defaultOptions = (overrides: Partial<IUseGridItemResizeOptions> = {}): IUs
   minW: 1,
   onResize: vi.fn(),
   preserveAspectRatio: false,
+  resizeHandles: [`n`, `s`, `e`, `w`, `ne`, `nw`, `se`, `sw`],
   rowHeight: ROW_HEIGHT,
   transformScale: 1,
   w: 2,

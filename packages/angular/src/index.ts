@@ -1,4 +1,4 @@
-// Entry point for @keystone-dashboard-layout/angular
+﻿// Entry point for keystone-dashboard-layout-angular
 // Port of packages/vue/src/components/Grid (GridLayout, GridItem) to Angular.
 //
 // Every item in Vue's own original prop inventory is implemented — full
@@ -9,11 +9,11 @@
 // compaction, responsive breakpoints, alignment guides/snapping,
 // validators, serialization, SVG export, and the Pointer-Events-based
 // drag/resize/auto-scroll engine) already exist as their own package,
-// @keystone-dashboard-layout/core (see ../../core) — this package
+// keystone-dashboard-layout-core (see ../../core) — this package
 // imports from it directly rather than duplicating or re-deriving any
 // of it:
 //
-//   import { calcColWidth, calcGridItemWH, setTransform } from '@keystone-dashboard-layout/core';
+//   import { calcColWidth, calcGridItemWH, setTransform } from 'keystone-dashboard-layout-core';
 
 export { GridLayoutComponent } from './lib/grid-layout.component';
 export { GridItemComponent } from './lib/grid-item.component';
@@ -21,7 +21,7 @@ export { GridItemComponent } from './lib/grid-item.component';
 // these three were fully implemented (Phase 9/22 respectively, see
 // each file's own doc comment) but never actually exported from this
 // barrel — meaning no consumer could ever import them from
-// '@keystone-dashboard-layout/angular' at all, despite being real,
+// 'keystone-dashboard-layout-angular' at all, despite being real,
 // documented parts of the public API surface every other doc
 // (IMPLEMENTATION_PLAN.md, each file's own doc comment) already
 // describes them as.

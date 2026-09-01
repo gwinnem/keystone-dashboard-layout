@@ -84,7 +84,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Stryker
-        run: pnpm --filter @keystone-dashboard-layout/react run test:mutation
+        run: pnpm --filter keystone-dashboard-layout-react run test:mutation
 
       - name: Upload mutation report
         if: ${{ !cancelled() }}
@@ -120,7 +120,7 @@ jobs:
       # only sets the initial working directory the script starts from,
       # matching how mutation-test-react above invokes its own script.
       - name: Run Stryker
-        run: pnpm --filter @keystone-dashboard-layout/vue run test:mutation
+        run: pnpm --filter keystone-dashboard-layout-vue run test:mutation
 
       - name: Upload mutation report
         if: ${{ !cancelled() }}
@@ -151,7 +151,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Stryker
-        run: pnpm --filter @keystone-dashboard-layout/core run test:mutation
+        run: pnpm --filter keystone-dashboard-layout-core run test:mutation
 
       - name: Upload mutation report
         if: ${{ !cancelled() }}
@@ -182,7 +182,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Stryker
-        run: pnpm --filter @keystone-dashboard-layout/angular run test:mutation
+        run: pnpm --filter keystone-dashboard-layout-angular run test:mutation
 
       - name: Upload mutation report
         if: ${{ !cancelled() }}

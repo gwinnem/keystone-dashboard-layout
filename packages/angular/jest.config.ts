@@ -1,7 +1,7 @@
 import type { Config } from 'jest';
 
 /**
- * Jest configuration for @keystone-dashboard-layout/angular's own
+ * Jest configuration for keystone-dashboard-layout-angular's own
  * unit/component tests — replacing the earlier Vitest attempts (both
  * the third-party @analogjs/vite-plugin-angular route and the
  * consideration of Angular's own first-party @angular/build:unit-test,

@@ -35,8 +35,8 @@
 
 <script lang="ts" setup>
   import { ref } from 'vue';
-  import { GridLayout, GridItem, type TLayout, type TResponsiveLayout } from '@keystone-dashboard-layout/vue';
-  import '@keystone-dashboard-layout/vue/style.css';
+  import { GridLayout, GridItem, type TLayout, type TResponsiveLayout } from 'keystone-dashboard-layout-vue';
+  import 'keystone-dashboard-layout-vue/style.css';
   import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
   const lastBreakpoint = ref('—');

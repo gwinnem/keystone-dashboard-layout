@@ -1,4 +1,4 @@
-{
+﻿{
   "compileOnSave": false,
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
@@ -17,7 +17,7 @@
     "lib": ["ES2022", "dom"],
     "baseUrl": ".",
     "paths": {
-      "@keystone-dashboard-layout/angular": ["../packages/angular/src/index.ts"],
+      "keystone-dashboard-layout-angular": ["../packages/angular/src/index.ts"],
       "@/core/*": ["../packages/core/src/*"]
     }
   },

@@ -1,4 +1,4 @@
-import { ILayoutItem } from '@keystone-dashboard-layout/core';
+﻿import { ILayoutItem } from 'keystone-dashboard-layout-core';
 
 /**
  * A `GridLayoutComponent` instance's registration in the shared
@@ -10,7 +10,7 @@ import { ILayoutItem } from '@keystone-dashboard-layout/core';
  * component tree, so a module-level registry (a plain `Set`, not
  * Angular DI-scoped state) is what makes discovery possible at all.
  *
- * A local copy of `@keystone-dashboard-layout/core`'s own
+ * A local copy of `keystone-dashboard-layout-core`'s own
  * `gridlayout/interfaces/cross-grid.interfaces` — not re-derived, kept
  * field-for-field identical to that file (confirmed via a direct
  * source read at the time of copying) — deliberately duplicated rather

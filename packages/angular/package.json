@@ -1,5 +1,5 @@
 {
-  "name": "@keystone-dashboard-layout/angular",
+  "name": "keystone-dashboard-layout-angular",
   "version": "0.1.0",
   "description": "Angular port of the responsive & dynamic grid / dashboard layout with drag, drop and resizable actions.",
   "author": "Geirr Winnem <geirr@winnem.tech>",
@@ -38,7 +38,7 @@
   },
   "_comment_scripts": "`dev` intentionally still omitted — unlike Vue/React, this package has no standalone dev-server entry point of its own (its `e2e-fixture/` app is the closest equivalent, served via its own `ng serve`, not this package's own scripts). `lint`/`lint:fix` now exist (`eslint.config.mjs`, added after Vue/React — see that file's own header comment for why it's named `.mjs` and what it does/doesn't cover yet) — `test`/`test:coverage` now run through Jest + jest-preset-angular (mature, widely used for Angular unit/component testing, and — unlike the Vitest paths tried before it — actually available for this package's Angular ^19.0.0 target: Angular's own first-party Vitest builder, @angular/build:unit-test, only exists from v20 (experimental) / v21 (stable), and the third-party @analogjs/vite-plugin-angular route hit a genuinely unresolved upstream ecosystem bug, analogjs/analog#1502 / angular/angular-cli#31732). `test:e2e` now runs Playwright against a dedicated `e2e-fixture/` application (a real, separate `angular.json` project, served via the Angular CLI's own dev-server — not Vite, for the identical @analogjs reason unit tests avoided it), matching the Vue/React packages' own e2e setup. Karma (angular.json's own project-scoped `test` architect target + karma.conf.js, both still present) predates this and is no longer needed for it — kept for now rather than removed in the same pass that added real e2e coverage. turbo skips tasks a package doesn't define, so CI stays green in the meantime for `dev`, the one script still left undefined.",
   "dependencies": {
-    "@keystone-dashboard-layout/core": "workspace:*",
+    "keystone-dashboard-layout-core": "workspace:*",
     "tslib": "^2.6.0"
   },
   "devDependencies": {

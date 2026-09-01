@@ -1,4 +1,4 @@
-import { act } from '@testing-library/react';
+﻿import { act } from '@testing-library/react';
 import { triggerResizeObserverMock } from '../../../../tests/setup';
 
 /**
@@ -51,7 +51,7 @@ export function triggerResize(width: number): void {
  * (`handleDrag` inside `useGridItemDrag.ts`) — the same test-only
  * `__nativeDragHandler` backdoor `native-interaction.ts` stashes on the
  * element (shared, framework-agnostic code in
- * `@keystone-dashboard-layout/core`) that the Vue package's own test
+ * `keystone-dashboard-layout-core`) that the Vue package's own test
  * suite already relies on for the identical reason: reaching the
  * handler without needing to simulate a full pointerdown/move/up
  * sequence (including native `setPointerCapture` semantics jsdom

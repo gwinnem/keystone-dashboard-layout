@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, KeyboardEvent, MouseEvent } from 'react';
-import { resolveAriaLabels, setTopLeft, setTopRight, setTransform, setTransformRtl } from '@keystone-dashboard-layout/core';
+import { resolveAriaLabels, setTopLeft, setTopRight, setTransform, setTransformRtl } from 'keystone-dashboard-layout-core';
 import type { IGridItemProps } from './grid-item-props.interface';
 import { useGridContext } from './grid-context';
 import { useGridItemDrag } from './hooks/useGridItemDrag';

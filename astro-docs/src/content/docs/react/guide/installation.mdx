@@ -1,4 +1,4 @@
----
+﻿---
 title: Installation
 description: Add Keystone Dashboard Layout for React to your project.
 ---
@@ -6,7 +6,7 @@ description: Add Keystone Dashboard Layout for React to your project.
 ## Add the package
 
 ```sh
-npm install @keystone-dashboard-layout/react
+npm install keystone-dashboard-layout-react
 ```
 
 `react` and `react-dom` (^18.0.0 || ^19.0.0) are peer dependencies — the
@@ -19,7 +19,7 @@ cursors, the default close button). Import it once, anywhere it'll be
 loaded application-wide — typically your app's entry point:
 
 ```ts
-import '@keystone-dashboard-layout/react/style.css';
+import 'keystone-dashboard-layout-react/style.css';
 ```
 
 ## Use the components
@@ -31,8 +31,8 @@ controlled component: pass it `layout` and handle changes via
 
 ```tsx
 import { useState } from 'react';
-import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayout, GridItem } from 'keystone-dashboard-layout-react';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 function Dashboard() {
   const [layout, setLayout] = useState<TLayout>([
@@ -64,8 +64,8 @@ the container, and a close button:
 
 ```tsx
 import { useState } from 'react';
-import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayout, GridItem } from 'keystone-dashboard-layout-react';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 function Dashboard() {
   const [layout, setLayout] = useState<TLayout>([
@@ -125,11 +125,11 @@ import {
   type IUseLayoutStorageReturn,
   type IUseLayoutPresetsOptions,
   type IUseLayoutPresetsReturn,
-} from '@keystone-dashboard-layout/react';
+} from 'keystone-dashboard-layout-react';
 ```
 
 Layout-level types (`TLayout`, `ILayoutItem`, and so on) come from the
-shared `@keystone-dashboard-layout/core` package instead — see
+shared `keystone-dashboard-layout-core` package instead — see
 [API](/react/api/) for the complete list.
 
 ## Requirements
@@ -143,13 +143,13 @@ shared `@keystone-dashboard-layout/core` package instead — see
 
 ## Verifying the install
 
-If `import '@keystone-dashboard-layout/react/style.css'` or the named
+If `import 'keystone-dashboard-layout-react/style.css'` or the named
 component imports fail to resolve, first confirm the installed version
 actually declares an `exports` map for both:
 
 ```sh
-npm ls @keystone-dashboard-layout/react
-node -e "console.log(require.resolve('@keystone-dashboard-layout/react/style.css'))"
+npm ls keystone-dashboard-layout-react
+node -e "console.log(require.resolve('keystone-dashboard-layout-react/style.css'))"
 ```
 
 The second command should print a path ending in `style.css`. If it

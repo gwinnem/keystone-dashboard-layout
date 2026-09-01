@@ -1,4 +1,4 @@
----
+﻿---
 title: SVG export & outside-drop payload
 description: exportLayoutAsSvg and readOutsideDropPayload — two standalone utility functions.
 ---
@@ -40,10 +40,10 @@ directly, downloaded as a `.svg` file via a `Blob`, or drawn onto a
 [Export layout as SVG](/react/examples/svg-export/) for a full example.
 
 Not re-exported from this package's own barrel — import it directly
-from `@keystone-dashboard-layout/core` instead, same as the Vue port:
+from `keystone-dashboard-layout-core` instead, same as the Vue port:
 
 ```ts
-import { exportLayoutAsSvg } from '@keystone-dashboard-layout/core';
+import { exportLayoutAsSvg } from 'keystone-dashboard-layout-core';
 ```
 
 ## `readOutsideDropPayload`
@@ -72,7 +72,7 @@ Same as `exportLayoutAsSvg` above, this isn't re-exported from this
 package's own barrel either:
 
 ```ts
-import { readOutsideDropPayload } from '@keystone-dashboard-layout/core';
+import { readOutsideDropPayload } from 'keystone-dashboard-layout-core';
 ```
 
 See [outsideDropAccept & readOutsideDropPayload](/react/examples/outside-drop-accept-payload/)

@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
-import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
-import '@keystone-dashboard-layout/react/style.css';
-import { exportLayoutAsSvg } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { useMemo, useState } from 'react';
+import { GridLayout, GridItem } from 'keystone-dashboard-layout-react';
+import 'keystone-dashboard-layout-react/style.css';
+import { exportLayoutAsSvg } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import '../examples-react/shared-example-item.css';
 import './28-svg-export.css';
 

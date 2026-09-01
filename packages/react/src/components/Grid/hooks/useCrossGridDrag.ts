@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+﻿import { useCallback, useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 // Bug fix: these two imports used to go through the raw `@/core` alias
 // (`@/core/gridlayout/helpers/cross-grid-registry`/
@@ -18,14 +18,14 @@ import type { RefObject } from 'react';
 // setting can fix this, since the mismatch is structural — any
 // sandbox/relocation adds exactly this kind of extra directory
 // nesting, permanently breaking a relative path that escapes the
-// project root. `@keystone-dashboard-layout/core` now exposes both of
+// project root. `keystone-dashboard-layout-core` now exposes both of
 // these via dedicated subpath exports (see its own `package.json`)
 // specifically so this import resolves through `node_modules` — a real
 // package name, stable regardless of where this file itself gets
 // relocated to, sandboxed or otherwise.
-import { findCrossGridZoneAt, registerCrossGridZone } from '@keystone-dashboard-layout/core/gridlayout/helpers/cross-grid-registry';
-import type { ICrossGridDropRejected, ICrossGridItemDropped, ICrossGridZone } from '@keystone-dashboard-layout/core/gridlayout/interfaces/cross-grid.interfaces';
-import type { ILayoutItem } from '@keystone-dashboard-layout/core';
+import { findCrossGridZoneAt, registerCrossGridZone } from 'keystone-dashboard-layout-core/gridlayout/helpers/cross-grid-registry';
+import type { ICrossGridDropRejected, ICrossGridItemDropped, ICrossGridZone } from 'keystone-dashboard-layout-core/gridlayout/interfaces/cross-grid.interfaces';
+import type { ILayoutItem } from 'keystone-dashboard-layout-core';
 
 export interface IUseCrossGridDragOptions {
   allowCrossGridDrag: boolean;
@@ -60,7 +60,7 @@ export interface IUseCrossGridDragReturn {
 /**
  * The React port of Vue's own `useCrossGridDrag.ts` composable —
  * `allowCrossGridDrag`: registers this grid into the shared
- * `@keystone-dashboard-layout/core` cross-grid registry (a module-level
+ * `keystone-dashboard-layout-core` cross-grid registry (a module-level
  * `Set`, not React/Vue state — grids that drag items between each
  * other are frequently not in any component-tree relationship at all,
  * siblings under different parents or in entirely separate trees, so

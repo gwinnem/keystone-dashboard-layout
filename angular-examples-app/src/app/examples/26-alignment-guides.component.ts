@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import { ECompactType } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { Component } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import { ECompactType } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import { ExampleToggleComponent } from '../harness/example-toggle.component';
 import { LayoutJsonViewerComponent } from '../harness/layout-json-viewer.component';
 

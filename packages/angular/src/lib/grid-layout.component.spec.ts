@@ -3,8 +3,8 @@ import { Component } from '@angular/core';
 import { GridLayoutComponent } from './grid-layout.component';
 import { GridItemComponent } from './grid-item.component';
 import { GridEventBusService } from './grid-event-bus.service';
-import { ECompactType, EErrorMessage } from '@keystone-dashboard-layout/core';
-import type { ICompactor, TLayout } from '@keystone-dashboard-layout/core';
+import { ECompactType, EErrorMessage } from 'keystone-dashboard-layout-core';
+import type { ICompactor, TLayout } from 'keystone-dashboard-layout-core';
 import type { SimpleChanges } from '@angular/core';
 
 /**

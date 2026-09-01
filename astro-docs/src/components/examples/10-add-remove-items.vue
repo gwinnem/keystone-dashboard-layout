@@ -39,9 +39,9 @@
 
 <script lang="ts" setup>
   import { ref } from 'vue';
-  import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
-  import { findFirstFitSlot } from '@keystone-dashboard-layout/core';
-  import '@keystone-dashboard-layout/vue/style.css';
+  import { GridLayout, GridItem, type TLayout } from 'keystone-dashboard-layout-vue';
+  import { findFirstFitSlot } from 'keystone-dashboard-layout-core';
+  import 'keystone-dashboard-layout-vue/style.css';
   import ExampleToggle from '../harness/ExampleToggle.vue';
   import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 

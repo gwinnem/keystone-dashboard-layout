@@ -1,4 +1,4 @@
----
+﻿---
 # Documentation parity gap: implementation plan
 
 **Prepared:** this session, as the concrete follow-up to
@@ -61,7 +61,7 @@ rendering the same button somewhere else (a custom header, say) and
 wiring it to the same removal logic yourself.
 
 \`\`\`tsx
-import { GridItemCloseButton } from '@keystone-dashboard-layout/react';
+import { GridItemCloseButton } from 'keystone-dashboard-layout-react';
 
 function removeItem(id: string | number): void {
   setLayout((prev) => prev.filter((item) => item.i !== id));
@@ -115,7 +115,7 @@ engine's own ~10px edge-proximity margin) does.
 :::
 
 \`\`\`tsx
-import { GridItemDragHandle } from '@keystone-dashboard-layout/react';
+import { GridItemDragHandle } from 'keystone-dashboard-layout-react';
 
 <GridItem i={item.i} /* ...layout item fields on the matching entry, including dragAllowFrom: '.kdl-draggable-handle' */>
   <GridItemDragHandle text="⠿" />

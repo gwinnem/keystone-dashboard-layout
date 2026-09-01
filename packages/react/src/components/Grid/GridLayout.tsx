@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useId, useImperativeHandle, useMemo, useRef, useState } from 'react';
+﻿import { forwardRef, useCallback, useEffect, useId, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, DragEvent, JSX, MouseEvent } from 'react';
 import {
   calcColWidth,
@@ -23,8 +23,8 @@ import {
   layoutValidator,
   moveElement,
   resolveAriaLabels,
-} from '@keystone-dashboard-layout/core';
-import type { IBreakpoints, IColumns, IExportLayoutAsSvgOptions, ILayoutItem, TAlignEdge, TBreakpoint, TDistributeAxis, TLayout, TResizeHandle, TResponsiveLayout } from '@keystone-dashboard-layout/core';
+} from 'keystone-dashboard-layout-core';
+import type { IBreakpoints, IColumns, IExportLayoutAsSvgOptions, ILayoutItem, TAlignEdge, TBreakpoint, TDistributeAxis, TLayout, TResizeHandle, TResponsiveLayout } from 'keystone-dashboard-layout-core';
 import type { IGridLayoutProps } from './grid-layout-props.interface';
 import type { IGridLayoutHandle } from './grid-layout-handle.interface';
 import { GridContext } from './grid-context';
@@ -662,7 +662,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * Mount-time layout validation — matches the Vue package's own
    * GridLayout.vue exactly (its own onMounted hook, throwing
    * EErrorMessage.INVALID_LAYOUT_VALIDATED against the same
-   * layoutValidator from @keystone-dashboard-layout/core), which this
+   * layoutValidator from keystone-dashboard-layout-core), which this
    * component previously had no equivalent of at all — a real,
    * confirmed parity gap, not a deliberate omission: nothing here ever
    * caught the same class of malformed layout (missing a required key,
@@ -888,7 +888,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * A no-op when fewer than 2 items are selected, including when
    * `multiSelect` is off entirely (selection is then always empty). See
    * `computeAlignAdjustments`'s own doc comment
-   * (`@keystone-dashboard-layout/core`) for the exact per-edge/center
+   * (`keystone-dashboard-layout-core`) for the exact per-edge/center
    * math — identical to the Vue package's own `alignSelected`, which
    * calls the same function.
    */
@@ -904,7 +904,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * position, not selection order) stay exactly where they are; only
    * the ones "in between" move to close any uneven gaps. A no-op with
    * fewer than 3 items selected. See `computeDistributeAdjustments`'s
-   * own doc comment (`@keystone-dashboard-layout/core`) for the exact
+   * own doc comment (`keystone-dashboard-layout-core`) for the exact
    * spacing math — identical to the Vue package's own
    * `distributeSelected`.
    */

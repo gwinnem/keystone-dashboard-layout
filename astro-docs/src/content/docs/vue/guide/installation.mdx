@@ -1,4 +1,4 @@
----
+﻿---
 title: Installation
 description: Add Keystone Dashboard Layout for Vue to your project.
 ---
@@ -6,7 +6,7 @@ description: Add Keystone Dashboard Layout for Vue to your project.
 ## Add the package
 
 ```sh
-npm install @keystone-dashboard-layout/vue
+npm install keystone-dashboard-layout-vue
 ```
 
 `vue` (^3.0.0) is a peer dependency — the package doesn't bundle its own
@@ -19,7 +19,7 @@ cursors, the default close button). Import it once, anywhere it'll be
 loaded application-wide — typically your app's entry point:
 
 ```ts
-import '@keystone-dashboard-layout/vue/style.css';
+import 'keystone-dashboard-layout-vue/style.css';
 ```
 
 ## Use the components
@@ -30,7 +30,7 @@ The package has **no default export** — import `GridLayout`/`GridItem`
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
+import { GridLayout, GridItem, type TLayout } from 'keystone-dashboard-layout-vue';
 
 const layout = ref<TLayout>([
   { h: 2, i: '0', w: 2, x: 0, y: 0 },
@@ -60,7 +60,7 @@ like any other component:
 ```vue
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { GridLayout, GridItem } from '@keystone-dashboard-layout/vue';
+import { GridLayout, GridItem } from 'keystone-dashboard-layout-vue';
 
 export default defineComponent({
   components: { GridLayout, GridItem },
@@ -85,7 +85,7 @@ container, and a close button:
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
+import { GridLayout, GridItem, type TLayout } from 'keystone-dashboard-layout-vue';
 
 const layout = ref<TLayout>([
   { h: 2, i: '0', w: 2, x: 0, y: 0 },
@@ -136,7 +136,7 @@ import {
   type IGridItemProps,
   type TLayout,
   type ILayoutItem,
-} from '@keystone-dashboard-layout/vue';
+} from 'keystone-dashboard-layout-vue';
 ```
 
 See [API](/vue/api/) for the complete list.
@@ -151,13 +151,13 @@ See [API](/vue/api/) for the complete list.
 
 ## Verifying the install
 
-If `import '@keystone-dashboard-layout/vue/style.css'` or the named component
+If `import 'keystone-dashboard-layout-vue/style.css'` or the named component
 imports fail to resolve, first confirm the installed version actually
 declares an `exports` map for both:
 
 ```sh
-npm ls @keystone-dashboard-layout/vue
-node -e "console.log(require.resolve('@keystone-dashboard-layout/vue/style.css'))"
+npm ls keystone-dashboard-layout-vue
+node -e "console.log(require.resolve('keystone-dashboard-layout-vue/style.css'))"
 ```
 
 The second command should print a path ending in `style.css`. If it

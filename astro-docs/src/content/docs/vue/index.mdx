@@ -1,4 +1,4 @@
----
+﻿---
 title: Vue Dashboard Grid Layout
 description: Draggable, resizable dashboard grid layout for Vue 3. Drag-and-drop widgets, responsive breakpoints, undo/redo, and zero runtime dependencies — a modern alternative to vue-grid-layout and grid-layout-plus.
 tableOfContents: false
@@ -14,7 +14,7 @@ with group move/resize, undo/redo, and breakpoint-aware responsive
 layouts, all with zero runtime dependencies.
 
 ```sh
-npm i @keystone-dashboard-layout/vue
+npm i keystone-dashboard-layout-vue
 ```
 
 ## Why teams pick this over `vue-grid-layout`
@@ -37,8 +37,8 @@ for the full, honestly-scored feature table.
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { GridLayout, GridItem } from '@keystone-dashboard-layout/vue';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayout, GridItem } from 'keystone-dashboard-layout-vue';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 const layout = ref<TLayout>([
   { i: 'a', x: 0, y: 0, w: 2, h: 2 },

@@ -1,4 +1,4 @@
-# How to test the npm package before publishing it
+﻿# How to test the npm package before publishing it
 
 Superseded by `scripts/check-package-install.js` (`pnpm run
 check:package-install`) — a real, automated pack-and-install smoke
@@ -16,7 +16,7 @@ npm pack
 ```
 
 ```sh
-npm install @keystone-dashboard-layout/vue-*.tgz
+npm install keystone-dashboard-layout-vue-*.tgz
 ```
 
 (run from whatever other project you're testing the package against).

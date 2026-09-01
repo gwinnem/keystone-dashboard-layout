@@ -1,4 +1,4 @@
----
+﻿---
 title: GridItem Props
 description: Every prop GridItem accepts, and where per-item configuration actually lives.
 ---
@@ -7,7 +7,7 @@ description: Every prop GridItem accepts, and where per-item configuration actua
 Everything Vue's own `GridItem` takes as a component prop
 (`isDraggable`, `minW`, `zIndex`, and so on) instead lives directly on
 the matching entry in `GridLayout`'s own `layout` array (an
-`ILayoutItem`, from `@keystone-dashboard-layout/core`) — set those
+`ILayoutItem`, from `keystone-dashboard-layout-core`) — set those
 fields on your layout data instead of on this component.
 
 ## Component props
@@ -57,4 +57,4 @@ override; `undefined`/`null` defers to that grid-wide default.
 
 See [Layout interface](/react/api/interfaces/layout/) for the full
 `ILayoutItem` reference, shared with the Vue package via
-`@keystone-dashboard-layout/core`.
+`keystone-dashboard-layout-core`.

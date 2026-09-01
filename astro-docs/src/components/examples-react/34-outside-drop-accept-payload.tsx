@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react';
-import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
-import '@keystone-dashboard-layout/react/style.css';
-import { readOutsideDropPayload } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { useRef, useState } from 'react';
+import { GridLayout, GridItem } from 'keystone-dashboard-layout-react';
+import 'keystone-dashboard-layout-react/style.css';
+import { readOutsideDropPayload } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import '../examples-react/shared-example-item.css';
 import './34-outside-drop-accept-payload.css';
 

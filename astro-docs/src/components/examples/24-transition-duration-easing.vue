@@ -47,8 +47,8 @@
 
 <script lang="ts" setup>
   import { ref } from 'vue';
-  import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
-  import '@keystone-dashboard-layout/vue/style.css';
+  import { GridLayout, GridItem, type TLayout } from 'keystone-dashboard-layout-vue';
+  import 'keystone-dashboard-layout-vue/style.css';
   import ExampleNumberField from '../harness/ExampleNumberField.vue';
   import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 

@@ -1,4 +1,4 @@
----
+﻿---
 title: Architecture
 description: How GridLayoutComponent and GridItemComponent talk to each other, and how the codebase is organized.
 ---
@@ -8,7 +8,7 @@ built — `GridLayoutComponent` and `GridItemComponent` carry almost the
 entire implementation, and their relationship isn't obvious from
 reading either file in isolation. This package is a genuine Angular
 implementation, not a thin wrapper generated from the Vue source — the
-underlying grid math is shared via `@keystone-dashboard-layout/core`,
+underlying grid math is shared via `keystone-dashboard-layout-core`,
 but the component layer itself is idiomatic Angular throughout
 (standalone components, `OnPush` change detection, RxJS).
 
@@ -16,7 +16,7 @@ but the component layer itself is idiomatic Angular throughout
 
 The main package entry (`GridLayoutComponent`, `GridItemComponent`, and
 everything that needs a live component instance or DOM) is one thing; a
-separate `@keystone-dashboard-layout/core` package is the pure
+separate `keystone-dashboard-layout-core` package is the pure
 grid-layout math those components are built on — collision detection,
 compaction, movement, alignment guides, breakpoint resolution,
 serialization, and validation — with zero Angular dependency for the
@@ -67,7 +67,7 @@ stream of one-shot events" shape.
 frequently with no Angular ancestor/descendant injector relationship to
 each other at all — to find one another. Vue and React both solve this
 with a plain, module-level registry living in
-`@keystone-dashboard-layout/core` itself. This package keeps its own
+`keystone-dashboard-layout-core` itself. This package keeps its own
 **local copy** of that same registry (`cross-grid-registry.ts`) instead
 of importing `core`'s — not a stylistic choice or an oversight, but a
 confirmed, long-standing `ng-packagr` limitation: `ng-packagr`'s own

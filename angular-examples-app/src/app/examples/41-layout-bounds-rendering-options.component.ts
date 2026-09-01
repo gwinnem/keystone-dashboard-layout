@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import { ExampleToggleComponent } from '../harness/example-toggle.component';
 import { ExampleNumberFieldComponent } from '../harness/example-number-field.component';
 import { LayoutJsonViewerComponent } from '../harness/layout-json-viewer.component';

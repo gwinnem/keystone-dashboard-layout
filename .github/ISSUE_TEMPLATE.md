@@ -1,4 +1,4 @@
-# Expected Behavior
+﻿# Expected Behavior
 
 Please describe the behavior you are expecting
 
@@ -22,7 +22,7 @@ Please provide detailed steps for reproducing the issue.
 
 Please provide any relevant information about your setup. This is important in case the issue is not reproducible except for under certain conditions.
 
-* Package and version (e.g. `@keystone-dashboard-layout/vue@1.0.0`):
+* Package and version (e.g. `keystone-dashboard-layout-vue@1.0.0`):
 * Framework version (Vue/React/Angular):
 * Node version:
 * Browser (if relevant):

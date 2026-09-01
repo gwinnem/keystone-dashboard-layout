@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml/badge.svg)](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat)](https://github.com/prettier/prettier)
-[![npm](https://img.shields.io/npm/v/%40keystone-dashboard-layout%2Fvue)](https://www.npmjs.com/package/@keystone-dashboard-layout/vue)
-[![NPM](https://img.shields.io/npm/l/%40keystone-dashboard-layout%2Fvue)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/vue/LICENSE)
+[![npm](https://img.shields.io/npm/v/%40keystone-dashboard-layout%2Fvue)](https://www.npmjs.com/package/keystone-dashboard-layout-core)
+[![NPM](https://img.shields.io/npm/l/%40keystone-dashboard-layout%2Fvue)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/core/LICENSE)
 
 </div>
 
@@ -11,7 +11,7 @@
   <img src="https://raw.githubusercontent.com/gwinnem/keystone-dashboard-layout/main/packages/vue/docs/dashboard-preview.svg" width="500" alt="Keystone Dashboard Layout — a draggable, resizable dashboard grid preview">
 </p>
 
-<h1 align="center">@keystone-dashboard-layout/core</h1>
+<h1 align="center">keystone-dashboard-layout-core</h1>
 
 Framework-agnostic grid-layout algorithms — bin-packing, collision
 detection, compaction, responsive breakpoint resolution, alignment
@@ -36,7 +36,7 @@ UI layer for a framework not covered by the three above.
 ## Install
 
 ```sh
-npm install @keystone-dashboard-layout/core
+npm install keystone-dashboard-layout-core
 ```
 
 No peer dependencies — this package has zero runtime dependencies of
@@ -45,8 +45,8 @@ its own.
 ## Usage
 
 ```ts
-import { collides, compactLayout, moveElement } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 const layout: TLayout = [
   { i: 'a', x: 0, y: 0, w: 2, h: 2 },
@@ -103,7 +103,7 @@ state attached.
 
 See `src/index.ts` for the complete, current export list — every
 public export is re-exported from that single entry point, so
-anything importable from `@keystone-dashboard-layout/core` is
+anything importable from `keystone-dashboard-layout-core` is
 documented there directly.
 
 ## Why a separate package

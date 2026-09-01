@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { GridItem, GridLayout } from '../../src/index';
-import { ECompactType, getCompactor, readOutsideDropPayload } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { ECompactType, getCompactor, readOutsideDropPayload } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 interface IWidgetPayload {
   label: string;

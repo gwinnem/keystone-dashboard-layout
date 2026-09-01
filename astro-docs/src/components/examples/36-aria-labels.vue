@@ -62,8 +62,8 @@
 
 <script lang="ts" setup>
   import { computed, nextTick, onMounted, ref, watch } from 'vue';
-  import { GridLayout, GridItem, type IGridAriaLabels, type TLayout } from '@keystone-dashboard-layout/vue';
-  import '@keystone-dashboard-layout/vue/style.css';
+  import { GridLayout, GridItem, type IGridAriaLabels, type TLayout } from 'keystone-dashboard-layout-vue';
+  import 'keystone-dashboard-layout-vue/style.css';
   import ExampleToggle from '../harness/ExampleToggle.vue';
   import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { GridItem, GridLayout, useLayoutStorage } from '../../src/index';
 import type { IGridLayoutHandle } from '../../src/index';
-import { ECompactType } from '@keystone-dashboard-layout/core';
-import type { ICompactor, TLayout } from '@keystone-dashboard-layout/core';
+import { ECompactType } from 'keystone-dashboard-layout-core';
+import type { ICompactor, TLayout } from 'keystone-dashboard-layout-core';
 
 /**
  * A custom compactor that settles every non-static item *downward*

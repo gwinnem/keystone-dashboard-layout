@@ -1,4 +1,4 @@
----
+﻿---
 title: Styling
 description: CSS custom properties and class names for customizing the grid's appearance.
 ---
@@ -12,7 +12,7 @@ name — confirmed directly from `packages/react/src/styles/index.css`.
 ## CSS custom properties
 
 All of these are genuinely overridable from your own stylesheet after
-importing `@keystone-dashboard-layout/react/style.css`:
+importing `keystone-dashboard-layout-react/style.css`:
 
 | Property | Default | Set by |
 |---|---|---|
@@ -23,7 +23,7 @@ importing `@keystone-dashboard-layout/react/style.css`:
 | `--kdl-resize-handle-color` | `rgb(94 94 94 / 45%)` | `resizeHandleColor` prop |
 
 ```css
-/* After importing '@keystone-dashboard-layout/react/style.css' */
+/* After importing 'keystone-dashboard-layout-react/style.css' */
 .kdl-grid-layout {
   --kdl-resize-handle-color: #38bdf8;
 }
@@ -54,7 +54,7 @@ enough; there's no competing inline style to fight.
 | `.kdl-resize-hint--n` / `--s` / `--e` / `--w` / `--ne` / `--nw` / `--se` / `--sw` | The (always-present, invisible-by-default) hit zone for each resize edge/corner actually rendered — see `resizeHandles`. |
 
 ```css
-/* After importing '@keystone-dashboard-layout/react/style.css' */
+/* After importing 'keystone-dashboard-layout-react/style.css' */
 .kdl-grid-item.kdl-grid-item--static {
   background-color: #1e293b;
 }

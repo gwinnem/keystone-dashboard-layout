@@ -86,7 +86,7 @@ importers:
 
   packages/angular:
     dependencies:
-      '@keystone-dashboard-layout/core':
+      keystone-dashboard-layout-core:
         specifier: workspace:*
         version: link:../core
       tslib:
@@ -231,7 +231,7 @@ importers:
 
   packages/react:
     dependencies:
-      '@keystone-dashboard-layout/core':
+      keystone-dashboard-layout-core:
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -301,7 +301,7 @@ importers:
 
   packages/vue:
     dependencies:
-      '@keystone-dashboard-layout/core':
+      keystone-dashboard-layout-core:
         specifier: workspace:*
         version: link:../core
     devDependencies:

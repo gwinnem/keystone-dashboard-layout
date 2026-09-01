@@ -1,8 +1,8 @@
-// Global Vitest setup — runs once before each test file. Same set of
+﻿// Global Vitest setup — runs once before each test file. Same set of
 // jsdom gaps the Vue package's own `tests/setup.ts` works around (see
 // that file's own comments for the full rationale on each) — this
 // package's drag/resize engine is the exact same shared
-// `@keystone-dashboard-layout/core` code, so it hits the identical gaps.
+// `keystone-dashboard-layout-core` code, so it hits the identical gaps.
 import { beforeEach, vi } from 'vitest';
 
 // Captures the callback passed to `new ResizeObserver(callback)` so a

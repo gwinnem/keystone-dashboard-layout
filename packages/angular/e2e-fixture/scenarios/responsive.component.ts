@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { GridItemComponent } from '../../src/lib/grid-item.component';
 import { GridLayoutComponent } from '../../src/lib/grid-layout.component';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 /** Real-browser coverage for `responsive` — a viewport resize genuinely resolving a different breakpoint's own column count, not a mocked container-width value. Mirrors the Vue/React packages' own identical `responsive` fixture. */
 @Component({

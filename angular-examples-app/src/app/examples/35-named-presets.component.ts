@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent, GridLayoutPresetsService } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { Component, inject } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent, GridLayoutPresetsService } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import { LayoutJsonViewerComponent } from '../harness/layout-json-viewer.component';
 
 const PRESETS_KEY = 'example-35-presets';

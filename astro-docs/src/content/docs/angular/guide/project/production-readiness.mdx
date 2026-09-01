@@ -1,4 +1,4 @@
----
+﻿---
 title: Production readiness
 description: An honest checklist of what's actually verified, what's a known gap, and what's blocking real-world use — not a marketing claim.
 ---
@@ -44,7 +44,7 @@ in a CI pipeline that had simply never run this far before:
    so tests never saw post-dispatch state updates. Fixed by reading
    `ctx.result.xxx` fresh at each point instead.
 10. **Vue's own `check:package-install`** hit a real, already-documented
-    structural limit: `@keystone-dashboard-layout/core` has never been
+    structural limit: `keystone-dashboard-layout-core` has never been
     published to npm standalone, so installing the packed Vue tarball
     404s on that dependency. Marked `continue-on-error: true`, matching
     React/Angular's own equivalent steps (likely the same root cause).
@@ -80,7 +80,7 @@ just configuration.
 
 ## Runtime dependencies
 
-**Correction to this page's own earlier phrasing**: this package is **not** zero-runtime-dependencies the way Vue and React are. Confirmed via a direct read of `package.json`'s own `dependencies` field: `@keystone-dashboard-layout/core` (workspace, shared with Vue/React) **and `tslib` (^2.6.0)** — a real, external npm dependency, not just a workspace reference. `tslib` is an extremely common, small (a few KB), near-universal helper library for compiled TypeScript/Angular output — not a cause for concern in practice — but the previous "zero runtime dependencies... the Vue and React packages use" phrasing on this page was factually imprecise for this specific package and has been corrected here.
+**Correction to this page's own earlier phrasing**: this package is **not** zero-runtime-dependencies the way Vue and React are. Confirmed via a direct read of `package.json`'s own `dependencies` field: `keystone-dashboard-layout-core` (workspace, shared with Vue/React) **and `tslib` (^2.6.0)** — a real, external npm dependency, not just a workspace reference. `tslib` is an extremely common, small (a few KB), near-universal helper library for compiled TypeScript/Angular output — not a cause for concern in practice — but the previous "zero runtime dependencies... the Vue and React packages use" phrasing on this page was factually imprecise for this specific package and has been corrected here.
 
 ## Build & packaging
 

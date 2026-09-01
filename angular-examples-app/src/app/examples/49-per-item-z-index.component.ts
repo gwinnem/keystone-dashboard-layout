@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { Component } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 const initialLayout: TLayout = [
   { h: 3, i: 'pinned', w: 4, x: 4, y: 0, zIndex: 10 },

@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { GridLayout, GridItem, useLayoutStorage } from '@keystone-dashboard-layout/react';
-import '@keystone-dashboard-layout/react/style.css';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { useState } from 'react';
+import { GridLayout, GridItem, useLayoutStorage } from 'keystone-dashboard-layout-react';
+import 'keystone-dashboard-layout-react/style.css';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import '../examples-react/shared-example-item.css';
 import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import './19-save-load-layout.css';

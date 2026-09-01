@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright configuration for @keystone-dashboard-layout/angular.
+ * Playwright configuration for keystone-dashboard-layout-angular.
  *
  * Tests run against `./e2e-fixture` — a minimal test harness, not a
  * demo app — which imports the library directly from `src/` so tests

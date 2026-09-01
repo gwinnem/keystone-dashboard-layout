@@ -1,5 +1,5 @@
 import { GridLayoutPresetsService } from './grid-layout-presets.service';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 /** Same in-memory `Storage` double as `grid-layout-storage.service.spec.ts` — see that file's own comment for why. */
 class FakeStorage implements Storage {

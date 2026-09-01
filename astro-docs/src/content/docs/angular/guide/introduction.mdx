@@ -1,4 +1,4 @@
----
+﻿---
 title: Introduction
 description: What Keystone Dashboard Layout for Angular is, what you get, and where to go next.
 prev: false
@@ -10,7 +10,7 @@ UI you'd use for a customizable analytics dashboard, a widget board, or
 any screen where users rearrange content themselves.
 
 It's a TypeScript-first library built on the exact same shared
-`@keystone-dashboard-layout/core` algorithms and native, Pointer
+`keystone-dashboard-layout-core` algorithms and native, Pointer
 Events-based drag/resize engine the Vue and React packages use — all
 three frameworks share one implementation of the hard, easy-to-get-
 subtly-wrong parts (collision, compaction, responsive breakpoint math)
@@ -65,8 +65,8 @@ and any part of an item is a drag handle by default, restrictable via
 
 ```ts
 import { Component } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 @Component({
   selector: 'app-dashboard',

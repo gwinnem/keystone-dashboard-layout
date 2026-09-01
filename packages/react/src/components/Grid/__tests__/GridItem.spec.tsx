@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render } from '@testing-library/react';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import { GridLayout } from '../GridLayout';
 import { GridItem } from '../GridItem';
 import { dispatchDragEvent, dispatchResizeEvent, restoreOffsetWidth } from './test-helpers';

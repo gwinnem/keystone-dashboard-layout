@@ -47,7 +47,7 @@ concurrency:
 
 jobs:
   release-core:
-    name: Release @keystone-dashboard-layout/core
+    name: Release keystone-dashboard-layout-core
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -71,13 +71,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: pnpm --filter @keystone-dashboard-layout/core run typecheck
+        run: pnpm --filter keystone-dashboard-layout-core run typecheck
 
       - name: Test (with coverage gate)
-        run: pnpm --filter @keystone-dashboard-layout/core run test:coverage
+        run: pnpm --filter keystone-dashboard-layout-core run test:coverage
 
       - name: Build library
-        run: pnpm --filter @keystone-dashboard-layout/core run build
+        run: pnpm --filter keystone-dashboard-layout-core run build
 
       # No check:bundle-size step here — unlike Vue/React/Angular, this
       # package has no such script defined at all (confirmed via its own
@@ -92,7 +92,7 @@ jobs:
         run: npx semantic-release
 
   release-vue:
-    name: Release @keystone-dashboard-layout/vue
+    name: Release keystone-dashboard-layout-vue
     needs: release-core
     runs-on: ubuntu-latest
     steps:
@@ -118,16 +118,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: pnpm --filter @keystone-dashboard-layout/vue run typecheck
+        run: pnpm --filter keystone-dashboard-layout-vue run typecheck
 
       - name: Test (with coverage gate)
-        run: pnpm --filter @keystone-dashboard-layout/vue run test:coverage
+        run: pnpm --filter keystone-dashboard-layout-vue run test:coverage
 
       - name: Build library
-        run: pnpm --filter @keystone-dashboard-layout/vue run build
+        run: pnpm --filter keystone-dashboard-layout-vue run build
 
       - name: Check bundle size
-        run: pnpm --filter @keystone-dashboard-layout/vue run check:bundle-size
+        run: pnpm --filter keystone-dashboard-layout-vue run check:bundle-size
 
       - name: Release
         working-directory: packages/vue
@@ -137,7 +137,7 @@ jobs:
         run: npx semantic-release
 
   release-react:
-    name: Release @keystone-dashboard-layout/react
+    name: Release keystone-dashboard-layout-react
     needs: release-vue
     runs-on: ubuntu-latest
     steps:
@@ -163,18 +163,18 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: pnpm --filter @keystone-dashboard-layout/react run typecheck
+        run: pnpm --filter keystone-dashboard-layout-react run typecheck
 
       - name: Test (with coverage gate)
-        run: pnpm --filter @keystone-dashboard-layout/react run test:coverage
+        run: pnpm --filter keystone-dashboard-layout-react run test:coverage
 
       - name: Build library
-        run: pnpm --filter @keystone-dashboard-layout/react run build
+        run: pnpm --filter keystone-dashboard-layout-react run build
 
       - name: Check bundle size
         # continue-on-error until verified against a real build — see
         # packages/react/scripts/check-bundle-size.js's own top comment.
-        run: pnpm --filter @keystone-dashboard-layout/react run check:bundle-size
+        run: pnpm --filter keystone-dashboard-layout-react run check:bundle-size
         continue-on-error: true
 
       - name: Release
@@ -185,7 +185,7 @@ jobs:
         run: npx semantic-release
 
   release-angular:
-    name: Release @keystone-dashboard-layout/angular
+    name: Release keystone-dashboard-layout-angular
     needs: release-react
     runs-on: ubuntu-latest
     steps:
@@ -208,18 +208,18 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: pnpm --filter @keystone-dashboard-layout/angular run typecheck
+        run: pnpm --filter keystone-dashboard-layout-angular run typecheck
 
       - name: Test (with coverage gate)
-        run: pnpm --filter @keystone-dashboard-layout/angular run test:coverage
+        run: pnpm --filter keystone-dashboard-layout-angular run test:coverage
 
       - name: Build library
-        run: pnpm --filter @keystone-dashboard-layout/angular run build
+        run: pnpm --filter keystone-dashboard-layout-angular run build
 
       - name: Check bundle size
         # continue-on-error until verified against a real build — see
         # packages/angular/scripts/check-bundle-size.js's own top comment.
-        run: pnpm --filter @keystone-dashboard-layout/angular run check:bundle-size
+        run: pnpm --filter keystone-dashboard-layout-angular run check:bundle-size
         continue-on-error: true
 
       - name: Release

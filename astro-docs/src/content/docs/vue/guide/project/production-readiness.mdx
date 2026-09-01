@@ -1,4 +1,4 @@
----
+﻿---
 title: Production readiness
 description: An honest checklist of what's actually verified, what's a known gap, and what's blocking real-world use — not a marketing claim.
 ---
@@ -80,7 +80,7 @@ None of this batch pushed/re-verified yet.
 - **Bundle size** — now directly re-measured, correcting a stale figure: the actual current built ES bundle (`dist/keystone-dashboard-layout-vue.es.js`) is **80.67 KB raw / 22.29 KB gzip** — notably smaller than this script's own `docs/BUNDLE_ANALYSIS.md`-derived comment claiming "~42.6 KB gzip" as the current baseline (that comment is now stale; the real, current number leaves roughly 33 KB of headroom under the 55 KB budget rather than the ~12 KB the comment implies). Confirmed via a direct read of `ci.yml`: this check is *configured* to run **without** `continue-on-error` for this package (unlike the identical checks for React/Angular, both of which are `continue-on-error: true`) — but see the CI-wide pnpm caution above: it hasn't actually executed successfully in real CI recently, since every job fails before reaching it.
 - **`check:package-install` (pack-and-install smoke test)** — same distinction: configured to run **without** `continue-on-error` for this package — but, same caveat, not actually exercised in a real CI run recently.
 - **The library, demo, and docs-site builds** — all three are separate steps in `ci.yml`'s own `verify` job, confirmed present in the workflow — but, again, not confirmed passing in an actual recent CI run given the pnpm setup failure above.
-- **Publish status** — not independently verified as of this snapshot. The package publishes as `@keystone-dashboard-layout/vue` (the post-monorepo-split name) — check the current npm registry state directly rather than trusting a prior claim about what's published.
+- **Publish status** — not independently verified as of this snapshot. The package publishes as `keystone-dashboard-layout-vue` (the post-monorepo-split name) — check the current npm registry state directly rather than trusting a prior claim about what's published.
 
 ## CI/CD & repository hygiene
 

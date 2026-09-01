@@ -97,7 +97,7 @@ jobs:
         run: pnpm build
 
       - name: Check bundle size (Vue package)
-        run: pnpm --filter @keystone-dashboard-layout/vue run check:bundle-size
+        run: pnpm --filter keystone-dashboard-layout-vue run check:bundle-size
 
       - name: Verify the published Vue package actually installs and resolves
         # Packs the tarball and installs it into a genuinely separate
@@ -105,17 +105,13 @@ jobs:
         # catches issues that testing through source aliases never would.
         # continue-on-error since this is a real, confirmed, structural
         # limitation rather than a script bug: this package's own
-        # `dependencies` includes `@keystone-dashboard-layout/core`
+        # `dependencies` includes `keystone-dashboard-layout-core`
         # (correctly rewritten from `workspace:*` to a real version by
         # `pnpm pack`), but npm then tries to fetch that exact version of
-        # `core` from the public registry — which 404s, since `core` has
-        # never actually been published there on its own (confirmed via a
-        # live, reproduced CI failure: `npm error 404 '@keystone-
-        # dashboard-layout/core@0.1.0' is not in this registry`). Nothing
-        # to fix in this script or this package until `core`'s own first
-        # real npm release happens — remove continue-on-error at that
-        # point, not before.
-        run: pnpm --filter @keystone-dashboard-layout/vue run check:package-install
+        # `core` from the public registry — remove continue-on-error once
+        # confirmed working against a real published core release, not
+        # before.
+        run: pnpm --filter keystone-dashboard-layout-vue run check:package-install
         continue-on-error: true
 
       - name: Check bundle size (React package)
@@ -124,11 +120,11 @@ jobs:
         # see its own top comment for what's unverified about it. Remove
         # continue-on-error once confirmed working, so a real regression
         # actually blocks CI the way Vue's own check does.
-        run: pnpm --filter @keystone-dashboard-layout/react run check:bundle-size
+        run: pnpm --filter keystone-dashboard-layout-react run check:bundle-size
         continue-on-error: true
 
       - name: Verify the published React package actually installs and resolves
-        run: pnpm --filter @keystone-dashboard-layout/react run check:package-install
+        run: pnpm --filter keystone-dashboard-layout-react run check:package-install
         continue-on-error: true
 
       - name: Check bundle size (Angular package)
@@ -136,18 +132,18 @@ jobs:
         # "measure the whole output directory" approach and its BUDGET_KB
         # placeholder are both unverified against a real ng-packagr build;
         # see its own top comment.
-        run: pnpm --filter @keystone-dashboard-layout/angular run check:bundle-size
+        run: pnpm --filter keystone-dashboard-layout-angular run check:bundle-size
         continue-on-error: true
 
       - name: Verify the published Angular package actually installs and resolves
         # continue-on-error until verified — this script's own assumptions
         # about ng-packagr's generated package.json/exports shape haven't
         # been checked against a real build; see its own top comment.
-        run: pnpm --filter @keystone-dashboard-layout/angular run check:package-install
+        run: pnpm --filter keystone-dashboard-layout-angular run check:package-install
         continue-on-error: true
 
       - name: Build Vue demo app
-        run: pnpm --filter @keystone-dashboard-layout/vue run demo:build
+        run: pnpm --filter keystone-dashboard-layout-vue run demo:build
 
       - name: Install documentation site dependencies
         # astro-docs is a separate, standalone project (its own
@@ -188,7 +184,7 @@ jobs:
         # version — browsers are a single, version-keyed shared cache, so
         # installing once here covers all three; no per-package install
         # step needed.
-        run: pnpm --filter @keystone-dashboard-layout/vue exec playwright install --with-deps
+        run: pnpm --filter keystone-dashboard-layout-vue exec playwright install --with-deps
 
       - name: Run e2e tests
         # turbo skips any package without a test:e2e script — all three
@@ -221,7 +217,7 @@ jobs:
         # actually reachable from CI. Uses --filter directly (bypassing
         # turbo's own generic discovery) rather than retrying the
         # identical command that already silently skipped it above.
-        run: pnpm --filter @keystone-dashboard-layout/angular run test:e2e
+        run: pnpm --filter keystone-dashboard-layout-angular run test:e2e
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}

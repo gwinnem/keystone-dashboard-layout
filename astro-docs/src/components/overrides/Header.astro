@@ -1,4 +1,4 @@
----
+﻿---
 // Overrides Starlight's default Header for a VitePress-style top nav:
 // a row of top-level section links, plus a small custom icon row
 // (instead of Starlight's own <SocialIcons>, whose supported platform
@@ -95,12 +95,12 @@ const navLinks: { label: string; href: string }[] = Astro.url.pathname.includes(
 // navLinks above: /core fell through to Vue's own npm package here too
 // before this, for the identical reason.
 const npmHref = Astro.url.pathname.includes(`/react`)
-	? `https://www.npmjs.com/package/@keystone-dashboard-layout/react`
+	? `https://www.npmjs.com/package/keystone-dashboard-layout-react`
 	: Astro.url.pathname.includes(`/angular`)
-		? `https://www.npmjs.com/package/@keystone-dashboard-layout/angular`
+		? `https://www.npmjs.com/package/keystone-dashboard-layout-angular`
 		: Astro.url.pathname.includes(`/core`)
-			? `https://www.npmjs.com/package/@keystone-dashboard-layout/core`
-			: `https://www.npmjs.com/package/@keystone-dashboard-layout/vue`;
+			? `https://www.npmjs.com/package/keystone-dashboard-layout-core`
+			: `https://www.npmjs.com/package/keystone-dashboard-layout-vue`;
 
 // Custom icon row — edit this array directly to add, remove, or
 // reorder icons. Each `svg` is a raw inline path (no external request,

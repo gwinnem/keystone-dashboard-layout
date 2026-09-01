@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import type { IBreakpoints, IColumns, TLayout } from '@keystone-dashboard-layout/core';
+﻿import { Component } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import type { IBreakpoints, IColumns, TLayout } from 'keystone-dashboard-layout-core';
 import { LayoutJsonViewerComponent } from '../harness/layout-json-viewer.component';
 
 // Scaled down from the library's own defaults (xxl:1600/xl:1400/lg:1200/

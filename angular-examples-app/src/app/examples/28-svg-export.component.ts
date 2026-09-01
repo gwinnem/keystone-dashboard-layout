@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
-import { exportLayoutAsSvg } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { Component } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
+import { exportLayoutAsSvg } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 const initialLayout: TLayout = [
   { h: 2, i: '0', w: 3, x: 0, y: 0 },

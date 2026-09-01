@@ -5,5 +5,5 @@
     "entryFile": "src/index.ts"
   },
   "assets": ["src/styles/index.css"],
-  "allowedNonPeerDependencies": ["@keystone-dashboard-layout/core"]
+  "allowedNonPeerDependencies": ["keystone-dashboard-layout-core"]
 }

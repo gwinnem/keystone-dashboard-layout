@@ -1,4 +1,4 @@
----
+﻿---
 title: Production readiness
 description: An honest checklist of what's actually verified, what's a known gap, and what's blocking real-world use — not a marketing claim.
 ---
@@ -73,12 +73,12 @@ pushed/re-verified yet.
 
 ## Runtime dependencies
 
-Confirmed via a direct read of this package's own `package.json`: **zero external runtime dependencies** — only `@keystone-dashboard-layout/core` (a workspace dependency, not an external package) is listed under `dependencies`. Matches Vue's own zero-dependency claim exactly, not just assumed parity.
+Confirmed via a direct read of this package's own `package.json`: **zero external runtime dependencies** — only `keystone-dashboard-layout-core` (a workspace dependency, not an external package) is listed under `dependencies`. Matches Vue's own zero-dependency claim exactly, not just assumed parity.
 
 ## Build & packaging
 
 - **Bundle size** — now directly measured, not assumed: this package's own built ES bundle (`dist/keystone-dashboard-layout-react.es.js`) is **59.75 KB raw / 17.97 KB gzip**, comfortably under the `check:bundle-size` script's own `BUDGET_KB = 60` placeholder (that script's own top comment previously called this budget unverified against a real build — it's now been checked, and the placeholder happens to already have ~42 KB of headroom to spare). `ci.yml` still runs this check with `continue-on-error: true`, since the *script itself* (not just the number) had never been confirmed to run successfully end-to-end before this — worth flipping to blocking now that a real run confirms it works.
-- **`check:package-install` (pack-and-install smoke test)** — still genuinely unverified: `ci.yml`'s own comment states this script "has never actually been run" and keeps it `continue-on-error: true` for that reason. Not resolved in this pass — needs someone to actually run `pnpm --filter @keystone-dashboard-layout/react run check:package-install` for real and confirm it passes before this can be trusted or made blocking.
+- **`check:package-install` (pack-and-install smoke test)** — still genuinely unverified: `ci.yml`'s own comment states this script "has never actually been run" and keeps it `continue-on-error: true` for that reason. Not resolved in this pass — needs someone to actually run `pnpm --filter keystone-dashboard-layout-react run check:package-install` for real and confirm it passes before this can be trusted or made blocking.
 - **The library build itself** — confirmed working, since the bundle-size measurement above required a real, successful `dist/` build to already exist.
 
 ## CI/CD & repository hygiene

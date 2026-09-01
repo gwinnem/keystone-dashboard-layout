@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
-import { GridLayout, GridItem } from '@keystone-dashboard-layout/react';
-import '@keystone-dashboard-layout/react/style.css';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+﻿import { useRef, useState } from 'react';
+import { GridLayout, GridItem } from 'keystone-dashboard-layout-react';
+import 'keystone-dashboard-layout-react/style.css';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 import '../examples-react/shared-example-item.css';
 import './11-outside-drag-drop.css';
 

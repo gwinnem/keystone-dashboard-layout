@@ -62,8 +62,8 @@
 
 <script lang="ts" setup>
   import { nextTick, onMounted, ref, watch } from 'vue';
-  import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
-  import '@keystone-dashboard-layout/vue/style.css';
+  import { GridLayout, GridItem, type TLayout } from 'keystone-dashboard-layout-vue';
+  import 'keystone-dashboard-layout-vue/style.css';
   import ExampleToggle from '../harness/ExampleToggle.vue';
   import ExampleNumberField from '../harness/ExampleNumberField.vue';
   import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';

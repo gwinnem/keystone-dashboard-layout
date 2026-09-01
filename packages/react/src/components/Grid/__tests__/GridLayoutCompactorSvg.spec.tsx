@@ -1,7 +1,7 @@
 import { createRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
-import type { ICompactor, TLayout } from '@keystone-dashboard-layout/core';
+import type { ICompactor, TLayout } from 'keystone-dashboard-layout-core';
 import { GridLayout } from '../GridLayout';
 import { GridItem } from '../GridItem';
 import type { IGridLayoutHandle } from '../grid-layout-handle.interface';

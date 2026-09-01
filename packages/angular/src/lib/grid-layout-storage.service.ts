@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { deserializeLayout, serializeLayout } from '@keystone-dashboard-layout/core';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import { deserializeLayout, serializeLayout } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 const hasWindow = (): boolean => typeof window !== `undefined`;
 

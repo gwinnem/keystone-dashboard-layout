@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
   <img src="https://raw.githubusercontent.com/gwinnem/keystone-dashboard-layout/main/packages/vue/docs/dashboard-preview.svg" width="500" alt="Keystone Dashboard Layout — a draggable, resizable dashboard grid preview">
 </p>
 
@@ -19,7 +19,7 @@ independent, idiomatic framework packages.
 | [`packages/react`](./packages/react) | React 18/19 | Full feature parity with Vue |
 | [`packages/angular`](./packages/angular) | Angular 17–19 | Full feature parity with Vue |
 
-`@keystone-dashboard-layout/core` holds the framework-agnostic algorithms
+`keystone-dashboard-layout-core` holds the framework-agnostic algorithms
 — bin-packing, collision detection, compaction, responsive breakpoints,
 alignment guides/snapping, validators, serialization, SVG export, and a
 native Pointer-Events-based drag/resize engine — shared by all three
@@ -73,8 +73,8 @@ Per-package commands work as usual from within a package directory, or via
 pnpm's `--filter`:
 
 ```bash
-pnpm --filter @keystone-dashboard-layout/vue dev
-pnpm --filter @keystone-dashboard-layout/vue test:e2e
+pnpm --filter keystone-dashboard-layout-vue dev
+pnpm --filter keystone-dashboard-layout-vue test:e2e
 ```
 
 ## Documentation & examples

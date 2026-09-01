@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import {
   calcColWidth,
@@ -8,8 +8,8 @@ import {
   createNativeAutoScroll,
   createNativeDraggable,
   offsetXYFromParentOf,
-} from '@keystone-dashboard-layout/core';
-import type { ICalcXy, IGridItemPosition, INativeDragEvent, TDragActivationDistance } from '@keystone-dashboard-layout/core';
+} from 'keystone-dashboard-layout-core';
+import type { ICalcXy, IGridItemPosition, INativeDragEvent, TDragActivationDistance } from 'keystone-dashboard-layout-core';
 import type { TGridGestureEventType } from '../grid-context';
 
 /**
@@ -62,7 +62,7 @@ export interface IUseGridItemDragReturn {
 /**
  * The React port of Vue's own `useGridItemDrag.ts` composable — same
  * grid-unit math (`calcXY`), same native pointer-driven engine
- * (`createNativeDraggable`, shared via `@keystone-dashboard-layout/core`
+ * (`createNativeDraggable`, shared via `keystone-dashboard-layout-core`
  * since it's already framework-agnostic), adapted to React's hook
  * model: a `ref` (not a Vue `ref`) holds the live pixel position during
  * a gesture so `handleDrag` can read/write it synchronously within a

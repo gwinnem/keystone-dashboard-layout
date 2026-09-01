@@ -1,4 +1,4 @@
-import {
+﻿import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -39,7 +39,7 @@ import {
   getLayoutItem,
   layoutValidator,
   moveElement,
-} from '@keystone-dashboard-layout/core';
+} from 'keystone-dashboard-layout-core';
 import type {
   IAlignmentGuide,
   IBreakpoints,
@@ -53,7 +53,7 @@ import type {
   TBreakpoint,
   TDistributeAxis,
   TLayout,
-} from '@keystone-dashboard-layout/core';
+} from 'keystone-dashboard-layout-core';
 import { findCrossGridZoneAt, registerCrossGridZone } from './cross-grid-registry';
 import type { ICrossGridDropRejected, ICrossGridItemDropped, ICrossGridZone } from './cross-grid.interfaces';
 import { GridEventBusService, IGridDefaults, IItemClickedEvent, IItemDragEvent, IItemResizeEvent } from './grid-event-bus.service';
@@ -517,7 +517,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     // Mount-time layout validation — matches the Vue package's own
     // GridLayout.vue exactly (its own onMounted hook, throwing
     // EErrorMessage.INVALID_LAYOUT_VALIDATED against the same
-    // layoutValidator from @keystone-dashboard-layout/core), which this
+    // layoutValidator from keystone-dashboard-layout-core), which this
     // component previously had no equivalent of at all — a real,
     // confirmed parity gap, not a deliberate omission. Validates once,
     // against the initial `layout` @Input() only — not re-run on a

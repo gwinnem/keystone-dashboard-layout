@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { GridLayout, GridItem, type IGridLayoutHandle } from '@keystone-dashboard-layout/react';
-import '@keystone-dashboard-layout/react/style.css';
-import type { IGridAriaLabels, TLayout } from '@keystone-dashboard-layout/core';
+﻿import { useEffect, useRef, useState } from 'react';
+import { GridLayout, GridItem, type IGridLayoutHandle } from 'keystone-dashboard-layout-react';
+import 'keystone-dashboard-layout-react/style.css';
+import type { IGridAriaLabels, TLayout } from 'keystone-dashboard-layout-core';
 import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import ExampleToggle from '../harness-react/ExampleToggle';
 import '../examples-react/shared-example-item.css';

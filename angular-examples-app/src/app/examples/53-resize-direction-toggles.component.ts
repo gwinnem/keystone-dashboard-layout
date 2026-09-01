@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
-import { GridLayoutComponent, GridItemComponent } from '@keystone-dashboard-layout/angular';
+﻿import { Component } from '@angular/core';
+import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
 import { ExampleToggleComponent } from '../harness/example-toggle.component';
-import type { TLayout } from '@keystone-dashboard-layout/core';
-import type { TResizeHandle } from '@keystone-dashboard-layout/core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
+import type { TResizeHandle } from 'keystone-dashboard-layout-core';
 
 const initialLayout: TLayout = [{ h: 3, i: '0', w: 4, x: 4, y: 0 }];
 

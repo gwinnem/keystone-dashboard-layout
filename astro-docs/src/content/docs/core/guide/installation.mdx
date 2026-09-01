@@ -1,10 +1,10 @@
----
+﻿---
 title: Installation
-description: Adding @keystone-dashboard-layout/core directly, and how to reach the extra cross-grid-registry subpath export.
+description: Adding keystone-dashboard-layout-core directly, and how to reach the extra cross-grid-registry subpath export.
 ---
 
 ```sh
-npm i @keystone-dashboard-layout/core
+npm i keystone-dashboard-layout-core
 ```
 
 Works with `import`, `require`, and TypeScript's own type resolution —
@@ -12,7 +12,7 @@ the package ships ESM, CJS, and its own `.d.ts` types, so no extra
 `@types` package is needed either way.
 
 ```ts
-import { collides, compactLayout, getBreakpointFromWidth } from '@keystone-dashboard-layout/core';
+import { collides, compactLayout, getBreakpointFromWidth } from 'keystone-dashboard-layout-core';
 ```
 
 ## The cross-grid-registry subpath
@@ -27,8 +27,8 @@ as its own, explicit subpath import instead of bundled into the main
 one:
 
 ```ts
-import { registerCrossGridZone } from '@keystone-dashboard-layout/core/gridlayout/helpers/cross-grid-registry';
-import type { ICrossGridZone } from '@keystone-dashboard-layout/core/gridlayout/interfaces/cross-grid.interfaces';
+import { registerCrossGridZone } from 'keystone-dashboard-layout-core/gridlayout/helpers/cross-grid-registry';
+import type { ICrossGridZone } from 'keystone-dashboard-layout-core/gridlayout/interfaces/cross-grid.interfaces';
 ```
 
 Only worth reaching for directly if you're building a new framework

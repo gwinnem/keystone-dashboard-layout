@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { TResizeHandle } from '@keystone-dashboard-layout/core';
+import type { TResizeHandle } from 'keystone-dashboard-layout-core';
 
 /**
  * Props accepted by `GridItem`. Deliberately minimal, unlike the Vue

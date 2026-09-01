@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import type { ILayoutItem } from '@keystone-dashboard-layout/core';
+﻿import { Component, Input } from '@angular/core';
+import type { ILayoutItem } from 'keystone-dashboard-layout-core';
 
 /**
  * Angular port of the astro-docs Vue harness's own LayoutJsonViewer.vue

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { GridItem, GridLayout } from '../../src/index';
-import type { TLayout } from '@keystone-dashboard-layout/core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
 
 export default function KeyboardAccessibility(): React.JSX.Element {
   const [layout, setLayout] = useState<TLayout>([

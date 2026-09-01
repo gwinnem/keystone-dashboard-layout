@@ -1,4 +1,4 @@
-import { ICrossGridZone } from './cross-grid.interfaces';
+﻿import { ICrossGridZone } from './cross-grid.interfaces';
 
 /**
  * Every mounted `GridLayoutComponent` with `allowCrossGridDrag` enabled
@@ -10,7 +10,7 @@ import { ICrossGridZone } from './cross-grid.interfaces';
  * (siblings under different parents, or in entirely separate component
  * trees), so discovery can't rely on the component tree shape.
  *
- * A local copy of `@keystone-dashboard-layout/core`'s own
+ * A local copy of `keystone-dashboard-layout-core`'s own
  * `gridlayout/helpers/cross-grid-registry` — see `cross-grid.
  * interfaces.ts`'s own doc comment in this same directory for the full
  * rationale (a confirmed, long-standing `ng-packagr` limitation with
