@@ -1,9 +1,16 @@
 name: Release
 
-# Runs on every push to main. semantic-release inspects conventional commit
-# messages since the last release to decide whether a release is warranted
-# and what version bump it implies — most pushes (docs, chores) result in
-# no release, which is expected.
+# Manual only (workflow_dispatch) — publishing to npm is done by hand for
+# now, not automatically on every push to main. This previously ran on
+# every push and failed at the final "Release" step on every single run
+# (no NPM_TOKEN secret configured), which is why it no longer triggers
+# automatically; trigger it explicitly from the Actions tab (or `gh
+# workflow run release.yml`) whenever a real release is actually wanted.
+#
+# semantic-release inspects conventional commit messages since the last
+# release to decide whether a release is warranted and what version bump
+# it implies — most pushes (docs, chores) would result in no release
+# anyway, which is expected.
 #
 # All four packages (Core, Vue, React, Angular) publish today, each scoped
 # to commits touching only its own path via the `semantic-release-monorepo`
@@ -32,8 +39,7 @@ name: Release
 # secret is added, each "Release" step fails safely (no partial/
 # destructive action). GITHUB_TOKEN is provided automatically by Actions.
 on:
-  push:
-    branches: [main]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
