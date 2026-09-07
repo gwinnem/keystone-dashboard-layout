@@ -1,0 +1,147 @@
+---
+title: Migrating from vue-grid-layout / grid-layout-plus
+description: A prop-for-prop and event-for-event mapping for converting an existing vue-grid-layout or grid-layout-plus (v1) integration to this library.
+---
+
+This covers **`vue-grid-layout`** (the original, Vue 2 library) and
+**`grid-layout-plus`** (its Vue 3 port) — see
+[Comparison: alternatives](/vue/guide/project/comparison-alternatives/)
+for how they relate. Both share the same v1 API, verified directly
+against `grid-layout-plus`'s own current documentation, so one mapping
+covers both. If you're specifically on `grid-layout-plus@2` (currently
+beta), some of its own breaking changes move it closer to this
+library's controlled-`layout` model already — check its own
+[migration guide](https://docs-next--grid-layout-plus.netlify.app/guide/migration)
+for what changed there before using the table below.
+
+## Install
+
+```sh
+npm uninstall vue-grid-layout grid-layout-plus
+npm install keystone-dashboard-layout-vue
+```
+
+```diff
+- import VueGridLayout from 'vue-grid-layout'
+- // or: import { GridLayout, GridItem } from 'grid-layout-plus'
++ import { GridLayout, GridItem } from 'keystone-dashboard-layout-vue'
++ import 'keystone-dashboard-layout-vue/style.css'
+```
+
+## `GridLayout` prop mapping
+
+Most prop names carry over unchanged — the two libraries share a
+common ancestor in `react-grid-layout`'s original design. Only the
+differences are worth double-checking.
+
+| vue-grid-layout / grid-layout-plus | This library | Notes |
+|---|---|---|
+| `layout` | `layout` | Same shape. |
+| `colNum` | `colNum` | Same. |
+| `rowHeight` | `rowHeight` | Same. |
+| `margin` | `margin` | Same `[x, y]` pixel tuple. |
+| `isDraggable` | `isDraggable` | Same — grid-wide default, per-item overridable. |
+| `isResizable` | `isResizable` | Same. |
+| `isBounded` | `isBounded` | Same. |
+| `isMirrored` | `isMirrored` | Same — RTL mirroring. |
+| `autoSize` | `autoSize` (or `heightMode`) | `autoSize` still works identically. `heightMode` is this library's newer, more explicit replacement — see [GridLayout props](/vue/components/grid-layout/props/). |
+| `useCssTransforms` | `useCssTransforms` | Same. |
+| `useStyleCursor` | *(no equivalent)* | Cursor styling isn't independently toggleable here. |
+| `transformScale` | `transformScale` | Same. |
+| `restoreOnDrag` | `restoreOnDrag` | Same. |
+| `preventCollision` | `preventCollision` | Same. |
+| `responsive` | `responsive` | Same. |
+| `breakpoints` / `cols` | `breakpoints` / `cols` | Same shape, **different default tier count**: this library adds `xxl`/`xl` on top of the original's `lg`/`md`/`sm`/`xs`/`xxs`. Pass your own `breakpoints`/`cols` objects to keep exactly 5 tiers. |
+| `verticalCompact` (boolean) | `compactType` (enum) | See [Behavioral differences](#behavioral-differences) below — not a rename, an actual model change. |
+
+## `GridItem` prop mapping
+
+| vue-grid-layout / grid-layout-plus | This library | Notes |
+|---|---|---|
+| `i`, `x`, `y`, `w`, `h` | `i`, `x`, `y`, `w`, `h` | Same. |
+| `minW`, `maxW`, `minH`, `maxH` | `minW`, `maxW`, `minH`, `maxH` | Same. |
+| `isDraggable`, `isResizable`, `isBounded` | `isDraggable`, `isResizable`, `isBounded` | Same `null`-defers-to-grid-default semantics. |
+| **`static`** | **`isStatic`** | Renamed. |
+| `dragAllowFrom` | `dragAllowFrom` | Same. |
+| `dragIgnoreFrom` | `dragIgnoreFrom` | Same, same default (`'a, button'`). |
+| `resizeIgnoreFrom` | `resizeIgnoreFrom` | Same. |
+| `preserveAspectRatio` | `preserveAspectRatio` | Same. |
+| `dragOption` / `resizeOption` | *(no equivalent)* | See [Behavioral differences](#behavioral-differences) below. |
+
+## Event mapping
+
+Three event names carry over exactly: **`layout-updated`**,
+**`layout-ready`**, and **`breakpoint-changed`** all fire with the same
+name and a compatible payload shape. `move`/`moved`/`resize`/`resized`
+on the original become `dragstart`/`dragmove`/`dragend` on `GridLayout`
+here (fired once per grid, not per item — see
+[GridLayout events](/vue/components/grid-layout/vue-events/)).
+
+## Before / after
+
+```vue
+<!-- vue-grid-layout / grid-layout-plus -->
+<GridLayout
+  v-model:layout="layout"
+  :col-num="12"
+  :row-height="30"
+  :vertical-compact="true"
+  :prevent-collision="false">
+  <GridItem
+    v-for="item in layout"
+    :key="item.i"
+    :i="item.i"
+    :x="item.x"
+    :y="item.y"
+    :w="item.w"
+    :h="item.h"
+    :static="item.static">
+    {{ item.i }}
+  </GridItem>
+</GridLayout>
+```
+
+```vue
+<!-- this library -->
+<GridLayout
+  v-model:layout="layout"
+  :col-num="12"
+  :row-height="30"
+  :compact-type="ECompactType.VERTICAL"
+  :prevent-collision="false">
+  <GridItem
+    v-for="item in layout"
+    :key="item.i"
+    :i="item.i"
+    :x="item.x"
+    :y="item.y"
+    :w="item.w"
+    :h="item.h"
+    :is-static="item.isStatic">
+    {{ item.i }}
+  </GridItem>
+</GridLayout>
+```
+
+## Behavioral differences
+
+- **Compaction is a pluggable strategy, not a boolean.** `verticalCompact:
+  false` doesn't map to a different boolean here — it maps to
+  `compactType: ECompactType.NONE`. `verticalCompact: true` (the
+  original's default) maps to this library's own default,
+  `ECompactType.VERTICAL`. This library additionally supports
+  `HORIZONTAL`, `VERTICAL_OVERLAP`, and `HORIZONTAL_OVERLAP`, and a
+  fully custom `compactor` — see
+  [Pluggable compaction](/vue/examples/pluggable-compaction/).
+- **No `dragOption`/`resizeOption` passthrough.** The original libraries
+  wrap `interactjs` and expose its own options object directly. This
+  library uses its own native Pointer Events drag/resize engine with no
+  underlying third-party library to configure — most of what
+  `dragOption`/`resizeOption` were used for in practice (activation
+  distance, specific resize handles, aspect-ratio locking) has a direct,
+  typed prop instead: `dragActivationDistance`, `resizeHandles`,
+  `preserveAspectRatio`.
+- **Five extra responsive breakpoints by default.** If your layout
+  logic (or CSS) assumes exactly `lg`/`md`/`sm`/`xs`/`xxs`, pass explicit
+  `breakpoints`/`cols` objects rather than relying on this library's
+  wider 7-tier default.

@@ -11,21 +11,57 @@
   --kg-ink: #14171a;
   --kg-ink-2: #1d2126;
   --kg-ink-3: #262b31;
-  --kg-paper: #f1f0eb;
-  --kg-paper-2: #ffffff;
-  --kg-panel: #e9e9ea;
-  --kg-paper-3: #e7e6df;
   --kg-blueprint: #4fb8c9;
   --kg-blueprint-deep: #2e7a88;
   --kg-amber: #f2a93b;
   --kg-amber-deep: #9c6208;
-  --kg-line-dark: rgba(255, 255, 255, 0.1);
-  --kg-line-light: rgba(20, 23, 26, 0.12);
-  --kg-text-hi-dark: #f5f4ef;
-  --kg-text-lo-dark: #9ca6aa;
-  --kg-text-hi-light: #14171a;
-  --kg-text-lo-light: #5b6266;
   --kg-font-display: 'IBM Plex Sans', sans-serif;
   --kg-font-body: 'IBM Plex Sans', sans-serif;
   --kg-font-mono: 'IBM Plex Mono', monospace;
+
+  /* kg-paper, kg-paper-2, kg-panel, kg-paper-3, kg-line-light,
+     kg-text-hi-light, and kg-text-lo-light below are consumed
+     unconditionally (no theme check at any call site) by every ported
+     Vue/React example and by ExampleDemo.vue's own shared card shell —
+     originally ported straight from a light-only VitePress theme, never
+     made theme-aware. Starlight's own Page.astro sets a real, concrete
+     data-theme attribute ('dark' or 'light', confirmed directly in its
+     source — never left to an ambiguous, unset default), so this
+     follows Starlight's own convention exactly: unqualified :root here
+     holds the values used in dark mode (Starlight's own SSR default),
+     and the [data-theme='light'] block below overrides them for light
+     mode. The dark/light suffixes on the token names below
+     (kg-text-hi-dark, kg-line-light, etc.) predate this fix and
+     describe which literal palette swatch a token started as — not
+     which theme it's active in; only this file's two blocks decide that
+     now, so every example/ExampleDemo call site needed zero changes to
+     become theme-aware. */
+  --kg-paper: var(--kg-ink);
+  --kg-paper-2: var(--kg-ink-2);
+  --kg-panel: var(--kg-ink-3);
+  --kg-paper-3: var(--kg-ink-3);
+  --kg-line-dark: rgba(255, 255, 255, 0.1);
+  --kg-line-light: var(--kg-line-dark);
+  --kg-text-hi-dark: #f5f4ef;
+  --kg-text-lo-dark: #9ca6aa;
+  --kg-text-hi-light: var(--kg-text-hi-dark);
+  --kg-text-lo-light: var(--kg-text-lo-dark);
+
+  /* Site-wide content column, widened 150px past Starlight's own
+     45rem default (read directly from its style/props.css) — applies
+     to every page via this file's own customCss inclusion in
+     astro.config.mjs. Examples pages layer their own further +150px
+     on top of this, in Head.astro's own override, rather than a fixed
+     70rem — see that file's own comment. */
+  --sl-content-width: calc(45rem + 150px);
+}
+
+:root[data-theme='light'] {
+  --kg-paper: #f1f0eb;
+  --kg-paper-2: #ffffff;
+  --kg-panel: #e9e9ea;
+  --kg-paper-3: #e7e6df;
+  --kg-line-light: rgba(20, 23, 26, 0.12);
+  --kg-text-hi-light: #14171a;
+  --kg-text-lo-light: #5b6266;
 }

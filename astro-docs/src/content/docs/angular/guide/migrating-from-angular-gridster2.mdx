@@ -1,0 +1,114 @@
+---
+title: Migrating from angular-gridster2
+description: A config-to-Input()/Output() mapping for converting an existing angular-gridster2 integration to this library, verified against angular-gridster2's own current source.
+---
+
+This covers **`angular-gridster2`** — the most widely-adopted
+Angular-specific option compared in
+[Comparison: alternatives](/angular/guide/project/comparison-alternatives/).
+The two libraries model a grid differently in a few real ways (not just
+naming), covered in [Behavioral differences](#behavioral-differences)
+below — read that section before assuming a straight rename covers
+everything.
+
+## Install
+
+```sh
+npm uninstall angular-gridster2
+npm install keystone-dashboard-layout-angular
+```
+
+```diff
+- import { GridsterComponent, GridsterItemComponent, GridsterConfig, GridsterItem } from 'angular-gridster2';
++ import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
++ import type { TLayout, ILayoutItem } from 'keystone-dashboard-layout-core';
+```
+
+```diff
+- <gridster [options]="options">
+-   <gridster-item [item]="item" *ngFor="let item of dataset">{{ item.i }}</gridster-item>
+- </gridster>
++ <kdl-grid-layout [layout]="layout" (layoutChange)="layout = $event">
++   @for (item of layout; track item.i) {
++     <kdl-grid-item [i]="item.i" [x]="item.x" [y]="item.y" [w]="item.w" [h]="item.h">{{ item.i }}</kdl-grid-item>
++   }
++ </kdl-grid-layout>
+```
+
+The most fundamental difference is right there: `angular-gridster2`
+splits grid-wide config (`GridsterConfig`, passed as one `[options]`
+object) from item data (`GridsterItem[]`, a separate array) — dragging
+or resizing mutates items in place via callbacks. This library controls
+everything through one `layout` array and one `(layoutChange)` output;
+nothing is mutated in place. See
+[Behavioral differences](#behavioral-differences) for what that changes
+in practice.
+
+## `GridsterConfig` → `GridLayoutComponent` `@Input()` mapping
+
+Verified directly against `angular-gridster2`'s own
+`GridsterConfig`/`Draggable`/`Resizable` type definitions.
+
+| angular-gridster2 (`GridsterConfig`) | This library | Notes |
+|---|---|---|
+| `maxRows` | `maxRows` | Same name. |
+| `fixedRowHeight` | `rowHeight` | Same purpose. |
+| `maxCols` | `colNum` | `angular-gridster2` also has `minCols`; this library has no minimum-column equivalent. |
+| `margin` (single `number`, all sides) | `margin` (`[horizontal, vertical]` tuple) | **Different shape**, not just a rename — `angular-gridster2` applies one number uniformly; this library takes separate horizontal/vertical values. |
+| `outerMargin`/`outerMarginTop`/`Right`/`Bottom`/`Left` | *(no equivalent)* | Apply padding on the grid's own container element in CSS instead. |
+| `draggable.enabled` | `isDraggable` | Same. |
+| `draggable.dragHandleClass` | `dragAllowFrom` | Same purpose — `angular-gridster2` takes a bare class name, this library takes a full CSS selector (so a class name still works, just written `.your-class`). |
+| `resizable.enabled` | `isResizable` | Same. |
+| `resizable.handles` (`{ s?, e?, n?, w?, se?, ne?, sw?, nw? }` object) | `resizeHandles` (`TResizeHandle[]` array) | Same 8 positions, different shape — an object of booleans there, an array of the enabled ones here. |
+| `pushItems` | `preventCollision` (inverted) | `pushItems: true` (the `angular-gridster2` default) pushes colliding items aside — equivalent to this library's default, `preventCollision: false`. `pushItems: false` blocks the move entirely — equivalent to `preventCollision: true`. **The boolean is inverted**, not renamed. |
+| `compactType` (14 string variants, e.g. `'compactUp&Left'`) | `compactType` (`ECompactType`, 5 variants) | Same name, **not the same enum** — see [Behavioral differences](#behavioral-differences). |
+| `swap` | *(no equivalent)* | See [Behavioral differences](#behavioral-differences). |
+| `displayGrid` (`'always' \| 'onDrag&Resize' \| 'none'`) | `showGridLines` (boolean) | This library has no `'onDrag&Resize'`-only mode — it's always-on or always-off. |
+| `dirType` (`'ltr' \| 'rtl'`) | `isMirrored` (boolean) | Same purpose, boolean instead of a string enum. |
+| `itemChangeCallback` / `itemResizeCallback` | `layoutChange` | Both `angular-gridster2` callbacks collapse into this library's single `(layoutChange)` output — it doesn't distinguish a move from a resize at the callback level. |
+| `disableWindowResize` | *(no equivalent)* | This library always re-measures its own container via `ResizeObserver`; there's no flag to opt out of that. |
+
+## `GridsterItem` → layout-entry field mapping
+
+| angular-gridster2 (`GridsterItem`/`GridsterItemConfig`) | This library | Notes |
+|---|---|---|
+| `x`, `y` | `x`, `y` | Same. |
+| **`rows`** | **`h`** | Renamed. |
+| **`cols`** | **`w`** | Renamed. |
+| `dragEnabled` | `isDraggable` | Same, per-item override. |
+| `resizeEnabled` | `isResizable` | Same, per-item override. |
+| `resizableHandles` | `resizeHandles` | Same 8-position/array-vs-object shape difference as the grid-wide version above. |
+| `minItemRows` / `maxItemRows` | `minH` / `maxH` | Renamed. |
+| `minItemCols` / `maxItemCols` | `minW` / `maxW` | Renamed. |
+| `itemAspectRatio` (`number`) | `preserveAspectRatio` (`boolean`) | Different model — `angular-gridster2` takes an explicit target ratio; this library locks whatever the item's *current* `w`/`h` ratio happens to be. |
+| `compactEnabled` | *(no per-item equivalent)* | Compaction here is a grid-wide `compactType`/`compactor`, not toggleable per item. |
+| *(none)* | **`isStatic`** | This library's per-item "not draggable, not resizable, excluded from collision" flag has no single-field `angular-gridster2` equivalent — combine `dragEnabled: false` + `resizeEnabled: false` there for the closest match, though items still participate in `angular-gridster2`'s own collision cascade unless further configured. |
+
+## Behavioral differences
+
+- **Controlled-array model, not in-place mutation.** `angular-gridster2`
+  mutates each `GridsterItem` in place (`x`/`y`/`rows`/`cols` change on
+  the same object references you passed in) and tells you about it via
+  `itemChangeCallback`/`itemResizeCallback`. This library's
+  `GridLayoutComponent` is **fully controlled**: it never mutates
+  `layout` — every change comes back as a brand-new array via
+  `(layoutChange)`, the same pattern as a template-driven form control.
+  Code that reads/writes item fields in place will need to switch to
+  replacing the whole array on each `(layoutChange)`.
+- **`compactType` shares a name but not a value set.**
+  `angular-gridster2` has 14 directional compaction modes (up/left/
+  right/down and diagonal combinations). This library has 5
+  (`VERTICAL`, `HORIZONTAL`, `NONE`, `VERTICAL_OVERLAP`,
+  `HORIZONTAL_OVERLAP`), plus a fully custom `compactor` for anything
+  else — see [Pluggable compaction](/angular/examples/pluggable-compaction/).
+  There is no direct mapping from most of `angular-gridster2`'s
+  diagonal modes; `'compactUp'` → `ECompactType.VERTICAL` and
+  `'none'` → `ECompactType.NONE` are the only clean 1:1s.
+- **No swap-on-drag.** `angular-gridster2`'s `swap: true` lets dragging
+  one item onto another of the same size trade positions instead of
+  pushing. This library only pushes via compaction — an item landing on
+  another never swaps with it (already noted as a gap in
+  [Comparison: alternatives](/angular/guide/project/comparison-alternatives/)).
+- **`pushItems` is inverted, not renamed** (see the table above) — a
+  literal find-and-replace of the option name will silently flip your
+  collision behavior.

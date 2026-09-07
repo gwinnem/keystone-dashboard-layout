@@ -15,37 +15,294 @@
 // file content, read via a `?raw` import in the consuming .mdx page.
 import { Code } from 'astro:components';
 
+// Playground scaffold pieces — only bundled/used when `playground` is
+// true on a call site (a real, working StackBlitz project, not a
+// mocked one, needs its own package.json/vite.config/index.html/
+// main entry plus every harness component and per-example stylesheet
+// the example itself imports, or opening it on StackBlitz just shows a
+// blank error screen instead of the real interactive demo). Importing
+// the three Vue harness files unconditionally rather than only inside
+// an `if (playground)` branch: Astro import statements are static/
+// top-level only, and the raw source of three small .vue files costs
+// nothing worth branching around. The React side needs a fourth,
+// per-example stylesheet whose *name* varies per call site (`import
+// './01-basic-drag-resize.css'` in one example, a different filename
+// in the next) — `import.meta.glob` below loads all of them (plus the
+// one shared `shared-example-item.css` 44 of the 53 React examples
+// also import) in a single static call, keyed by filename, so adding
+// this to a new example never needs a matching change here.
+import ExampleToggleSource from './ExampleToggle.vue?raw';
+import ExampleNumberFieldSource from './ExampleNumberField.vue?raw';
+import LayoutJsonViewerSource from './LayoutJsonViewer.vue?raw';
+import ExampleToggleReactSource from '../harness-react/ExampleToggle.tsx?raw';
+import ExampleNumberFieldReactSource from '../harness-react/ExampleNumberField.tsx?raw';
+import LayoutJsonViewerReactSource from '../harness-react/LayoutJsonViewer.tsx?raw';
+import LayoutJsonViewerReactCss from '../harness-react/LayoutJsonViewer.css?raw';
+import exampleControlsReactCss from '../harness-react/example-controls.css?raw';
+
+const reactExampleCssFiles: Record<string, string> = import.meta.glob('../examples-react/*.css', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+});
+
 interface Props {
   /** The filename shown in the toolbar, e.g. "basic-drag-resize.vue" or "basic-drag-resize.tsx". */
   filename: string;
   /** Raw source, from a `?raw` import in the consuming .mdx page. */
   code: string;
-  /** Shiki language for the Source panel's syntax highlighting. Defaults to 'vue' so every existing Vue example call site (which doesn't pass this) keeps its exact current behavior unchanged. */
+  /** Shiki language for the Source panel's syntax highlighting. Defaults to 'vue' so every existing Vue example call site (which doesn't pass this) keeps its exact current behavior unchanged. Also what this component itself uses to pick the Vue vs React playground scaffold — see `isReact` below. */
   lang?: string;
+  /** Adds an "Open in StackBlitz" button to the toolbar, opening a
+   * real, editable, running StackBlitz project (via the SDK, loaded
+   * from a CDN on first click — no new npm dependency needed) seeded
+   * with this example's own source plus the harness components (and,
+   * for React, the per-example stylesheet) it imports. An embedded
+   * in-page editor (StackBlitz's `embedProject`) was tried first
+   * instead of opening a new tab, but its live preview needs this docs
+   * site to send cross-origin isolation headers that, when added,
+   * broke the embed's iframe from loading at all ("stackblitz.com
+   * refused to connect") — confirmed directly, not assumed — so this
+   * only ever opens StackBlitz's own site in a new tab, where that
+   * constraint doesn't apply. */
+  playground?: boolean;
 }
 
-const { filename, code, lang = `vue` } = Astro.props as Props;
+const { filename, code, lang = `vue`, playground = false } = Astro.props as Props;
+const isReact = lang === 'tsx';
+
+// Real values lifted directly from src/styles/tokens.css's own
+// light-mode block (`:root[data-theme='light']`) plus its two
+// always-dark tokens (`--kg-ink`, `--kg-text-lo-dark`) that
+// LayoutJsonViewer's own "terminal-style" readout uses unconditionally
+// regardless of site theme — this standalone playground has no dark/
+// light toggle of its own, so it just needs flat, correct values for
+// whichever --kg-* custom properties any example or its harness
+// imports actually reference (confirmed by reading every harness file
+// in both frameworks, not guessed at) — not the full swappable token
+// system the real docs site needs.
+const PLAYGROUND_TOKENS_CSS = `:root {
+  --kg-ink: #14171a;
+  --kg-panel: #e9e9ea;
+  --kg-paper: #f1f0eb;
+  --kg-paper-2: #ffffff;
+  --kg-paper-3: #e7e6df;
+  --kg-line-light: rgba(20, 23, 26, 0.12);
+  --kg-text-hi-light: #14171a;
+  --kg-text-lo-light: #5b6266;
+  --kg-text-lo-dark: #9ca6aa;
+  --kg-amber: #f2a93b;
+  --kg-amber-deep: #9c6208;
+  --kg-blueprint: #4fb8c9;
+  --kg-blueprint-deep: #2e7a88;
+  --kg-font-mono: 'IBM Plex Mono', monospace;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: system-ui, sans-serif;
+}
+`;
+
+// The matching per-example stylesheet for a React example, if it has
+// one (37 of 53 do) — looked up from the glob map above by filename,
+// parsed out of `code`'s own real `import './01-basic-drag-resize.css'`
+// statement rather than derived from the `filename` prop: confirmed
+// directly that the two differ (the prop is the display name shown in
+// the toolbar, e.g. "basic-drag-resize.tsx" with no numeric prefix;
+// the real on-disk file — and the exact string in this literal import
+// — keeps the source's own "01-" numbering, e.g.
+// "01-basic-drag-resize.css"). Bundled at that SAME filename under
+// `src/`, right alongside `src/App.tsx`, so the import itself (already
+// same-directory) needs no rewriting at all to keep working.
+const reactCssFilename = isReact ? code.match(/import '\.\/([\w.-]+\.css)'/)?.[1] : undefined;
+const reactExampleCss = reactCssFilename
+  ? Object.entries(reactExampleCssFiles).find(([path]) => path.endsWith(`/${reactCssFilename}`))?.[1]
+  : undefined;
+
+// `code`'s own real imports are `../harness/ExampleToggle.vue` (Vue)
+// or `../harness-react/ExampleToggle` + `../examples-react/shared-
+// example-item.css` (React) — each correct from its real location in
+// this repo (src/components/examples{,-react}/*, one level below
+// src/components/), but wrong for this generated project's own flatter
+// layout (src/App.{vue,tsx} + src/harness{,-react}/*, harness one
+// level below src/ not two). Rewriting these path prefixes is the only
+// change made to the real source — confirmed by diffing before/after
+// that nothing else in a real example's file needs adjusting to run
+// standalone.
+const appSource = isReact
+  ? code.replaceAll('../harness-react/', './harness-react/').replaceAll('../examples-react/shared-example-item.css', './shared-example-item.css')
+  : code.replaceAll('../harness/', './harness/');
+
+const vuePlaygroundFiles = {
+  'package.json': JSON.stringify(
+    {
+      name: 'keystone-dashboard-layout-vue-example',
+      private: true,
+      version: '0.0.0',
+      type: 'module',
+      scripts: { dev: 'vite' },
+      dependencies: {
+        'keystone-dashboard-layout-vue': '^1.0.0',
+        vue: '^3.5.0',
+      },
+      devDependencies: {
+        '@vitejs/plugin-vue': '^6.0.0',
+        typescript: '^5.7.0',
+        vite: '^7.0.0',
+      },
+    },
+    null,
+    2,
+  ),
+  'vite.config.ts': `import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+
+export default defineConfig({
+  plugins: [vue()],
+});
+`,
+  'index.html': `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>${filename} — keystone-dashboard-layout-vue</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+`,
+  'src/main.ts': `import { createApp } from 'vue';
+import App from './App.vue';
+import './tokens.css';
+
+createApp(App).mount('#app');
+`,
+  'src/App.vue': appSource,
+  'src/harness/ExampleToggle.vue': ExampleToggleSource,
+  'src/harness/ExampleNumberField.vue': ExampleNumberFieldSource,
+  'src/harness/LayoutJsonViewer.vue': LayoutJsonViewerSource,
+  'src/tokens.css': PLAYGROUND_TOKENS_CSS,
+};
+
+const reactPlaygroundFiles = {
+  'package.json': JSON.stringify(
+    {
+      name: 'keystone-dashboard-layout-react-example',
+      private: true,
+      version: '0.0.0',
+      type: 'module',
+      scripts: { dev: 'vite' },
+      dependencies: {
+        'keystone-dashboard-layout-core': '^1.0.0',
+        'keystone-dashboard-layout-react': '^1.0.0',
+        react: '^19.0.0',
+        'react-dom': '^19.0.0',
+      },
+      devDependencies: {
+        '@types/react': '^19.0.0',
+        '@types/react-dom': '^19.0.0',
+        '@vitejs/plugin-react': '^5.0.0',
+        typescript: '^5.7.0',
+        vite: '^7.0.0',
+      },
+    },
+    null,
+    2,
+  ),
+  'vite.config.ts': `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+});
+`,
+  'index.html': `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>${filename} — keystone-dashboard-layout-react</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+`,
+  'src/main.tsx': `import { createRoot } from 'react-dom/client';
+import App from './App';
+import './tokens.css';
+
+createRoot(document.getElementById('app')!).render(<App />);
+`,
+  'src/App.tsx': appSource,
+  'src/harness-react/ExampleToggle.tsx': ExampleToggleReactSource,
+  'src/harness-react/ExampleNumberField.tsx': ExampleNumberFieldReactSource,
+  'src/harness-react/LayoutJsonViewer.tsx': LayoutJsonViewerReactSource,
+  'src/harness-react/LayoutJsonViewer.css': LayoutJsonViewerReactCss,
+  'src/harness-react/example-controls.css': exampleControlsReactCss,
+  'src/shared-example-item.css': reactExampleCssFiles['../examples-react/shared-example-item.css'] ?? '',
+  'src/tokens.css': PLAYGROUND_TOKENS_CSS,
+  // Only present when this specific example actually has its own
+  // stylesheet — an empty/missing entry would otherwise 404 on a
+  // literal `import './01-basic-drag-resize.css'` still present in
+  // `appSource` for the 37 examples that do have one.
+  ...(reactExampleCss ? { [`src/${reactCssFilename}`]: reactExampleCss } : {}),
+};
+
+const playgroundFiles = playground ? (isReact ? reactPlaygroundFiles : vuePlaygroundFiles) : null;
+
+// Every bundled file above is a real Vue SFC or config file containing
+// its own literal `<script>`/`</script>` tags — serializing that
+// straight into this component's own `<script type="application/json">`
+// island via `set:html` let the browser's HTML parser see that literal
+// `</script>` mid-JSON and close the tag right there, corrupting the
+// rest of the page (confirmed directly: this exact bug produced a
+// cascade of "Invalid or unexpected token" console errors on this page
+// before the escape below was added). `<` doesn't need special
+// handling anywhere else JSON can appear (only inside a raw HTML
+// `<script>` body), so escaping just this one character to its Unicode
+// form is enough — the resulting text is still valid JSON, since
+// `<` decodes back to `<` like any other JSON escape.
+const playgroundFilesJson = playgroundFiles ? JSON.stringify(playgroundFiles).replaceAll('<', '\\u003c') : null;
 ---
 
 <div class="try-it not-content">
   <div class="try-it__card">
     <div class="try-it__toolbar">
       <span class="try-it__filename">{filename}</span>
-      <div
-        class="try-it__tabs"
-        role="tablist">
-        <button
-          aria-selected="true"
-          class="try-it__tab is-active"
-          data-panel="preview"
-          role="tab"
-          type="button">Preview</button>
-        <button
-          aria-selected="false"
-          class="try-it__tab"
-          data-panel="source"
-          role="tab"
-          type="button">Source</button>
+      <div class="try-it__toolbar-end">
+        <div
+          class="try-it__tabs"
+          role="tablist">
+          <button
+            aria-selected="true"
+            class="try-it__tab is-active"
+            data-panel="preview"
+            role="tab"
+            type="button">Preview</button>
+          <button
+            aria-selected="false"
+            class="try-it__tab"
+            data-panel="source"
+            role="tab"
+            type="button">Source</button>
+        </div>
+        {playground && (
+          <>
+            <button
+              class="try-it__playground-open"
+              type="button">Open in StackBlitz ↗</button>
+            <script
+              type="application/json"
+              class="try-it__playground-data"
+              set:html={playgroundFilesJson}
+            />
+          </>
+        )}
       </div>
     </div>
 
@@ -149,6 +406,86 @@ const { filename, code, lang = `vue` } = Astro.props as Props;
     });
   });
 
+  // "Open in StackBlitz" — lazy: the SDK script only loads from its CDN
+  // on the button's first real click, not on page load, so a page with
+  // this enabled doesn't pay that cost for a visitor who never clicks
+  // it. Opens a real, editable, running StackBlitz project in a new
+  // tab. An embedded in-page editor (StackBlitz's `embedProject`) was
+  // tried first, but its live preview needs this docs site to send
+  // cross-origin isolation headers that, when added, broke the embed's
+  // iframe from loading at all ("stackblitz.com refused to connect") —
+  // confirmed directly — so this only ever opens StackBlitz's own site,
+  // where that constraint doesn't apply.
+  type PlaygroundProject = { title: string; description: string; template: string; files: Record<string, string> };
+
+  declare global {
+    interface Window {
+      StackBlitzSDK?: {
+        openProject: (project: PlaygroundProject, options?: Record<string, unknown>) => void;
+      };
+    }
+  }
+
+  let stackblitzSdkPromise: Promise<void> | undefined;
+  function loadStackblitzSdk(): Promise<void> {
+    if (window.StackBlitzSDK) return Promise.resolve();
+    if (!stackblitzSdkPromise) {
+      stackblitzSdkPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@stackblitz/sdk@1/bundles/sdk.umd.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load the StackBlitz SDK.'));
+        document.head.append(script);
+      });
+    }
+    return stackblitzSdkPromise;
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.try-it__playground-open').forEach((openButton) => {
+    const dataScript = openButton.closest<HTMLElement>('.try-it__card')?.querySelector<HTMLScriptElement>('.try-it__playground-data');
+    if (!dataScript) return;
+
+    const getProject = (): PlaygroundProject | null => {
+      try {
+        return {
+          title: 'keystone-dashboard-layout example',
+          description: 'Editable playground, seeded from a real docs example.',
+          template: 'node',
+          files: JSON.parse(dataScript.textContent ?? '{}'),
+        };
+      } catch {
+        return null;
+      }
+    };
+
+    openButton.addEventListener('click', () => {
+      const project = getProject();
+      if (!project) return;
+      // `App.vue` for a Vue example, `App.tsx` for a React one — found
+      // from the project's own bundled files rather than hardcoded, so
+      // this one handler works for both without needing to know which
+      // framework it's looking at.
+      const openFile = Object.keys(project.files).find((path) => path.startsWith('src/App.')) ?? 'src/App.vue';
+      // `openProject` opens a new tab internally — calling it from
+      // inside an already-resolved microtask still runs one tick after
+      // this click handler itself returns, which is enough for some
+      // browsers to no longer treat the resulting window.open as
+      // coming from a trusted user gesture and silently block it as a
+      // popup — confirmed directly, no console error at all, just
+      // nothing happening. Calling it synchronously whenever the SDK
+      // is already loaded (true on every click after the first) avoids
+      // that entirely; only a cold first click (SDK not loaded yet)
+      // still goes through the async path and risks being blocked.
+      if (window.StackBlitzSDK) {
+        window.StackBlitzSDK.openProject(project, { openFile });
+        return;
+      }
+      loadStackblitzSdk().then(() => {
+        window.StackBlitzSDK?.openProject(project, { openFile });
+      });
+    });
+  });
+
   // Copy-to-clipboard for the Source panel — reads the already-rendered
   // Shiki output's own textContent rather than duplicating the entire
   // raw source a second time into a data-* attribute (confirmed
@@ -219,6 +556,12 @@ const { filename, code, lang = `vue` } = Astro.props as Props;
     font-size: 13px;
   }
 
+  .try-it__toolbar-end {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+  }
+
   .try-it__tabs {
     display: flex;
     gap: 4px;
@@ -256,6 +599,25 @@ const { filename, code, lang = `vue` } = Astro.props as Props;
 
   .try-it__panel--source {
     position: relative;
+  }
+
+  .try-it__playground-open {
+    background: var(--kg-blueprint-deep);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: var(--kg-font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 5px 12px;
+    transition: background-color 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .try-it__playground-open:hover {
+    background: var(--kg-blueprint);
   }
 
   .try-it__panel--source :global(pre) {

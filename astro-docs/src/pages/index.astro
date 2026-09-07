@@ -195,7 +195,18 @@ const ANGULAR_EXAMPLES_APP_URL = import.meta.env.DEV ? `http://localhost:4200` :
     .g-5 .bars span:nth-child(1){width:55%;}
     .g-5 .bars span:nth-child(2){width:75%;}
     .ghost{position:absolute;top:266px;left:190px;width:150px;height:98px;border:1.5px dashed rgba(242,169,59,0.45);border-radius:9px;background:rgba(242,169,59,0.04);}
-    .g-dragged{top:342px;left:250px;width:150px;height:98px;background:var(--kg-paper);color:var(--kg-ink);transform:rotate(-3deg);box-shadow:0 22px 40px -12px rgba(0,0,0,0.55), 0 0 0 1.5px var(--kg-amber);z-index:5;}
+    /* #f1f0eb is --kg-paper's original, single fixed value — hardcoded
+       here rather than referencing the token directly, now that
+       tokens.css makes --kg-paper theme-aware (dark by default, light
+       under [data-theme='light']). This card sits inside the hero,
+       which (per this page's own comment above, "the nav/hero/footer
+       stay permanently dark in both modes") is deliberately NOT
+       theme-aware — it's a light "dragged card" popped against the
+       always-dark hero background regardless of the page's own
+       light/dark toggle, matching its sibling .g-1–.g-5 elements
+       around it, which already hardcode their own fixed dark-mode
+       colors instead of a swappable token for the same reason. */
+    .g-dragged{top:342px;left:250px;width:150px;height:98px;background:#f1f0eb;color:var(--kg-ink);transform:rotate(-3deg);box-shadow:0 22px 40px -12px rgba(0,0,0,0.55), 0 0 0 1.5px var(--kg-amber);z-index:5;}
     .g-dragged .label{color:var(--kg-amber-deep);}
     .g-dragged .bars span{background:rgba(20,23,26,0.14);}
     .g-dragged .bars span:nth-child(1){width:75%;}

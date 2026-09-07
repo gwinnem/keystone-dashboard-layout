@@ -1,0 +1,97 @@
+---
+title: Troubleshooting & FAQ
+description: Fixes for the most common real failure modes when integrating GridLayoutComponent for Angular — grid stuck at zero width, dragging not starting, breakpoints not switching, and layout validation errors.
+---
+
+## The grid renders with zero width, or collapses to nothing
+
+`GridLayoutComponent` measures its own root element's `offsetWidth`,
+and only commits that value to `containerWidth` (and emits it on the
+DI-scoped event bus other `GridItemComponent`s and the breakpoint logic
+read from) `if (el.offsetWidth > 0 && el.offsetWidth !== this
+.containerWidth)` — a guard against the well-known case where
+`offsetWidth` reads `0` while an element (or one of its ancestors) has
+`display: none`, is behind an `*ngIf` that hasn't resolved yet, or
+hasn't been laid out by the time `ngAfterViewInit` runs. When that
+guard fails, the grid doesn't error — it silently keeps whatever width
+it last measured, which looks like a frozen or collapsed layout with no
+console output to explain why.
+
+Most common causes:
+
+- Rendering `<kdl-grid-layout>` inside an `*ngIf`-gated
+  tab/panel/modal that starts hidden — `*ngIf` fully removes the
+  element (and its `ngAfterViewInit`/`ResizeObserver` setup) until the
+  condition flips. Prefer `[hidden]` or a CSS visibility toggle for
+  anything containing a grid, or trigger a manual re-measure right
+  after the panel becomes visible.
+- A flex/grid parent that hasn't completed its own layout pass on the
+  same change-detection cycle the grid initializes in.
+- The container has no defined height and depends on the grid's own
+  content to size it, while the grid depends on the container for
+  width — a sizing cycle that resolves to zero either way.
+
+## Dragging doesn't start on some (or all) items
+
+If a `GridItemComponent`'s `dragAllowFrom` `@Input()` is set, that
+selector is checked **first, and exclusively** — a pointer-down target
+that doesn't match it is rejected outright, and `dragIgnoreFrom` never
+even gets evaluated. A `dragAllowFrom` selector that doesn't match
+anything inside that item's projected content (a typo, or markup that
+changed after the selector was written) silently disables dragging for
+the whole item — there's no warning, since from the library's
+perspective this is working as configured.
+
+Check, in order:
+
+1. Is `dragAllowFrom` set on this `GridItemComponent`? If so, does the
+   selector actually match an element inside its `<ng-content>` right
+   now?
+2. Is `isDraggable` `false` on this specific `GridItemComponent`,
+   overriding the grid-wide cascade?
+3. Is the grid-wide `isDraggable` `@Input()` on `GridLayoutComponent`
+   itself `false`?
+
+## Responsive breakpoints don't switch when I expect them to
+
+Breakpoint resolution is driven by the grid **container's own measured
+width** (the same value from the section above, propagated via the
+DI-scoped event bus) — never `window.innerWidth`. This is deliberate
+and correct for grids embedded in a sidebar, iframe, or any container
+narrower than the viewport, but it means the zero-width failure mode
+above has a second symptom: if the container never gets a real
+measured width, breakpoint switching doesn't run either, since it's
+derived from the same stuck value.
+
+## Server-side rendering (Angular Universal)
+
+`GridLayoutComponent` itself has no explicit platform guard, but it
+also doesn't need one: the `ResizeObserver` and pointer-event listeners
+are only ever created inside `ngAfterViewInit`-stage lifecycle logic,
+which Angular Universal's own rendering contract does not execute
+during server rendering. The pieces that *do* carry explicit
+`typeof window !== 'undefined'` guards are the optional
+`GridLayoutPresetsService` and `GridLayoutStorageService` — safe to
+inject and call during SSR, they simply no-op until the client
+bootstraps.
+
+## `Invalid parameter ...` / `Layout is not valid` errors
+
+These come from the core validators (`layoutValidator`,
+`keysValidator`, `marginValidator`, `breakpointsValidator`) rejecting
+malformed input before it reaches the rendering/collision logic. The
+message names the actual problem — a few worth knowing up front rather
+than debugging from the message alone:
+
+- **`Layout can not be empty`** — an empty array was passed as the
+  initial `layout` `@Input()`; render nothing (or a placeholder) until
+  you have at least one item, rather than binding `[]`.
+- **`Layout is not valid`** / **`Invalid parameter layoutItem id
+  passed`** — every item needs a unique, stable `i`; duplicate or
+  missing ids fail here.
+- **`Invalid parameter cols passed`** / **`Parameter cols must be
+  greater than 0`** — `colNum` (or a responsive breakpoint's own column
+  count) resolved to `0` or `NaN`, usually because it's bound to a
+  value that hasn't been set by the time the component initializes.
+- **`Invalid parameter marginPx passed`** — `margin` expects a
+  `[number, number]` pixel tuple, not a CSS string like `"8px"`.

@@ -19,12 +19,12 @@
 // `routeMiddleware` file (confirmed via a real, failed
 // `astro build` run: "Unrecognized key(s) in object: 'routeMiddleware'").
 // Upgrading Starlight to get that option was deliberately rejected here:
-// this project's own other three overrides (Sidebar.astro, Header.astro,
-// PageSidebar.astro/TwoColumnContent.astro) all also read `Astro.props`
-// for the identical reason, by their own explicit design — upgrading
-// past 0.32 would break all of them simultaneously (route data moves to
-// `Astro.locals` in that release), a far wider blast radius than
-// implementing this one thing against the version actually installed.
+// this project's own other two overrides (Sidebar.astro, Header.astro)
+// also read `Astro.props` for the identical reason, by their own
+// explicit design — upgrading past 0.32 would break both of them
+// simultaneously (route data moves to `Astro.locals` in that release),
+// a far wider blast radius than implementing this one thing against the
+// version actually installed.
 import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/Head.astro';
 
@@ -107,6 +107,29 @@ const frameworkPackages: Record<string, { name: string; description: string }> =
 const frameworkKey = Object.keys(frameworkPackages).find(
   (key) => id === key || id === `${key}/index`,
 );
+
+// Examples pages hold interactive demos, not long-form reading text —
+// widened independently of the table of contents (disabled site-wide
+// via `tableOfContents: false` in astro.config.mjs), since even the
+// site-wide widened content width set in tokens.css is sized for prose
+// and would otherwise cramp every ported example. Previously this
+// lived in a bespoke TwoColumnContent override tied to the ToC being
+// route-conditionally hidden; now that the ToC is gone everywhere, that
+// route dependency no longer has anything to do with the ToC at all, so
+// it belongs here instead — a plain per-page style, independent of that
+// removed mechanism entirely.
+const isExamplesRoute = Astro.url.pathname.includes('/vue/examples');
+
+// `!important` below isn't decorative — confirmed directly in a real
+// build's rendered <head> that this style tag (part of Head.astro,
+// rendered early) ends up BEFORE tokens.css's own bundled <style> tag
+// (rendered later, near the end of <head>) despite this file being the
+// more specific, page-scoped override. Both are plain `:root` rules
+// with identical specificity, so without `!important` the later
+// tokens.css rule silently wins the cascade instead — verified via a
+// real page load showing `--sl-content-width` computed to tokens.css's
+// site-wide value even on an examples page, not this one.
+
 if (frameworkKey) {
   const pkg = frameworkPackages[frameworkKey];
   jsonLd.push({
@@ -123,6 +146,9 @@ if (frameworkKey) {
 ---
 
 <Default {...Astro.props}><slot /></Default>
+{isExamplesRoute && (
+  <style set:html=":root { --sl-content-width: calc(70rem + 150px) !important; }" />
+)}
 <meta property="og:image" content={ogImageUrl.href} />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />

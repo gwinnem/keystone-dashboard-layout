@@ -1,0 +1,147 @@
+---
+title: Migrating from react-grid-layout
+description: A prop-for-prop and callback-for-callback mapping for converting an existing react-grid-layout (v2) integration to this library, with a note on v1/legacy codebases.
+---
+
+This covers **`react-grid-layout` v2** — its current, documented API
+(`gridConfig`/`dragConfig`/`resizeConfig` composable props) — verified
+directly against its own current README. If you're still on the `v1`
+flat-props API (or importing `react-grid-layout/legacy` for
+compatibility), the prop names below are close to identical to v1's own
+flat props; the main difference is v2's grouping of related props into
+config objects, which this library doesn't do.
+
+## Install
+
+```sh
+npm uninstall react-grid-layout react-resizable
+npm install keystone-dashboard-layout-react
+```
+
+```diff
+- import ReactGridLayout, { useContainerWidth } from 'react-grid-layout'
+- import 'react-grid-layout/css/styles.css'
+- import 'react-resizable/css/styles.css'
++ import { GridLayout, GridItem } from 'keystone-dashboard-layout-react'
++ import 'keystone-dashboard-layout-react/style.css'
+```
+
+**No width plumbing needed.** `react-grid-layout` v2 requires an
+explicit `width` prop — the README recommends its own
+`useContainerWidth` hook plus a `mounted` gate to get it. This
+library's `GridLayout` measures its own container width internally via
+`ResizeObserver` with no hook, no `width` prop, and no `mounted` gate
+required — one less moving part to port over.
+
+## Prop mapping
+
+`react-grid-layout` v2 groups related props into `gridConfig`/
+`dragConfig`/`resizeConfig`/`dropConfig` objects. This library keeps
+every prop flat and top-level on `GridLayout`.
+
+| react-grid-layout v2 | This library | Notes |
+|---|---|---|
+| `gridConfig.cols` | `colNum` | Same meaning. |
+| `gridConfig.rowHeight` | `rowHeight` | Same. |
+| `gridConfig.margin` | `margin` | Same `[x, y]` tuple. |
+| `gridConfig.maxRows` | `maxRows` | Same. |
+| `gridConfig.containerPadding` | *(no equivalent)* | Not a separate concept here — use CSS padding on the grid's own container element instead. |
+| `dragConfig.enabled` | `isDraggable` | Same. |
+| `dragConfig.bounded` | `isBounded` | Same. |
+| `dragConfig.handle` | `dragAllowFrom` | Same purpose — a CSS selector restricting where a drag can start. |
+| `dragConfig.cancel` | `dragIgnoreFrom` | Same purpose. |
+| `dragConfig.threshold` | `dragActivationDistance` | Same purpose; this library's version also supports distinct per-pointer-type (`mouse`/`touch`/`pen`) thresholds, not just one number. |
+| `resizeConfig.enabled` | `isResizable` | Same. |
+| `resizeConfig.handles` | `resizeHandles` | Same. |
+| `resizeConfig.handleComponent` | *(no equivalent)* | No custom-handle-component render point — the handle affordance is only stylable via `resizeHandleColor`/CSS, not fully replaceable. |
+| `dropConfig.enabled` | `allowOutsideDrop` | Same. |
+| `dropConfig.defaultItem` | `outsideDropWidth` / `outsideDropHeight` | Same purpose, split into two props instead of one `{ w, h }` object. |
+| `positionStrategy` (`transformStrategy`/`absoluteStrategy`) | `useCssTransforms` (boolean) | Same underlying choice, exposed as a simple toggle rather than a swappable strategy object. |
+| `compactor` / built-in `verticalCompactor` etc. | `compactType` (enum) + optional `compactor` | Same two-level shape: a picked built-in strategy, or a fully custom one. |
+| `autoSize` | `autoSize` (or `heightMode`) | Same; `heightMode` is this library's newer, more explicit replacement. |
+| `onLayoutChange` | `onLayoutChange` | Same name, same signature. |
+| `onDragStart` / `onDrag` / `onDragStop` | `onDragStart` / `onDragMove` / `onDragEnd` | Same three lifecycle points, `onDrag` renamed to `onDragMove`. |
+| `onResizeStart` / `onResize` / `onResizeStop` | *(no equivalent)* | See [Behavioral differences](#behavioral-differences) below. |
+| `onDrop` | `onOutsideDrop` | Same purpose. |
+
+## `LayoutItem` field mapping
+
+| react-grid-layout v2 `LayoutItem` | This library's layout entry | Notes |
+|---|---|---|
+| `i`, `x`, `y`, `w`, `h` | `i`, `x`, `y`, `w`, `h` | Same. |
+| `minW`, `maxW`, `minH`, `maxH` | `minW`, `maxW`, `minH`, `maxH` | Same. |
+| **`static`** | **`isStatic`** | Renamed. |
+| `isDraggable`, `isResizable`, `isBounded` | `isDraggable`, `isResizable`, `isBounded` | Same per-item override semantics. |
+| `resizeHandles` | `resizeHandles` | Same. |
+
+## `ResponsiveGridLayout` → `responsive` prop
+
+| react-grid-layout v2 | This library | Notes |
+|---|---|---|
+| `breakpoint`/`breakpoints`/`cols`/`layouts` | `responsive`/`breakpoints`/`cols`/`responsiveLayouts` | This library uses one `GridLayout` with `responsive: true` rather than a separate `ResponsiveGridLayout` component. |
+| `onBreakpointChange` | `onBreakpointChange` | Same name. |
+| `onWidthChange` | `onColumnsChanged` (partial) | Different signature — `onColumnsChanged` reports the resolved column count, not the raw measured pixel width. |
+
+## Before / after
+
+```tsx
+// react-grid-layout v2
+const { width, containerRef, mounted } = useContainerWidth();
+
+<div ref={containerRef}>
+  {mounted && (
+    <ReactGridLayout
+      width={width}
+      layout={layout}
+      gridConfig={{ cols: 12, rowHeight: 30 }}
+      dragConfig={{ enabled: true, handle: '.handle' }}
+      onLayoutChange={setLayout}>
+      {layout.map((item) => (
+        <div key={item.i}>
+          <span className="handle" />
+          {item.i}
+        </div>
+      ))}
+    </ReactGridLayout>
+  )}
+</div>
+```
+
+```tsx
+// this library
+<GridLayout
+  layout={layout}
+  colNum={12}
+  rowHeight={30}
+  isDraggable
+  dragAllowFrom=".handle"
+  onLayoutChange={setLayout}>
+  {layout.map((item) => (
+    <GridItem key={item.i} i={item.i}>
+      <span className="handle" />
+      {item.i}
+    </GridItem>
+  ))}
+</GridLayout>
+```
+
+## Behavioral differences
+
+- **No discrete resize lifecycle callbacks.** `onResizeStart`/
+  `onResize`/`onResizeStop` have no direct equivalent — this library
+  only exposes granular callbacks for the drag gesture
+  (`onDragStart`/`onDragMove`/`onDragEnd`). A resize's *result* still
+  shows up in `onLayoutChange` once it completes; if you need
+  per-frame resize feedback specifically, that's a gap worth checking
+  the [Roadmap](/react/guide/project/roadmap/) for rather than
+  assuming it exists under a different name.
+- **No swappable position strategy or custom resize-handle
+  component.** `positionStrategy`/`resizeConfig.handleComponent` are
+  each collapsed into a simpler, non-extensible toggle
+  (`useCssTransforms`, `resizeHandleColor`) — if your integration
+  relies on a fully custom resize-handle render or a third
+  positioning strategy beyond transform/absolute, there's no
+  equivalent extension point here.
+- **`static` → `isStatic`.** A straightforward rename, but easy to miss
+  since TypeScript won't warn about an unused `static` field silently
+  passed through — it just won't do anything.

@@ -2,6 +2,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import vue from '@astrojs/vue';
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 
 // Standalone Astro + Starlight site. Not part of the pnpm workspace on
 // purpose (see package.json's own description) — installs/runs
@@ -32,11 +33,12 @@ export default defineConfig({
   // Confirmed production domain: https://kdl.winnem.tech — unlocks three
   // separate, previously-missing pieces of SEO infrastructure, confirmed
   // directly against Starlight's own source/changelog, not assumed:
-  //   1. Sitemap generation — Starlight has built-in sitemap support
-  //      with no separate config option or integration package needed;
-  //      it activates the moment `site` is set, producing
-  //      sitemap-index.xml at build time. There is nothing else to
-  //      configure for this specifically.
+  //   1. Sitemap generation — Starlight does NOT generate a sitemap on
+  //      its own; the separate `@astrojs/sitemap` integration (already
+  //      a dependency, now wired in below) is required. `site` only
+  //      unlocks canonical URLs and og:url (see #2/#3) — verified via a
+  //      real build producing no sitemap-index.xml before this was
+  //      added.
   //   2. Canonical URLs (`<link rel="canonical">`) — Starlight's own
   //      fixed bug report (withastro/starlight PR #3496) confirms it
   //      silently omitted this tag entirely from every page when `site`
@@ -49,6 +51,7 @@ export default defineConfig({
   integrations: [
     vue(),
     react(),
+    sitemap(),
     starlight({
       title: 'Keystone Dashboard Layout',
       favicon: '/favicon.svg',
@@ -67,9 +70,9 @@ export default defineConfig({
       // added in Starlight 0.32). Upgrading to get it was deliberately
       // rejected: 0.32 also moves route data from `Astro.props` to
       // `Astro.locals.starlightRoute`, which would break this project's
-      // other three overrides below (Sidebar/Header/PageSidebar +
-      // TwoColumnContent), all of which read `Astro.props` by their own
-      // explicit, documented design against this same installed version.
+      // other two overrides below (Sidebar/Header), both of which read
+      // `Astro.props` by their own explicit, documented design against
+      // this same installed version.
       // See `src/components/overrides/Head.astro`'s own header comment
       // for the full rationale.
       // Site-wide --kg-* design tokens (colors, fonts) used throughout
@@ -81,6 +84,11 @@ export default defineConfig({
       // anything using var(--kg-*), since the custom property was never
       // actually defined there at all.
       customCss: ['./src/styles/tokens.css'],
+      // Disabled site-wide rather than per-page — no page in this docs
+      // site (guides, component reference, generated API, examples
+      // alike) needs a right-hand heading outline badly enough to
+      // justify the column width it reserves.
+      tableOfContents: false,
       components: {
         // Adds og:image/twitter:image and JSON-LD to every page — see
         // this option's own comment above and the override file's own
@@ -99,18 +107,6 @@ export default defineConfig({
         // supported platform list) — see that override's own comment
         // for the desktop-only caveat.
         Header: './src/components/overrides/Header.astro',
-        // Hides the right-hand Table of Contents entirely on every
-        // /vue/examples/* page — route-dependent rather than per-page
-        // frontmatter, so it applies automatically to any future
-        // example added later too. See the override file's own comment.
-        PageSidebar: './src/components/overrides/PageSidebar.astro',
-        // Companion to the PageSidebar override above — that one stops
-        // rendering ToC *content* on examples pages; this one stops
-        // *reserving the column's own width* for it, so the main content
-        // area actually expands into the freed space instead of just
-        // leaving a blank gap. See that override's own comment for why
-        // both are needed together.
-        TwoColumnContent: './src/components/overrides/TwoColumnContent.astro',
       },
       social: {
         github: 'https://github.com/gwinnem/keystone-dashboard-layout',
@@ -124,6 +120,11 @@ export default defineConfig({
               items: [
                 { label: 'Introduction', slug: 'vue/guide/introduction' },
                 { label: 'Installation', slug: 'vue/guide/installation' },
+                { label: 'Troubleshooting & FAQ', slug: 'vue/guide/troubleshooting' },
+                {
+                  label: 'Migrating from vue-grid-layout',
+                  slug: 'vue/guide/migrating-from-vue-grid-layout',
+                },
                 {
                   label: 'Project',
                   items: [
@@ -272,6 +273,11 @@ export default defineConfig({
               items: [
                 { label: 'Introduction', slug: 'react/guide/introduction' },
                 { label: 'Installation', slug: 'react/guide/installation' },
+                { label: 'Troubleshooting & FAQ', slug: 'react/guide/troubleshooting' },
+                {
+                  label: 'Migrating from react-grid-layout',
+                  slug: 'react/guide/migrating-from-react-grid-layout',
+                },
                 {
                   label: 'Project',
                   items: [
@@ -388,6 +394,11 @@ export default defineConfig({
               items: [
                 { label: 'Introduction', slug: 'angular/guide/introduction' },
                 { label: 'Installation', slug: 'angular/guide/installation' },
+                { label: 'Troubleshooting & FAQ', slug: 'angular/guide/troubleshooting' },
+                {
+                  label: 'Migrating from angular-gridster2',
+                  slug: 'angular/guide/migrating-from-angular-gridster2',
+                },
                 {
                   label: 'Project',
                   items: [
@@ -448,10 +459,29 @@ export default defineConfig({
                 { label: 'Installation', slug: 'core/guide/installation' },
               ],
             },
-            { label: 'API reference', slug: 'core/api' },
+            {
+              label: 'API reference',
+              items: [
+                { label: 'Overview', slug: 'core/api' },
+                // Generated by scripts/generate-typedoc.mjs (wired as
+                // predev/prebuild in package.json) directly from
+                // packages/core's own exported TypeScript source —
+                // autogenerate lists whatever that script wrote last,
+                // no manual upkeep needed as the exported API grows.
+                { label: 'Reference', autogenerate: { directory: 'core/api/reference' } },
+              ],
+            },
           ],
         },
       ],
     }),
   ],
+  // The cross-origin isolation headers the StackBlitz "Playground" tab
+  // needs (see ExampleTryIt.astro's own `playground` prop) are NOT set
+  // here — `vite.server.headers` was tried first and confirmed directly
+  // NOT to apply to Astro's own page-route responses (a real fetch()
+  // against a rendered page showed none of the headers present, even
+  // after a full dev-server restart). Set instead in
+  // src/middleware.ts, which works uniformly across `astro dev`,
+  // `astro preview`, and a real production deploy.
 });

@@ -1,0 +1,103 @@
+---
+title: Troubleshooting & FAQ
+description: Fixes for the most common real failure modes when integrating GridLayout for React — grid stuck at zero width, dragging not starting, breakpoints not switching, and layout validation errors.
+---
+
+## The grid renders with zero width, or collapses to nothing
+
+`GridLayout` measures its own root element's `offsetWidth` via a
+`ResizeObserver`, and only commits that value to state `if
+(el.offsetWidth > 0)` — a guard against the well-known case where
+`offsetWidth` reads `0` while an element (or one of its ancestors) has
+`display: none`, hasn't mounted into a sized parent yet, or is
+conditionally unmounted. A separate `hasMeasuredWidth` flag exists
+specifically so an actually-small container isn't confused with "never
+measured yet" — but if the guard keeps failing, the grid silently
+stays at its unmeasured seed width forever, with no console output to
+explain why.
+
+Most common causes:
+
+- Rendering `GridLayout` behind `{condition && <GridLayout />}`, which
+  unmounts and remounts it — every remount re-seeds the width from
+  scratch. Prefer keeping it mounted and toggling visibility with CSS
+  (e.g. a `hidden` class) if the parent panel is shown/hidden
+  frequently.
+- A flex/grid parent that hasn't completed its own layout pass on the
+  same render the grid mounts. Give the grid's parent container an
+  explicit width or `min-width` rather than relying on content-driven
+  sizing.
+- The container has no defined height and depends on the grid's own
+  content to size it, while the grid depends on the container for
+  width — a sizing cycle that resolves to zero either way.
+
+## Dragging doesn't start on some (or all) items
+
+If a `GridItem`'s underlying layout entry sets `dragAllowFrom`, that
+selector is checked **first, and exclusively** — a pointer-down target
+that doesn't match it is rejected outright, and `dragIgnoreFrom` never
+even gets evaluated. A `dragAllowFrom` selector that doesn't match
+anything inside that item's rendered content (a typo, or markup that
+changed after the selector was written) silently disables dragging for
+the whole item — there's no warning, since from the library's
+perspective this is working as configured.
+
+Check, in order:
+
+1. Is `dragAllowFrom` set on this item's layout entry? If so, does the
+   selector actually match an element rendered inside its children
+   right now?
+2. Is `isDraggable` `false` on this specific layout entry, overriding
+   the grid-wide default?
+3. Is the grid-wide `isDraggable` prop itself `false`?
+
+Note that per-item flags like `isDraggable`, `isResizable`, `minW`/
+`maxW`, and `dragAllowFrom`/`dragIgnoreFrom` live directly on each
+entry in the `layout` array here — not as separate props passed to
+`<GridItem>`, which only takes `i` and looks its own data up from that
+array.
+
+## Responsive breakpoints don't switch when I expect them to
+
+Breakpoint resolution is driven by the grid **container's own measured
+width** (the same `ResizeObserver`-sourced state from the section
+above) — never `window.innerWidth`. This is deliberate and correct for
+grids embedded in a sidebar, iframe, or any container narrower than the
+viewport, but it means the zero-width failure mode above has a second
+symptom: if the container never gets a real measured width, breakpoint
+switching doesn't run either, since it's derived from the same stuck
+value.
+
+## Server-side rendering (Next.js / SSR)
+
+The `GridLayout` component itself has no explicit SSR guard, but it
+also doesn't need one: the `ResizeObserver` and pointer-event listeners
+are only ever created inside a `useEffect`, which never runs during
+server rendering under React's own contract. The pieces that *do*
+carry explicit `typeof window !== 'undefined'` guards are the optional
+layout-persistence and layout-preset hooks (`useLayoutStorage`,
+`useLayoutPresets`) — safe to call during SSR, they simply no-op until
+the client takes over.
+
+## `Invalid parameter ...` / `Layout is not valid` errors
+
+These come from the core validators (`layoutValidator`,
+`keysValidator`, `marginValidator`, `breakpointsValidator`) rejecting
+malformed input before it reaches the rendering/collision logic. The
+message names the actual problem — a few worth knowing up front rather
+than debugging from the message alone:
+
+- **`Layout can not be empty`** — an empty array was passed as the
+  initial `layout`; render nothing (or a placeholder) until you have at
+  least one item, rather than passing `[]`.
+- **`Layout is not valid`** / **`Invalid parameter layoutItem id
+  passed`** — every item needs a unique, stable `i`; duplicate or
+  missing ids fail here. A common trigger in React specifically is
+  deriving `i` from array index instead of a stable id, which breaks
+  the moment the array is reordered or filtered.
+- **`Invalid parameter cols passed`** / **`Parameter cols must be
+  greater than 0`** — `colNum` (or a responsive breakpoint's own column
+  count) resolved to `0` or `NaN`, usually from a computed value that
+  hasn't initialized yet.
+- **`Invalid parameter marginPx passed`** — `margin` expects a `[x, y]`
+  pixel tuple, not a CSS string like `"8px"`.
