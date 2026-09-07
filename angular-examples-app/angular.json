@@ -25,6 +25,11 @@
                 "output": "examples-source"
               },
               {
+                "glob": "**/*.{ts,css}",
+                "input": "src/app/harness",
+                "output": "examples-source/harness"
+              },
+              {
                 "glob": "**/*",
                 "input": "public"
               }

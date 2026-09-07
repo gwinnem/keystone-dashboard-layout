@@ -23,13 +23,29 @@ import sitemap from '@astrojs/sitemap';
 // undefined in Astro's MDX renderer, even after fixing a genuine
 // Angular-version mismatch and a genuine tsconfig scoping gap). Nor are
 // they iframed — also tried, and reverted in favor of the simplest
-// option: each of the 52 examples in this sidebar links directly out to
-// the real, deployed app at https://kdla.winnem.tech (main.ts's own
-// withHashLocation() is what makes a direct link to a specific example
-// route work reliably on any static host, not just client-side
-// navigation within the app). See angular/examples.mdx's own page
-// content for the fuller rationale.
-export default defineConfig({
+// option: each of the 53 examples in this sidebar's own Angular
+// "Examples" section links directly out to the real, deployed app at
+// https://kdla.winnem.tech (angular-examples-app's own main.ts uses
+// plain HTML5 path-based routing, NOT withHashLocation() — confirmed
+// directly against that file's own current source, which documents
+// this exact sidebar as the reason: a direct load of a deep route like
+// /examples/01-basic-drag-resize needs to resolve to a real page for
+// these links to work, which hash routing can't give a search engine
+// or a plain <a href> new-tab open, only client-side navigation within
+// the app itself. That app's own host in turn needs a standard SPA-
+// fallback rewrite rule — see main.ts's own comment for what that
+// means and why it's no longer optional now that hash routing is gone).
+export default defineConfig(({ command }) => {
+  // Same dev-vs-prod split as Header.astro's own ANGULAR_NAV_LINKS
+  // (confirmed directly against that file's real source) — kept
+  // consistent here rather than reusing `import.meta.env.DEV`, which
+  // only works inside Vite-processed component code, not in this plain
+  // Node config file; `command` (from defineConfig's own function
+  // form) is the equivalent signal available here: `'dev'` for `astro
+  // dev`, `'build'`/`'preview'` otherwise.
+  const ANGULAR_EXAMPLES_APP_URL = command === 'dev' ? `http://localhost:4200` : `https://kdla.winnem.tech`;
+
+  return {
   // Confirmed production domain: https://kdl.winnem.tech — unlocks three
   // separate, previously-missing pieces of SEO infrastructure, confirmed
   // directly against Starlight's own source/changelog, not assumed:
@@ -432,13 +448,72 @@ export default defineConfig({
                 { label: 'Cross-grid & outside-drop event payloads', slug: 'angular/api/interfaces/event-payloads' },
               ],
             },
-            // No Examples section in this sidebar — unlike Vue/React,
-            // Angular's 52 examples live entirely in a real, separate,
-            // standalone Angular app (deployed at kdla.winnem.tech, or
-            // localhost:4200 locally), not as astro-docs pages or
-            // sidebar links at all. The top nav's own "Examples" entry
-            // (Header.astro's own ANGULAR_NAV_LINKS) links straight out
-            // to that app instead — see that file's own comment.
+            {
+              // All 53 examples live in a real, separate, standalone
+              // Angular app (angular-examples-app), not as astro-docs
+              // pages — every link below is external, using the same
+              // dev-vs-prod ANGULAR_EXAMPLES_APP_URL this file's own top
+              // comment explains. Labels/slugs copied verbatim from that
+              // app's own sidebar (src/app/app.component.ts) rather than
+              // retyped, so they can't drift out of sync with it.
+              label: 'Examples',
+              items: [
+                { label: 'Gallery', link: `${ANGULAR_EXAMPLES_APP_URL}/` },
+                { label: '01 — Basic drag & resize', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/01-basic-drag-resize` },
+                { label: '02 — Bounded drag to container', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/02-bounded-drag` },
+                { label: '03 — Events', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/03-events` },
+                { label: '04 — Multiple grids', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/04-multiple-grids` },
+                { label: '05 — Drag allow / ignore elements', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/05-drag-allow-ignore-elements` },
+                { label: '06 — Mirrored (RTL)', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/06-mirrored-rtl` },
+                { label: '07 — Responsive breakpoints', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/07-responsive-breakpoints` },
+                { label: '08 — Prevent collision', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/08-prevent-collision` },
+                { label: '09 — Responsive predefined layouts', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/09-responsive-predefined-layouts` },
+                { label: '10 — Add or remove items', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/10-add-remove-items` },
+                { label: '11 — Drag, drop from outside', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/11-outside-drag-drop` },
+                { label: '12 — Drag, drop from grid to grid', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/12-cross-grid-drag-drop` },
+                { label: '13 — Show close button', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/13-close-button` },
+                { label: '14 — Border radius', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/14-border-radius` },
+                { label: '15 — Horizontal shift', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/15-horizontal-shift` },
+                { label: '16 — Show grid lines', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/16-grid-lines` },
+                { label: '17 — Static items', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/17-static-items` },
+                { label: '18 — Custom drag handle & close button', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/18-custom-drag-handle-close-button` },
+                { label: '19 — Save/load layout', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/19-save-load-layout` },
+                { label: '20 — Auto-size grid on content', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/20-auto-size-grid` },
+                { label: '21 — Edit mode toggle', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/21-edit-mode-toggle` },
+                { label: '22 — Cross-grid drop restrictions', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/22-cross-grid-drop-restrictions` },
+                { label: '23 — Drag, drop from outside into multiple grids', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/23-outside-drag-drop-multiple-grids` },
+                { label: '24 — Configurable transition duration & easing', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/24-transition-duration-easing` },
+                { label: '25 — Custom drag-placeholder content', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/25-custom-drag-placeholder` },
+                { label: '26 — Alignment guides while dragging', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/26-alignment-guides` },
+                { label: '27 — scrollToItem & focusItem', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/27-scroll-to-item-focus-item` },
+                { label: '28 — Export layout as SVG', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/28-svg-export` },
+                { label: '29 — compactNow, rearrange & duplicateItem', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/29-compact-now-rearrange-duplicate-item` },
+                { label: '30 — Blocked-move feedback', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/30-blocked-move-feedback` },
+                { label: '31 — Per-item autoHeight', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/31-per-item-auto-height` },
+                { label: '32 — Snap to grid', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/32-snap-to-grid` },
+                { label: '33 — Configurable resize-hint appearance', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/33-resize-hint-appearance` },
+                { label: '34 — outsideDropAccept & readOutsideDropPayload', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/34-outside-drop-accept-payload` },
+                { label: '35 — Named layout presets', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/35-named-presets` },
+                { label: '36 — Localizable ARIA strings', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/36-aria-labels` },
+                { label: '37 — Multi-select & group move/resize', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/37-multi-select-group-move-resize` },
+                { label: '38 — Size constraints & aspect ratio', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/38-size-constraints-aspect-ratio` },
+                { label: '39 — autoScroll', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/39-auto-scroll` },
+                { label: '40 — Layout lifecycle events', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/40-layout-lifecycle-events` },
+                { label: '41 — Layout bounds & rendering options', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/41-layout-bounds-rendering-options` },
+                { label: '42 — Pluggable compaction', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/42-pluggable-compaction` },
+                { label: '43 — Undo/redo', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/43-undo-redo` },
+                { label: '44 — Grid dimensions', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/44-grid-dimensions` },
+                { label: '45 — Switching layouts & forcing a remount', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/45-switching-layouts-remount` },
+                { label: '46 — Align & distribute selected items', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/46-align-distribute-selected` },
+                { label: '47 — Spacing indicators', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/47-spacing-indicators` },
+                { label: '48 — Custom header', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/48-custom-header-slot` },
+                { label: '49 — Per-item zIndex override', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/49-per-item-z-index` },
+                { label: '50 — Height modes (heightMode)', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/50-height-modes` },
+                { label: '51 — Drag activation distance', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/51-drag-activation-distance` },
+                { label: '52 — Restricting resize handles to specific edges', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/52-restrict-resize-handles` },
+                { label: '53 — Resize direction toggles', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/53-resize-direction-toggles` },
+              ],
+            },
           ],
         },
         // Core docs — the framework-agnostic shared implementation
@@ -484,4 +559,5 @@ export default defineConfig({
   // after a full dev-server restart). Set instead in
   // src/middleware.ts, which works uniformly across `astro dev`,
   // `astro preview`, and a real production deploy.
+  };
 });

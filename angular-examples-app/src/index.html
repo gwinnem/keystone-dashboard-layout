@@ -3,25 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <title>Keystone Dashboard Layout — Angular Examples</title>
-  <meta name="description" content="52 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages. Every example is the real, running component, not a screenshot.">
-  <!-- Canonical/OG/Twitter all point at the app's own root — see
-       sitemap.xml's own comment for why: this is a client-side,
-       hash-routed SPA (main.ts's own withHashLocation()), so every
-       /#/examples/... route is server-identical to this same page —
-       there's no separate static page per example to give its own
-       distinct meta tags the way astro-docs' own per-example pages
-       can. A single, accurate description of the whole app is more
-       honest here than fabricating per-route metadata that can't
-       actually vary. -->
+  <meta name="description" content="53 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages. Every example is the real, running component, not a screenshot.">
+  <!-- Canonical/OG/Twitter all point at the app's own root, not each
+       example's own real /examples/NN-slug route (main.ts uses plain
+       HTML5 path-based routing, NOT withHashLocation() — confirmed
+       directly against that file's own current source; a stale
+       version of this comment previously claimed hash routing here,
+       which stopped being true once main.ts switched away from it).
+       Still no separate static HTML page per example, though — this
+       is a client-rendered Angular SPA regardless of routing mode, so
+       every real route resolves to this same index.html with the
+       same meta tags, just a different client-side view. A single,
+       accurate description of the whole app is more honest here than
+       fabricating per-route metadata that can't actually vary at the
+       HTTP-response level. -->
   <link rel="canonical" href="https://kdla.winnem.tech/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Keystone Dashboard Layout">
   <meta property="og:title" content="Keystone Dashboard Layout — Angular Examples">
-  <meta property="og:description" content="52 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages.">
+  <meta property="og:description" content="53 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages.">
   <meta property="og:url" content="https://kdla.winnem.tech/">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Keystone Dashboard Layout — Angular Examples">
-  <meta name="twitter:description" content="52 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages.">
+  <meta name="twitter:description" content="53 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages.">
   <!-- No og:image/twitter:image here — astro-docs' own equivalent tags
        point at a per-page image generated at build time by
        astro-og-canvas (src/pages/og/[...slug].ts); replicating that
@@ -37,7 +41,7 @@
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "Keystone Dashboard Layout — Angular Examples",
-      "description": "52 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages.",
+      "description": "53 live, interactive examples of Keystone Dashboard Layout for Angular — a draggable, resizable dashboard grid with full feature parity with the Vue and React packages.",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Any",
       "url": "https://kdla.winnem.tech/",

@@ -27,9 +27,34 @@
   font-size: 13px;
 }
 
+.try-it__toolbar-end {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
 .try-it__tabs {
   display: flex;
   gap: 4px;
+}
+
+.try-it__playground-open {
+  background: var(--kg-blueprint-deep);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: var(--kg-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 12px;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.try-it__playground-open:hover {
+  background: var(--kg-blueprint);
 }
 
 .try-it__tab {
