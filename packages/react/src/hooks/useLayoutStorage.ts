@@ -146,7 +146,7 @@ export function useLayoutStorage(key: string, options: IUseLayoutStorageOptions 
 
   const clear = useCallback((): void => {
     resolveStorage()?.removeItem(key);
-  }, [resolveStorage]);
+  }, [resolveStorage, key]);
 
   const hasSaved = useCallback((): boolean => {
     const target = resolveStorage();
@@ -189,7 +189,7 @@ export function useLayoutStorage(key: string, options: IUseLayoutStorageOptions 
     const handle = setTimeout(() => {
       saveRef.current(layout);
     }, debounceMs);
-    return () => clearTimeout(handle);
+    return (): void => clearTimeout(handle);
   }, [autoSave, layout, debounceMs]);
 
   return useMemo(() => ({ clear, hasSaved, load, save }), [clear, hasSaved, load, save]);

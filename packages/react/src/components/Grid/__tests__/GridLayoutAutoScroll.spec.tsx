@@ -29,7 +29,7 @@ vi.mock(`keystone-dashboard-layout-core`, async importOriginal => {
 
 import { GridLayout } from '../GridLayout';
 import { GridItem } from '../GridItem';
-import { dispatchDragEvent, dispatchResizeEvent, restoreOffsetWidth, stubOffsetWidth } from './test-helpers';
+import { dispatchDragEvent, dispatchResizeEvent, restoreOffsetWidth } from './test-helpers';
 
 const basicLayout = (): TLayout => [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }];
 

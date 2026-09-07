@@ -66,9 +66,9 @@
       "import": "./dist/keystone-dashboard-layout-vue.es.js",
       "require": "./dist/keystone-dashboard-layout-vue.umd.js"
     },
-    "./style.css": "./dist/vue.css"
+    "./style.css": "./dist/keystone-dashboard-layout-vue.css"
   },
-  "homepage": "https://github.com/gwinnem/keystone-dashboard-layout/tree/main/packages/vue",
+  "homepage": "https://kdl.winnem.tech/vue/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gwinnem/keystone-dashboard-layout.git",
@@ -79,8 +79,6 @@
   },
   "scripts": {
     "dev": "vite",
-    "demo": "vite --config demo/vite.config.ts",
-    "demo:build": "vite build --config demo/vite.config.ts",
     "coverage": "vitest run --coverage",
     "build:all": "vite build && npm pack",
     "build": "vite build",

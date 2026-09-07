@@ -14,7 +14,6 @@ const breakpointsValidatorPayload = {
     lg: `0`, md: 0, sm: 0, xs: 0, xx: 0,
   },
   validBreakpoints: {
-    // eslint-disable-next-line sort-keys
     xxl: 10, xl: 10, lg: 10, md: 10, sm: 10, xs: 10, xxs: 0,
   },
 };
@@ -52,7 +51,6 @@ describe(`breakpoint-validator`, () => {
     // that test's own name claims to be testing, is never actually
     // exercised independently.
     const result = breakpointsValidator({
-      // eslint-disable-next-line sort-keys
       xxl: 10, xl: 10, lg: `10`, md: 10, sm: 10, xs: 10, xxs: 0,
     });
 

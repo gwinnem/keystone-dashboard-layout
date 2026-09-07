@@ -24,7 +24,7 @@
  * value rather than leaving this guess in place indefinitely.
  */
 import { gzipSync } from 'zlib';
-import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 

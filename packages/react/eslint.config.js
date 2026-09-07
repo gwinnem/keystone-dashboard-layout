@@ -2,6 +2,8 @@ import js from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import prettierPlugin from 'eslint-plugin-prettier';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 
 /**
@@ -26,6 +28,22 @@ import globals from 'globals';
  * whatever this stricter rule set newly surfaces in this package's
  * existing code won't fail CI outright, the same safety net Vue's own
  * ~800 pre-existing issues already rely on.
+ *
+ * `eslint-plugin-react`/`eslint-plugin-react-hooks` were added
+ * specifically because several files already carried
+ * `// eslint-disable-next-line react/no-array-index-key` and
+ * `react-hooks/exhaustive-deps` comments referencing rules neither
+ * plugin was actually installed for — ESLint's own "Definition for
+ * rule ... was not found" error, not a real code issue, confirmed by
+ * checking this package's own `package.json` before adding either
+ * package. Only the two specific rules those pre-existing comments
+ * reference are enabled below, not either plugin's full recommended
+ * set — kept deliberately narrow (matching how every other rule in
+ * this file is listed individually rather than pulled in via a broad
+ * preset beyond the two baseline `js.configs.recommended`/
+ * `tsPlugin.configs['flat/recommended']`), so this fix resolves
+ * exactly the reported gap without introducing a wave of new,
+ * unrelated findings across the rest of the codebase.
  */
 export default [
   {
@@ -55,6 +73,8 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
       prettier: prettierPlugin,
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
     },
     rules: {
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
@@ -94,7 +114,21 @@ export default [
       '@typescript-eslint/no-empty-function': ['error'],
       '@typescript-eslint/no-redeclare': ['error'],
       '@typescript-eslint/no-shadow': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error'],
+      '@typescript-eslint/no-unused-vars': ['error', {
+        // Matches an established, deliberate cross-package convention
+        // (the same shape appears in packages/vue/src/components/Grid/
+        // GridLayout.vue's own duplicateItem): destructuring a property
+        // out under a name that literally spells out "unused"
+        // (`_unusedId`, `_unusedMoved`) specifically to exclude it from
+        // a `...rest` spread, self-documenting exactly why it's
+        // discarded rather than needing a separate comment. Only
+        // affects names actually starting with `_` — a genuinely dead,
+        // unprefixed variable (like an unused test import) is still
+        // flagged normally.
+        varsIgnorePattern: '^_',
+        argsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+      }],
       '@typescript-eslint/no-useless-constructor': ['error'],
       'arrow-body-style': 'off',
       'arrow-parens': ['error', 'as-needed'],
@@ -161,6 +195,9 @@ export default [
       'prefer-destructuring': 'warn',
       'prefer-promise-reject-errors': 'off',
       quotes: 'off',
+      'react/no-array-index-key': 'warn',
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/rules-of-hooks': 'error',
       semi: ['error', 'always'],
       'sort-keys': 'off',
       'space-before-function-paren': 'off',

@@ -30,7 +30,7 @@ describe(`GridItem onItemMoved`, () => {
 
     dispatchDragEvent(target, `dragend`, { clientX: 101, clientY: 0 });
     expect(handleItemMoved).toHaveBeenCalledTimes(1);
-    const payload = handleItemMoved.mock.calls[0][0];
+    const [[payload]] = handleItemMoved.mock.calls;
     expect(payload.i).toBe(`0`);
     expect(typeof payload.x).toBe(`number`);
     expect(typeof payload.y).toBe(`number`);
@@ -95,7 +95,7 @@ describe(`GridItem onItemResized`, () => {
 
     dispatchResizeEvent(target, `resizeend`, { clientX: 50, clientY: 0 });
     expect(handleItemResized).toHaveBeenCalledTimes(1);
-    const payload = handleItemResized.mock.calls[0][0];
+    const [[payload]] = handleItemResized.mock.calls;
     expect(payload.i).toBe(`0`);
     expect(typeof payload.h).toBe(`number`);
     expect(typeof payload.w).toBe(`number`);

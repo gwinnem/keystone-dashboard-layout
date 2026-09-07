@@ -151,7 +151,7 @@ test.describe('Layout tools & feedback (edge cases)', () => {
 
     const growButton = page.getByTestId('grow-content');
     for(let i = 0; i < 15; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
+       
       await growButton.click();
     }
     await page.waitForTimeout(300);

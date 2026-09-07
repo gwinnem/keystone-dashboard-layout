@@ -1124,7 +1124,7 @@
       captureDragStart();
     }
 
-    let l: ILayoutItem = getLayoutItem(props.layout, id) ?? ({
+    const l: ILayoutItem = getLayoutItem(props.layout, id) ?? ({
       x: 0,
       y: 0,
     } as ILayoutItem);
@@ -1458,7 +1458,7 @@
       captureResizeStart();
     }
 
-    let l: ILayoutItem = getLayoutItem(props.layout, id) ?? ({
+    const l: ILayoutItem = getLayoutItem(props.layout, id) ?? ({
       h: 0,
       w: 0,
     } as ILayoutItem);
@@ -1963,7 +1963,7 @@
    * every render automatically.
    */
   watch(
-    [() => props.heightMode, () => props.autoSize],
+    [(): `auto` | `fixed` | `scroll` | `fit` | null => props.heightMode, (): boolean => props.autoSize],
     () => {
       updateHeight();
     },

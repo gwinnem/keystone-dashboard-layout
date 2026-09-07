@@ -16,6 +16,22 @@ import { defineConfig, devices } from '@playwright/test';
  * already ruled out (a genuinely unresolved upstream bug) would hit
  * the identical issue here.
  *
+ * Firefox history: a real, repeatedly-reproduced local crash
+ * (GraphicsCriticalError: RenderCompositorSWGL failed mapping default
+ * framebuffer, no dt) once required a headless:false + reduced-worker
+ * workaround here, matching a class of long-standing, unresolved
+ * upstream Firefox bugs (Mozilla Bugzilla #1693011, #1832201, #1716303,
+ * #1375585) tied to headless+software-rendering on Windows/RDP-style
+ * sessions. That workaround was later confirmed unnecessary: repeated
+ * clean runs at plain headless:true (this monorepo's own default,
+ * below) never reproduced the crash again, across all three
+ * framework packages, including this one. Kept here as a note in case
+ * it resurfaces — if it does, the fix that worked was `launchOptions:
+ * { headless: false }` on the firefox project below, paired with a
+ * lower per-project `workers` count (window-focus contention makes
+ * many simultaneous visible Firefox windows unreliable) and a longer
+ * per-project `timeout`.
+ *
  * Run with:
  *   npx playwright install        (first time only, downloads browsers)
  *   npm run test:e2e

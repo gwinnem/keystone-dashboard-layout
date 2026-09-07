@@ -20,7 +20,6 @@ import { dispatchResizeEvent, restoreOffsetWidth, stubOffsetWidth } from './test
  * colWidth = (1210 - 10*13)/12 = 90; rowHeight=100, margin=[10,10] —
  * matching every other spec file's own convention in this suite.
  */
-const basicLayout = (): TLayout => [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }];
 
 describe(`GridItem resize minW/maxW/minH/maxH clamping (real gesture, not autoSize)`, () => {
   afterEach(() => {

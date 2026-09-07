@@ -197,7 +197,7 @@ describe(`GridLayout allowOutsideDrop`, () => {
     });
 
     expect(handleOutsideDrop).toHaveBeenCalledTimes(1);
-    const payload = handleOutsideDrop.mock.calls[0][0];
+    const [[payload]] = handleOutsideDrop.mock.calls;
     expect(payload.w).toBe(4);
     expect(payload.h).toBe(3);
     expect(payload.dataTransfer).toBe(dataTransfer);
@@ -238,7 +238,7 @@ describe(`GridLayout allowOutsideDrop`, () => {
     });
 
     expect(handleOutsideDrop).toHaveBeenCalledTimes(1);
-    const payload = handleOutsideDrop.mock.calls[0][0];
+    const [[payload]] = handleOutsideDrop.mock.calls;
     expect(payload.x).toBe(3);
     expect(payload.y).toBe(2);
   });

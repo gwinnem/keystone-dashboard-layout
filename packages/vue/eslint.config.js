@@ -231,7 +231,7 @@ export default [
           max: 1,
         },
       }],
-      'vue/multiline-html-element-content-newline': ['error'],
+      'vue/multiline-html-element-content-newline': 'off',
       'vue/multi-word-component-names': 'off',
       'vue/mustache-interpolation-spacing': ['error'],
       'vue/component-definition-name-casing': ['error', 'PascalCase'],

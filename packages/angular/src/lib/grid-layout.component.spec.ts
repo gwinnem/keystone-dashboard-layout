@@ -309,7 +309,7 @@ describe(`GridLayoutComponent`, () => {
       // Drag "a" directly onto "b"'s own position.
       eventBus.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragmove`, h: 2, i: `a`, w: 2, x: 4, y: 0 });
 
-      const next = emitted[0];
+      const [next] = emitted;
       const itemA = next.find(item => item.i === `a`)!;
       const itemB = next.find(item => item.i === `b`)!;
       // Neither should overlap the other's own rect.
@@ -371,7 +371,7 @@ describe(`GridLayoutComponent`, () => {
       // now overlaps "b" (x:4 to x:6).
       eventBus.emitItemResize({ eventType: `resizemove`, h: 2, i: `a`, w: 6, x: 0, y: 0 });
 
-      const next = emitted[0];
+      const [next] = emitted;
       const itemA = next.find(item => item.i === `a`)!;
       const itemB = next.find(item => item.i === `b`)!;
       const overlapsX = itemA.x < itemB.x + itemB.w && itemA.x + itemA.w > itemB.x;

@@ -118,6 +118,7 @@ interface ISpacingIndicatorStyle {
  * `const gridRef = useRef<IGridLayoutHandle>(null); ... <GridLayout
  * ref={gridRef} .../> ... gridRef.current?.compactNow();`.
  */
+// eslint-disable-next-line @typescript-eslint/no-shadow -- deliberate: naming this forwardRef's inner function expression the same as the outer `const` it's assigned to is a standard React idiom, giving this component a real, meaningful name in React DevTools/error stack traces (a bare `forwardRef((props, ref) => ...)` shows up as an anonymous "ForwardRef" otherwise). Renaming either identifier would either lose that DevTools benefit or change this component's own public export name.
 export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(function GridLayout({
   layout,
   onLayoutChange,
@@ -655,7 +656,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
-    return () => observer.disconnect();
+    return (): void => observer.disconnect();
   }, []);
 
   /**
@@ -815,7 +816,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     let suffix = 1;
     let newId = `${id}-copy`;
     const existingIds = new Set(next.map(item => String(item.i)));
-    while(existingIds.has(newId)) {
+    while (existingIds.has(newId)) {
       suffix += 1;
       newId = `${id}-copy-${suffix}`;
     }
@@ -1105,7 +1106,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     toggleItemSelection,
     undo,
     // eslint-disable-next-line react-hooks/exhaustive-deps -- undoRedoVersion is intentionally a dep despite not being read directly in the body: it's what forces this factory to recompute canUndo/canRedo after an undo-history-affecting action that didn't otherwise change any other dependency here (see undoRedoVersion's own declaration comment).
-  }), [alignSelected, clearSelection, compactNow, deselectItem, distributeSelected, duplicateItem, exportLayoutAsSvg, focusItem, rearrange, redo, scrollToItem, selectedItemIds, selectItem, toggleItemSelection, undo, undoRedoVersion]);
+  }), [
+    alignSelected, clearSelection, compactNow, deselectItem, distributeSelected,
+    duplicateItem, exportLayoutAsSvg, focusItem, rearrange, redo, scrollToItem,
+    selectedItemIds, selectItem, toggleItemSelection, undo, undoRedoVersion,
+  ]);
 
   /**
    * Recomputes `alignmentGuideStyles`/`spacingIndicatorStyles` from an
@@ -1369,7 +1374,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       setIsAnyItemDragging(false);
       setItemGesturePlaceholder(null);
     }
-  }, [commitUndoPoint, crossGridDrag, onDragStart, onDragMove, onDragEnd, onMoveBlockedByCollision, restoreOnDrag, compactType, clearGuidesAndIndicators, commitLayout, snapToGrid, snapThreshold, applyGroupMove, horizontalShift, preventCollision, updateGuidesAndIndicators]);
+  }, [
+    commitUndoPoint, crossGridDrag, onDragStart, onDragMove, onDragEnd, onMoveBlockedByCollision,
+    restoreOnDrag, compactType, clearGuidesAndIndicators, commitLayout, snapToGrid, snapThreshold,
+    applyGroupMove, horizontalShift, preventCollision, updateGuidesAndIndicators,
+  ]);
 
   const handleItemResize = useCallback((id: string | number, eventType: TGridGestureEventType, x: number, y: number, w: number, h: number): void => {
     const next = cloneLayout(workingLayoutRef.current);
@@ -1462,7 +1471,13 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     transformScale,
     useBorderRadius,
     useCssTransforms,
-  }), [resolvedAriaLabels, autoScroll, borderRadiusPx, colNum, effectiveContainerWidth, enableEditMode, isBounded, isDraggable, isMirrored, isResizable, workingLayout, margin, maxRows, multiSelect, handleItemClick, onItemClose, handleItemDrag, handleItemResize, preserveAspectRatio, preventCollision, resizeHandleColor, resizeHandles, rowHeight, selectedItemIds, showCloseButton, showResizeHandles, transformScale, useBorderRadius, useCssTransforms]);
+  }), [
+    resolvedAriaLabels, autoScroll, borderRadiusPx, colNum, effectiveContainerWidth, enableEditMode,
+    isBounded, isDraggable, isMirrored, isResizable, workingLayout, margin, maxRows, multiSelect,
+    handleItemClick, onItemClose, handleItemDrag, handleItemResize, preserveAspectRatio, preventCollision,
+    resizeHandleColor, resizeHandles, rowHeight, selectedItemIds, showCloseButton, showResizeHandles,
+    transformScale, useBorderRadius, useCssTransforms,
+  ]);
 
   /**
    * `allowOutsideDrop`: native HTML5 drag-and-drop from outside the
@@ -1594,7 +1609,12 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * wins outright; `null` (its own default) defers entirely to
    * `autoSize` instead — see that prop's own doc comment.
    */
-  const resolvedHeightMode = heightMode !== null ? heightMode : (autoSize ? `auto` : `fixed`);
+  let resolvedHeightMode: `auto` | `fixed` | `scroll` | `fit`;
+  if(heightMode !== null) {
+    resolvedHeightMode = heightMode;
+  } else {
+    resolvedHeightMode = autoSize ? `auto` : `fixed`;
+  }
 
   let containerHeight: string | undefined;
   switch(resolvedHeightMode) {

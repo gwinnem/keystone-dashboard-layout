@@ -213,7 +213,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       autoSize(wrapper);
     });
     observer.observe(wrapper);
-    return () => observer.disconnect();
+    return (): void => observer.disconnect();
   }, [resolvedAutoHeight, autoSize]);
 
   /**
@@ -295,9 +295,16 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       }
     }
 
-    const styleFn = resolvedIsMirrored
-      ? (context.useCssTransforms ? setTransformRtl : setTopRight)
-      : (context.useCssTransforms ? setTransform : setTopLeft);
+    let styleFn: typeof setTransform;
+    if(resolvedIsMirrored && context.useCssTransforms) {
+      styleFn = setTransformRtl;
+    } else if(resolvedIsMirrored) {
+      styleFn = setTopRight;
+    } else if(context.useCssTransforms) {
+      styleFn = setTransform;
+    } else {
+      styleFn = setTopLeft;
+    }
     const anchor = resolvedIsMirrored ? Number(pos.right) : Number(pos.left);
     const baseStyle = styleFn(pos.top, anchor, pos.width, pos.height) as unknown as CSSProperties;
     // An explicit per-item zIndex always wins over the CSS-class-based
@@ -320,7 +327,13 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     return resolvedShowResizeHandles
       ? { ...withBorderRadius, [`--kdl-resize-handle-color`]: resolvedResizeHandleColor }
       : withBorderRadius;
-  }, [calcPosition, item.x, item.y, item.w, item.h, item.zIndex, isResizing, resizing, isDragging, dragging, context.useCssTransforms, context.containerWidth, context.margin, context.colNum, context.rowHeight, resolvedIsMirrored, resolvedUseBorderRadius, resolvedBorderRadiusPx, resolvedShowResizeHandles, resolvedResizeHandleColor]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- context.containerWidth/margin/colNum/rowHeight are deliberately included despite not being read directly in this function's own body; see this useMemo's own doc comment above for the full, confirmed-bug rationale (calcPosition's own stable reference reads them internally via a ref, so omitting them here silently stops this from recomputing when they change).
+  }, [
+    calcPosition, item.x, item.y, item.w, item.h, item.zIndex,
+    isResizing, resizing, isDragging, dragging,
+    context.useCssTransforms, context.containerWidth, context.margin, context.colNum, context.rowHeight,
+    resolvedIsMirrored, resolvedUseBorderRadius, resolvedBorderRadiusPx, resolvedShowResizeHandles, resolvedResizeHandleColor,
+  ]);
 
   const classNames = [
     `kdl-grid-item`,

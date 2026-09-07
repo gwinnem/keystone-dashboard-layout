@@ -148,7 +148,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
 
     switch(event.type) {
       case `dragstart`: {
-        const target = event.target;
+        const {target} = event;
         const parentTarget = target.offsetParent as HTMLElement;
         const parentRect = parentTarget.getBoundingClientRect();
         const clientRect = target.getBoundingClientRect();
@@ -193,7 +193,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
         }
         let top = Number(draggingRef.current?.top) + scaledDeltaY;
         if(isBounded) {
-          const target = event.target;
+          const {target} = event;
           const parentTarget = target.offsetParent as HTMLElement;
           const bottomBoundary = parentTarget.clientHeight - calcGridItemWH(h, rowHeight, margin[1]);
           top = clamp(top, 0, bottomBoundary);
@@ -242,7 +242,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
       }),
       handleDrag,
     );
-    return () => {
+    return (): void => {
       native.destroy();
     };
   }, [handleDrag, rootRef]);

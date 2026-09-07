@@ -50,7 +50,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'KeystoneDashboardLayoutReact',
-      fileName: (format) => `keystone-dashboard-layout-react.${format}.js`,
+      fileName: format => `keystone-dashboard-layout-react.${format}.js`,
       formats: ['es', 'umd'],
     },
     rollupOptions: {

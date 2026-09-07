@@ -1456,14 +1456,14 @@ describe(`GridItemComponent`, () => {
     it(`Should apply --kdl-resize-handle-color as transparent when showResizeHandles is explicitly false`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, showResizeHandles: false, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement as HTMLElement).style;
+      const {style} = (fixture.nativeElement as HTMLElement);
       expect(style.getPropertyValue(`--kdl-resize-handle-color`)).toBe(`transparent`);
     });
 
     it(`Should not set --kdl-resize-handle-color at all when showResizeHandles is left at its own default (null)`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement as HTMLElement).style;
+      const {style} = (fixture.nativeElement as HTMLElement);
       expect(style.getPropertyValue(`--kdl-resize-handle-color`)).toBe(``);
     });
 
@@ -1552,14 +1552,14 @@ describe(`GridItemComponent`, () => {
     it(`Should apply the explicit resizeHandleColor when showResizeHandles is true`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, resizeHandleColor: `rgb(1, 2, 3)`, showResizeHandles: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement as HTMLElement).style;
+      const {style} = (fixture.nativeElement as HTMLElement);
       expect(style.getPropertyValue(`--kdl-resize-handle-color`)).toBe(`rgb(1, 2, 3)`);
     });
 
     it(`Should fall back to the default resize-handle color when showResizeHandles is true but resizeHandleColor isn't set`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, showResizeHandles: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement as HTMLElement).style;
+      const {style} = (fixture.nativeElement as HTMLElement);
       expect(style.getPropertyValue(`--kdl-resize-handle-color`)).toBe(`rgb(94 94 94 / 45%)`);
     });
 
@@ -2125,7 +2125,18 @@ describe(`GridItemComponent`, () => {
     it(`Should inherit isDraggable from the grid-wide default when this item's own isDraggable is null`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ isDraggable: null });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: false, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: false,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       expect(busComponent.resolvedIsDraggable).toBe(false);
     });
@@ -2133,7 +2144,18 @@ describe(`GridItemComponent`, () => {
     it(`Should let this item's own isDraggable override the grid-wide default when explicitly set`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ isDraggable: true });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: false, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: false,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       expect(busComponent.resolvedIsDraggable).toBe(true);
     });
@@ -2141,7 +2163,18 @@ describe(`GridItemComponent`, () => {
     it(`Should inherit isResizable from the grid-wide default when this item's own isResizable is null`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ isResizable: null });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: false, isResizable: false, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: false,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       expect(busComponent.resolvedIsResizable).toBe(false);
     });
@@ -2149,7 +2182,18 @@ describe(`GridItemComponent`, () => {
     it(`Should let this item's own isResizable override the grid-wide default when explicitly set`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ isResizable: true });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: false, isResizable: false, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: false,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       expect(busComponent.resolvedIsResizable).toBe(true);
     });
@@ -2166,7 +2210,18 @@ describe(`GridItemComponent`, () => {
       // on h/rowHeight/margin, not colNum at all), but misleading to
       // leave in as if it mattered.
       const { busComponent, busFixture, eventBus } = createItemWithRealEventBus({ isBounded: null, margin: [10, 10], rowHeight: 100 });
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: true, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: true,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       expect(busComponent.resolvedIsBounded).toBe(true);
 
@@ -2194,7 +2249,18 @@ describe(`GridItemComponent`, () => {
 
     it(`Should let this item's own isBounded override the grid-wide default when explicitly set (grid true, item false → unclamped)`, () => {
       const { busComponent, busFixture, eventBus } = createItemWithRealEventBus({ isBounded: false, margin: [10, 10], rowHeight: 100 });
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: true, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: true,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       expect(busComponent.resolvedIsBounded).toBe(false);
 
@@ -2220,7 +2286,18 @@ describe(`GridItemComponent`, () => {
     it(`Should inherit isMirrored from the grid-wide default when this item's own isMirrored is null, reflected in the host RTL class`, () => {
       const { busFixture, eventBus } = createItemWithRealEventBus({ isMirrored: null });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: true, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: true,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
       busFixture.detectChanges();
 
       expect(busFixture.nativeElement.classList.contains(`kdl-grid-item--rtl`)).toBe(true);
@@ -2229,7 +2306,18 @@ describe(`GridItemComponent`, () => {
     it(`Should let this item's own isMirrored override the grid-wide default when explicitly set`, () => {
       const { busFixture, eventBus } = createItemWithRealEventBus({ isMirrored: false });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: true, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: true,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
       busFixture.detectChanges();
 
       expect(busFixture.nativeElement.classList.contains(`kdl-grid-item--rtl`)).toBe(false);
@@ -2238,7 +2326,18 @@ describe(`GridItemComponent`, () => {
     it(`Should always take maxRows from the grid-wide cascade when an eventBus is present, unlike isDraggable/isResizable/isBounded/isMirrored — there is no per-item override at all (matching Vue's own GridItem, confirmed via direct source read)`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ maxRows: 999 });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: 4, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: 4,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       // The item's own maxRows @Input() (999) is completely ignored once
       // a real eventBus is present — the grid's own value (4) always wins.
@@ -2254,11 +2353,33 @@ describe(`GridItemComponent`, () => {
     it(`Should re-resolve every cascaded field when the grid's own defaults change again after the initial emission`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ isDraggable: null, isResizable: null });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: false, isMirrored: false, isResizable: false, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: false,
+        isMirrored: false,
+        isResizable: false,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
       expect(busComponent.resolvedIsDraggable).toBe(false);
       expect(busComponent.resolvedIsResizable).toBe(false);
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
       expect(busComponent.resolvedIsDraggable).toBe(true);
       expect(busComponent.resolvedIsResizable).toBe(true);
     });
@@ -2358,7 +2479,18 @@ describe(`GridItemComponent`, () => {
 
     it(`Should clamp movement at the bottom edge (resolvedMaxRows - h), reflecting the grid-wide cascade`, () => {
       const eventBus = new GridEventBusService();
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: 5, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: 5,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
       const reported: { eventType: string; x: number; y: number }[] = [];
       eventBus.itemDrag$.subscribe(event => reported.push({ eventType: event.eventType, x: event.x, y: event.y }));
       TestBed.resetTestingModule();
@@ -2528,7 +2660,7 @@ describe(`GridItemComponent`, () => {
     it(`Should not apply a border-radius style at all when useBorderRadius is false (the default), but still set --kdl-close-button-inset to its own 4px baseline`, () => {
       setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement as HTMLElement).style;
+      const {style} = (fixture.nativeElement as HTMLElement);
       expect(style.borderRadius).toBe(``);
       expect(style.getPropertyValue(`--kdl-close-button-inset`)).toBe(`4px`);
     });
@@ -2536,7 +2668,7 @@ describe(`GridItemComponent`, () => {
     it(`Should apply border-radius and grow --kdl-close-button-inset with the radius when useBorderRadius is true`, () => {
       setInputsAndDetectChanges({ borderRadiusPx: 10, containerWidth: 1220, h: 2, i: `0`, useBorderRadius: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement as HTMLElement).style;
+      const {style} = (fixture.nativeElement as HTMLElement);
       expect(style.borderRadius).toBe(`10px`);
       // min(4 + round(10*0.293), 24) = min(4+3, 24) = 7
       expect(style.getPropertyValue(`--kdl-close-button-inset`)).toBe(`7px`);
@@ -2545,14 +2677,14 @@ describe(`GridItemComponent`, () => {
     it(`Should compute the inset formula correctly at 0px (the 4px floor)`, () => {
       setInputsAndDetectChanges({ borderRadiusPx: 0, containerWidth: 1220, h: 2, i: `0`, useBorderRadius: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement as HTMLElement).style;
+      const {style} = (fixture.nativeElement as HTMLElement);
       expect(style.getPropertyValue(`--kdl-close-button-inset`)).toBe(`4px`);
     });
 
     it(`Should compute the inset formula correctly at a larger radius, below the cap`, () => {
       setInputsAndDetectChanges({ borderRadiusPx: 50, containerWidth: 1220, h: 2, i: `0`, useBorderRadius: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement as HTMLElement).style;
+      const {style} = (fixture.nativeElement as HTMLElement);
       // min(4 + round(50*0.293), 24) = min(4+15, 24) = 19
       expect(style.getPropertyValue(`--kdl-close-button-inset`)).toBe(`19px`);
     });
@@ -2560,7 +2692,7 @@ describe(`GridItemComponent`, () => {
     it(`Should cap the inset formula at 24px for an extreme radius`, () => {
       setInputsAndDetectChanges({ borderRadiusPx: 100, containerWidth: 1220, h: 2, i: `0`, useBorderRadius: true, w: 2, x: 0, y: 0 });
 
-      const style = (fixture.nativeElement as HTMLElement).style;
+      const {style} = (fixture.nativeElement as HTMLElement);
       // min(4 + round(100*0.293), 24) = min(4+29, 24) = 24 (capped)
       expect(style.getPropertyValue(`--kdl-close-button-inset`)).toBe(`24px`);
     });
@@ -2576,7 +2708,18 @@ describe(`GridItemComponent`, () => {
     it(`Should inherit useBorderRadius/borderRadiusPx from the grid-wide default when this item's own values are null`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ borderRadiusPx: null, useBorderRadius: null });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 20, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: true });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 20,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: true,
+      });
 
       expect(busComponent.resolvedUseBorderRadius).toBe(true);
       expect(busComponent.resolvedBorderRadiusPx).toBe(20);
@@ -2585,7 +2728,18 @@ describe(`GridItemComponent`, () => {
     it(`Should let this item's own useBorderRadius/borderRadiusPx override the grid-wide default when explicitly set`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ borderRadiusPx: 5, useBorderRadius: false });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 20, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: true });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 20,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: true,
+      });
 
       expect(busComponent.resolvedUseBorderRadius).toBe(false);
       expect(busComponent.resolvedBorderRadiusPx).toBe(5);
@@ -2670,7 +2824,18 @@ describe(`GridItemComponent`, () => {
     it(`Should inherit showCloseButton from the grid-wide default when this item's own value is null`, () => {
       const { busFixture, eventBus } = createItemWithRealEventBus({ showCloseButton: null });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: true, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: true,
+        useBorderRadius: false,
+      });
       busFixture.detectChanges();
 
       expect(busFixture.nativeElement.querySelector(`.kdl-grid-item-close-button`)).toBeTruthy();
@@ -2679,7 +2844,18 @@ describe(`GridItemComponent`, () => {
     it(`Should let this item's own showCloseButton override the grid-wide default when explicitly set`, () => {
       const { busFixture, eventBus } = createItemWithRealEventBus({ showCloseButton: false });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: true, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: true,
+        useBorderRadius: false,
+      });
       busFixture.detectChanges();
 
       expect(busFixture.nativeElement.querySelector(`.kdl-grid-item-close-button`)).toBeFalsy();
@@ -2722,7 +2898,18 @@ describe(`GridItemComponent`, () => {
     it(`Should apply a grid-wide ariaLabels override`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({});
 
-      eventBus.setGridDefaults({ ariaLabels: { closeButton: `Remove` }, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: { closeButton: `Remove` },
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       expect(busComponent.resolvedAriaLabels.closeButton).toBe(`Remove`);
     });
@@ -2730,7 +2917,18 @@ describe(`GridItemComponent`, () => {
     it(`Should let this item's own ariaLabels override the grid-wide override for the same key`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ ariaLabels: { closeButton: `Dismiss` } });
 
-      eventBus.setGridDefaults({ ariaLabels: { closeButton: `Remove` }, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: { closeButton: `Remove` },
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       expect(busComponent.resolvedAriaLabels.closeButton).toBe(`Dismiss`);
     });
@@ -2738,7 +2936,18 @@ describe(`GridItemComponent`, () => {
     it(`Should merge distinct keys set at different levels, rather than one replacing the whole object`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ ariaLabels: { moveInstruction: `Item-level move instruction` } });
 
-      eventBus.setGridDefaults({ ariaLabels: { closeButton: `Grid-level close` }, enableEditMode: true, borderRadiusPx: 10, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: { closeButton: `Grid-level close` },
+        enableEditMode: true,
+        borderRadiusPx: 10,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       // Grid-level override for a key the item didn't touch...
       expect(busComponent.resolvedAriaLabels.closeButton).toBe(`Grid-level close`);
@@ -2954,7 +3163,18 @@ describe(`GridItemComponent`, () => {
     it(`Should inherit enableEditMode from the grid-wide default when this item's own value is null`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ enableEditMode: null });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, borderRadiusPx: 10, enableEditMode: false, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        borderRadiusPx: 10,
+        enableEditMode: false,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       expect(busComponent.resolvedEnableEditMode).toBe(false);
     });
@@ -2962,7 +3182,18 @@ describe(`GridItemComponent`, () => {
     it(`Should let this item's own enableEditMode override the grid-wide default when explicitly set`, () => {
       const { busComponent, eventBus } = createItemWithRealEventBus({ enableEditMode: true });
 
-      eventBus.setGridDefaults({ ariaLabels: {}, borderRadiusPx: 10, enableEditMode: false, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false });
+      eventBus.setGridDefaults({
+        ariaLabels: {},
+        borderRadiusPx: 10,
+        enableEditMode: false,
+        isBounded: false,
+        isDraggable: true,
+        isMirrored: false,
+        isResizable: true,
+        maxRows: Infinity,
+        showCloseButton: false,
+        useBorderRadius: false,
+      });
 
       expect(busComponent.resolvedEnableEditMode).toBe(true);
     });

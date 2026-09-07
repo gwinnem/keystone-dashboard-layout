@@ -160,7 +160,6 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     se: seRef,
     sw: swRef,
     w: wRef,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
 
   const calcPosition = useCallback((x: number, y: number, w: number, h: number): IGridItemPosition => {
@@ -450,7 +449,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
       () => ({ enabled: optionsRef.current.enabled, ignoreFrom: optionsRef.current.ignoreFrom }),
       handleResize,
     );
-    return () => {
+    return (): void => {
       native.destroy();
     };
     // Real, confirmed bug fix, not a stylistic dependency-list change:

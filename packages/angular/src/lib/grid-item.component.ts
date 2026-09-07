@@ -9,11 +9,11 @@
   DestroyRef,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  Optional,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -503,14 +503,23 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   private lastResolvedResizeHandlesKey = ``;
   private readonly autoScrollEngine: INativeAutoScroll = createNativeAutoScroll();
   /** The most recently received (or, absent any eventBus, standalone-usage-default) `IGridDefaults` snapshot — kept so `resolveGridDefaults()` can be re-run from `ngOnChanges` whenever this item's own `isDraggable`/`isResizable`/`isBounded`/`isMirrored`/`maxRows` change, without needing to wait for the grid's own next emission too. */
-  private latestGridDefaults: IGridDefaults = { ariaLabels: {}, borderRadiusPx: 10, enableEditMode: true, isBounded: false, isDraggable: true, isMirrored: false, isResizable: true, maxRows: Infinity, showCloseButton: false, useBorderRadius: false };
+  private latestGridDefaults: IGridDefaults = {
+    ariaLabels: {},
+    borderRadiusPx: 10,
+    enableEditMode: true,
+    isBounded: false,
+    isDraggable: true,
+    isMirrored: false,
+    isResizable: true,
+    maxRows: Infinity,
+    showCloseButton: false,
+    useBorderRadius: false,
+  };
 
-  constructor(
-    @Optional() private readonly eventBus: GridEventBusService | null,
-    private readonly destroyRef: DestroyRef,
-    private readonly elementRef: ElementRef<HTMLElement>,
-    private readonly changeDetectorRef: ChangeDetectorRef,
-  ) {}
+  private readonly eventBus: GridEventBusService | null = inject(GridEventBusService, { optional: true });
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   ngAfterContentInit(): void {
     this.hasHeaderContent = !!this.headerContentQuery;
@@ -1254,7 +1263,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
 
     switch(event.type) {
       case `dragstart`: {
-        const target = event.target;
+        const {target} = event;
         const parentTarget = target.offsetParent as HTMLElement;
         const parentRect = parentTarget.getBoundingClientRect();
         const clientRect = target.getBoundingClientRect();
@@ -1304,7 +1313,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         }
         newPosition.top = Number(this.dragging?.top) + scaledDeltaY;
         if(this.resolvedIsBounded) {
-          const target = event.target;
+          const {target} = event;
           const parentTarget = target.offsetParent as HTMLElement;
           const bottomBoundary = parentTarget.clientHeight - calcGridItemWH(this.h, this.rowHeight, this.margin[1]);
           newPosition.top = clamp(newPosition.top, 0, bottomBoundary);
@@ -1633,9 +1642,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         // own dragmove case, before dragging is ever assigned — the
         // value read here is already clamped when isBounded is true, no
         // further adjustment needed at render time.
-        left = this.dragging.left;
-        right = this.dragging.right;
-        top = this.dragging.top;
+        ({ left, right, top } = this.dragging);
       } else if(this.resolvedIsMirrored) {
         right = Math.round(colWidth * (this.colNum - this.x - this.w) + (this.colNum - this.x - this.w + 1) * marginH);
         top = Math.round(this.rowHeight * this.y + (this.y + 1) * marginV);

@@ -7,6 +7,7 @@
   DestroyRef,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -507,11 +508,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   private readonly onOutsideDragLeave = (event: DragEvent): void => this.handleOutsideDragLeave(event);
   private readonly onOutsideDrop = (event: DragEvent): void => this.handleOutsideDrop(event);
 
-  constructor(
-    private readonly changeDetectorRef: ChangeDetectorRef,
-    private readonly eventBus: GridEventBusService,
-    private readonly destroyRef: DestroyRef,
-  ) {}
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly eventBus = inject(GridEventBusService);
+  private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
     // Mount-time layout validation — matches the Vue package's own
@@ -890,7 +889,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     let suffix = 1;
     let newId = `${id}-copy`;
     const existingIds = new Set(this.workingLayout.map(item => String(item.i)));
-    while(existingIds.has(newId)) {
+    while (existingIds.has(newId)) {
       suffix += 1;
       newId = `${id}-copy-${suffix}`;
     }
@@ -1821,11 +1820,14 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     // only in overflow-y below — matching Vue's own containerHeight()
     // exactly (confirmed via a direct source read: its own switch
     // statement's default case, covering both, returns an empty string).
-    const height = mode === `auto`
-      ? `${getBottomYCoordinate(this.layout) * (this.rowHeight + marginV) + marginV}px`
-      : mode === `fit`
-        ? `100%`
-        : undefined;
+    let height: string | undefined;
+    if(mode === `auto`) {
+      height = `${getBottomYCoordinate(this.layout) * (this.rowHeight + marginV) + marginV}px`;
+    } else if(mode === `fit`) {
+      height = `100%`;
+    } else {
+      height = undefined;
+    }
     // Only 'scroll'/'fit' set this at all — 'auto'/'fixed' leave the
     // container's own natural overflow behavior (whatever the
     // consumer's surrounding CSS already does) completely untouched,
