@@ -4,13 +4,13 @@ import tsParser from '@typescript-eslint/parser';
 import globals from 'globals';
 
 /**
- * ESLint 9 flat config for @keystone-dashboard-layout/core.
+ * ESLint 9 flat config for keystone-dashboard-layout-core.
  * This package has no framework dependency, so no vue/react/angular
  * plugins are needed here — plain TypeScript rules only.
  */
 export default [
   {
-    ignores: ['dist/**', 'coverage/**', 'node_modules/**'],
+    ignores: ['dist/**', '**/coverage/**', 'node_modules/**', '.stryker-tmp/**', '**/.stryker-tmp/**'],
   },
   js.configs.recommended,
   ...tsPlugin.configs['flat/recommended'],

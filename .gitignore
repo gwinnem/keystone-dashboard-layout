@@ -22,6 +22,8 @@ pnpm-debug.log*
 
 # stryker (mutation testing)
 .stryker-tmp
+.stryker-tmp/
+**/.stryker-tmp/
 reports/mutation
 StrykerTrapper.log
 

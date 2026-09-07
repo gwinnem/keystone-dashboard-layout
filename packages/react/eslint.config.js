@@ -5,7 +5,7 @@ import prettierPlugin from 'eslint-plugin-prettier';
 import globals from 'globals';
 
 /**
- * ESLint 9 flat config for @keystone-dashboard-layout/react.
+ * ESLint 9 flat config for keystone-dashboard-layout-react.
  *
  * Brought up to match packages/vue's own rule set (naming conventions,
  * explicit-function-return-type, the full style rule list, and so on) —
@@ -29,7 +29,7 @@ import globals from 'globals';
  */
 export default [
   {
-    ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'e2e-fixture/**', 'reports/**', '*.tgz'],
+    ignores: ['dist/**', '**/coverage/**', 'node_modules/**', 'e2e-fixture/**', 'reports/**', '.stryker-tmp/**', '**/.stryker-tmp/**', '*.tgz'],
   },
 
   js.configs.recommended,

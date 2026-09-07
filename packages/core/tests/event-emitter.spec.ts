@@ -102,9 +102,7 @@ describe(`createEventEmitter`, () => {
   it(`Should not affect other listeners when a handler removes itself during emit (iteration-safety)`, () => {
     const emitter = createEventEmitter<{ tick: void }>();
     const secondHandler = vi.fn();
-    // eslint-disable-next-line prefer-const
-    let firstHandler: () => void;
-    firstHandler = vi.fn(() => {
+    const firstHandler = vi.fn(() => {
       emitter.off(`tick`, firstHandler);
     });
 
