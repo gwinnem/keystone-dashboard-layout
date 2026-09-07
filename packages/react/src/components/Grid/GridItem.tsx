@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, KeyboardEvent, MouseEvent } from 'react';
 import { resolveAriaLabels, setTopLeft, setTopRight, setTransform, setTransformRtl } from 'keystone-dashboard-layout-core';
+import type { ITopLeftStyle, ITopRightStyle, ITransformStyle } from 'keystone-dashboard-layout-core';
 import type { IGridItemProps } from './grid-item-props.interface';
 import { useGridContext } from './grid-context';
 import { useGridItemDrag } from './hooks/useGridItemDrag';
@@ -295,7 +296,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       }
     }
 
-    let styleFn: typeof setTransform;
+    let styleFn: (top: number, leftOrRight: number, width: number, height: number) => ITransformStyle | ITopLeftStyle | ITopRightStyle;
     if(resolvedIsMirrored && context.useCssTransforms) {
       styleFn = setTransformRtl;
     } else if(resolvedIsMirrored) {

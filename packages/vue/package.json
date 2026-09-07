@@ -79,6 +79,8 @@
   },
   "scripts": {
     "dev": "vite",
+    "demo": "vite --config demo/vite.config.ts",
+    "demo:build": "vite build --config demo/vite.config.ts",
     "coverage": "vitest run --coverage",
     "build:all": "vite build && npm pack",
     "build": "vite build",
