@@ -1,0 +1,47 @@
+---
+title: GridItemCloseButtonComponent
+description: The exact close button GridItemComponent renders internally for showCloseButton — exported for standalone reuse.
+---
+
+The default close button rendered inside `GridItemComponent` when
+`showCloseButton` is `true`. Also exported standalone from the
+package's own public entry point, for a consumer who wants to render
+the same button elsewhere (e.g. inside a custom header) and wire it to
+their own removal logic manually.
+
+```ts
+import { Component } from '@angular/core';
+import { GridItemCloseButtonComponent } from 'keystone-dashboard-layout-angular';
+
+@Component({
+  standalone: true,
+  imports: [GridItemCloseButtonComponent],
+  template: `<kdl-custom-close-button [i]="item.i" (removeGridItem)="removeItem($event)" />`,
+})
+export class MyHeaderComponent {
+  removeItem(id: string | number): void {
+    this.layout = this.layout.filter((item) => item.i !== id);
+  }
+}
+```
+
+## Inputs
+
+| Input | Type | Default | Description |
+|---|---|---|---|
+| `i` | `string \| number` | — | `@Input({ required: true })` — the id of the item this button removes when clicked. Angular has first-class support for a required input with no default at all, unlike Vue's own `-1` "no item" sentinel workaround (needed there only because Vue's `withDefaults` requires *some* default for every prop). |
+
+## Outputs
+
+| Output | Payload | When |
+|---|---|---|
+| `removeGridItem` | `string \| number` | The button was clicked. Emits `i`. Named distinctly from `GridItemComponent`'s own local `removeItem` output, since this component has no relationship to any specific parent item — it's a standalone utility a consumer wires up manually. |
+
+## Why you'd use this instead of `showCloseButton`
+
+`showCloseButton` is the right choice for the common case — the built-in
+button, styled via the classes documented in [Components](/angular/components/).
+Reach for `GridItemCloseButtonComponent` directly when you want the
+exact same click/removal behavior but need to place it somewhere
+`GridItemComponent`'s own internal rendering doesn't reach — inside a
+custom header, for instance.

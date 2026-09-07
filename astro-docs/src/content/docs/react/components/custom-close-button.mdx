@@ -1,0 +1,39 @@
+---
+title: GridItemCloseButton
+description: The exact close button GridItem renders internally for showCloseButton — exported for standalone reuse.
+---
+
+The default close button rendered inside a `GridItem` when
+`showCloseButton` resolves `true`. Also exported standalone from the
+package's main entry point, in case you want to render the same button
+somewhere else (a custom header, say) and wire it to the same removal
+logic yourself.
+
+```tsx
+import { GridItemCloseButton } from 'keystone-dashboard-layout-react';
+
+function removeItem(id: string | number): void {
+  setLayout((layout) => layout.filter((item) => item.i !== id));
+}
+
+<GridItemCloseButton i={item.i} onRemoveGridItem={removeItem} />;
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `i` | `string \| number` | — | The id of the `GridItem` this button removes when clicked. Required — unlike Vue's own `CustomCloseButton`, which needs a `-1` sentinel default since Vue props can't enforce "must be provided," React's own type system already expresses that directly. |
+| `onRemoveGridItem` | `(id: string \| number) => void` | — | Called with `i` when the button is clicked. |
+
+## Why you'd use this instead of `showCloseButton`
+
+`showCloseButton` is the right choice for the common case — the built-in
+button, styled via the classes documented in [Styling](/react/components/styling/).
+Reach for `GridItemCloseButton` directly when you want the exact same
+click/removal behavior but need to place it somewhere `GridItem`'s own
+internal rendering doesn't reach — inside a custom header, for instance.
+Not used internally by `GridItem` itself, which renders its own,
+separate built-in close button with a matching visual style — the same
+relationship Angular's own `GridItemCloseButtonComponent` has to its
+package's built-in close button.

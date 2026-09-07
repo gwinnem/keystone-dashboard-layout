@@ -64,8 +64,43 @@ const SECTION_SIDEBARS: { prefix: string; groupLabel: string }[] = [
 	{ prefix: `/react/components`, groupLabel: `Components` },
 	{ prefix: `/react/api`, groupLabel: `API` },
 	{ prefix: `/react/examples`, groupLabel: `Examples` },
+	{ prefix: `/angular/guide`, groupLabel: `Guide` },
+	{ prefix: `/angular/components`, groupLabel: `Components` },
+	{ prefix: `/angular/api`, groupLabel: `API` },
+	{ prefix: `/angular/examples`, groupLabel: `Examples` },
 	{ prefix: `/core/guide`, groupLabel: `Guide` },
+	{ prefix: `/core/api`, groupLabel: `API reference` },
 ];
+
+// Same idea as SECTION_SIDEBARS above, but for a top-level entry that's
+// a flat link rather than a group — Features today (Vue/React each
+// have one, sitting alongside Guide/Components/API/Examples, not
+// nested inside any of them). findGroup can't isolate these at all
+// (there's no group to find), so without this a route like
+// /vue/features fell all the way through to `frameworkSidebar`
+// unfiltered — confirmed directly: every other top-level section
+// (Guide *and* its own nested Project subgroup, Components, GridLayout,
+// GridItem, all fully expanded at once) rendered alongside Features
+// instead of just Features alone.
+const LEAF_SIDEBARS: { prefix: string; label: string }[] = [
+	{ prefix: `/vue/features`, label: `Features` },
+	{ prefix: `/react/features`, label: `Features` },
+	{ prefix: `/angular/features`, label: `Features` },
+];
+
+// Recurses the same way findGroup does, but looks for a non-group entry
+// (a plain link) with the given label instead of a group.
+function findLeaf(entries: SidebarEntry[], label: string): SidebarEntry[] | null {
+	for (const entry of entries) {
+		if (entry.type !== `group`) {
+			if (entry.label === label) return [entry];
+			continue;
+		}
+		const nested = findLeaf(entry.entries, label);
+		if (nested) return nested;
+	}
+	return null;
+}
 
 // Recurses through the sidebar tree looking for a group with the given
 // label, at any depth. Keeps working unchanged if the sidebar's own
@@ -93,12 +128,20 @@ const frameworkSidebar = matchedFramework ? (findGroup(sidebar, matchedFramework
 
 // Step 2: within that already-framework-isolated tree, narrow further
 // to the specific Guide/Components/API/Examples sub-section if the
-// route matches one — a single link like Features has no subtree of
-// its own to isolate, so there's nothing meaningful to narrow down to,
-// and routes with no sub-groups at all (React, Angular today) simply
-// keep whatever Step 1 already produced.
+// route matches one, or to a single flat leaf entry (Features) via
+// LEAF_SIDEBARS/findLeaf — checked first since a leaf route (e.g.
+// /vue/features) would otherwise also happen to match nothing in
+// SECTION_SIDEBARS and fall through to the unfiltered
+// `frameworkSidebar` below. Routes with no sub-groups and no matching
+// leaf at all (React, Angular today) simply keep whatever Step 1
+// already produced.
+const matchedLeaf = LEAF_SIDEBARS.find(({ prefix }) => Astro.url.pathname.includes(prefix));
 const matchedSection = SECTION_SIDEBARS.find(({ prefix }) => Astro.url.pathname.includes(prefix));
-const displayedSidebar = matchedSection ? (findGroup(frameworkSidebar, matchedSection.groupLabel) ?? frameworkSidebar) : frameworkSidebar;
+const displayedSidebar = matchedLeaf
+	? (findLeaf(frameworkSidebar, matchedLeaf.label) ?? frameworkSidebar)
+	: matchedSection
+		? (findGroup(frameworkSidebar, matchedSection.groupLabel) ?? frameworkSidebar)
+		: frameworkSidebar;
 ---
 
 <SidebarPersister {...Astro.props}>

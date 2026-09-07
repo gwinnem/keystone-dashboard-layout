@@ -1,0 +1,92 @@
+---
+title: Styling
+description: CSS custom properties and class names for customizing the grid's appearance.
+---
+
+Like the React package (and unlike Vue's own mostly compile-time SCSS
+variables), this package's stylesheet uses real, runtime-overridable
+CSS custom properties throughout, under a consistent `kdl-` prefix on
+every class name — confirmed directly from `packages/angular/src/styles/index.scss`.
+Import it once, wherever you import `GridLayoutComponent`/`GridItemComponent`
+from:
+
+```ts
+import 'keystone-dashboard-layout-angular/style.css';
+```
+
+## CSS custom properties
+
+All of these are genuinely overridable from your own stylesheet after
+importing the file above:
+
+| Property | Default | Set by |
+|---|---|---|
+| `--grid-transition-duration` | `200ms` | `transitionDurationMs` input |
+| `--grid-transition-timing` | `ease` | `transitionTimingFunction` input |
+| `--kdl-grid-line-column-size` | `1px` | Computed from `colNum`/margin when `showGridLines` is on |
+| `--kdl-grid-line-row-size` | `1px` | Computed from `rowHeight`/margin when `showGridLines` is on |
+| `--kdl-resize-handle-color` | `rgb(94 94 94 / 45%)` | `resizeHandleColor` input |
+
+:::note[Two of these have no `kdl-` prefix — a real, confirmed naming difference from React]
+`--grid-transition-duration`/`--grid-transition-timing` are set exactly
+this way in `grid-layout.component.ts` (checked directly, not assumed
+identical to React's own `--kdl-transition-duration`/`--kdl-transition-timing`).
+Both packages otherwise use the same `kdl-` prefix everywhere else —
+this is a genuine, existing inconsistency in the published package, not
+a documentation typo.
+:::
+
+```css
+/* After importing 'keystone-dashboard-layout-angular/style.css' */
+kdl-grid-layout {
+  --kdl-resize-handle-color: #38bdf8;
+}
+```
+
+## Key class names
+
+The library only ever sets/removes these classes — it never applies
+inline styles for anything covered here, so overriding the class is
+enough; there's no competing inline style to fight. Three real naming
+differences from the React package, each confirmed directly against
+this package's own component source rather than assumed identical:
+the grid-lines toggle is `.kdl-grid-lines` (not React's
+`.kdl-grid-layout--grid-lines`), the outside-drop placeholder is
+`.kdl-grid-placeholder` (not React's `.kdl-grid-outside-drop-placeholder`),
+and there's no separate `.kdl-grid-item--show-resize-handles` gating
+class at all — `--kdl-resize-handle-color` being set to a real color
+(rather than the `transparent` default) is what makes a resize handle
+visible here, with no class toggle needed alongside it.
+
+| Class | Applied when |
+|---|---|
+| `.kdl-grid-layout` | Always, on the root element. |
+| `.kdl-grid-layout--active-drag` | While any item in this grid has an active drag (raises this grid's own stacking context, relevant for `allowCrossGridDrag`). |
+| `.kdl-grid-lines` | `showGridLines` is on. |
+| `.kdl-grid-item` | Always, on each item's own root element. |
+| `.kdl-grid-item--draggable` | The resolved `isDraggable` is `true` for this item. |
+| `.kdl-grid-item--dragging` | This item has an active drag in progress. |
+| `.kdl-grid-item--resizing` | This item has an active resize in progress. |
+| `.kdl-grid-item--static` | This item's `isStatic` is `true`. |
+| `.kdl-grid-item--selected` | This item is part of the current `multiSelect` selection. |
+| `.kdl-grid-item--has-header` | A `kdlGridItemHeader`-projected header is present — bound on `.kdl-grid-item-inner`, the item's own internal wrapper div, not the host element itself. |
+| `.kdl-grid-item--rtl` | This item participates in `isMirrored` (RTL). |
+| `.kdl-grid-item-header` / `.kdl-grid-item-body` | The two regions created when a header is projected. |
+| `.kdl-grid-item-close-button` | The built-in close button, when `showCloseButton` is on. |
+| `.kdl-grid-item-close-button-icon` | A separate, empty, `aria-hidden` span drawing the "×" glyph in pure CSS — React's own button holds an inline "×" character directly instead, needing no separate icon element. |
+| `.kdl-resize-hint--n` / `--s` / `--e` / `--w` / `--ne` / `--nw` / `--se` / `--sw` | The (always-present, invisible-by-default) hit zone for each resize edge/corner. |
+| `.kdl-grid-placeholder` | The live drop-position preview while a native HTML5 drag (or a cross-grid drag) is over the grid. |
+
+```css
+/* After importing 'keystone-dashboard-layout-angular/style.css' */
+kdl-grid-item.kdl-grid-item--static {
+  background-color: #1e293b;
+}
+```
+
+## Border radius
+
+Unlike every class above, `borderRadiusPx` is applied as an **inline
+style** (not a class), matching React's own approach — use the
+`borderRadiusPx` input itself rather than trying to override this one
+via CSS.

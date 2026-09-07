@@ -12,8 +12,8 @@ The package exports these from its main entry point — both are
 | [`GridLayoutComponent`](/angular/components/grid-layout/props/) | `kdl-grid-layout` | The grid container — owns the layout array, breakpoints, and collision/compaction logic. A fully controlled component (`layout` `@Input()` + `layoutChange` `@Output()`). |
 | [`GridItemComponent`](/angular/components/grid-item/props/) | `kdl-grid-item` | A single draggable/resizable cell, projected as content of `GridLayoutComponent`. |
 
-See [Styling](/angular/components/styling/) once that page lands for
-the CSS custom properties and class names used throughout.
+See [Styling](/angular/components/styling/) for the CSS custom
+properties and class names used throughout.
 
 ```ts
 import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
@@ -47,8 +47,8 @@ themselves; a consumer opts into either explicitly.
 
 | Component | Selector | Purpose |
 |---|---|---|
-| `GridItemCloseButtonComponent` | `kdl-custom-close-button` | A standalone close button. Takes a required `i` — the id of whichever item it should remove — and emits `removeGridItem` with that id on click; wire that output to your own removal logic. |
-| `GridItemDragHandleComponent` | `kdl-custom-drag-element` | A standalone drag-handle widget (a labeled button plus a separate `.kdl-draggable-handle` hit-area — target that class, not the button itself, with `dragAllowFrom`). Takes an optional `text` input (default `'x'`) for the button's own label. |
+| [`GridItemCloseButtonComponent`](/angular/components/custom-close-button/) | `kdl-custom-close-button` | A standalone close button. Takes a required `i` — the id of whichever item it should remove — and emits `removeGridItem` with that id on click; wire that output to your own removal logic. |
+| [`GridItemDragHandleComponent`](/angular/components/custom-drag-element/) | `kdl-custom-drag-element` | A standalone drag-handle widget (a labeled button plus a separate `.kdl-draggable-handle` hit-area — target that class, not the button itself, with `dragAllowFrom`). Takes an optional `text` input (default `'x'`) for the button's own label. |
 
 ```ts
 import { GridItemCloseButtonComponent, GridItemDragHandleComponent } from 'keystone-dashboard-layout-angular';
@@ -75,5 +75,5 @@ component, or a plain template variable for a direct template call) —
 `alignSelected(edge)`/`distributeSelected(axis)`, `exportLayoutAsSvg()`,
 and `scrollToItem(id)`/`focusItem(id)` — the Angular equivalent of
 Vue's own `defineExpose`'d template-ref methods, or React's `ref`-based
-imperative handle. See [Public members](/angular/api/) once that page
-lands for the full reference.
+imperative handle. See [Public members](/angular/api/interfaces/public-members/)
+for the full reference.

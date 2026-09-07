@@ -1,93 +1,102 @@
-﻿---
+---
 title: Features
-description: Everything Keystone Dashboard Layout for Angular does, grouped by category.
+description: Everything Keystone Dashboard Layout for Angular does, grouped by category, with a live example linked from every bullet.
 ---
 
-:::note[Examples exist, just not embedded here yet]
-Angular has reached full feature parity with Vue and React (every item
-in its own prop/behavior inventory is implemented), and all of this
-package's own interactive examples have now been ported and verified
-— but they live in a separate, standalone Angular CLI app rather than
-as embedded Astro islands on this site (the community
+:::note[All 53 examples are live in a real, separate Angular app]
+Angular has reached full feature parity with Vue and React, and all 53
+of this package's own interactive examples have been ported and
+verified — but they live in a real, separate, standalone Angular CLI
+app rather than as embedded Astro islands on this site (the community
 `@analogjs/astro-angular` integration this site's Vue/React examples
-rely on proved too fragile for Angular specifically; see that app's
-own README for the full account). That app isn't publicly deployed
-yet, so this page can't link to it directly. See
-[Vue's own Examples](/vue/examples/) or
-[React's own Examples](/react/examples/) for the same features
-demonstrated live in the meantime; the underlying behavior is identical.
+rely on proved too fragile for Angular specifically; see that app's own
+README for the full account). Every link below opens that app directly
+— see the sidebar's own **Examples** section for the same 53, or
+[Vue's own Examples](/vue/examples/)/[React's own Examples](/react/examples/)
+if you'd rather stay on this site; the underlying behavior across all
+three is identical. Every example in that app also has its own "Open in
+StackBlitz" button seeding a real, editable, running project from that
+exact example's own source.
 :::
 
 ## Drag & resize
 
-- **Drag anywhere, or from a handle.** Every item is draggable by default; restrict it to a specific handle with `dragAllowFrom`, or exclude specific elements with `dragIgnoreFrom` (and `resizeIgnoreFrom` for resize specifically).
-- **Resize from any edge or corner** — top, right, bottom, left, and the diagonals — with optional `preserveAspectRatio` locking.
-- **Min/max size constraints** (`minW`/`maxW`/`minH`/`maxH`) per item.
-- **Bounded dragging** (`isBounded`) — keep items from being dragged outside the container.
-- **Static items** — lock specific items in place; they ignore dragging/resizing entirely and act as fixed obstacles for compaction.
-- **Per-item `zIndex` override** — pin one item permanently above every other, including while others are mid-resize, regardless of the library's own implicit static/resizing stacking rules.
-- **A separate header region** — a `GridItemHeaderDirective` marker directive (`[kdlGridItemHeader]`) applied to your own header content, projected into `GridItemComponent`'s own dedicated header region instead of its plain default content. Angular's equivalent of Vue's named slot or React's `header` render prop, expressed as a queryable content-projection marker instead.
-- **Per-item `autoHeight`** — a live-resyncing height, driven by a real `ResizeObserver` on the item's own content rather than a one-time measurement.
-- **`dragActivationDistance`** — a per-pointer-type drag-start threshold, so a small accidental movement doesn't immediately start a drag.
+- **Drag anywhere, or from a handle.** Every item is draggable by default; restrict it to a specific handle with `dragAllowFrom`, or exclude specific elements with `dragIgnoreFrom` (and `resizeIgnoreFrom` for resize specifically). See [Drag allow/ignore elements](https://kdla.winnem.tech/examples/05-drag-allow-ignore-elements) and [Custom drag handle](https://kdla.winnem.tech/examples/18-custom-drag-handle-close-button).
+- **Resize from any edge or corner** — top, right, bottom, left, and the diagonals — with optional `preserveAspectRatio` locking. See [Size constraints & aspect ratio](https://kdla.winnem.tech/examples/38-size-constraints-aspect-ratio), [Restricting resize handles to specific edges](https://kdla.winnem.tech/examples/52-restrict-resize-handles), and [Resize direction toggles](https://kdla.winnem.tech/examples/53-resize-direction-toggles).
+- **Min/max size constraints** (`minW`/`maxW`/`minH`/`maxH`) per item. See [Size constraints & aspect ratio](https://kdla.winnem.tech/examples/38-size-constraints-aspect-ratio).
+- **Bounded dragging** (`isBounded`) — keep items from being dragged outside the container. See [Bounded drag](https://kdla.winnem.tech/examples/02-bounded-drag).
+- **Static items** — lock specific items in place; they ignore dragging/resizing entirely and act as fixed obstacles for compaction. See [Static items](https://kdla.winnem.tech/examples/17-static-items).
+- **Per-item `zIndex` override** — pin one item permanently above every other, including while others are mid-resize, regardless of the library's own implicit static/resizing stacking rules. See [Per-item zIndex override](https://kdla.winnem.tech/examples/49-per-item-z-index).
+- **A separate header region** — a `GridItemHeaderDirective` marker directive (`[kdlGridItemHeader]`) applied to your own header content, projected into `GridItemComponent`'s own dedicated header region instead of its plain default content. Angular's equivalent of Vue's named slot or React's `header` render prop, expressed as a queryable content-projection marker instead. See [Custom header](https://kdla.winnem.tech/examples/48-custom-header-slot).
+- **Per-item `autoHeight`** — a live-resyncing height, driven by a real `ResizeObserver` on the item's own content rather than a one-time measurement. See [Per-item autoHeight](https://kdla.winnem.tech/examples/31-per-item-auto-height).
+- **`dragActivationDistance`** — a per-pointer-type drag-start threshold, so a small accidental movement doesn't immediately start a drag. See [Drag activation distance](https://kdla.winnem.tech/examples/51-drag-activation-distance).
 
 ## Layout & collision
 
 - **Automatic compaction.** Items fill gaps vertically by default; other items automatically move out of the way of a drag/resize.
-- **Pluggable compaction strategy** (`compactType`) — five built-in strategies (vertical, horizontal, none, and overlap variants of each), or replace the algorithm entirely with a custom `compactor` `@Input()`.
-- **Horizontal shift mode** (`horizontalShift`) — push colliding items left/right instead of down.
-- **Prevent collision mode** (`preventCollision`) — block a drag/resize instead of pushing other items, with a `moveBlockedByCollision` `@Output()` so a consumer can give feedback the moment that happens.
-- **Magnetic snap-to-grid** (`snapToGrid`/`snapThreshold`) — actually adjusts an item's landing position to align with a neighbor, not just a visual guide.
-- **Alignment guides** (`showAlignmentGuides`) — Figma-style guide lines while dragging or resizing, wherever an item's edges line up with another's.
-- **`restoreOnDrag`** — keep other items from compacting past their pre-drag position while a drag is in progress.
-- **Auto-sizing container** — the grid's height grows/shrinks to fit its content by default (`autoSize`, or the newer `heightMode` `@Input()` for finer control including `'scroll'`/`'fit'` modes).
-- **Spacing indicators** (`showSpacingGuides`) — a labeled distance badge (e.g. "2 cols") in the gap between the active item and its nearest neighbor on each side, independently toggleable alongside alignment guides.
-- **Serializable layout.** The `layout` array is a plain, JSON-serializable structure you own — persist it anywhere.
-- **Named layout presets** (`GridLayoutPresetsService`) — save and switch between multiple named arrangements, layered on the same serialize/restore primitives `GridLayoutStorageService` uses.
-- **Grid-to-SVG export** (`exportLayoutAsSvg()`, a public method on `GridLayoutComponent`) — a dependency-free utility producing a standalone SVG snapshot of the current layout.
-- **Undo/redo** (`enableUndoRedo`, capped via `undoHistoryLimit`) — opt-in history at committed-change granularity (drag/resize end, add/remove), not per intermediate frame. Reach `undo()`/`redo()` and the `canUndo`/`canRedo` flags via a template reference variable on `GridLayoutComponent`.
-- **Add/remove items freely**, with automatic re-compaction — no manual position math required. `duplicateItem(id)` (also a public method) clones an existing item into a collision-safe spot below it.
+- **Pluggable compaction strategy** (`compactType`) — five built-in strategies (vertical, horizontal, none, and overlap variants of each), or replace the algorithm entirely with a custom `compactor` `@Input()`. See [Pluggable compaction](https://kdla.winnem.tech/examples/42-pluggable-compaction).
+- **Horizontal shift mode** (`horizontalShift`) — push colliding items left/right instead of down. See [Horizontal shift](https://kdla.winnem.tech/examples/15-horizontal-shift).
+- **Prevent collision mode** (`preventCollision`) — block a drag/resize instead of pushing other items, with a `moveBlockedByCollision` `@Output()` so a consumer can give feedback the moment that happens. See [Prevent collision](https://kdla.winnem.tech/examples/08-prevent-collision) and [Blocked-move feedback](https://kdla.winnem.tech/examples/30-blocked-move-feedback).
+- **Magnetic snap-to-grid** (`snapToGrid`/`snapThreshold`) — actually adjusts an item's landing position to align with a neighbor, not just a visual guide. See [Snap to grid](https://kdla.winnem.tech/examples/32-snap-to-grid).
+- **Alignment guides** (`showAlignmentGuides`) — Figma-style guide lines while dragging or resizing, wherever an item's edges line up with another's. See [Alignment guides while dragging](https://kdla.winnem.tech/examples/26-alignment-guides).
+- **`restoreOnDrag`** — keep other items from compacting past their pre-drag position while a drag is in progress. See [Layout bounds & rendering options](https://kdla.winnem.tech/examples/41-layout-bounds-rendering-options).
+- **Auto-sizing container** — the grid's height grows/shrinks to fit its content by default (`autoSize`, or the newer `heightMode` `@Input()` for finer control including `'scroll'`/`'fit'` modes). See [Auto-size grid on content](https://kdla.winnem.tech/examples/20-auto-size-grid) and [Height modes](https://kdla.winnem.tech/examples/50-height-modes).
+- **Spacing indicators** (`showSpacingGuides`) — a labeled distance badge (e.g. "2 cols") in the gap between the active item and its nearest neighbor on each side, independently toggleable alongside alignment guides. See [Spacing indicators](https://kdla.winnem.tech/examples/47-spacing-indicators).
+- **Serializable layout.** The `layout` array is a plain, JSON-serializable structure you own — persist it anywhere. See [Save/load layout](https://kdla.winnem.tech/examples/19-save-load-layout).
+- **Named layout presets** (`GridLayoutPresetsService`) — save and switch between multiple named arrangements, layered on the same serialize/restore primitives `GridLayoutStorageService` uses. See [Named layout presets](https://kdla.winnem.tech/examples/35-named-presets).
+- **Grid-to-SVG export** (`exportLayoutAsSvg()`, a public method on `GridLayoutComponent`) — a dependency-free utility producing a standalone SVG snapshot of the current layout. See [Export layout as SVG](https://kdla.winnem.tech/examples/28-svg-export).
+- **Undo/redo** (`enableUndoRedo`, capped via `undoHistoryLimit`) — opt-in history at committed-change granularity (drag/resize end, add/remove), not per intermediate frame. Reach `undo()`/`redo()` and the `canUndo`/`canRedo` flags via a template reference variable on `GridLayoutComponent`. See [Undo/redo](https://kdla.winnem.tech/examples/43-undo-redo).
+- **Add/remove items freely**, with automatic re-compaction — no manual position math required. `duplicateItem(id)` (also a public method) clones an existing item into a collision-safe spot below it. See [Add or remove items](https://kdla.winnem.tech/examples/10-add-remove-items) and [compactNow, rearrange & duplicateItem](https://kdla.winnem.tech/examples/29-compact-now-rearrange-duplicate-item).
 - **`distributeEvenly`** — spreads an out-of-bounds item to the next available slot on a responsive breakpoint change, instead of clamping it to the right edge.
+- **Programmatic grid dimensions** and **live layout lifecycle events** (`layoutReady` plus the granular drag `@Output()`s) for observing exactly when the grid settles or an interaction completes. See [Grid dimensions](https://kdla.winnem.tech/examples/44-grid-dimensions) and [Layout lifecycle events](https://kdla.winnem.tech/examples/40-layout-lifecycle-events).
+- **Switching layouts**, including forcing a full remount when Angular's own `@if`/`track` change is the simplest way to reset internal state. See [Switching layouts & forcing a remount](https://kdla.winnem.tech/examples/45-switching-layouts-remount).
 
 ## Multi-select & group operations
 
-- **Select multiple items** (`multiSelect`) — click to select, Ctrl/Cmd+click to add additively, click empty background to clear, and **Shift-click to select a contiguous range** from the last-clicked anchor.
-- **Group move and resize** — drag or resize any selected item and the rest of the selection moves or resizes by the same delta, from mouse or keyboard alike.
-- **Align/distribute commands** (`alignSelected(edge)`/`distributeSelected(axis)`, public methods on `GridLayoutComponent`) — align a selection to an edge, or evenly space what's between.
+- **Select multiple items** (`multiSelect`) — click to select, Ctrl/Cmd+click to add additively, click empty background to clear, and **Shift-click to select a contiguous range** from the last-clicked anchor. See [Multi-select & group move/resize](https://kdla.winnem.tech/examples/37-multi-select-group-move-resize).
+- **Group move and resize** — drag or resize any selected item and the rest of the selection moves or resizes by the same delta, from mouse or keyboard alike. See [Multi-select & group move/resize](https://kdla.winnem.tech/examples/37-multi-select-group-move-resize).
+- **Align/distribute commands** (`alignSelected(edge)`/`distributeSelected(axis)`, public methods on `GridLayoutComponent`) — align a selection to an edge, or evenly space what's between. See [Align & distribute selected items](https://kdla.winnem.tech/examples/46-align-distribute-selected).
 
 ## Responsive
 
-- **Breakpoint-based column counts**, with sensible defaults and fully customizable `breakpoints`/`cols`.
-- **Pre-defined layouts per breakpoint** (`responsiveLayouts`), for full control over how content reflows instead of relying on auto-generation.
+- **Breakpoint-based column counts**, with sensible defaults and fully customizable `breakpoints`/`cols`. See [Responsive breakpoints](https://kdla.winnem.tech/examples/07-responsive-breakpoints).
+- **Pre-defined layouts per breakpoint** (`responsiveLayouts`), for full control over how content reflows instead of relying on auto-generation. See [Responsive predefined layouts](https://kdla.winnem.tech/examples/09-responsive-predefined-layouts).
 
 ## Internationalization
 
-- **RTL mirroring** (`isMirrored`) for an entire layout or individual items — positions (and dragging) flip horizontally with a single `@Input()`. The resize-specific edge-swap math for RTL is a direct analogy to the LTR case rather than exhaustively verified against a real browser — the same "best-effort" caveat this package's own source carries for that one corner.
+- **RTL mirroring** (`isMirrored`) for an entire layout or individual items — positions (and dragging) flip horizontally with a single `@Input()`. The resize-specific edge-swap math for RTL is a direct analogy to the LTR case rather than exhaustively verified against a real browser — the same "best-effort" caveat this package's own source carries for that one corner. See [Mirrored (RTL)](https://kdla.winnem.tech/examples/06-mirrored-rtl).
 
 ## Accessibility
 
-- **Keyboard move & resize.** Every non-static, editable item is keyboard-focusable — arrow keys move it, Shift+arrow keys resize it — without needing any extra configuration, including RTL-aware key direction and `multiSelect` group-move/resize engagement.
+- **Keyboard move & resize.** Every non-static, editable item is keyboard-focusable — arrow keys move it, Shift+arrow keys resize it — without needing any extra configuration, including RTL-aware key direction and `multiSelect` group-move/resize engagement. See [Accessibility scope](/angular/guide/project/accessibility/) once that page lands, for the full scope, including what's deliberately not (yet) covered.
 - **Screen reader support** — interactive items are announced with an item-role description and a description of the available keyboard controls; visible focus indicator for keyboard users.
-- **Localizable ARIA strings** (`ariaLabels`) — the close button's label, role description, and the keyboard move/resize instructions are overridable (`GridLayoutComponent` grid-wide default, `GridItemComponent` per-item override), rather than hardcoded English literals.
+- **Localizable ARIA strings** (`ariaLabels`) — the close button's label, role description, and the keyboard move/resize instructions are overridable (`GridLayoutComponent` grid-wide default, `GridItemComponent` per-item override), rather than hardcoded English literals. See [Localizable ARIA strings](https://kdla.winnem.tech/examples/36-aria-labels).
 
 ## Cross-grid & external drag-and-drop
 
-- **Drag items from outside the grid** (`allowOutsideDrop`) using the browser's native HTML5 drag-and-drop API, with a live drop-position placeholder while dragging over the grid.
-- **Drag items between two independent grids** (`allowCrossGridDrag`/`disableExternalDrop`/`layoutId`) via a real first-fit bin-pack, not a naive placement then compaction sorts out.
-- **Multiple grids on one page** with zero shared state — each `GridLayoutComponent` provides its own, independent `GridEventBusService` instance — beyond an optional `layoutId`.
+- **Drag items from outside the grid** (`allowOutsideDrop`) using the browser's native HTML5 drag-and-drop API, with a live drop-position placeholder while dragging over the grid. See [Drag, drop from outside](https://kdla.winnem.tech/examples/11-outside-drag-drop) and [outsideDropAccept & readOutsideDropPayload](https://kdla.winnem.tech/examples/34-outside-drop-accept-payload).
+- **Drag items between two independent grids** (`allowCrossGridDrag`/`disableExternalDrop`/`layoutId`) via a real first-fit bin-pack, not a naive placement then compaction sorts out. See [Drag, drop from grid to grid](https://kdla.winnem.tech/examples/12-cross-grid-drag-drop) and [Cross-grid drop restrictions](https://kdla.winnem.tech/examples/22-cross-grid-drop-restrictions).
+- **Multiple grids on one page** with zero shared state — each `GridLayoutComponent` provides its own, independent `GridEventBusService` instance — beyond an optional `layoutId`. See [Multiple grids](https://kdla.winnem.tech/examples/04-multiple-grids) and [Drag, drop from outside into multiple grids](https://kdla.winnem.tech/examples/23-outside-drag-drop-multiple-grids).
 
 ## Styling & customization
 
 - **Unstyled-by-default content** — `GridItemComponent`'s projected content holds whatever you put there; the library only handles position/size.
-- **Built-in close button** (`showCloseButton` + a `removeItem` `@Output()` you handle yourself), and any part of an item is a drag handle by default, restrictable via `dragAllowFrom`/`dragIgnoreFrom`. Standalone `GridItemCloseButtonComponent`/`GridItemDragHandleComponent` also exist for the same building blocks used outside `GridItemComponent`'s own rendering entirely (e.g. inside a custom header) — see [Components](/angular/components/) for both.
-- **Configurable border radius** per item (`borderRadiusPx`/`useBorderRadius`, grid-wide default + per-item override).
-- **Optional grid line guides** (`showGridLines`), useful while building a layout or as a permanent visual aid.
-- **Configurable transition duration/easing** (`transitionDurationMs`/`transitionTimingFunction`), applied via CSS custom properties.
-- **Configurable resize-hint appearance** (`showResizeHandles`/`resizeHandleColor`, grid-wide default + per-item override), plus a per-item `resizeHandles` `@Input()` restricting which of the 8 edges/corners actually activate.
+- **Built-in close button** (`showCloseButton` + a `removeItem` `@Output()` you handle yourself), and any part of an item is a drag handle by default, restrictable via `dragAllowFrom`/`dragIgnoreFrom`. Standalone [`GridItemCloseButtonComponent`](/angular/components/custom-close-button/)/[`GridItemDragHandleComponent`](/angular/components/custom-drag-element/) also exist for the same building blocks used outside `GridItemComponent`'s own rendering entirely (e.g. inside a custom header). See [Show close button](https://kdla.winnem.tech/examples/13-close-button) and [Custom drag handle & close button](https://kdla.winnem.tech/examples/18-custom-drag-handle-close-button).
+- **Configurable border radius** per item (`borderRadiusPx`/`useBorderRadius`, grid-wide default + per-item override). See [Border radius](https://kdla.winnem.tech/examples/14-border-radius).
+- **Optional grid line guides** (`showGridLines`), useful while building a layout or as a permanent visual aid. See [Show grid lines](https://kdla.winnem.tech/examples/16-grid-lines).
+- **Configurable transition duration/easing** (`transitionDurationMs`/`transitionTimingFunction`), applied via CSS custom properties. See [Configurable transition duration & easing](https://kdla.winnem.tech/examples/24-transition-duration-easing).
+- **Configurable resize-hint appearance** (`showResizeHandles`/`resizeHandleColor`, grid-wide default + per-item override), plus a per-item `resizeHandles` `@Input()` restricting which of the 8 edges/corners actually activate. See [Configurable resize-hint appearance](https://kdla.winnem.tech/examples/33-resize-hint-appearance).
+- **Custom drag-placeholder content** — replace the default plain placeholder box with your own rendered content while dragging. See [Custom drag-placeholder content](https://kdla.winnem.tech/examples/25-custom-drag-placeholder).
+- **`scrollToItem`/`focusItem`**, public methods on `GridLayoutComponent` — programmatically scroll an item into view and/or move keyboard focus to it. See [scrollToItem & focusItem](https://kdla.winnem.tech/examples/27-scroll-to-item-focus-item).
+- **`autoScroll`** — scrolls a container automatically near its edge during drag/resize. See [autoScroll](https://kdla.winnem.tech/examples/39-auto-scroll).
+- **Layout events** — a dedicated example covering the full set of granular drag/lifecycle `@Output()`s together. See [Events](https://kdla.winnem.tech/examples/03-events).
+- **Edit-mode toggle** (`enableEditMode`) — a single grid-wide (or per-item) switch disabling dragging, resizing, and the close button at once. See [Edit mode toggle](https://kdla.winnem.tech/examples/21-edit-mode-toggle).
 
 ## Developer experience
 
 - **Full TypeScript support.** Every component, directive, service, and interface is typed and exported from the package's main entry point — see [API](/angular/api/) once that page lands.
-- **Minimal runtime dependencies.** The drag/resize engine is built on native Pointer Events, not a third-party library — the same shared engine the Vue and React packages use. Not literally zero beyond Angular/RxJS, though: `package.json`'s own `dependencies` also lists `tslib` (a near-universal, few-KB TypeScript/Angular compiled-output helper), alongside the shared `keystone-dashboard-layout-core` — see [Production readiness](/angular/guide/project/production-readiness/) for the fuller accounting.
+- **Minimal runtime dependencies.** The drag/resize engine is built on native Pointer Events, not a third-party library — the same shared engine the Vue and React packages use. Not literally zero beyond Angular/RxJS, though: `package.json`'s own `dependencies` also lists `tslib` (a near-universal, few-KB TypeScript/Angular compiled-output helper), alongside the shared `keystone-dashboard-layout-core`.
 - **The same framework-agnostic core** (`keystone-dashboard-layout-core`) Vue and React use for their own grid-layout math (collision detection, movement, compaction, and more) — all three packages share one implementation of the hard, easy-to-get-subtly-wrong parts.
 - **Idiomatic Angular.** Standalone components (no `NgModule` required), a DI-scoped `GridEventBusService` instead of Vue's `provide`/`inject` or React's Context, `providedIn: 'root'` services instead of ref-bound composables/hooks, and a marker directive queried via `@ContentChild` instead of a named slot or render prop — the same underlying behavior, expressed the way Angular actually works.
 - **Tested end to end, not just at the unit level.** A genuine unit/component test suite (Jest + `jest-preset-angular`) backs every phase, and Stryker mutation testing is configured — see the package's own `docs/IMPLEMENTATION_PLAN.md` for the phase-by-phase history. This package also has a real Playwright e2e suite (11 spec files, 160 tests, all passing across Chromium/Firefox/WebKit), matching Vue and React's own setup — see [Testing philosophy](/angular/guide/project/testing/). The one remaining gap: no dedicated touch-input spec yet, the way the React port has.
+- **An editable playground on every example.** "Open in StackBlitz" opens a real, running project seeded from that exact example's own source, in a new tab — not a read-only code snippet.

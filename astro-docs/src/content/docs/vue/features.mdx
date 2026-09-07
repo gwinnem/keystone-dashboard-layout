@@ -3,11 +3,13 @@ title: Features
 description: Everything Keystone Dashboard Layout for Vue does, grouped by category, with a live example linked from every bullet.
 ---
 
-:::note[All 52 examples are live]
+:::note[All 53 examples are live, each with an editable StackBlitz playground]
 Every link below now resolves to a real, ported page — confirmed against
 the full `astro.config.mjs` sidebar list, not just written and assumed
-correct. See [Examples](/vue/examples/) for the same 52, organized the
-same way this page is.
+correct. Every one of the 53 examples also has an "Open in StackBlitz"
+button seeding a real, editable, running project from that exact
+example's own source. See [Examples](/vue/examples/) for the same 53,
+organized the same way this page is.
 :::
 
 ## Drag & resize
@@ -78,4 +80,5 @@ same way this page is.
 - **Zero runtime dependencies.** The drag/resize engine is built on native Pointer Events, not a third-party library — no `interact.js` or equivalent to audit or update.
 - **A separate, framework-agnostic core entry point** exposing this library's own grid-layout math (collision detection, movement, compaction, and more) with zero Vue dependency and no live-DOM requirement — usable standalone, e.g. for server-side layout validation.
 - **Vue 3 Composition API**, built with `<script setup>` throughout — works equally well with the Options API in consuming projects.
-- **Well-tested.** A full unit, component, and end-to-end test suite backs every release — see [Production readiness](/vue/guide/project/production-readiness/) for the current numbers.
+- **Well-tested.** A full unit, component, and end-to-end test suite backs every release, enforced in CI.
+- **An editable playground on every example.** "Open in StackBlitz" opens a real, running project seeded from that exact example's own source, in a new tab — not a read-only code snippet.

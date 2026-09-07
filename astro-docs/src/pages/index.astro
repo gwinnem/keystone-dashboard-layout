@@ -6,6 +6,14 @@
 // locally-running instance during local development; a real production
 // build points at the actual deployed subdomain.
 const ANGULAR_EXAMPLES_APP_URL = import.meta.env.DEV ? `http://localhost:4200` : `https://kdla.winnem.tech`;
+
+// Derived from `site` in astro.config.mjs (the same value every other
+// page's canonical/og:url/JSON-LD uses via Astro.site) rather than
+// hardcoded here a second time — this page is the one place on the
+// site that previously repeated the literal domain string four times
+// over, a real drift risk if that domain ever changes.
+const siteUrl = Astro.site.href;
+const ogImageUrl = new URL('/og/home.png', Astro.site).href;
 ---
 
 <html lang="en">
@@ -14,20 +22,20 @@ const ANGULAR_EXAMPLES_APP_URL = import.meta.env.DEV ? `http://localhost:4200` :
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Keystone Dashboard Layout — a draggable, resizable dashboard grid for Vue, React &amp; Angular</title>
   <meta name="description" content="A draggable, resizable dashboard grid layout for Vue, React &amp; Angular — one framework-agnostic engine, minimal runtime dependencies, idiomatic components for all three. Collision handling, breakpoints, and undo/redo built in.">
-  <link rel="canonical" href="https://kdl.winnem.tech/">
+  <link rel="canonical" href={siteUrl}>
   <!-- Open Graph / Twitter — previously entirely absent from this page (a plain Astro page, not part of the Starlight `docs` collection, so the astro-og-canvas + route-middleware setup covering every other page on this site — see src/routeData.ts — doesn't reach this one; handled by hand here instead). og:image points at the same astro-og-canvas endpoint's own hand-added 'home' entry (src/pages/og/[...slug].ts), kept in sync with that file's own title/description for this page. -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Keystone Dashboard Layout">
   <meta property="og:title" content="Keystone Dashboard Layout — a draggable, resizable dashboard grid for Vue, React &amp; Angular">
   <meta property="og:description" content="A draggable, resizable dashboard grid layout for Vue, React &amp; Angular — one framework-agnostic engine, minimal runtime dependencies, idiomatic components for all three.">
-  <meta property="og:url" content="https://kdl.winnem.tech/">
-  <meta property="og:image" content="https://kdl.winnem.tech/og/home.png">
+  <meta property="og:url" content={siteUrl}>
+  <meta property="og:image" content={ogImageUrl}>
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Keystone Dashboard Layout — a draggable, resizable dashboard grid for Vue, React &amp; Angular">
   <meta name="twitter:description" content="A draggable, resizable dashboard grid layout for Vue, React &amp; Angular — one framework-agnostic engine, minimal runtime dependencies, idiomatic components for all three.">
-  <meta name="twitter:image" content="https://kdl.winnem.tech/og/home.png">
+  <meta name="twitter:image" content={ogImageUrl}>
   <!-- JSON-LD — SoftwareApplication describing the overall, framework-agnostic project (distinct from the per-framework SoftwareSourceCode entries on each framework's own docs home page — see src/routeData.ts — which describe the individual npm packages specifically). -->
   <script type="application/ld+json" set:html={JSON.stringify({
     '@context': 'https://schema.org',
@@ -36,7 +44,7 @@ const ANGULAR_EXAMPLES_APP_URL = import.meta.env.DEV ? `http://localhost:4200` :
     description: 'A draggable, resizable dashboard grid layout for Vue, React & Angular — one framework-agnostic engine, minimal runtime dependencies, idiomatic components for all three.',
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Any',
-    url: 'https://kdl.winnem.tech/',
+    url: siteUrl,
     codeRepository: 'https://github.com/gwinnem/keystone-dashboard-layout',
     license: 'https://opensource.org/licenses/MIT',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },

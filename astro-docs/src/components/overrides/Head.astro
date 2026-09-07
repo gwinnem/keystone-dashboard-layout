@@ -103,6 +103,10 @@ const frameworkPackages: Record<string, { name: string; description: string }> =
     name: 'keystone-dashboard-layout-angular',
     description: 'Draggable, resizable dashboard grid layout for Angular.',
   },
+  core: {
+    name: 'keystone-dashboard-layout-core',
+    description: 'The framework-agnostic grid-layout engine underneath the Vue, React, and Angular packages.',
+  },
 };
 const frameworkKey = Object.keys(frameworkPackages).find(
   (key) => id === key || id === `${key}/index`,
@@ -118,7 +122,7 @@ const frameworkKey = Object.keys(frameworkPackages).find(
 // route dependency no longer has anything to do with the ToC at all, so
 // it belongs here instead — a plain per-page style, independent of that
 // removed mechanism entirely.
-const isExamplesRoute = Astro.url.pathname.includes('/vue/examples');
+const isExamplesRoute = Astro.url.pathname.includes('/vue/examples') || Astro.url.pathname.includes('/react/examples');
 
 // `!important` below isn't decorative — confirmed directly in a real
 // build's rendered <head> that this style tag (part of Head.astro,

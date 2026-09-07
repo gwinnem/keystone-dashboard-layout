@@ -214,6 +214,15 @@ for (const file of allFiles) {
 // miscounted.
 const THIN_CONTENT_THRESHOLD = 200;
 
+// Every route marked noindex below is collected here and written to a
+// sidecar JSON file, so astro.config.mjs's own `sitemap()` filter (see
+// that file's own comment) can exclude these from sitemap-index.xml too
+// — a noindex page still listed in the sitemap sends crawlers mixed
+// signals (confirmed: @astrojs/sitemap has no built-in awareness of a
+// page's own noindex meta tag, so without this list it would otherwise
+// submit every one of these anyway).
+const noindexRoutes = [];
+
 for (const file of allFiles.map((f) => (f.endsWith('.html') ? f.slice(0, -'.html'.length) + '.md' : f))) {
   if (!file.endsWith('.md')) continue;
   const contents = fs.readFileSync(file, 'utf8');
@@ -226,6 +235,31 @@ for (const file of allFiles.map((f) => (f.endsWith('.html') ? f.slice(0, -'.html
   const newFrontmatter = `${existingFrontmatter}\nhead:\n  - tag: meta\n    attrs:\n      name: robots\n      content: "noindex, follow"`;
   const rewritten = contents.replace(frontmatterMatch[0], `---\n${newFrontmatter}\n---\n`);
   fs.writeFileSync(file, rewritten, 'utf8');
+
+  const rel = toPosixPath(path.relative(outputPath, file));
+  const withoutExt = rel.replace(/\.md$/, '');
+  const route = withoutExt === 'index' ? '/core/api/reference/' : `/core/api/reference/${withoutExt.toLowerCase()}/`;
+  noindexRoutes.push(route);
 }
+
+fs.writeFileSync(path.join(here, 'noindex-routes.json'), JSON.stringify(noindexRoutes, null, 2), 'utf8');
+
+// The module-root page (`entryFileName: 'index'` above) is just a flat
+// list of every export by kind — fully redundant with the sidebar's own
+// `autogenerate` tree (same links, same grouping) one level down, and
+// with `core/api.mdx`'s own hand-written "What this package exports"
+// overview. Deleting it after generation, rather than trying to
+// suppress it via a TypeDoc/typedoc-plugin-markdown option, is the only
+// thing confirmed to actually work: `readme: 'none'` above only drops a
+// *different* file (a project-level README passthrough), not this
+// per-entry-point index; no supported option skips it outright.
+// Nothing links to `/core/api/reference/` directly (confirmed via a
+// grep across every generated file and `core/api.mdx` before adding
+// this), so removing it leaves no dangling internal link — and since
+// it's deleted from source, not just hidden, Starlight's own
+// `autogenerate` sidebar option (astro.config.mjs) stops listing it
+// automatically too, with no separate sidebar edit needed.
+const indexFile = path.join(outputPath, 'index.md');
+if (fs.existsSync(indexFile)) fs.rmSync(indexFile);
 
 console.log(`[generate-typedoc] wrote API reference to ${toPosixPath(path.relative(process.cwd(), outputPath))}`);

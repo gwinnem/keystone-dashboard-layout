@@ -171,7 +171,7 @@ export default defineConfig({
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/main.ts"><\/script>
   </body>
 </html>
 `,
@@ -228,7 +228,7 @@ export default defineConfig({
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx"><\/script>
   </body>
 </html>
 `,
@@ -256,17 +256,22 @@ createRoot(document.getElementById('app')!).render(<App />);
 const playgroundFiles = playground ? (isReact ? reactPlaygroundFiles : vuePlaygroundFiles) : null;
 
 // Every bundled file above is a real Vue SFC or config file containing
-// its own literal `<script>`/`</script>` tags — serializing that
-// straight into this component's own `<script type="application/json">`
-// island via `set:html` let the browser's HTML parser see that literal
-// `</script>` mid-JSON and close the tag right there, corrupting the
-// rest of the page (confirmed directly: this exact bug produced a
+// its own literal opening and closing script tags — serializing that
+// straight into this component's own JSON-typed script island via
+// `set:html` let the browser's HTML parser see that literal closing
+// script tag mid-JSON and close the element right there, corrupting
+// the rest of the page (confirmed directly: this exact bug produced a
 // cascade of "Invalid or unexpected token" console errors on this page
-// before the escape below was added). `<` doesn't need special
-// handling anywhere else JSON can appear (only inside a raw HTML
-// `<script>` body), so escaping just this one character to its Unicode
-// form is enough — the resulting text is still valid JSON, since
-// `<` decodes back to `<` like any other JSON escape.
+// before the escape below was added — and a second, related bug, also
+// confirmed directly: writing the literal tag text out in full even
+// inside a comment like this one tripped up Astro's own script-region
+// scanning during Vite's dependency pre-scan, corrupting parsing of
+// the real script element much further down this same file, with the
+// resulting error misreporting its own line/column). `<` doesn't need
+// special handling anywhere else JSON can appear (only inside a raw
+// script element's own body), so escaping just this one character to
+// its Unicode form is enough — the resulting text is still valid
+// JSON, since `<` decodes back to `<` like any other JSON escape.
 const playgroundFilesJson = playgroundFiles ? JSON.stringify(playgroundFiles).replaceAll('<', '\\u003c') : null;
 ---
 

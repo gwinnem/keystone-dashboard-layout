@@ -1,4 +1,4 @@
-﻿---
+---
 title: Roadmap
 description: What's suggested next for Keystone Dashboard Layout for Angular — not a task list nobody's committed to.
 ---
@@ -6,210 +6,43 @@ description: What's suggested next for Keystone Dashboard Layout for Angular —
 Forward-looking — what's suggested next, not a commitment. For what's
 already built, see [Features](/angular/features/).
 
-## Recently completed
-
-This package's own introduction describes full feature parity with the
-Vue and React ports — see [Production readiness](/angular/guide/project/production-readiness/)
-for what's actually been independently re-confirmed as of this writing
-(mutation testing, specifically) versus what still needs a fresh check.
-
-### A real end-to-end test suite
-
-**Correction to this page's own earlier claim**: this package now has a
-real, extensive Playwright e2e suite, matching the Vue and React
-ports' own setup and coverage shape — 11 spec files, 160 tests total,
-all passing across Chromium, Firefox, and WebKit in a real, complete
-run. Runs against a dedicated `e2e-fixture/` Angular application (its
-own `angular.json` project, served via the Angular CLI's own
-dev-server rather than Vite). That same run surfaced and fixed five
-genuine library bugs along the way, not just test-harness issues — an
-auto-compaction guard that silently never fired, a CSS
-stacking-context escape affecting static items' own negative z-index,
-a header-projection detection gap, an RTL resize-math bug, and a
-resize-hint gating gap. See [Testing philosophy](/angular/guide/project/testing/)
-for the full coverage table. The e2e suite still has no dedicated
-touch-input spec the way the React port's own `touch-input.spec.ts`
-does — see "What's still open" below.
-
-### A real survey of Angular-specific alternatives
-
-**Correction to this page's own earlier state**: [Comparison: alternatives](/angular/guide/project/comparison-alternatives/)
-used to scope itself to just `gridstack.js`, with an explicit note that
-a dedicated Angular-specific survey hadn't been done. It now covers
-`gridstack.js`, Katoid Angular Grid Layout, and `angular-gridster2` with
-a real feature-comparison table. [Comparison: commercial](/angular/guide/project/comparison-commercial/)
-now also covers Syncfusion Angular Dashboard Layout, Sencha Ext JS
-Dashboard, and Vaadin Dashboard as commercial competitors alongside
-Kendo TileLayout and DevExpress Dashboard. [Comparison: alternatives](/angular/guide/project/comparison-alternatives/)
-also now covers Ignite UI Tile Manager (Infragistics' own tile-layout
-web component, recently made MIT-licensed) alongside `gridstack.js`,
-Katoid Angular Grid Layout, and `angular-gridster2`. Every claim on
-both pages was independently verified against each vendor/project's
-own current documentation, README, API reference, and (for the
-open-source options) GitHub issue tracker — not relayed from a single
-secondary source. That direct research turned up several corrections
-along the way: `angular-gridster2` does support RTL (confirmed via its
-own `dirType` option and a real history of RTL bug fixes) and
-swap-on-drag (`swapWhileDragging`); Katoid Angular Grid Layout only
-resizes from one corner and doesn't yet support static items, both
-confirmed as open items in its own README's own TODO list;
-`gridstack.js` has a 2017 keyboard-accessibility request closed
-`wontfix`; Kendo's own documentation contradicts itself about whether
-TileLayout has keyboard support at all; Ext JS Dashboard turns out to
-resize vertical-only via a column-stack-with-splitters model, not
-freeform per-item resize; and Vaadin Dashboard has a genuinely real
-keyboard-accessibility story (confirmed directly from its own
-engineering writeup) but no dedicated Angular integration at all.
-
-## What's still open
-
-### Touch-input e2e coverage
-
-The React port has a dedicated `touch-input.spec.ts`; this package's
-own e2e suite doesn't yet. Touch/mobile input still needs a human in a
-real browser for now — see [Testing philosophy](/angular/guide/project/testing/).
-
-### An ESLint setup — added, not yet confirmed to run cleanly
-
-**Correction to this page's own earlier state**: this package now has a
-real `eslint.config.mjs` (flat config, ESLint 9/10) plus real `lint`/
-`lint:fix` scripts — previously it had neither at all, confirmed via a
-direct source check (`package.json`'s own `_comment_scripts` field said
-so explicitly). The rule set is a direct port of Vue's and React's own
-generic/TypeScript rules, with `angular-eslint` layered on top for
-component-selector/directive-selector enforcement (`kdl` prefix) and
-inline-template linting (every template in this package is written
-inline, confirmed directly — no `.html` files exist under `src/` — so
-`angular.processInlineTemplates` is what makes template rules apply at
-all here). What's genuinely still open: this was written without shell
-access to actually run it against the real codebase, so
-`pnpm install && pnpm --filter keystone-dashboard-layout-angular lint`
-hasn't been confirmed to resolve its new `angular-eslint` dependency
-correctly or to actually lint cleanly yet — the same "written, not yet
-run" caveat this page's own `check:package-install` item below already
-carries for a different script. `pnpm lint` is advisory, not blocking,
-across this whole monorepo, so whatever it surfaces (or fails to
-resolve) won't silently break CI — but it's still a real, open
-verification step, not a completed one.
-
-### A real `check:bundle-size` methodology, not just a verified number
-
-The script exists and now has a real, measured number behind it (see
-[Production readiness](/angular/guide/project/production-readiness/)),
-but it currently sums the entire npm package output — including the
-packed `.tgz`, `README.md`, `LICENSE`, and every `.d.ts` file — rather
-than just the runtime bundle a consumer's own bundler actually imports.
-Worth pointing it at just the `fesm2022/` output specifically before
-relying on it as a real regression gate.
-
-### A confirmed-passing `check:package-install` smoke test
-
-Still genuinely unverified — the script has never actually been run
-successfully end to end, per `ci.yml`'s own comment keeping it
-`continue-on-error: true`.
-
-### CI is being fixed in layers — three bugs down, one open (this package's own)
-
-**Bug 1** (workflow files hardcoding a pnpm version that conflicted with
-root `package.json`'s own `packageManager` field) is fixed and pushed —
-confirmed gone from a live run. **Bug 2** (pnpm had been bumped to a
-version requiring Node 22+) is fixed — `packageManager` pinned to
-`pnpm@10.32.0`. **Bug 3, this package's own**: with bug 1 alone fixed,
-the Node 22 CI leg ran the real Vue/React/Core test suite for the first
-time (437/437 passed) — but this package's own `test:coverage` step
-exited with code 1, failing the job overall. Not yet root-caused:
-possibly Node-22-specific, possibly a genuine regression — still open,
-the single most concrete item on this whole roadmap. **Bug 4, the
-biggest one**: pushing bug 1 alone also let Node 18/20 actually run —
-and both failed for real, for a reason unrelated to this package
-specifically (`packages/core`'s `vite build` needs a `node:util` export
-Node 18 never had). Investigating turned up something bigger: **Node.js
-18 reached end-of-life in April 2025, and Node.js 20 reached end-of-life
-in April 2026** — this project's own `engines` field, this package's
-own included, was claiming support for two already-unsupported majors.
-Fixed by narrowing `engines.node` to `>=22.0.0` everywhere and narrowing
-the CI matrix to Node 22 only. See [Production readiness](/angular/guide/project/production-readiness/)
-for the full account — this whole batch needs pushing and a fresh run
-to confirm.
-
-### Live test/coverage numbers
-
-The test suite and coverage gate are both confirmed real and
-CI-enforced (Jest + jest-preset-angular — see
-[Production readiness](/angular/guide/project/production-readiness/)),
-but the actual current pass/fail count and coverage percentage haven't
-been captured as live numbers by directly running `pnpm test` and
-`pnpm test:coverage`. No lint number to capture here at all, since
-there's no ESLint config to run (see the item above).
-
-### A real, live CI run of `mutation-test-angular`
-
-Confirmed present in `.github/workflows/mutation-testing.yml` and
-confirmed passing via local runs (81.14% overall, every file above
-80%) — but see the pnpm fix item above: every actual scheduled/
-on-demand CI run of this job has been failing at "Setup pnpm," not
-passing.
-
-### Branch protection & repository secrets
-
-Not checkable from source at all — needs a repository admin to confirm
-directly whether branch protection rules and any release-related
-secrets are configured for this package.
-
-### Project-level documentation parity
-
-This page, [Architecture](/angular/guide/project/architecture/),
-[Testing philosophy](/angular/guide/project/testing/), and
-[Accessibility scope](/angular/guide/project/accessibility/) are new as
-of this writing — the first of their kind for this package. Comparison
-pages against alternatives/commercial competitors have now had a real
-survey pass too (see "Recently completed" above) — the concrete gap
-remaining is actually installing and exercising `angular-gridster2` and
-Katoid Angular Grid Layout directly, rather than relying on their own
-documentation, the way [Comparison: alternatives](/angular/guide/project/comparison-alternatives/)'s
-own "Bottom line" section notes.
-
-### The API/components docs gap — the real, remaining one
-
-**Correction to this page's own earlier framing**: "project-level
-documentation parity" above is real, but it's a narrow slice —
-project-level guide pages are only 10 of Vue's 39 non-example
-documentation pages. (Angular's own `examples/` directory being empty
-is a deliberate architectural choice, not a gap — this package's
-examples are maintained in the standalone `angular-examples-app`
-rather than as `astro-docs` pages the way Vue's/React's are, so example
-pages are excluded from this comparison entirely.) A direct,
-page-by-page count of everything else found this package has **19
-non-example documentation pages against Vue's 39** — a 20-page gap,
-concentrated entirely in Components (3 pages vs Vue's 14) and API (4
-vs 13), including one confirmed, now-fixed documentation bug: [API](/angular/api/)
-used to claim coverage of the standalone drag-handle/close-button
-components under Components that didn't actually exist anywhere — the
-claim is corrected, but the actual page still needs writing. See
-[`astro-docs/DOCUMENTATION_PARITY_GAP.md`](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/astro-docs/DOCUMENTATION_PARITY_GAP.md)
-for the full page-by-page accounting, including which gaps are genuine
-missing content versus legitimate Angular/Vue paradigm differences.
-
-### The shared `core`-level roadmap
-
-The following items are genuinely open at the `core` level, so they're
+The items below are genuinely open at the `core` level, so they're
 shared with the Vue and React ports rather than being separate,
 per-framework efforts — see the Vue port's own
-[Roadmap](/vue/guide/project/roadmap/) "What's still open" section for
-the fuller writeup of each: swap-on-drag collision mode, maximize/
-restore an item, async persistence backends, an open pluggable CSS
-positioning strategy, a fast large-layout compaction algorithm, and a
-worker-based layout engine.
+[Roadmap](/vue/guide/project/roadmap/) for the fuller writeup of each.
 
-## Known limitations (tracked, not silently ignored)
+## Swap-on-drag collision mode
 
-Keyboard support is deliberately scoped to single-unit-step move/resize
-— see [Accessibility scope](/angular/guide/project/accessibility/) for
-the full reasoning. `core`-provided types/enums/interfaces this
-package's own barrel doesn't re-export (see [API](/angular/api/)) are a
-deliberate design choice, not an oversight — but this package's own
-dedicated reference pages for them (matching what React now has) are
-still open.
+Dragging item A onto item B swaps their positions, as an alternative to
+the current push-aside compaction.
+
+## Maximize/restore an item
+
+Temporarily expand a single item to fill the grid's entire visible
+area, then restore it to its prior position/size. Needs its own design
+pass before starting.
+
+## Async persistence backends
+
+A new service with its own adapter interface for IndexedDB and
+remote-HTTP-backed persistence, alongside (not replacing) the existing
+synchronous `GridLayoutStorageService`.
+
+## An open, pluggable CSS positioning strategy
+
+An interface (mirroring the existing pluggable-compaction precedent)
+replacing the current on/off toggle between CSS transforms and
+`top`/`left` positioning.
+
+## A fast, large-layout compaction algorithm
+
+An additional compaction strategy aimed at very large layouts. Needs a
+real performance benchmark before shipping.
+
+## A worker-based layout engine
+
+An opt-in Web Worker executor for compaction/responsive-generation on
+very large layouts.
 
 ## Have a request?
 

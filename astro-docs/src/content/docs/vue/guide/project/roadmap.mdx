@@ -1,4 +1,4 @@
-﻿---
+---
 title: Roadmap
 description: What's suggested next for Keystone Dashboard Layout for Vue — not a task list nobody's committed to.
 ---
@@ -7,81 +7,7 @@ Forward-looking — what's suggested next, not a commitment. For what's
 already built, see [Features](/vue/features/) and the
 [Changelog](/vue/guide/changelog/).
 
-## Recently completed
-
-Most of this roadmap's earlier items have already shipped: cross-grid
-drag/drop, drag-and-drop from outside the grid, resize from all eight
-edges/corners, keyboard move/resize, a first-party persistence helper,
-configurable transitions, custom drag-placeholder content, alignment
-guides, `scrollToItem`/`focusItem`, `compactNow()`/`rearrange()`,
-`duplicateItem(id)`, blocked-move feedback, per-item `autoHeight`,
-magnetic snap-to-grid, configurable resize-hint appearance,
-`outsideDropAccept`, named layout presets, SVG export, localizable ARIA
-strings, a custom resize-handle slot, a layout-level edit-mode toggle,
-multi-select with group move/resize, align/distribute commands on a
-multi-selection, a configurable resize-handle set, spacing guides with
-distance labels, per-input-type drag-activation thresholds,
-configurable container height modes, undo/redo, per-item `zIndex`
-override, and a distinct header slot per item. See the
-[Changelog](/vue/guide/changelog/) for the full list with dates.
-
-## What's still open
-
-### CI is being fixed in layers — three bugs down, one open
-
-**Bug 1** (workflow files hardcoding a pnpm version that conflicted with
-root `package.json`'s own `packageManager` field) is fixed and pushed —
-confirmed gone from a live run. **Bug 2** (pnpm had been bumped to a
-version requiring Node 22+) is fixed — `packageManager` pinned to
-`pnpm@10.32.0`. **Bug 3**, surfaced before bug 2 even landed: with bug 1
-alone fixed, the Node 22 CI leg ran the real test suite for the first
-time (437/437 Vitest tests passed across Vue/React/Core), but
-`angular`'s own `test:coverage` step failed — not yet root-caused,
-still open. **Bug 4, the biggest one**: pushing bug 1 alone also let
-Node 18/20 actually run — and both failed for real (`packages/core`'s
-`vite build`, via `rolldown`, needs a `node:util` export Node 18 never
-had). Investigating turned up something bigger: **Node.js 18 reached
-end-of-life in April 2025, and Node.js 20 reached end-of-life in April
-2026** — this project's own `engines` field was claiming support for
-two already-unsupported majors. Fixed by narrowing `engines.node` to
-`>=22.0.0` everywhere and narrowing the CI matrix to Node 22 only. Also
-fixed in the same batch: `check:licenses` was separately failing on the
-root workspace package itself (a `license-checker-rseidelsohn` quirk).
-See [Production readiness](/vue/guide/project/production-readiness/)
-for the full account — this whole batch needs pushing and a fresh run
-to confirm.
-
-### Live test/coverage numbers
-
-The test suite and coverage gate are both confirmed real (see
-[Production readiness](/vue/guide/project/production-readiness/)) —
-but live pass/fail counts and the current coverage percentage haven't
-been captured by directly running `pnpm test`/`pnpm test:coverage` in
-this pass.
-
-### Paying down the ~800 pre-existing lint issues
-
-Confirmed via `.github/workflows/ci.yml`'s own comment: this package
-carries roughly 800 pre-existing ESLint issues from before it had a
-working config at all, which is why the `lint` CI step runs advisory
-(`continue-on-error: true`) rather than blocking. Flipping it to a hard
-gate is blocked on actually paying this down, not on any remaining
-configuration work.
-
-### Confirming current npm publish status
-
-Not independently re-verified in this pass whether the current
-`keystone-dashboard-layout-vue` npm registry state matches what's
-actually in this repository — check the registry directly rather than
-trust a prior claim.
-
-### Branch protection & repository secrets
-
-Not checkable from source at all — needs a repository admin to confirm
-directly whether branch protection rules and the `NPM_TOKEN` secret
-`release.yml` needs to actually publish are configured.
-
-### A Nuxt module, paired with a real SSR audit
+## A Nuxt module, paired with a real SSR audit
 
 One concrete SSR-breaking spot (an unguarded `navigator.userAgent` read
 inside a template-bound computed) has already been found and fixed —
@@ -89,14 +15,14 @@ but that was one specific instance checked, not the exhaustive sweep a
 real audit would need before shipping a dedicated Nuxt wrapper around
 the rest of the codebase.
 
-### Swap-on-drag collision mode
+## Swap-on-drag collision mode
 
 Dragging item A onto item B swaps their positions, as an alternative to
 the current push-aside compaction. Common in consumer tile-dashboard
 products (see [Comparison: alternatives](/vue/guide/project/comparison-alternatives/)
 for how `gridstack.js` handles this today).
 
-### Maximize/restore an item
+## Maximize/restore an item
 
 Temporarily expand a single item to fill the grid's entire visible
 area (its own header/close button still reachable, everything else
@@ -109,7 +35,7 @@ grid-level "which item is currently maximized" state. See
 where this idea came from (DevExtreme's Dashboard Designer has it;
 Kendo TileLayout doesn't).
 
-### Async persistence backends
+## Async persistence backends
 
 A new, separate composable with its own adapter interface for IndexedDB
 and remote-HTTP-backed persistence, alongside (not replacing) the
@@ -117,33 +43,26 @@ existing synchronous storage helper. `sessionStorage` already works
 today via the existing helper's own storage option — not a gap needing
 new code.
 
-### An open, pluggable CSS positioning strategy
+## An open, pluggable CSS positioning strategy
 
 An interface (mirroring the existing pluggable-compaction precedent)
 replacing the current on/off toggle between CSS transforms and
 `top`/`left` positioning, with both current behaviors preserved as
 built-ins.
 
-### A fast, large-layout compaction algorithm
+## A fast, large-layout compaction algorithm
 
 An additional compaction strategy, implementing the same pluggable
 interface as the built-in ones, aimed at very large layouts. Needs a
 real performance benchmark proving the complexity claim before shipping
 — not to be added as an unverified swap.
 
-### A worker-based layout engine
+## A worker-based layout engine
 
 An opt-in Web Worker executor for compaction/responsive-generation on
 very large layouts. The largest lift of anything on this list —
 deliberately deferred until the fast-compaction item above alone is
 proven insufficient on its own, not built speculatively alongside it.
-
-## Known limitations (tracked, not silently ignored)
-
-Keyboard support is deliberately scoped to single-unit-step move/resize,
-not a full WAI-ARIA grid/application widget pattern — see
-[Accessibility scope](/vue/guide/project/accessibility/) for the full
-reasoning.
 
 ## Have a request?
 

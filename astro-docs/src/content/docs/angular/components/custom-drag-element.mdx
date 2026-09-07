@@ -1,0 +1,64 @@
+---
+title: GridItemDragHandleComponent
+description: A standalone drag-handle widget, not used internally by the library — pair it with dragAllowFrom.
+---
+
+A small drag-handle widget, exported for placing inside a
+`GridItemComponent`'s projected content when you want dragging
+restricted to a single handle rather than the whole item — pair it with
+`dragAllowFrom` (e.g. `[dragAllowFrom]="'.kdl-draggable-handle'"`) so
+only this element starts a drag.
+
+:::caution[The grab target is a small circle, not the visible button]
+The rendered markup is a labeled `<button>` **plus a separate**, small
+decorative circle element carrying the `kdl-draggable-handle` class,
+rendered as a *sibling* of the button — confirmed directly from the
+component's own source. `dragAllowFrom` matches that circle
+specifically, not the button/text you actually see labeled. Clicking
+the visible text does **not** start a drag; only the small circle
+does.
+:::
+
+Not used anywhere internally in this library — a standalone, opt-in
+utility component, exported from the package's own public entry point
+alongside `GridItemCloseButtonComponent`.
+
+```ts
+import { Component } from '@angular/core';
+import { GridItemComponent, GridItemDragHandleComponent } from 'keystone-dashboard-layout-angular';
+
+@Component({
+  standalone: true,
+  imports: [GridItemComponent, GridItemDragHandleComponent],
+  template: `
+    <kdl-grid-item [i]="item.i" [x]="item.x" [y]="item.y" [w]="item.w" [h]="item.h" dragAllowFrom=".kdl-draggable-handle">
+      <kdl-custom-drag-element text="⠿" />
+      Item content
+    </kdl-grid-item>
+  `,
+})
+export class MyGridItemComponent {}
+```
+
+## Inputs
+
+| Input | Type | Default | Description |
+|---|---|---|---|
+| `text` | `string` | `'x'` | Label rendered inside the handle's own button, matching Vue's and React's own default exactly. |
+
+## Pairing with `resizeIgnoreFrom`
+
+If the handle sits near a corner, it can land inside the same
+edge-proximity margin the resize engine already uses to detect a resize
+gesture — meaning grabbing the handle could start a resize instead of
+the drag `dragAllowFrom` was meant to restrict things to. Excluding the
+handle from `resizeIgnoreFrom` as well is what actually stops the two
+from fighting over the same gesture:
+
+```html
+<kdl-grid-item
+  dragAllowFrom=".kdl-draggable-handle"
+  resizeIgnoreFrom=".kdl-draggable-handle"
+  ...
+>
+```

@@ -1,4 +1,4 @@
-﻿---
+---
 title: Roadmap
 description: What's suggested next for Keystone Dashboard Layout for React — not a task list nobody's committed to.
 ---
@@ -6,143 +6,43 @@ description: What's suggested next for Keystone Dashboard Layout for React — n
 Forward-looking — what's suggested next, not a commitment. For what's
 already built, see [Features](/react/features/).
 
-## Recently completed
+The items below are genuinely open at the `core` level, so they're
+shared with the Vue and Angular ports rather than being separate,
+per-framework efforts — see the Vue port's own
+[Roadmap](/vue/guide/project/roadmap/) for the fuller writeup of each.
 
-This package already has full feature parity with the Vue port — see
-that port's own [Roadmap](/vue/guide/project/roadmap/) "Recently
-completed" section for the complete list of what shipped (cross-grid
-drag/drop, drag-and-drop from outside the grid, resize from all eight
-edges/corners, keyboard move/resize, a first-party persistence helper,
-alignment guides, `compactNow()`/`rearrange()`, `duplicateItem(id)`,
-blocked-move feedback, per-item `autoHeight`, magnetic snap-to-grid,
-named layout presets, SVG export, localizable ARIA strings, multi-select
-with group move/resize, align/distribute commands, undo/redo, and more)
-— every item there applies to this package too, since the underlying
-grid math is shared via `keystone-dashboard-layout-core`.
-
-## What's still open
-
-### A confirmed-passing `check:package-install` smoke test
-
-Confirmed via a direct read of `.github/workflows/ci.yml`: this
-package's own pack-and-install smoke test has never actually been run
-successfully end to end (`continue-on-error: true`, pending that). By
-contrast, this package's own `check:bundle-size` script *has* now been
-confirmed (17.97 KB gzip, well under budget) — see
-[Production readiness](/react/guide/project/production-readiness/).
-
-### CI is being fixed in layers — three bugs down, one open
-
-**Bug 1** (workflow files hardcoding a pnpm version that conflicted with
-root `package.json`'s own `packageManager` field) is fixed and pushed —
-confirmed gone from a live run. **Bug 2** (pnpm had been bumped to a
-version requiring Node 22+) is fixed — `packageManager` pinned to
-`pnpm@10.32.0`. **Bug 3**, surfaced before bug 2 even landed: with bug 1
-alone fixed, the Node 22 CI leg ran the real test suite for the first
-time (437/437 Vitest tests passed across Vue/React/Core), but
-`angular`'s own `test:coverage` step failed — not yet root-caused,
-still open. **Bug 4, the biggest one**: pushing bug 1 alone also let
-Node 18/20 actually run — and both failed for real (`packages/core`'s
-`vite build`, via `rolldown`, needs a `node:util` export Node 18 never
-had). Investigating turned up something bigger: **Node.js 18 reached
-end-of-life in April 2025, and Node.js 20 reached end-of-life in April
-2026** — this project's own `engines` field was claiming support for
-two already-unsupported majors. Fixed by narrowing `engines.node` to
-`>=22.0.0` everywhere and narrowing the CI matrix to Node 22 only. Also
-fixed in the same batch: `check:licenses` was separately failing on the
-root workspace package itself. See [Production readiness](/react/guide/project/production-readiness/)
-for the full account — this whole batch needs pushing and a fresh run
-to confirm.
-
-### Live test/coverage/lint numbers
-
-The test suite, coverage gate, and ESLint config are all confirmed real
-(see [Production readiness](/react/guide/project/production-readiness/))
-— but the actual current pass/fail counts, coverage percentage, and
-lint output haven't been captured as live numbers by directly running
-`pnpm test`, `pnpm test:coverage`, and `pnpm lint`. Mechanical to check,
-just not yet done.
-
-### Components/API section depth, versus Vue's own
-
-Vue's docs have 14 Components pages (per-component props/events/
-eventbus-events/slots, `CustomCloseButton`, `CustomDragElement`, 3
-styling pages) and 13 API pages. This package has 4 Components pages
-and 10 [API](/react/api/) pages (6 of which are dedicated pages for the
-`core`-shared interfaces/types/enums, added after the earlier
-`react/api.mdx` fix). A direct, page-by-page comparison (see
-[`astro-docs/DOCUMENTATION_PARITY_GAP.md`](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/astro-docs/DOCUMENTATION_PARITY_GAP.md))
-confirmed most of that gap is a legitimate paradigm difference, not
-missing content: this package's single `styling.mdx` covers the same
-ground as Vue's three styling pages combined, `imperative-handle.mdx`
-is a genuine equivalent of Vue's own `exposed-state.mdx` (same shape,
-same members), and Vue's `slots.mdx`/`eventbus.mdx` pages document
-Vue-specific internals (slots, an internal event-bus) this package's
-own children/callback-props model and architecture don't have a direct
-equivalent of. **Two real, concrete gaps that comparison did surface**:
-no `api/enums/grid-item-events.mdx` or `grid-layout-events.mdx` the way
-Vue has, and no `components/custom-close-button.mdx`/
-`custom-drag-element.mdx` pages — worth confirming this package
-actually exports comparable standalone utility components before
-deciding whether those two are pages to write or genuinely not
-applicable here.
-
-### A real, live CI run of `mutation-test-react`
-
-Confirmed present in `.github/workflows/mutation-testing.yml` and
-confirmed passing via local runs (82.93% overall) — but see the pnpm
-fix item above: every actual scheduled/on-demand CI run of this job
-has been failing at "Setup pnpm," not passing.
-
-### Branch protection & repository secrets
-
-Not checkable from source at all — needs a repository admin to confirm
-directly whether branch protection rules and the `NPM_TOKEN` secret
-`release.yml` needs to actually publish are configured.
-
-The following items are genuinely open at the `core` level, so they're
-shared with the Vue port rather than being separate, per-framework
-efforts — see that port's own [Roadmap](/vue/guide/project/roadmap/)
-"What's still open" section for the fuller writeup of each:
-
-### Swap-on-drag collision mode
+## Swap-on-drag collision mode
 
 Dragging item A onto item B swaps their positions, as an alternative to
 the current push-aside compaction.
 
-### Maximize/restore an item
+## Maximize/restore an item
 
 Temporarily expand a single item to fill the grid's entire visible
 area, then restore it to its prior position/size. Needs its own design
 pass before starting.
 
-### Async persistence backends
+## Async persistence backends
 
 A new hook with its own adapter interface for IndexedDB and
 remote-HTTP-backed persistence, alongside (not replacing) the existing
 synchronous `useLayoutStorage`.
 
-### An open, pluggable CSS positioning strategy
+## An open, pluggable CSS positioning strategy
 
 An interface (mirroring the existing pluggable-compaction precedent)
 replacing the current on/off toggle between CSS transforms and
 `top`/`left` positioning.
 
-### A fast, large-layout compaction algorithm
+## A fast, large-layout compaction algorithm
 
 An additional compaction strategy aimed at very large layouts. Needs a
 real performance benchmark before shipping.
 
-### A worker-based layout engine
+## A worker-based layout engine
 
 An opt-in Web Worker executor for compaction/responsive-generation on
 very large layouts.
-
-## Known limitations (tracked, not silently ignored)
-
-Keyboard support is deliberately scoped to single-unit-step move/resize
-— see [Accessibility scope](/react/guide/project/accessibility/) for
-the full reasoning.
 
 ## Have a request?
 

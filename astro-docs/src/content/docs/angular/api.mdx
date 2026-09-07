@@ -50,18 +50,10 @@ fix before relying on these five specifically.
 documentation. `GridItemHeaderDirective`
 is a marker directive with no inputs/outputs of its own — see
 [GridItemComponent props](/angular/components/grid-item/props/#header-content)
-for how it's used.
-
-:::caution[A real, confirmed gap in this page's own earlier claim]
-This section used to also claim coverage of "the standalone
-`GridItemDragHandleComponent`/`GridItemCloseButtonComponent` utility
-components" under [Components](/angular/components/) — checked
-directly against that directory, and no such page exists there or
-anywhere else in this package's docs. Both components are real and
-exported (see above), just not yet documented with their own
-reference page. See [Documentation parity gap](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/astro-docs/DOCUMENTATION_PARITY_GAP.md)
-for the fuller accounting of gaps like this one.
-:::
+for how it's used. The two standalone utility components,
+[`GridItemCloseButtonComponent`](/angular/components/custom-close-button/)
+and [`GridItemDragHandleComponent`](/angular/components/custom-drag-element/),
+now each have their own dedicated reference page too.
 
 ## Interfaces & members
 
@@ -70,13 +62,19 @@ for the fuller accounting of gaps like this one.
 | [Public members](/angular/api/interfaces/public-members/) | The public methods/fields `GridLayoutComponent` exposes — `compactNow`, `undo`/`redo`, selection, align/distribute, SVG export, `scrollToItem`/`focusItem` |
 | [Layout persistence](/angular/api/interfaces/layout-persistence/) | `GridLayoutStorageService`, `GridLayoutPresetsService` |
 | [Cross-grid & outside-drop event payloads](/angular/api/interfaces/event-payloads/) | `crossGridItemDropped`/`crossGridDropRejected`/`itemDroppedFromOutside` payload shapes |
+| [Layout interface (ILayoutItem)](/angular/api/interfaces/layout/) | One entry in the `layout` array — every field a layout item can carry |
+| [ARIA labels](/angular/api/interfaces/aria-labels/) | `IGridAriaLabels` and the built-in `DEFAULT_ARIA_LABELS` |
+| [Pluggable compaction](/angular/api/interfaces/compactor/) | `ICompactor`, `ICompactorContext`, and the five built-in strategies |
+| [SVG export & outside-drop payload](/angular/api/interfaces/svg-export-and-payload/) | `exportLayoutAsSvg`, `readOutsideDropPayload` |
+| [Layout types](/angular/api/types/layout/) | `TLayout`, `TResponsiveLayout`, `TBreakpoint`, `TBreakpoints` |
+| [ECompactType](/angular/api/enums/compact-type/) | The five built-in compaction strategies as a value enum |
 
-## From `keystone-dashboard-layout-core` instead
+## From `keystone-dashboard-layout-core`
 
-The layout-data shape and framework-agnostic grid math are shared with
-the Vue and React packages, and live in `core` rather than being
-re-exported here. Import these directly from
-`keystone-dashboard-layout-core` when you need them:
+The layout-data shape and framework-agnostic grid math live in `core`
+rather than being re-exported from this package's own barrel. Import
+these directly from `keystone-dashboard-layout-core` when you need
+them:
 
 ```ts
 import type {
@@ -89,17 +87,10 @@ import type {
 import { ECompactType } from 'keystone-dashboard-layout-core';
 ```
 
-These are identical across all three frameworks (Angular reads/writes
-exactly the same shapes Vue and React do), so rather than a third,
-separately-maintained copy of the same reference here, see the Vue
-package's own pages for the full field-by-field breakdown of each:
-
-- [Layout interface (ILayoutItem)](/vue/api/interfaces/layout/)
-- [ARIA labels (IGridAriaLabels)](/vue/api/interfaces/aria-labels/)
-- [Pluggable compaction (ICompactor)](/vue/api/interfaces/compactor/)
-- [SVG export options](/vue/api/interfaces/svg-export-and-payload/)
-- [Layout types (TLayout, TResponsiveLayout, TBreakpoint, TBreakpoints)](/vue/api/types/layout/)
-- [ECompactType](/vue/api/enums/compact-type/)
+`core` is the same package the Vue and React ports use underneath, so
+the shapes themselves are identical either way — see this package's own
+reference pages above for the full field-by-field breakdown of each,
+framed for this package specifically.
 
 See [GridLayoutComponent props](/angular/components/grid-layout/props/)
 and [GridItemComponent props](/angular/components/grid-item/props/)

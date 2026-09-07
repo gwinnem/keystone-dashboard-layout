@@ -3,6 +3,23 @@ import starlight from '@astrojs/starlight';
 import vue from '@astrojs/vue';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+// Written by scripts/generate-typedoc.mjs (predev/prebuild, so this
+// file always exists by the time astro.config.mjs itself runs) —
+// real, absolute routes for every thin-content core/api/reference/*
+// page that script marks `noindex, follow` in its own frontmatter.
+// `@astrojs/sitemap` has no built-in awareness of a page's own noindex
+// meta tag, so without excluding these here explicitly, sitemap-index.xml
+// would submit every one of them to search engines anyway — the exact
+// mixed signal noindex is meant to avoid. `[]` if the file is somehow
+// missing rather than throwing, so a doc-only checkout without having
+// run the generator yet doesn't break `astro dev` outright.
+const noindexRoutesPath = fileURLToPath(new URL('./scripts/noindex-routes.json', import.meta.url));
+const noindexRoutes = fs.existsSync(noindexRoutesPath)
+  ? new Set(JSON.parse(fs.readFileSync(noindexRoutesPath, 'utf8')))
+  : new Set();
 
 // Standalone Astro + Starlight site. Not part of the pnpm workspace on
 // purpose (see package.json's own description) — installs/runs
@@ -35,17 +52,25 @@ import sitemap from '@astrojs/sitemap';
 // the app itself. That app's own host in turn needs a standard SPA-
 // fallback rewrite rule — see main.ts's own comment for what that
 // means and why it's no longer optional now that hash routing is gone).
-export default defineConfig(({ command }) => {
-  // Same dev-vs-prod split as Header.astro's own ANGULAR_NAV_LINKS
-  // (confirmed directly against that file's real source) — kept
-  // consistent here rather than reusing `import.meta.env.DEV`, which
-  // only works inside Vite-processed component code, not in this plain
-  // Node config file; `command` (from defineConfig's own function
-  // form) is the equivalent signal available here: `'dev'` for `astro
-  // dev`, `'build'`/`'preview'` otherwise.
-  const ANGULAR_EXAMPLES_APP_URL = command === 'dev' ? `http://localhost:4200` : `https://kdla.winnem.tech`;
+// Same dev-vs-prod split as Header.astro's own ANGULAR_NAV_LINKS
+// (confirmed directly against that file's real source) — kept
+// consistent here rather than reusing `import.meta.env.DEV`, which
+// only works inside Vite-processed component code, not in this plain
+// Node config file. `defineConfig`'s own function form (`({ command })
+// => ({...})`) was tried first for this instead of `process.env`, but
+// reverted after it broke every single Starlight-rendered page on this
+// site (confirmed directly: every docs route 404'd, while the one
+// plain, non-Starlight page — the custom landing page — kept working
+// fine) — Astro/Vite can invoke that function more than once per dev
+// session, and doing so re-constructs a brand-new `starlight({...})`
+// integration instance each time, which broke that integration's own
+// one-time content-collection registration. `process.env.NODE_ENV`
+// needs no such function wrapping: Vite already sets it to
+// `'development'` for `astro dev` and `'production'` for `astro build`,
+// which is all this needs.
+const ANGULAR_EXAMPLES_APP_URL = process.env.NODE_ENV === 'production' ? `https://kdla.winnem.tech` : `http://localhost:4200`;
 
-  return {
+export default defineConfig({
   // Confirmed production domain: https://kdl.winnem.tech — unlocks three
   // separate, previously-missing pieces of SEO infrastructure, confirmed
   // directly against Starlight's own source/changelog, not assumed:
@@ -67,7 +92,13 @@ export default defineConfig(({ command }) => {
   integrations: [
     vue(),
     react(),
-    sitemap(),
+    sitemap({
+      // `page` is a full absolute URL string (e.g.
+      // 'https://kdl.winnem.tech/core/api/reference/functions/clamp/')
+      // — compare against noindexRoutes by pathname alone, not the
+      // whole string, since that set stores paths only.
+      filter: (page) => !noindexRoutes.has(new URL(page).pathname),
+    }),
     starlight({
       title: 'Keystone Dashboard Layout',
       favicon: '/favicon.svg',
@@ -131,6 +162,7 @@ export default defineConfig(({ command }) => {
         {
           label: 'Vue',
           items: [
+            { label: 'Overview', slug: 'vue' },
             {
               label: 'Guide',
               items: [
@@ -150,7 +182,6 @@ export default defineConfig(({ command }) => {
                     { label: 'Comparison: alternatives', slug: 'vue/guide/project/comparison-alternatives' },
                     { label: 'Comparison: commercial', slug: 'vue/guide/project/comparison-commercial' },
                     { label: 'Roadmap', slug: 'vue/guide/project/roadmap' },
-                    { label: 'Production readiness', slug: 'vue/guide/project/production-readiness' },
                   ],
                 },
                 { label: 'Changelog', slug: 'vue/guide/changelog' },
@@ -284,6 +315,7 @@ export default defineConfig(({ command }) => {
         {
           label: 'React',
           items: [
+            { label: 'Overview', slug: 'react' },
             {
               label: 'Guide',
               items: [
@@ -303,7 +335,6 @@ export default defineConfig(({ command }) => {
                     { label: 'Comparison: alternatives', slug: 'react/guide/project/comparison-alternatives' },
                     { label: 'Comparison: commercial', slug: 'react/guide/project/comparison-commercial' },
                     { label: 'Roadmap', slug: 'react/guide/project/roadmap' },
-                    { label: 'Production readiness', slug: 'react/guide/project/production-readiness' },
                   ],
                 },
                 { label: 'Changelog', slug: 'react/guide/changelog' },
@@ -316,6 +347,8 @@ export default defineConfig(({ command }) => {
                 { label: 'Overview', slug: 'react/components' },
                 { label: 'GridLayout props', slug: 'react/components/grid-layout/props' },
                 { label: 'GridItem props', slug: 'react/components/grid-item/props' },
+                { label: 'GridItemCloseButton', slug: 'react/components/custom-close-button' },
+                { label: 'GridItemDragHandle', slug: 'react/components/custom-drag-element' },
                 { label: 'Styling', slug: 'react/components/styling' },
               ],
             },
@@ -405,6 +438,7 @@ export default defineConfig(({ command }) => {
         {
           label: 'Angular',
           items: [
+            { label: 'Overview', slug: 'angular' },
             {
               label: 'Guide',
               items: [
@@ -424,7 +458,6 @@ export default defineConfig(({ command }) => {
                     { label: 'Comparison: alternatives', slug: 'angular/guide/project/comparison-alternatives' },
                     { label: 'Comparison: commercial', slug: 'angular/guide/project/comparison-commercial' },
                     { label: 'Roadmap', slug: 'angular/guide/project/roadmap' },
-                    { label: 'Production readiness', slug: 'angular/guide/project/production-readiness' },
                   ],
                 },
                 { label: 'Changelog', slug: 'angular/guide/changelog' },
@@ -437,6 +470,9 @@ export default defineConfig(({ command }) => {
                 { label: 'Overview', slug: 'angular/components' },
                 { label: 'GridLayoutComponent props', slug: 'angular/components/grid-layout/props' },
                 { label: 'GridItemComponent props', slug: 'angular/components/grid-item/props' },
+                { label: 'GridItemCloseButtonComponent', slug: 'angular/components/custom-close-button' },
+                { label: 'GridItemDragHandleComponent', slug: 'angular/components/custom-drag-element' },
+                { label: 'Styling', slug: 'angular/components/styling' },
               ],
             },
             {
@@ -446,6 +482,12 @@ export default defineConfig(({ command }) => {
                 { label: 'Public members (GridLayoutComponent)', slug: 'angular/api/interfaces/public-members' },
                 { label: 'Layout persistence', slug: 'angular/api/interfaces/layout-persistence' },
                 { label: 'Cross-grid & outside-drop event payloads', slug: 'angular/api/interfaces/event-payloads' },
+                { label: 'Layout interface (ILayoutItem)', slug: 'angular/api/interfaces/layout' },
+                { label: 'ARIA labels', slug: 'angular/api/interfaces/aria-labels' },
+                { label: 'Pluggable compaction', slug: 'angular/api/interfaces/compactor' },
+                { label: 'SVG export & outside-drop payload', slug: 'angular/api/interfaces/svg-export-and-payload' },
+                { label: 'Layout types', slug: 'angular/api/types/layout' },
+                { label: 'ECompactType', slug: 'angular/api/enums/compact-type' },
               ],
             },
             {
@@ -527,6 +569,7 @@ export default defineConfig(({ command }) => {
         {
           label: 'Core',
           items: [
+            { label: 'Overview', slug: 'core' },
             {
               label: 'Guide',
               items: [
@@ -559,5 +602,4 @@ export default defineConfig(({ command }) => {
   // after a full dev-server restart). Set instead in
   // src/middleware.ts, which works uniformly across `astro dev`,
   // `astro preview`, and a real production deploy.
-  };
 });
