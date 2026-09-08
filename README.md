@@ -12,12 +12,12 @@ independent, idiomatic framework packages.
 
 ## Packages
 
-| Package | Framework | Status |
-| --- | --- | --- |
-| [`packages/core`](./packages/core) | None (framework-agnostic) | Shared engine, in active use by all three framework packages |
-| [`packages/vue`](./packages/vue) | Vue 3 | Reference implementation, feature-complete |
-| [`packages/react`](./packages/react) | React 18/19 | Full feature parity with Vue |
-| [`packages/angular`](./packages/angular) | Angular 17–19 | Full feature parity with Vue |
+| Package | Framework | Status | Changelog |
+| --- | --- | --- | --- |
+| [`packages/core`](./packages/core) | None (framework-agnostic) | Shared engine, in active use by all three framework packages | [CHANGELOG.md](./packages/core/CHANGELOG.md) |
+| [`packages/vue`](./packages/vue) | Vue 3 | Reference implementation, feature-complete | [CHANGELOG.md](./packages/vue/CHANGELOG.md) |
+| [`packages/react`](./packages/react) | React 18/19 | Full feature parity with Vue | [CHANGELOG.md](./packages/react/CHANGELOG.md) |
+| [`packages/angular`](./packages/angular) | Angular 17–19 | Full feature parity with Vue | [CHANGELOG.md](./packages/angular/CHANGELOG.md) |
 
 `keystone-dashboard-layout-core` holds the framework-agnostic algorithms
 — bin-packing, collision detection, compaction, responsive breakpoints,
@@ -106,19 +106,6 @@ cd angular-examples-app
 pnpm install
 pnpm dev
 ```
-
-Neither app is currently deployed publicly — both are run locally via
-the steps above.
-
-> **Note:** this project previously used VitePress for documentation
-> (`vitepress-docs/`, with `docs:dev`/`docs:build`/`docs:preview`
-> scripts in the root `package.json`). That migration to Astro is now
-> complete — `vitepress-docs/` no longer exists, `vitepress` isn't a
-> dependency anywhere in this repo anymore, and the root
-> `package.json`'s own now-broken `docs:*` scripts have been removed
-> accordingly (`astro-docs` is a separate project run via its own
-> scripts above, not through the root task runner, so there was nothing
-> meaningful to redirect them to instead).
 
 ## Repository layout
 

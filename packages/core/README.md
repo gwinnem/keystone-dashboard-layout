@@ -1,11 +1,11 @@
-<div style="text-align: center">
+<p align="center">
 
 [![CI](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml/badge.svg)](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat)](https://github.com/prettier/prettier)
-[![npm](https://img.shields.io/npm/v/%40keystone-dashboard-layout%2Fvue)](https://www.npmjs.com/package/keystone-dashboard-layout-core)
-[![NPM](https://img.shields.io/npm/l/%40keystone-dashboard-layout%2Fvue)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/core/LICENSE)
+[![npm](https://img.shields.io/npm/v/keystone-dashboard-layout-core)](https://www.npmjs.com/package/keystone-dashboard-layout-core)
+[![NPM](https://img.shields.io/npm/l/keystone-dashboard-layout-core)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/core/LICENSE)
 
-</div>
+</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/gwinnem/keystone-dashboard-layout/main/packages/vue/docs/dashboard-preview.svg" width="500" alt="Keystone Dashboard Layout — a draggable, resizable dashboard grid preview">
@@ -17,9 +17,9 @@ Framework-agnostic grid-layout algorithms — bin-packing, collision
 detection, compaction, responsive breakpoint resolution, alignment
 guides, magnetic snapping, and a native Pointer-Events-based drag/
 resize engine — shared by the
-[Vue](https://www.npmjs.com/package/@keystone-dashboard-layout/vue),
-[React](https://www.npmjs.com/package/@keystone-dashboard-layout/react),
-and [Angular](https://www.npmjs.com/package/@keystone-dashboard-layout/angular)
+[Vue](https://www.npmjs.com/package/keystone-dashboard-layout-vue),
+[React](https://www.npmjs.com/package/keystone-dashboard-layout-react),
+and [Angular](https://www.npmjs.com/package/keystone-dashboard-layout-angular)
 packages in this family. Every function here takes plain data in and
 returns plain data out — no framework dependency, no live DOM required
 for the vast majority of it (drag/resize itself is the one exception;
@@ -116,6 +116,10 @@ framework-agnostic package means the Vue, React, and Angular packages
 share one implementation and one test suite for that logic, rather
 than three independently-maintained copies that could quietly drift
 out of sync with each other.
+
+## Changelog
+
+See [`CHANGELOG.md`](./CHANGELOG.md) for release history.
 
 ## License
 

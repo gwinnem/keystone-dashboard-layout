@@ -5,10 +5,10 @@
   "description": "Standalone Astro + Starlight documentation site for KeystoneGrid (Vue/React/Angular). Not part of the pnpm workspace — install/run independently from this directory.",
   "type": "module",
   "scripts": {
-    "predev": "node scripts/generate-typedoc.mjs",
+    "predev": "node scripts/generate-typedoc.mjs && node scripts/sync-changelogs.mjs",
     "dev": "astro dev",
     "start": "astro dev",
-    "prebuild": "node scripts/generate-typedoc.mjs",
+    "prebuild": "node scripts/generate-typedoc.mjs && node scripts/sync-changelogs.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"

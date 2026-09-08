@@ -126,15 +126,5 @@ depends on can settle across more than one render pass after mount or a
 view switch, and reading `boundingBox()` too early can catch it
 mid-settle. Waiting for an item's `vue-draggable` class confirms
 interact.js's own setup has run; it does not confirm the container's own
-width measurement has also finished. This was found to affect existing,
-previously-considered-solid tests too, not just newly-added ones — see
-`docs/REFACTORING.md` #73.
+width measurement has also finished.
 
-## Manual testing
-
-Neither Vitest nor the e2e suite above covers everything — see
-[`MANUAL_TEST_CHECKLIST.md`](../MANUAL_TEST_CHECKLIST.md) for
-cross-browser (Firefox/Safari have zero automated coverage in this
-project's current environment), touch/mobile, and screen-reader
-scenarios that need a human in a real browser. Run it before a release
-touching drag/resize/collision logic, or quarterly otherwise.

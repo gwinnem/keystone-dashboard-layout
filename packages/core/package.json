@@ -30,7 +30,7 @@
   "main": "dist/keystone-dashboard-layout-core.cjs.js",
   "module": "dist/keystone-dashboard-layout-core.es.js",
   "types": "./dist/types/index.d.ts",
-  "files": ["dist/*", "LICENSE", "NOTICE.md", "SUPPORT.md"],
+  "files": ["dist/*", "LICENSE", "NOTICE.md", "SUPPORT.md", "CHANGELOG.md"],
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",

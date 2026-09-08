@@ -57,7 +57,8 @@
     "dist/*",
     "LICENSE",
     "NOTICE.md",
-    "SUPPORT.md"
+    "SUPPORT.md",
+    "CHANGELOG.md"
   ],
   "sideEffects": false,
   "exports": {
