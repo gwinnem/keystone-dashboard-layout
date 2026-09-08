@@ -1,31 +1,53 @@
 # Open Issues — Implementation Plan
 
-Everything currently open across `ROADMAP.md`, `PRODUCTION_READINESS.md`,
-and `docs/PARITY_GAP_PLAN.md`, organized into one place with an actual
-recommended order. This document covers what those three don't already
-cover in sufficient depth:
+**Stale-reference note (this pass):** the three source documents this
+plan was originally organized against — `ROADMAP.md`,
+`PRODUCTION_READINESS.md`, `docs/PARITY_GAP_PLAN.md` — along with
+`PARITY_GAP_VUE_COMMERCIAL_AND_CROSS_FRAMEWORK.md` and
+`COMPARISON_COMMERCIAL.md`, no longer exist anywhere in this repo
+(confirmed via a direct search, not assumed). Their content was
+migrated to the published astro-docs site instead: the live equivalents
+are [Roadmap](https://kdl.winnem.tech/vue/guide/project/roadmap/),
+[Features](https://kdl.winnem.tech/vue/features/),
+[Comparison: alternatives](https://kdl.winnem.tech/vue/guide/project/comparison-alternatives/),
+and [Comparison: commercial](https://kdl.winnem.tech/vue/guide/project/comparison-commercial/).
+`PRODUCTION_READINESS.md` itself was deleted outright (not migrated) —
+see that page's own former sidebar entry, removed project-wide. Every
+`Source:`/cross-reference below pointing at one of the five dead
+filenames has been updated to point at its real, current replacement;
+none of this document's own technical designs (Parts A/B) needed
+changing, only where they're sourced from.
 
-- **Standalone roadmap features** not in `docs/PARITY_GAP_PLAN.md`'s
-  scope (that plan explicitly excludes swap-on-drag "on request," and
-  never covered sub-grid nesting or maximize/restore at all — both
-  came from a different comparison, DevExpress/Kendo, not the five
-  alternatives that plan is built against).
-- **The two remaining Syncfusion-comparison follow-ups**
-  (`PARITY_GAP_VUE_COMMERCIAL_AND_CROSS_FRAMEWORK.md`), both flagged
-  there as open but never given an implementation design.
-- **Verification and tooling debt** from `PRODUCTION_READINESS.md`'s
-  own "not re-verified this session" items — these aren't features,
-  but they're real, actionable work, and several are quick.
+**Duplication note**: Parts A1 (swap-on-drag) and A3 (maximize/restore)
+below are now *also* listed as open, forward-looking items on the live
+[Roadmap](https://kdl.winnem.tech/vue/guide/project/roadmap/) page
+itself, in less design-detail than here. This document remains the
+right place for the actual implementation design; the live roadmap is
+the right place for a reader just checking what's planned.
 
-For the 6 items `docs/PARITY_GAP_PLAN.md` already covers in depth
-(spacing guides, drag-activation thresholds, align/distribute, height
-modes, async persistence, pluggable positioning strategy, fast
-compaction, worker engine), see that document directly — not repeated
-here.
+Everything currently open across the documents above, organized into
+one place with an actual recommended order. This document covers what
+those don't already cover in sufficient depth:
+
+- **Standalone roadmap features** not in the astro-docs Features page's
+  scope (swap-on-drag was excluded "on request" at the time; sub-grid
+  nesting and maximize/restore were never covered there at all — both
+  came from a different comparison, DevExpress/Kendo, not the
+  open-source alternatives that page is built against).
+- **The two remaining Syncfusion-comparison follow-ups** (from
+  [Comparison: commercial](https://kdl.winnem.tech/vue/guide/project/comparison-commercial/)),
+  both flagged there as open but never given an implementation design.
+- **Verification and tooling debt** — these aren't features, but
+  they're real, actionable work, and several are quick.
+
+For the other roadmap items already covered in depth on the live
+[Roadmap](https://kdl.winnem.tech/vue/guide/project/roadmap/) page
+(async persistence, pluggable positioning strategy, fast compaction,
+worker engine), see that page directly — not repeated here.
 
 ## How to read this document
 
-Same effort/risk grading as `docs/PARITY_GAP_PLAN.md`: **Small**
+Same effort/risk grading the now-migrated parity-gap plan used: **Small**
 (hours, contained to 1-2 files), **Moderate** (a day or so, touches a
 few files including tests), **Significant** (multi-day, needs its own
 design decisions), **Large** (genuinely new architecture).
@@ -39,8 +61,9 @@ design decisions), **Large** (genuinely new architecture).
 **Source**: `gridstack.js`'s default `float: false` swap behavior —
 dragging item A onto item B swaps their positions outright, instead of
 B being pushed aside by the current collision-cascade logic. Tracked
-as `ROADMAP.md` item 8, deliberately excluded from `PARITY_GAP_PLAN.md`
-on request at the time.
+on the live [Roadmap](https://kdl.winnem.tech/vue/guide/project/roadmap/)
+page as "Swap-on-drag collision mode," deliberately excluded from the
+Features page's comparison work on request at the time.
 
 **Current state**: `moveElement()` (`core/gridlayout/helpers/move-helper.ts`)
 is the single call site `dragEvent()` in `GridLayout.vue` uses to
@@ -88,9 +111,11 @@ exchanged, not cascaded.
 
 ### A2. Sub-grid nesting
 
-**Source**: `docs/PARITY_GAP_PLAN.md`'s own introduction and
-`ROADMAP.md` both flag this as the largest remaining structural gap,
-low priority "given `allowCrossGridDrag` covers the sibling case."
+**Source**: previously flagged as the largest remaining structural gap
+across the now-migrated parity-gap plan and roadmap, low priority
+"given `allowCrossGridDrag` covers the sibling case." Not currently
+listed on the live [Roadmap](https://kdl.winnem.tech/vue/guide/project/roadmap/)
+page at all — this document is its only remaining tracked location.
 
 **Current state**: `GridLayout`/`GridItem` have no concept of one grid
 being a descendant of another's own item content today — a `GridItem`'s
@@ -135,8 +160,12 @@ first pass; it may turn out to be Moderate.
 
 **Source**: DevExpress/DevExtreme's Dashboard Designer (confirmed
 present there; confirmed **absent** in Kendo TileLayout, per
-`COMPARISON_COMMERCIAL.md`) — a separate comparison from the five
-open-source alternatives `PARITY_GAP_PLAN.md` is built against.
+[Comparison: commercial](https://kdl.winnem.tech/vue/guide/project/comparison-commercial/)) —
+a separate comparison from the open-source alternatives the
+[Comparison: alternatives](https://kdl.winnem.tech/vue/guide/project/comparison-alternatives/)
+page is built against. Also tracked on the live
+[Roadmap](https://kdl.winnem.tech/vue/guide/project/roadmap/) page as
+"Maximize/restore an item."
 
 **Current state**: no maximize/restore concept exists anywhere in
 `GridLayout`/`GridItem` today.
@@ -157,7 +186,7 @@ recompacted around the gap.
 
 **Open design question, needs deciding before implementation**: what
 happens to compaction/collision logic *while* an item is maximized.
-Recommendation (per `ROADMAP.md`'s own note): freeze every other item
+Recommendation: freeze every other item
 in place entirely — no compaction runs at all while `maximizedItemId`
 is set, and normal compaction resumes on restore. This needs explicit
 confirmation, not just inheriting from the recommendation without
@@ -180,8 +209,8 @@ maximize→restore round-trips back to the exact original visual layout.
 
 ## Part B — Syncfusion-comparison follow-ups
 
-Both from `PARITY_GAP_VUE_COMMERCIAL_AND_CROSS_FRAMEWORK.md`'s open
-items, neither previously given an implementation design.
+Both from [Comparison: commercial](https://kdl.winnem.tech/vue/guide/project/comparison-commercial/)'s
+open items, neither previously given an implementation design.
 
 ### B1. `enablePersistence`-style one-flag convenience wrapper
 
@@ -257,17 +286,18 @@ substituting `dragAllowFrom`/`dragIgnoreFrom`.
 
 ## Part C — Verification & tooling debt
 
-Not features — re-running checks `PRODUCTION_READINESS.md` flagged as
-"not re-verified this session," plus closing genuine tooling gaps.
-Ordered by how quickly each one can rule itself in or out.
+Not features — re-running checks a since-deleted production-readiness
+checklist once flagged as "not re-verified this session," plus closing
+genuine tooling gaps. Ordered by how quickly each one can rule itself
+in or out.
 
 ### C1. Quick re-verification (do these first — cheap, and tell you if anything else here is actually urgent)
 
 - `npm run lint` / `npm run lint:style` in `packages/vue` — last
   confirmed clean before this session's changes.
-- `npm audit --omit=dev --audit-level=high` — **done this session**:
-  0 vulnerabilities in `packages/vue`'s own dependency tree (see
-  `PRODUCTION_READINESS.md`). A whole-workspace `pnpm audit` (42
+- `npm audit --omit=dev --audit-level=high` — **done in an earlier
+  session**: 0 vulnerabilities in `packages/vue`'s own dependency tree.
+  A whole-workspace `pnpm audit` (42
   findings) traced entirely to `packages/angular`'s scaffold
   devDependencies and the root's intentionally-pinned
   `vitepress@1.6.3` — neither reaches `packages/vue`.
@@ -340,8 +370,8 @@ not just a CLI flag) for provenance; a separate SBOM step
 
 **Effort**: Small to Moderate — mostly configuration, some of which
 (the OIDC trust relationship) needs the same repo-admin-only access
-`PRODUCTION_READINESS.md` already flags for `NPM_TOKEN`/branch
-protection.
+`NPM_TOKEN`/branch protection already require (see
+`.github/workflows/release.yml`'s own comments).
 
 ### C6. Automated accessibility testing (`axe-core`/equivalent)
 
@@ -359,13 +389,16 @@ takes real review time.
 
 ### C7. Housekeeping — dead stub files
 
-`packages/vue/package-lock.json.bak`, `packages/vue/vite.core.config.js`,
-`packages/vue/tsconfig.build-types-core.json` — flagged as safe to
-delete in an earlier session, still present. No assistant session has
-had file-deletion capability to close this directly; needs a human (or
-an assistant session with that tool available) to actually remove them.
+**Updated status**: `packages/vue/package-lock.json.bak` is already
+gone (removed at some point after this item was originally written).
+`packages/vue/vite.core.config.js` and
+`packages/vue/tsconfig.build-types-core.json` are both still present
+and confirmed genuinely unreferenced (a direct grep across
+`package.json`, `vite.config.js`, and `stryker.conf.json` turns up
+nothing pointing at either file) — safe to delete, pending an explicit
+go-ahead before doing so.
 
-**Effort**: Trivial once someone/something has delete access.
+**Effort**: Trivial once someone confirms deletion.
 
 ---
 
@@ -411,6 +444,7 @@ which items inform others:
 ## Status
 
 Not started — this is a planning document. Update each item's own
-entry (and the corresponding `ROADMAP.md`/`PRODUCTION_READINESS.md`
-line) as work actually begins/completes, matching how every other
-tracked plan in this project is kept current.
+entry (and the corresponding live [Roadmap](https://kdl.winnem.tech/vue/guide/project/roadmap/)
+entry, where one exists — see the duplication note at the top) as work
+actually begins/completes, matching how every other tracked plan in
+this project is kept current.

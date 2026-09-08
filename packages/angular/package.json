@@ -45,7 +45,7 @@
   ],
   "main": "dist/keystone-dashboard-layout-angular/index.js",
   "types": "./dist/keystone-dashboard-layout-angular/index.d.ts",
-  "files": ["dist/keystone-dashboard-layout-angular/*", "LICENSE", "NOTICE.md", "SUPPORT.md"],
+  "files": ["dist/keystone-dashboard-layout-angular/*", "LICENSE", "NOTICE.md", "SUPPORT.md", "CHANGELOG.md"],
   "exports": {
     "./style.css": "./dist/keystone-dashboard-layout-angular/styles/index.css"
   },

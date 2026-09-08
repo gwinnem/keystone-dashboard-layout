@@ -1,17 +1,17 @@
-<div style="text-align: center">
+<p align="center">
 
 [![CI](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml/badge.svg)](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat)](https://github.com/prettier/prettier)
-[![npm](https://img.shields.io/npm/v/%40keystone-dashboard-layout%2Fvue)](https://www.npmjs.com/package/@keystone-dashboard-layout/vue)
-[![NPM](https://img.shields.io/npm/l/%40keystone-dashboard-layout%2Fvue)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/vue/LICENSE)
+[![npm](https://img.shields.io/npm/v/keystone-dashboard-layout-vue)](https://www.npmjs.com/package/keystone-dashboard-layout-vue)
+[![NPM](https://img.shields.io/npm/l/keystone-dashboard-layout-vue)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/vue/LICENSE)
 
-</div>
+</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/gwinnem/keystone-dashboard-layout/main/packages/vue/docs/dashboard-preview.svg" width="500" alt="Keystone Dashboard Layout — a draggable, resizable dashboard grid preview">
 </p>
 
-<h1 align="center">@keystone-dashboard-layout/vue</h1>
+<h1 align="center">keystone-dashboard-layout-vue</h1>
 
 ## What this actually is
 
@@ -38,7 +38,7 @@ community forks (`vue-grid-layout-v3`, `vue3-grid-layout-next`, at
 least one explicitly marked "no longer supported"), with no obvious
 default among them.
 
-`@keystone-dashboard-layout/vue` is a ground-up TypeScript rewrite
+`keystone-dashboard-layout-vue` is a ground-up TypeScript rewrite
 built specifically to be the option in that gap with the most complete
 feature set and the most rigorously tested codebase — not a patch on
 top of the original Vue 2 source, and now the reference implementation
@@ -48,14 +48,14 @@ packages in the same family.
 ## Quick start
 
 ```sh
-npm install @keystone-dashboard-layout/vue
+npm install keystone-dashboard-layout-vue
 ```
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { GridLayout, GridItem, type TLayout } from '@keystone-dashboard-layout/vue';
-import '@keystone-dashboard-layout/vue/style.css';
+import { GridLayout, GridItem, type TLayout } from 'keystone-dashboard-layout-vue';
+import 'keystone-dashboard-layout-vue/style.css';
 
 const layout = ref<TLayout>([
   { h: 2, i: '0', w: 2, x: 0, y: 0 },
@@ -153,8 +153,8 @@ different UI on the same algorithms.
 
 ## Shared engine, three frameworks
 
-This package, [`@keystone-dashboard-layout/react`](https://www.npmjs.com/package/@keystone-dashboard-layout/react),
-and [`@keystone-dashboard-layout/angular`](https://www.npmjs.com/package/@keystone-dashboard-layout/angular)
+This package, [`keystone-dashboard-layout-react`](https://www.npmjs.com/package/keystone-dashboard-layout-react),
+and [`keystone-dashboard-layout-angular`](https://www.npmjs.com/package/keystone-dashboard-layout-angular)
 all build on [`keystone-dashboard-layout-core`](https://www.npmjs.com/package/keystone-dashboard-layout-core)
 for collision detection, compaction, responsive breakpoint math, and
 the native Pointer-Events-based drag/resize engine — one implementation
@@ -163,6 +163,8 @@ could drift out of sync.
 
 ## Documentation
 
+* [`CHANGELOG.md`](./CHANGELOG.md) — release history, generated from
+  conventional commits on every release
 * [`docs/TESTING.md`](./docs/TESTING.md) — unit + e2e testing guide
 * [`docs/STRYKER.md`](./docs/STRYKER.md) — mutation testing: what it's
   for, how to run it, and what's in scope

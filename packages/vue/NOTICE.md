@@ -1,7 +1,7 @@
 # Third-Party Notices
 
 This package's own runtime dependency is
-`@keystone-dashboard-layout/core` — a sibling package in this same
+`keystone-dashboard-layout-core` — a sibling package in this same
 family (installed as a normal dependency, not vendored or bundled into
 this package's own `dist/` output).
 
@@ -9,7 +9,7 @@ this package's own `dist/` output).
 [`interact.js`](https://interactjs.io/) was used for drag/resize in an
 earlier version of this package and has since been fully replaced by a
 native, dependency-free drag/resize engine (built on the plain Pointer
-Events API, now living in `@keystone-dashboard-layout/core`) — it is
+Events API, now living in `keystone-dashboard-layout-core`) — it is
 **not** a runtime dependency of the current version, despite possibly
 appearing in older discussions or search results about this project.
 

@@ -1,11 +1,11 @@
-<div style="text-align: center">
+<p align="center">
 
 [![CI](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml/badge.svg)](https://github.com/gwinnem/keystone-dashboard-layout/actions/workflows/ci.yml)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat)](https://github.com/prettier/prettier)
-[![npm](https://img.shields.io/npm/v/keystone-dashboard-layout-vue)](https://www.npmjs.com/package/keystone-dashboard-layout-vue)
-[![NPM](https://img.shields.io/npm/l/keystone-dashboard-layout-vue)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/vue/LICENSE)
+[![npm](https://img.shields.io/npm/v/keystone-dashboard-layout-angular)](https://www.npmjs.com/package/keystone-dashboard-layout-angular)
+[![NPM](https://img.shields.io/npm/l/keystone-dashboard-layout-angular)](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/angular/LICENSE)
 
-</div>
+</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/gwinnem/keystone-dashboard-layout/main/packages/vue/docs/dashboard-preview.svg" width="500" alt="Keystone Dashboard Layout — a draggable, resizable dashboard grid preview">
@@ -236,6 +236,10 @@ package's Angular target hit a genuinely unresolved upstream
 repo) predates the Playwright suite and is no longer needed for it —
 kept for now rather than removed in the same pass that added real e2e
 coverage.
+
+## Changelog
+
+See [`CHANGELOG.md`](./CHANGELOG.md) for release history.
 
 ## Donate
 

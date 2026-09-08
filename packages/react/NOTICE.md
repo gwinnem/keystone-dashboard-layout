@@ -1,7 +1,7 @@
 # Third-Party Notices
 
 This package's own runtime dependency is
-`@keystone-dashboard-layout/core` — a sibling package in this same
+`keystone-dashboard-layout-core` — a sibling package in this same
 family (installed as a normal dependency, not vendored or bundled into
 this package's own `dist/` output).
 
