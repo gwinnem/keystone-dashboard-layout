@@ -1,8 +1,10 @@
 name: Mutation testing
 
 # Deliberately NOT run on every push/PR — mutation testing re-runs the test
-# suite once per mutant, far too slow for per-PR feedback. Runs weekly
-# instead, plus on-demand via workflow_dispatch.
+# suite once per mutant, far too slow for per-PR feedback. Not scheduled
+# either: run it by hand (Actions tab > "Mutation testing" > Run workflow, or
+# `gh workflow run "Mutation testing"`), or locally via each package's
+# `test:mutation` script.
 #
 # All four packages are now confirmed working via real local runs:
 #   - react: 82.93% overall mutation score (up from an earlier 79.42%
@@ -58,8 +60,6 @@ name: Mutation testing
 #     auto-detect from package.json instead, the same fix applied to all
 #     three workflow files.
 on:
-  schedule:
-    - cron: '0 3 * * 1' # every Monday at 03:00 UTC
   workflow_dispatch:
 
 jobs:

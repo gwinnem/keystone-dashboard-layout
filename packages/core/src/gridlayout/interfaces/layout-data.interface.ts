@@ -54,6 +54,23 @@ export interface IPositionParameters {
 }
 
 /**
+ * What a `GridItem`'s own props say about how the layout logic may treat it, reported to the grid over the eventBus
+ * (`itemOverrides`). The layout logic (collision handling, group move/resize) reads these from the layout *entries*, so
+ * the grid writes the reported values onto the entry. Each field is the prop as given: `isStatic` defaults to `false`,
+ * `isDraggable`/`isResizable` to `null` (inherit), `minW`/`minH` to `1` and `maxW`/`maxH` to `Infinity`.
+ */
+export interface IItemOverridesData {
+  i: string | number;
+  isDraggable: boolean | null;
+  isResizable: boolean | null;
+  isStatic: boolean;
+  maxH: number;
+  maxW: number;
+  minH: number;
+  minW: number;
+}
+
+/**
  * The eventBus contract GridLayout creates and provides to its GridItem
  * children. Shared with GridLayout's composables so both sides of every
  * eventBus.on/emit pair stay in sync with a single type definition.
@@ -66,6 +83,7 @@ export type TGridLayoutEventBus = IEventEmitter<{
   // without a payload the way onWindowResize does for resizeEvent (see
   // docs/REFACTORING.md #70).
   dragEvent: IEventsData;
+  itemOverrides: IItemOverridesData;
   resizeEvent?: IEventsData;
   setColNum: number;
   setBounded: boolean;

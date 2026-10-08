@@ -77,7 +77,7 @@
 <script lang="ts" setup>
   import { createEventEmitter, TEventType as EventType } from '@/core/helpers/event-emitter';
   import { ILayoutItem, TLayout } from '@/components';
-  import { TGridLayoutEventBus, IPlaceholder } from '@/core/gridlayout/interfaces/layout-data.interface';
+  import { TGridLayoutEventBus, IItemOverridesData, IPlaceholder } from '@/core/gridlayout/interfaces/layout-data.interface';
   import GridItem from './GridItem.vue';
   import { cloneLayout, getLayoutItem } from '@/core/helpers/utils';
   import { getCompactor, ICompactorContext } from '@/core/gridlayout/helpers/compactor';
@@ -527,8 +527,12 @@
     updateHeight,
   });
 
-  const compactNow = (): void => {
-    const beforeCompact = cloneLayout(props.layout);
+  /**
+   * Forced compaction plus the undo point, event and height bookkeeping that goes with it. The "before" snapshot is a
+   * parameter (rather than taken in here) so a caller that changes the layout first — `duplicateItem` adds a copy —
+   * can snapshot *before* its own change, and one undo then reverts the whole operation.
+   */
+  const compactWithSnapshot = (beforeCompact: TLayout): void => {
     // Deliberately forces real compaction to happen even when
     // `props.compactType` is `NONE` — that prop only governs
     // *automatic* compaction during drag/resize; an explicit,
@@ -550,6 +554,10 @@
     updateHeight();
     emit(EGridLayoutEvent.LAYOUT_UPDATE, props.layout);
     emit(EGridLayoutEvent.LAYOUT_UPDATED, props.layout);
+  };
+
+  const compactNow = (): void => {
+    compactWithSnapshot(cloneLayout(props.layout));
   };
 
   /** Alias for `compactNow()` — same operation, offered under the name `docs/FEATURE_RECOMMENDATIONS.md` originally suggested it under. */
@@ -597,9 +605,12 @@
     const duplicated: ILayoutItem = { ...rest, i: newId, y: source.y + source.h };
     // Same `v-model:layout` in-place-mutation pattern as runCompaction's
     // own custom-compactor path above — see that one's comment.
+    const beforeDuplicate = cloneLayout(props.layout);
     // eslint-disable-next-line vue/no-mutating-props
     props.layout.push(duplicated);
-    compactNow();
+    // Snapshot taken before the push, so undo removes the copy (a plain compactNow() here would snapshot a layout
+    // that already contains it, and undo would leave the copy in place).
+    compactWithSnapshot(beforeDuplicate);
 
     return newId;
   };
@@ -1169,7 +1180,10 @@
       // layout at all.
       return;
     }
-    if(eventName === `dragstart` && props.compactType !== ECompactType.VERTICAL) {
+    // `restoreOnDrag` needs this snapshot whatever the compaction type: the gate used to be `compactType !== VERTICAL`
+    // alone, so with vertical compaction (the default, and the very case "keep items from rising past where they started"
+    // exists for) no snapshot was taken and the option silently did nothing.
+    if(eventName === `dragstart` && (props.restoreOnDrag || props.compactType !== ECompactType.VERTICAL)) {
       // Bug fix (docs/REFACTORING.md #16): this used to store `{ tmpX, tmpY }`
       // per item, but compactItem() (the only consumer, via the
       // restoreOnDrag branch below) reads `.y` — so with compaction off,
@@ -1510,8 +1524,58 @@
     }
   };
 
+  /**
+   * What `GridItem` props must be copied onto the layout entry, and when. Only values that differ from the prop's own
+   * default are written, so a layout that never uses these props is left exactly as it was.
+   */
+  type TItemOverrideKey = Exclude<keyof IItemOverridesData, `i`>;
+  const itemOverrideFields: { isSet: (data: IItemOverridesData) => boolean; key: TItemOverrideKey }[] = [
+    { isSet: data => data.isStatic, key: `isStatic` },
+    { isSet: data => data.isDraggable !== null, key: `isDraggable` },
+    { isSet: data => data.isResizable !== null, key: `isResizable` },
+    { isSet: data => data.minW > 1, key: `minW` },
+    { isSet: data => data.maxW !== Infinity, key: `maxW` },
+    { isSet: data => data.minH > 1, key: `minH` },
+    { isSet: data => data.maxH !== Infinity, key: `maxH` },
+  ];
+  /** What each entry held before an item's prop overwrote a field, so setting the prop back restores it instead of leaving the prop's value behind. */
+  const itemOverrideBackups = new Map<string | number, Map<string, unknown>>();
+
+  /**
+   * eventBus `itemOverrides` listener. Collision handling and group move/resize decide whether an item is static,
+   * draggable, resizable or size-limited from its layout *entry*, so an `isStatic` (or `maxW`, ...) given only as a
+   * `GridItem` prop used to be ignored by them: the item looked static and was still pushed around or carried along.
+   * A `GridItem` now reports its props here and they are written onto its entry.
+   */
+  const itemOverridesHandler = (data: IItemOverridesData): void => {
+    const entry = props.layout.find(candidate => candidate.i === data.i) as unknown as Record<string, unknown> | undefined;
+    // Not an item of this layout (the hidden drag-placeholder item reports too).
+    if(!entry) {
+      return;
+    }
+    const backups = itemOverrideBackups.get(data.i) ?? new Map<string, unknown>();
+    itemOverrideBackups.set(data.i, backups);
+    for(const { isSet, key } of itemOverrideFields) {
+      if(isSet(data)) {
+        if(!backups.has(key)) {
+          backups.set(key, entry[key]);
+        }
+        entry[key] = data[key];
+      } else if(backups.has(key)) {
+        const previous = backups.get(key);
+        if(previous === undefined) {
+          delete entry[key];
+        } else {
+          entry[key] = previous;
+        }
+        backups.delete(key);
+      }
+    }
+  };
+
   eventBus.on(`resizeEvent`, resizeEventHandler);
   eventBus.on(`itemClicked`, itemClickedHandler);
+  eventBus.on(`itemOverrides`, itemOverridesHandler);
 
   /**
    * eventBus `dragEvent` listener — see `resizeEventHandler` above for
@@ -1626,6 +1690,7 @@
     eventBus.off(`resizeEvent`, resizeEventHandler);
     eventBus.off(`dragEvent`, dragEventHandler);
     eventBus.off(`itemClicked`, itemClickedHandler);
+    eventBus.off(`itemOverrides`, itemOverridesHandler);
     removeWindowEventListener(`resize`, onWindowResize);
     if(erd.value) {
       erd.value.disconnect();
@@ -1923,8 +1988,21 @@
       if(!val) {
         emit(EGridLayoutEvent.LAYOUT_UPDATE, originalLayout.value || []);
         eventBus.emit(`setColNum`, props.colNum);
+      } else {
+        // Entering responsive mode: seed the per-breakpoint cache from `responsiveLayouts` (it is otherwise only seeded
+        // at mount, so a value that arrived after mount was never used).
+        initResponsiveFeatures();
       }
       onWindowResize();
+    },
+  );
+
+  // Replacing the `responsiveLayouts` prop resets the per-breakpoint cache to the new value, as that cache is documented
+  // to do. Without this, a value supplied after mount was ignored until the grid was remounted.
+  watch(
+    () => props.responsiveLayouts,
+    () => {
+      initResponsiveFeatures();
     },
   );
 

@@ -282,5 +282,26 @@ describe(`useGridItemKeyboard`, () => {
       expect(eventBus.emit).toHaveBeenNthCalledWith(1, `resizeEvent`, expect.objectContaining({ eventType: `resizestart`, w: 2 }));
       expect(eventBus.emit).toHaveBeenNthCalledWith(2, `resizeEvent`, expect.objectContaining({ eventType: `resizeend`, w: 3 }));
     });
+
+    // The existing min-size test shrinks from a size comfortably above the floor, so an
+    // item whose minimum is not 1 still ends up above it. Starting exactly AT a floor
+    // greater than 1 is what shows the floor is read from minW/minH, not hard-coded to 1.
+    it(`Should not shrink below a minW greater than 1 when already at that minimum`, () => {
+      const { emit, eventBus, helper } = createContext({ minW: 3, w: 3 });
+
+      helper.handleKeydown(keyEvent(`ArrowLeft`, { shiftKey: true }));
+
+      expect(emit).not.toHaveBeenCalled();
+      expect(eventBus.emit).not.toHaveBeenCalled();
+    });
+
+    it(`Should not shrink below a minH greater than 1 when already at that minimum`, () => {
+      const { emit, eventBus, helper } = createContext({ h: 3, minH: 3 });
+
+      helper.handleKeydown(keyEvent(`ArrowUp`, { shiftKey: true }));
+
+      expect(emit).not.toHaveBeenCalled();
+      expect(eventBus.emit).not.toHaveBeenCalled();
+    });
   });
 });

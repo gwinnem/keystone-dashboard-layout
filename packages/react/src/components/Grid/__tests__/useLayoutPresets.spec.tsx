@@ -220,4 +220,54 @@ describe(`useLayoutPresets`, () => {
       globalThis.window = originalWindow;
     }
   });
+
+  // Every test above renders once with a fixed key and storage, so the
+  // `useCallback`/`useMemo` dependency arrays could be emptied without any of
+  // them noticing: a stale closure keeps reading the *first* key and storage.
+  // Re-rendering with different ones is what exposes that.
+  describe(`following a changed key or storage across re-renders`, () => {
+    const layout: TLayout = [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }];
+    const blob = (name: string): string => JSON.stringify({ [name]: JSON.stringify(layout) });
+
+    it(`Should read, write, delete and list against the new key and storage after both change`, () => {
+      const first = new MemoryStorage();
+      first.setItem(`a`, blob(`old`));
+      const second = new MemoryStorage();
+      second.setItem(`b`, blob(`current`));
+      const { rerender, result } = renderHook(
+        ({ k, s }) => useLayoutPresets(k, { storage: s }),
+        { initialProps: { k: `a`, s: first as Storage } },
+      );
+      expect(result.current.listPresets()).toStrictEqual([`old`]);
+
+      rerender({ k: `b`, s: second });
+
+      expect(result.current.listPresets()).toStrictEqual([`current`]);
+      expect(result.current.hasPreset(`current`)).toBe(true);
+      expect(result.current.hasPreset(`old`)).toBe(false);
+      expect(result.current.loadPreset(`current`)).toStrictEqual(layout);
+
+      result.current.savePreset(`added`, layout);
+      expect(Object.keys(JSON.parse(second.getItem(`b`)!))).toStrictEqual([`current`, `added`]);
+      expect(Object.keys(JSON.parse(first.getItem(`a`)!))).toStrictEqual([`old`]);
+
+      result.current.deletePreset(`current`);
+      expect(Object.keys(JSON.parse(second.getItem(`b`)!))).toStrictEqual([`added`]);
+    });
+
+    it(`Should switch to a new storage when only the storage changes and the key stays the same`, () => {
+      const first = new MemoryStorage();
+      first.setItem(`shared`, blob(`in-first`));
+      const second = new MemoryStorage();
+      second.setItem(`shared`, blob(`in-second`));
+      const { rerender, result } = renderHook(
+        ({ s }) => useLayoutPresets(`shared`, { storage: s }),
+        { initialProps: { s: first as Storage } },
+      );
+
+      rerender({ s: second });
+
+      expect(result.current.listPresets()).toStrictEqual([`in-second`]);
+    });
+  });
 });

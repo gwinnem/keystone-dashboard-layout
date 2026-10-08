@@ -103,6 +103,7 @@ export function useCrossGridDrag(ctx: IUseCrossGridDragContext): IUseCrossGridDr
       // reference to it, e.g. a test) is reading from.
       props.layout.push(droppedItem);
       emit(EGridLayoutEvent.LAYOUT_UPDATE, props.layout);
+      // Stryker disable next-line ObjectLiteral: equivalent — the built-in compactors getCompactor() returns only ever read `context.minPositions`, never `context.compactType`.
       getCompactor(props.compactType! as ECompactType).compact(props.layout, props.colNum as number, {
         compactType: props.compactType! as ECompactType,
       });
@@ -204,6 +205,7 @@ export function useCrossGridDrag(ctx: IUseCrossGridDragContext): IUseCrossGridDr
       props.layout.splice(removedIndex, 1);
     }
     emit(EGridLayoutEvent.LAYOUT_UPDATE, props.layout);
+    // Stryker disable next-line ObjectLiteral: equivalent — same reasoning as in acceptDrop() above.
     getCompactor(props.compactType! as ECompactType).compact(props.layout, props.colNum as number, {
       compactType: props.compactType! as ECompactType,
     });

@@ -140,6 +140,7 @@ export function useMultiSelect(ctx: IUseMultiSelectContext): IUseMultiSelectRetu
     if(lastAnchorId.value !== null && !props.layout.some(item => item.i === lastAnchorId.value)) {
       lastAnchorId.value = null;
     }
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — with an empty selection the filtered copy below is also empty and the size comparison finds no difference, so nothing is emitted either way.
     if(selectedItemIds.value.size === 0) {
       return;
     }

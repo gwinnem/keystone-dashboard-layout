@@ -133,6 +133,7 @@ export function useLayoutStorage(
     watch(
       layout,
       () => {
+        // Stryker disable next-line ConditionalExpression: equivalent — clearTimeout(undefined) is a no-op, so clearing unconditionally behaves identically.
         if(debounceHandle !== undefined) {
           clearTimeout(debounceHandle);
         }

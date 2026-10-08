@@ -269,5 +269,31 @@ describe(`useUndoRedo`, () => {
       expect(undoStackDepth1).toBe(true);
       expect(helper.canUndo.value).toBe(false); // only one real entry existed
     });
+
+    // Before any initLastSnapshot() the "last snapshot" is empty, so a change committed
+    // from it must undo back to an empty layout — not to some other initial value.
+    it(`Should undo back to an empty layout when committing before initLastSnapshot ever ran`, () => {
+      const { helper, props } = createContext();
+      props.layout.splice(0, props.layout.length, ...layoutOf([`x`]));
+
+      helper.commitFromLastSnapshot();
+      helper.undo();
+
+      expect(props.layout).toStrictEqual([]);
+    });
+  });
+
+  // commitUndoPoint() has a canUndo that is itself gated on enableUndoRedo, so a
+  // commit that wrongly went through while the feature was off stays invisible
+  // until the feature is switched on again.
+  describe(`a commit attempted while enableUndoRedo is off`, () => {
+    it(`Should leave no history behind once the feature is switched on afterwards`, () => {
+      const { helper, props } = createContext(false);
+
+      helper.commitUndoPoint(layoutOf([`a`]));
+      props.enableUndoRedo = true;
+
+      expect(helper.canUndo.value).toBe(false);
+    });
   });
 });

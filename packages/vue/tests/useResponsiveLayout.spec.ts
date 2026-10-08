@@ -9,8 +9,8 @@ import type { IGridLayoutProps } from '../src/components/Grid/grid-layout-props.
 const breakpoints = { xxl: 1600, xl: 1400, lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
 const cols = { xxl: 12, xl: 12, lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 };
 
-/** Builds a fresh context each call — nothing here is shared/mutated across tests. `colNumOverride` lets a test exercise the `colNum.value < colNumResponsive.value` cap independently of breakpoint resolution. */
-const createContext = (colNumOverride = 12, responsiveLayouts: { [key: string]: ReturnType<typeof ref>[`value`] } = {}) => {
+/** Builds a fresh context each call — nothing here is shared/mutated across tests. `colNumOverride` lets a test exercise the `colNum.value < colNumResponsive.value` cap independently of breakpoint resolution. `responsive` defaults to `true`: the breakpoint's column count only applies in responsive mode (with it off, `colNum` is the column count outright). */
+const createContext = (colNumOverride = 12, responsiveLayouts: { [key: string]: ReturnType<typeof ref>[`value`] } = {}, responsive = true) => {
   const colNum = ref(colNumOverride);
   const emit = vi.fn();
   const eventBus = { emit: vi.fn(), off: vi.fn(), on: vi.fn() };
@@ -23,6 +23,7 @@ const createContext = (colNumOverride = 12, responsiveLayouts: { [key: string]: 
     compactType: ECompactType.VERTICAL,
     distributeEvenly: false,
     layout: [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }],
+    responsive,
     responsiveLayouts,
   } as unknown as IGridLayoutProps;
   const width = ref<number | null>(null);
@@ -59,6 +60,26 @@ describe(`useResponsiveLayout`, () => {
     helper.responsiveGridLayout();
 
     expect(eventBus.emit).toHaveBeenCalledWith(`setColNum`, 4);
+  });
+
+  it(`Should use colNum outright, not the breakpoint's cols, when responsive is off`, () => {
+    // GridLayout's colNum watcher calls responsiveGridLayout() even with responsive off; a colNum larger than the
+    // width-derived breakpoint's cols (24 vs 'md' = 10 at 1200px) used to be silently capped to the breakpoint's.
+    const { eventBus, helper, width } = createContext(24, {}, false);
+    width.value = 1200; // > md(996), not > lg(1200) -> 'md' -> cols.md = 10
+
+    helper.responsiveGridLayout();
+
+    expect(eventBus.emit).toHaveBeenCalledWith(`setColNum`, 24);
+  });
+
+  it(`Should use colNum outright when responsive is off, even when it is smaller than the breakpoint's cols`, () => {
+    const { eventBus, helper, width } = createContext(3, {}, false);
+    width.value = 1200; // 'md' -> cols.md = 10
+
+    helper.responsiveGridLayout();
+
+    expect(eventBus.emit).toHaveBeenCalledWith(`setColNum`, 3);
   });
 
   it(`Should emit breakpoint-changed the first time a breakpoint resolves (from no prior breakpoint)`, () => {
@@ -165,25 +186,57 @@ describe(`useResponsiveLayout`, () => {
     expect(item.x + item.w).toBeLessThanOrEqual(2);
   });
 
-  it(`Should NOT re-cache (overwrite) a breakpoint's layout that's already cached`, () => {
+  it(`Should refresh the outgoing breakpoint's cache with the layout as it stands, so edits survive a round trip`, () => {
     const { helper, props, width } = createContext();
+    width.value = 500; // 'xs' — arriving writes a first cache entry for it
+    helper.responsiveGridLayout();
+    // An edit made while the grid is on 'xs'.
+    (props.layout as { x: number }[])[0].x = 7;
+
+    width.value = 1000; // 'md' — leaves 'xs'
+    helper.responsiveGridLayout();
+
+    expect(helper.layouts.value.xs[0].x).toBe(7);
+  });
+
+  it(`Should start from a breakpoint's stored layout when entering it, not from the layout it came from`, () => {
+    const { helper, originalLayout, width } = createContext();
     width.value = 500; // 'xs'
     helper.responsiveGridLayout();
-    // Simulate the cached 'xs' layout having diverged from props.layout
-    // since it was first cached (e.g. the consumer edited it directly).
-    const distinguishableCachedLayout = [{ h: 9, i: `sentinel`, w: 9, x: 9, y: 9 }];
-    helper.layouts.value.xs = distinguishableCachedLayout;
+    // What an earlier visit, or the responsiveLayouts prop, would have left behind for 'md'.
+    helper.layouts.value.md = [{ h: 3, i: `a`, w: 4, x: 1, y: 0 }];
 
-    width.value = 1000; // 'md' — switches away from 'xs' again
-    helper.responsiveGridLayout();
-    width.value = 500; // back to 'xs' — the `!= null && !layouts.value[...]` guard should see 'xs' is already cached and skip re-caching it from props.layout
+    width.value = 1000; // 'md'
     helper.responsiveGridLayout();
 
-    // If the guard were broken (e.g. always caching, or never caching),
-    // this would either still equal props.layout's shape or lose the
-    // sentinel — checking the sentinel value survived confirms the
-    // "already cached" branch was actually taken, not skipped/inverted.
-    expect(props.layout).not.toStrictEqual(distinguishableCachedLayout);
+    expect(originalLayout.value).toMatchObject([{ h: 3, i: `a`, w: 4, x: 1 }]);
+  });
+
+  it(`Should keep regenerating from the current layout while the breakpoint stays the same`, () => {
+    const { helper, originalLayout, width } = createContext();
+    width.value = 1000; // 'md'
+    helper.responsiveGridLayout();
+    helper.layouts.value.md = [{ h: 9, i: `sentinel`, w: 9, x: 0, y: 0 }];
+
+    width.value = 1010; // still 'md': no breakpoint change, so the stored entry is not consulted
+    helper.responsiveGridLayout();
+
+    expect((originalLayout.value ?? []).map(entry => entry.i)).toStrictEqual([`a`]);
+  });
+
+  it(`Should seed the outgoing breakpoint's cache entry from props.layout when it was cleared since it was last active`, () => {
+    const { helper, props, width } = createContext();
+    width.value = 500; // 'xs' -> lastBreakpoint = 'xs'
+    helper.responsiveGridLayout();
+    // Re-entering responsive mode resets the cache but leaves lastBreakpoint alone.
+    helper.initResponsiveFeatures();
+    expect(helper.layouts.value).not.toHaveProperty(`xs`);
+
+    width.value = 1000; // 'md' — the outgoing 'xs' entry is missing and has to be re-seeded
+    helper.responsiveGridLayout();
+
+    expect(helper.layouts.value).toHaveProperty(`xs`);
+    expect(helper.layouts.value.xs.map(entry => entry.i)).toStrictEqual(props.layout.map(entry => entry.i));
   });
 
   it(`Should reset layouts.value to a fresh copy of props.responsiveLayouts, discarding any stale cached entries`, () => {

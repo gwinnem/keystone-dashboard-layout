@@ -24,8 +24,13 @@ pnpm-debug.log*
 .stryker-tmp
 .stryker-tmp/
 **/.stryker-tmp/
-reports/mutation
+# `**/`, not a bare `reports/mutation`: a pattern with a slash in it is anchored to the repo root, so the bare form
+# never matched packages/*/reports/mutation (and those reports were committed).
+**/reports/mutation/
 StrykerTrapper.log
+
+# astro (generated content cache and types, rebuilt on every dev/build run)
+astro-docs/.astro/
 
 # local env files
 .env.local

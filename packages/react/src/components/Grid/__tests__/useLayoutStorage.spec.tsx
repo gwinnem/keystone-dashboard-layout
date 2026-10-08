@@ -282,4 +282,54 @@ describe(`useLayoutStorage`, () => {
       globalThis.window = originalWindow;
     }
   });
+
+  // Same blind spot as the presets hook: every test above renders with a fixed
+  // key and storage, so emptying the `useCallback`/`useMemo` dependency arrays
+  // changes nothing they can see. Re-rendering with different ones does.
+  it(`Should follow a changed key and storage across re-renders instead of keeping the first ones`, () => {
+    const layoutA: TLayout = [{ h: 1, i: `a`, w: 1, x: 0, y: 0 }];
+    const layoutB: TLayout = [{ h: 2, i: `b`, w: 2, x: 0, y: 0 }];
+    const layoutC: TLayout = [{ h: 3, i: `c`, w: 3, x: 0, y: 0 }];
+    const first = new MemoryStorage();
+    first.setItem(`key-a`, JSON.stringify(layoutA));
+    const second = new MemoryStorage();
+    second.setItem(`key-b`, JSON.stringify(layoutB));
+    const { rerender, result } = renderHook(
+      ({ k, s }) => useLayoutStorage(k, { storage: s }),
+      { initialProps: { k: `key-a`, s: first as Storage } },
+    );
+    expect(result.current.load()).toStrictEqual(layoutA);
+
+    rerender({ k: `key-b`, s: second });
+
+    expect(result.current.load()).toStrictEqual(layoutB);
+    expect(result.current.hasSaved()).toBe(true);
+
+    result.current.save(layoutC);
+    expect(JSON.parse(second.getItem(`key-b`)!)).toStrictEqual(layoutC);
+    expect(JSON.parse(first.getItem(`key-a`)!)).toStrictEqual(layoutA);
+
+    result.current.clear();
+    expect(second.getItem(`key-b`)).toBeNull();
+    expect(first.getItem(`key-a`)).not.toBeNull();
+  });
+
+  // The "reset the debounce timer" test above can't tell a working cleanup from
+  // a missing one: without it every pending timer still fires and the last
+  // one to fire wins, which is the same final state. Unmounting before the
+  // debounce elapses is what shows the pending save is actually cancelled.
+  it(`Should cancel a pending auto-save when the component unmounts before the debounce elapses`, () => {
+    vi.useFakeTimers();
+    const storage = new MemoryStorage();
+    const layout: TLayout = [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }];
+    const { unmount } = renderHook(() => useLayoutStorage(`kdl-test-key`, { autoSave: true, layout, storage }));
+
+    vi.advanceTimersByTime(200);
+    unmount();
+    vi.advanceTimersByTime(1000);
+
+    expect(storage.getItem(`kdl-test-key`)).toBeNull();
+
+    vi.useRealTimers();
+  });
 });

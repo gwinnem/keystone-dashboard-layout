@@ -32,6 +32,7 @@
   import ItemOverridesView from './views/ItemOverridesView.vue';
   import ExternalDropView from './views/ExternalDropView.vue';
   import AdvancedFeaturesView from './views/AdvancedFeaturesView.vue';
+  import PropsLabView from './views/PropsLabView.vue';
 
   const views = shallowRef([
     { id: 'basic', label: 'Basic grid', component: BasicGridView },
@@ -42,6 +43,7 @@
     { id: 'item-overrides', label: 'Per-item overrides', component: ItemOverridesView },
     { id: 'external-drop', label: 'Drag from outside (multi-grid)', component: ExternalDropView },
     { id: 'advanced-features', label: 'Layout tools & feedback', component: AdvancedFeaturesView },
+    { id: 'props-lab', label: 'Props lab (all properties)', component: PropsLabView },
   ]);
 
   const activeView = ref('basic');
