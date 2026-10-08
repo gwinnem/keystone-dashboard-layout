@@ -19,6 +19,7 @@
   },
   "coverageAnalysis": "perTest",
   "timeoutMS": 15000,
+  "concurrency": 8,
   "mutate": [
     "packages/vue/src/components/Grid/composables/*.ts",
     "packages/vue/src/composables/*.ts",

@@ -24,6 +24,7 @@
   "coverageAnalysis": "perTest",
   "_comment_coverageAnalysis": "Reverted after a real, direct test: switched to \"all\" (every test runs against every mutant, no coverage-based skipping) to test a specific theory about several native-interaction.ts createNativeAutoScroll mutants (lines 440-456, only ever executed inside a requestAnimationFrame callback triggered via vi.advanceTimersByTime under fake timers) repeatedly showing as \"Survived\" despite tests that, verified by hand against the real source, should kill them. Confirmed via a real run: the EXACT SAME mutants survive under \"all\" as under \"perTest\" — this DISPROVES the earlier theory (that perTest's own coverage instrumentation was failing to attribute these tests to these mutants, so Stryker never even tried running them). Something more fundamental than coverage-analysis mode is going on with these specific tests — not yet root-caused. Reverted to \"perTest\" since \"all\" provided no benefit and is markedly slower for the full suite.",
   "timeoutMS": 15000,
+  "concurrency": 8,
   "files": [
     "**/*",
     "!node_modules/**",
