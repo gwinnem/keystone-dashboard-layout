@@ -21,13 +21,13 @@ import { defineConfig, devices } from '@playwright/test';
  * contention makes many simultaneous visible Firefox windows unreliable).
  *
  * Run with:
- *   npx playwright install        (first time only, downloads browsers)
- *   npm run test:e2e
+ *   pnpm exec playwright install        (first time only, downloads browsers)
+ *   pnpm run test:e2e
  *
  * `visual-regression.spec.ts` is excluded from the default run — it has no
  * baseline screenshots committed yet, so running it as-is would just fail
  * every time rather than provide signal. See docs/VISUAL_REGRESSION.md
- * before enabling it. Run it explicitly with `npm run test:e2e:visual`.
+ * before enabling it. Run it explicitly with `pnpm run test:e2e:visual`.
  */
 export default defineConfig({
   testDir: './e2e',
@@ -42,7 +42,13 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm run demo',
+    // pnpm, not npm: this is a pnpm workspace, and pnpm exports its own settings (manage-package-manager-versions,
+    // verify-deps-before-run, ...) as npm_config_* variables, which npm then warns about as unknown config.
+    command: 'pnpm run demo',
+    // The warnings were still printed after switching from npm to pnpm, so something in the server's process tree runs
+    // npm. Whichever it is, it only ever sees pnpm's own settings as npm_config_* variables it does not know. Raising
+    // npm's log level to "error" for this process tree hides those warnings without hiding real failures.
+    env: { npm_config_loglevel: 'error' },
     url: 'http://localhost:5174',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

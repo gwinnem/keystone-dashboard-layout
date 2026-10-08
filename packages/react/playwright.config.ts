@@ -24,8 +24,8 @@ import { defineConfig, devices } from '@playwright/test';
  * contention makes many simultaneous visible Firefox windows unreliable).
  *
  * Run with:
- *   npx playwright install        (first time only, downloads browsers)
- *   npm run test:e2e
+ *   pnpm exec playwright install        (first time only, downloads browsers)
+ *   pnpm run test:e2e
  */
 export default defineConfig({
   testDir: './e2e',
@@ -51,7 +51,11 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npx vite --config e2e-fixture/vite.config.ts',
+    // pnpm, not npx: this is a pnpm workspace, and pnpm exports its own settings (manage-package-manager-versions,
+    // verify-deps-before-run, ...) as npm_config_* variables, which npm/npx then warns about as unknown config.
+    command: 'pnpm exec vite --config e2e-fixture/vite.config.ts',
+    // Hides npm's "Unknown env config" warnings for pnpm's own settings (see packages/vue/playwright.config.ts).
+    env: { npm_config_loglevel: 'error' },
     url: 'http://localhost:5175',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
