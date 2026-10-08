@@ -92,17 +92,36 @@ export function useResponsiveLayout(ctx: IUseResponsiveLayoutContext): IUseRespo
 
     let colsCompute = newCols;
     // max is colNum which is set by user
+    // Stryker disable next-line EqualityOperator: equivalent — when the two are equal, capping at colNum or keeping the breakpoint's own cols gives the same number.
     if(colNum.value < colNumResponsive.value) {
       colsCompute = colNum.value;
     }
+    // With `responsive` off, `colNum` is the column count outright, whatever the container's width-derived breakpoint
+    // says. This function is also reached from GridLayout's `colNum` watcher regardless of `responsive`, and without
+    // this a colNum above the breakpoint's own count (e.g. 24 at 1200px, which the default breakpoints call "md", 10
+    // columns) was silently capped to it.
+    if(!props.responsive) {
+      colsCompute = colNum.value;
+    }
 
-    if(lastBreakpoint.value != null && !layouts.value[lastBreakpoint.value]) {
+    const breakpointChanged = lastBreakpoint.value !== newBreakpoint;
+
+    // Leaving a breakpoint: store its layout as it stands now, so edits made there survive a trip through another one.
+    // (This used to store it only when no entry existed, so the entry written on arrival was never refreshed.)
+    if(lastBreakpoint.value != null && breakpointChanged) {
       layouts.value[lastBreakpoint.value] = cloneLayout(props.layout);
     }
 
+    // Entering a breakpoint that already has a stored layout (an earlier visit, or one supplied through
+    // `responsiveLayouts`): start from that rather than from the layout we are leaving. findOrGenerateResponsiveLayout
+    // never reads its `layouts` argument, so the stored entry has to be handed over as the source layout; it is still
+    // bounds-corrected and compacted for the current column count, so a changed colNum is respected.
+    // Staying inside the same breakpoint keeps regenerating from the current layout, as before.
+    const storedLayout = breakpointChanged ? layouts.value[newBreakpoint] : undefined;
+
     // Find or generate a new layout.
     const layout = findOrGenerateResponsiveLayout(
-      originalLayout.value as TLayout,
+      storedLayout ?? (originalLayout.value as TLayout),
       layouts.value,
       props.breakpoints!,
       newBreakpoint,

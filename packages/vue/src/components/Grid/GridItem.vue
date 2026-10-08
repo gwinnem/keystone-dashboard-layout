@@ -688,7 +688,7 @@
   const emitContainerResized = (): void => {
     // this.style has width and height with trailing 'px'. The
     // resized event is without them
-    let styleProps: IGridItemWidthHeight = {
+    const styleProps: IGridItemWidthHeight = {
       height: 0,
       width: 0,
     };
@@ -699,7 +699,9 @@
         return;
       }
        
-      styleProps = matches[1] as unknown as IGridItemWidthHeight;
+      // Assign each parsed value to its own field. This used to overwrite `styleProps` itself with the matched
+      // string, so `styleProps.height` / `.width` were always `undefined` and the event never carried pixel sizes.
+      styleProps[prop as `height` | `width`] = Number(matches[1]);
     }
     emit(EGridItemEvent.CONTAINER_RESIZED, props.i, props.h, props.w, styleProps.height, styleProps.width);
   };
@@ -829,7 +831,12 @@
   // value, not before it (the default timing), or it can still find zero
   // handles the same way the very first call from onMounted can (see
   // tryMakeResizable's own comment on that).
-  watch(resizable, () => {
+  // The resize-hint spans are `v-if`-gated on `resizableAndNotStatic`, i.e. on `resizable`, `isStatic` and edit mode.
+  // Turning any of those off destroys the spans the native engine was attached to, and turning it back on renders
+  // NEW ones. `tryMakeResizable()` alone then no-ops (it never re-attaches once `nativeResizable` is set), leaving the
+  // item showing handles that nothing listens to. So, as for `resizeHandles` below, tear down and re-attach.
+  watch([resizable, () => props.isStatic, editModeEnabled], () => {
+    teardownResizable();
     tryMakeResizable();
   }, { flush: `post` });
 
@@ -1189,7 +1196,39 @@
     tryMakeDraggable();
     tryMakeResizable();
     setupAutoHeight();
+    reportItemOverrides();
   });
+
+  /**
+   * Tells the grid which of this item's props change how the layout logic may treat it. Collision handling and group
+   * move/resize read `isStatic`, `isDraggable`, `isResizable` and the min/max sizes from the layout *entry*, so a value
+   * given only as a prop here used to be ignored by them. The grid copies the reported values onto the entry.
+   */
+  const reportItemOverrides = (): void => {
+    eventBus.emit(`itemOverrides`, {
+      i: props.i,
+      isDraggable: props.isDraggable,
+      isResizable: props.isResizable,
+      isStatic: props.isStatic === true,
+      maxH: props.maxH,
+      maxW: props.maxW,
+      minH: props.minH,
+      minW: props.minW,
+    });
+  };
+
+  watch(
+    () => [props.isStatic, props.isDraggable, props.isResizable, props.minW, props.maxW, props.minH, props.maxH],
+    reportItemOverrides,
+  );
+
+  // `autoHeight` is an ordinary prop, but the observer used to be attached only once, from onMounted above: turning it
+  // on afterwards rendered the wrapper and never observed it, and turning it off left the observer running.
+  // `flush: 'post'` so the template ref (v-if'd on the prop) is populated or cleared before this runs.
+  watch(() => props.autoHeight, () => {
+    teardownAutoHeight();
+    setupAutoHeight();
+  }, { flush: `post` });
 
   /**
    * What an external `ref` to a `<GridItem>` instance sees — `autoSize` (the
@@ -1492,7 +1531,11 @@
   }
 
   &.css-transforms {
-    left: auto;
+    // `left: 0`, not `auto`: with both sides `auto` the item sits at the browser's "static position", which in a
+    // right-to-left container (a mirrored grid) is the RIGHT edge. An item that opts out of mirroring inside such a
+    // grid (`isMirrored: false`) is positioned with a left-to-right `translate3d`, so it needs the left-anchored
+    // baseline that transform assumes. In an LTR container `left: 0` is the same place the static position was.
+    left: 0;
     right: auto;
 
     // Previously a hardcoded, independent 400ms (2x the base rule's own
