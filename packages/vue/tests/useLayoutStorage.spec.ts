@@ -217,4 +217,43 @@ describe(`useLayoutStorage`, () => {
     expect(storage.getItem(`key`)).not.toBeNull();
     expect(window.localStorage.getItem(`key`)).toBeNull();
   });
+
+  // The existing "autoSave is false (the default)" test waits only a
+  // `setTimeout(0)`, far shorter than the 500ms default debounce — a
+  // debounced save could never have fired inside that window even with
+  // autoSave wrongly on, so it passed either way.
+  it(`Should still not have saved once the whole default debounce window has passed, when autoSave is left at its default`, async () => {
+    vi.useFakeTimers();
+    try {
+      const storage = new MemoryStorage();
+      const layout = ref([{ h: 2, i: `0`, w: 2, x: 0, y: 0 }]);
+
+      useLayoutStorage(`key`, layout, { autoLoad: false, storage });
+      layout.value = [{ h: 2, i: `0`, w: 4, x: 0, y: 0 }];
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(storage.getItem(`key`)).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // Every other auto-save test replaces `layout.value` wholesale, which
+  // triggers even a non-deep watch. Only a change *inside* an item
+  // distinguishes `{ deep: true }` from a shallow watch.
+  it(`Should auto-save after a change made deep inside an item, not only after the whole array is replaced`, async () => {
+    vi.useFakeTimers();
+    try {
+      const storage = new MemoryStorage();
+      const layout = ref([{ h: 2, i: `0`, w: 2, x: 0, y: 0 }]);
+
+      useLayoutStorage(`key`, layout, { autoLoad: false, autoSave: true, debounceMs: 100, storage });
+      layout.value[0].w = 6;
+      await vi.advanceTimersByTimeAsync(150);
+
+      expect(JSON.parse(storage.getItem(`key`)!)[0].w).toBe(6);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

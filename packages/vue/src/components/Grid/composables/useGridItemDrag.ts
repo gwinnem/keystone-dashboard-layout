@@ -134,6 +134,7 @@ export function useGridItemDrag(ctx: IGridItemDragContext): IUseGridItemDragRetu
         const pTop = parentRect.top / transformScale.value;
 
         if(renderRtl.value) {
+          // Stryker disable next-line ArithmeticOperator: equivalent — multiplying and dividing by -1 give the same result.
           newPosition.left = (cRight - pRight) * -1;
         } else {
           newPosition.left = cLeft - pLeft;
@@ -173,8 +174,10 @@ export function useGridItemDrag(ctx: IGridItemDragContext): IUseGridItemDragRetu
         // the source of truth `dragmove` maintains — reusing it here
         // instead of a fresh, potentially-stale DOM read removes the
         // race entirely.
+        // Stryker disable OptionalChaining: equivalent — the `if(!isDragging.value) return` guard above means `dragging` is always set here (dragstart sets both together).
         newPosition.left = Number(dragging.value?.left);
         newPosition.top = Number(dragging.value?.top);
+        // Stryker restore OptionalChaining
         dragging.value = undefined;
         isDragging.value = false;
         autoScroll.stop();
@@ -204,6 +207,7 @@ export function useGridItemDrag(ctx: IGridItemDragContext): IUseGridItemDragRetu
         }
         break;
       }
+      // Stryker disable next-line ConditionalExpression: equivalent — the default clause is empty, so removing it changes nothing.
       default: {
         // Do nothing just to avoid linting complaints
       }

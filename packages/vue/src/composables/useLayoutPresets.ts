@@ -77,6 +77,7 @@ export function useLayoutPresets(
       return {};
     }
     const raw = target.getItem(key);
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — JSON.parse(null) parses to `null`, which the object check below already rejects, returning the same `{}`.
     if(!raw) {
       return {};
     }
@@ -92,10 +93,12 @@ export function useLayoutPresets(
   };
 
   const writeAllPresets = (presets: Record<string, string>): void => {
+    // Stryker disable next-line OptionalChaining: equivalent — both callers return early when no storage resolves, so it is never null by the time this runs.
     resolveStorage()?.setItem(key, JSON.stringify(presets));
   };
 
   const savePreset = (name: string): void => {
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — writeAllPresets() already null-guards its own storage access, so dropping this early return is unobservable.
     if(!resolveStorage()) {
       return;
     }
@@ -107,6 +110,7 @@ export function useLayoutPresets(
   const loadPreset = (name: string): boolean => {
     const presets = readAllPresets();
     const raw = presets[name];
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — deserializeLayout(undefined) already returns null, which the check below turns into the same `false`.
     if(!raw) {
       return false;
     }
@@ -119,6 +123,7 @@ export function useLayoutPresets(
   };
 
   const deletePreset = (name: string): void => {
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — same redundancy as savePreset(): writeAllPresets() null-guards its own storage access.
     if(!resolveStorage()) {
       return;
     }

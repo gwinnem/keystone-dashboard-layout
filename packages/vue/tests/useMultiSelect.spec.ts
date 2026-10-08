@@ -279,6 +279,46 @@ describe(`useMultiSelect`, () => {
     });
   });
 
+  // A single Shift-click can't tell a reset anchor from a stale one:
+  // computeRangeSelection falls back to "just the target" for an anchor
+  // it can't find, which is exactly what a plain select yields too. The
+  // two differ only in what the click does to `lastAnchorId`, so the
+  // observable difference needs a *second* Shift-click.
+  describe(`anchor bookkeeping across two Shift-clicks`, () => {
+    it(`Should anchor on the first item clicked after the old anchor was pruned away`, () => {
+      const { helper, props } = createContext();
+      helper.itemClickedHandler({ ctrlKey: false, i: `a`, metaKey: false, shiftKey: false }); // anchor = 'a'
+      props.layout = layoutOf([`b`, `c`, `d`]); // 'a' removed
+      helper.pruneSelection();
+
+      helper.itemClickedHandler({ ctrlKey: false, i: `c`, metaKey: false, shiftKey: true }); // no anchor -> plain select, anchor becomes 'c'
+      helper.itemClickedHandler({ ctrlKey: false, i: `d`, metaKey: false, shiftKey: true }); // range c..d
+
+      expect(helper.selectedItems.value.sort()).toStrictEqual([`c`, `d`]);
+    });
+
+    it(`Should keep a still-valid anchor when a different item is pruned away`, () => {
+      const { helper, props } = createContext();
+      helper.itemClickedHandler({ ctrlKey: false, i: `a`, metaKey: false, shiftKey: false }); // anchor = 'a'
+      props.layout = layoutOf([`a`, `b`, `c`]); // 'd' removed
+      helper.pruneSelection();
+
+      helper.itemClickedHandler({ ctrlKey: false, i: `b`, metaKey: false, shiftKey: true });
+      helper.itemClickedHandler({ ctrlKey: false, i: `c`, metaKey: false, shiftKey: true });
+
+      expect(helper.selectedItems.value.sort()).toStrictEqual([`a`, `b`, `c`]);
+    });
+
+    it(`Should make the very first Shift-click on a fresh grid the anchor for the next one`, () => {
+      const { helper } = createContext();
+
+      helper.itemClickedHandler({ ctrlKey: false, i: `b`, metaKey: false, shiftKey: true }); // no anchor yet -> plain select, anchor becomes 'b'
+      helper.itemClickedHandler({ ctrlKey: false, i: `d`, metaKey: false, shiftKey: true }); // range b..d
+
+      expect(helper.selectedItems.value.sort()).toStrictEqual([`b`, `c`, `d`]);
+    });
+  });
+
   describe(`backgroundClickHandler`, () => {
     it(`Should clear the selection when the click landed directly on the grid's own root (target === currentTarget)`, () => {
       const { helper } = createContext();

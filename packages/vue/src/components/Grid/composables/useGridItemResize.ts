@@ -95,12 +95,14 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
   let nativeResizable: { destroy: () => void } | undefined;
 
   /** Which edges are being dragged during the current resize, as reported by the native resize engine's `resizestart` event (see the handle each of the 8 resize-hint spans is wired to). */
+  // Stryker disable ObjectLiteral,BooleanLiteral: equivalent — these initial values are only read by a resizemove that arrives before any resizestart, where every other value is still NaN anyway; resizestart always overwrites them first.
   let edges: IInteractEdges = {
     bottom: false,
     left: false,
     right: false,
     top: false,
   };
+  // Stryker restore ObjectLiteral,BooleanLiteral
 
   /**
    * Convert grid-unit x/y/w/h into pixel position + size, respecting RTL.
@@ -113,16 +115,20 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
     let out;
     if(renderRtl.value) {
       out = {
+        // Stryker disable next-line ConditionalExpression: equivalent — Math.round(rowHeight * Infinity + ...) is already Infinity, the same value the early branch returns.
         height: h === Infinity ? h : Math.round(rowHeight.value * h + Math.max(0, h - 1) * margin.value[1]),
         right: Math.round(colWidth * x + (x + 1) * margin.value[0]),
         top: Math.round(rowHeight.value * y + (y + 1) * margin.value[1]),
+        // Stryker disable next-line ConditionalExpression: equivalent — same reasoning as the height line above.
         width: w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * margin.value[0]),
       };
     } else {
       out = {
+        // Stryker disable next-line ConditionalExpression: equivalent — Math.round(rowHeight * Infinity + ...) is already Infinity, the same value the early branch returns.
         height: h === Infinity ? h : Math.round(rowHeight.value * h + Math.max(0, h - 1) * margin.value[1]),
         left: Math.round(colWidth * x + (x + 1) * margin.value[0]),
         top: Math.round(rowHeight.value * y + (y + 1) * margin.value[1]),
+        // Stryker disable next-line ConditionalExpression: equivalent — same reasoning as the height line above.
         width: w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * margin.value[0]),
       };
     }
@@ -201,10 +207,12 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
     // matter. A fresh test dispatching directly via the native-handler
     // backdoor in this state confirmed the handler itself doesn't exist
     // to call, rather than confirming this guard's own behavior.
+    // Stryker disable ConditionalExpression,LogicalOperator,BooleanLiteral: unreachable — see the comment above; the engine is never wired up in the one state where the isResizable half of this guard matters.
     /* v8 ignore next 3 -- see the comment above: unreachable since the native resize engine is never wired up at all in the one state (enableEditMode false) where this branch would matter. */
     if(props.isStatic || (!editModeEnabled.value && props.isResizable)) {
       return;
     }
+    // Stryker restore ConditionalExpression,LogicalOperator,BooleanLiteral
     const position = offsetXYFromParentOf(event);
 
     const { x, y } = position;
@@ -352,11 +360,13 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
         // just applied to the derived one instead.
         if(props.preserveAspectRatio && aspectRatio.value) {
           const drivingWidth = edges.left || edges.right;
+          // Stryker disable next-line ConditionalExpression,LogicalOperator: equivalent — with no horizontal or vertical edge driving the gesture the derived size equals the current one anyway, and a lone width edge takes the same result through either branch.
           const drivingHeight = edges.top || edges.bottom;
           if(drivingWidth && !drivingHeight) {
             newSize.height = newSize.width / aspectRatio.value;
           } else if(drivingHeight && !drivingWidth) {
             newSize.width = newSize.height * aspectRatio.value;
+          // Stryker disable next-line ConditionalExpression,LogicalOperator: equivalent — see the comment on drivingHeight above; the only extra case this branch can reach is a gesture with no driving edge, where the derived size equals the current one.
           } else if(drivingWidth && drivingHeight) {
             const derivedHeight = newSize.width / aspectRatio.value;
             if(edges.top) {
@@ -402,6 +412,7 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
         autoScroll.stop();
         break;
       }
+      // Stryker disable next-line ConditionalExpression: equivalent — the default clause is empty, so removing it changes nothing.
       default: {
         // Do nothing just to avoid linting complaints
       }
@@ -413,6 +424,7 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
     // they're guaranteed present at runtime — the `!` here is only needed
     // because that guarantee lives in GridItem.vue's withDefaults() call,
     // which TypeScript can't see through once props cross a module boundary.
+    // Stryker disable EqualityOperator: equivalent — each clamp only assigns the bound it just compared against, so `<` versus `<=` (and `>` versus `>=`) gives the same value.
     if(pos.w < props.minW!) {
       pos.w = props.minW!;
     }
@@ -432,6 +444,7 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
     if(pos.w < 1) {
       pos.w = 1;
     }
+    // Stryker restore EqualityOperator
 
     // For left/top-edge resizes (right-edge in RTL — see the
     // edges.right/edges.left handling above, and docs/REFACTORING.md
@@ -499,10 +512,12 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
     // would be adding public API surface for the wrong reason (see
     // docs/REFACTORING.md #70's own "genuinely hard-to-cover guards"
     // note for the identical gridItem check in useGridItemDrag.ts).
+    // Stryker disable ConditionalExpression,BlockStatement: unreachable — see the comment above; gridItem is always a real element here without exposing it solely to manufacture coverage.
     /* v8 ignore next 3 -- see the comment above: unreachable without exposing gridItem via defineExpose solely to manufacture coverage. */
     if(!(gridItem.value instanceof HTMLElement)) {
       return;
     }
+    // Stryker restore ConditionalExpression,BlockStatement
 
     if(nativeResizable) {
       return;
@@ -517,6 +532,7 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
       if(!resizeHandles.value.includes(edgeKey)) {
         continue;
       }
+      // Stryker disable next-line OptionalChaining: equivalent — GridItem always provides a template ref for each of the 8 handle keys, so the entry is never missing.
       const handleEl = resizeHandleRefs[edgeKey]?.value;
       if(handleEl) {
         handleEls[edgeKey] = handleEl;
@@ -587,6 +603,7 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
 
     const newSize = slotElement.getBoundingClientRect();
     const pos = calcWH(newSize.height, newSize.width, true);
+    // Stryker disable EqualityOperator,ConditionalExpression,BlockStatement: equivalent — each clamp only assigns the bound it just compared against; `if(props.minW)` and friends only skip a clamp whose bound is 0 or unset, which no clamp could have changed anyway; and the final pos.h < 1 floor is unreachable (see the comment below).
     if(props.minW) {
       if(pos.w < props.minW) {
         pos.w = props.minW;
@@ -626,6 +643,7 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
     if(pos.w < 1) {
       pos.w = 1;
     }
+    // Stryker restore EqualityOperator,ConditionalExpression,BlockStatement
 
     if(innerW.value !== pos.w || innerH.value !== pos.h) {
       emit(EGridItemEvent.RESIZE, props.i, pos.h, pos.w, newSize.height, newSize.width);
