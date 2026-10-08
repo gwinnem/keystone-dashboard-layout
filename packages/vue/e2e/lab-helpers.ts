@@ -181,6 +181,10 @@ export async function gridBox(page: Page, testId = 'lab-grid'): Promise<ILabBox>
  */
 export async function scrollToTop(page: Page): Promise<void> {
   await page.evaluate(() => {
+    // A drag that nothing handles (a locked item) selects the text it sweeps over in Firefox. A later press inside that
+    // selection then starts a native drag of the selected text instead of delivering the pointer events the grid needs,
+    // so the next gesture silently does nothing. Start every gesture from an empty selection.
+    window.getSelection()?.removeAllRanges();
     // A focused form control makes Firefox scroll it back into view once the page re-renders, undoing the scroll below
     // between measuring an item and pressing on it (Chromium does not). Let go of focus first. No gesture helper
     // depends on focus: the keyboard tests focus their own item after any of these have run.
