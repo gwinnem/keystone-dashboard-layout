@@ -68,9 +68,11 @@ const DEFAULT_RESPONSIVE_LAYOUTS: TResponsiveLayout = {};
  * of data this component never looks at otherwise.
  */
 function layoutPositionsEqual(a: TLayout, b: TLayout): boolean {
+  // Stryker disable ConditionalExpression,BlockStatement,BooleanLiteral: unreachable — compaction never adds or removes items, so the two layouts compared here always have the same length.
   if(a.length !== b.length) {
     return false;
   }
+  // Stryker restore ConditionalExpression,BlockStatement,BooleanLiteral
   const byId = new Map(b.map(item => [item.i, item]));
   return a.every(item => {
     const match = byId.get(item.i);
@@ -440,6 +442,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       historyRef.current.shift();
     }
     futureRef.current = [];
+    // Stryker disable next-line ArithmeticOperator,ArrowFunction: equivalent — this version counter only forces a re-render so `canUndo`/`canRedo` refresh, and every caller also updates real state (a layout commit, or the drag/resize state) in the same batch, which re-renders regardless of what the counter becomes.
     setUndoRedoVersion(version => version + 1);
   }, [enableUndoRedo, undoHistoryLimit]);
 
@@ -493,7 +496,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     // freshly-added item's own `.style.transform` measured as an empty
     // string, sitting exactly on top of the grid's own first item.
     const compacted = (compactor ?? getCompactor(compactType)).compact(cloned, colNum, { compactType });
-    if(!layoutPositionsEqual(compacted, cloned)) {
+    // Compared against the incoming `layout` prop, not `cloned`: the compactors
+    // mutate their input in place and return the same item objects, so by this
+    // point `cloned` already holds the compacted positions and comparing the two
+    // would always report "equal" — the notification below could never fire.
+    if(!layoutPositionsEqual(compacted, layout)) {
       pendingCompactionNotifyRef.current = compacted;
     }
     workingLayoutRef.current = compacted;
@@ -529,9 +536,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   // disappears.
   useEffect(() => {
     setSelectedItemIds(prev => {
+      // Stryker disable ConditionalExpression,BlockStatement: equivalent — with nothing selected the loop below finds nothing to remove, so `changed` stays false and the same `prev` is returned either way.
       if(prev.size === 0) {
         return prev;
       }
+      // Stryker restore ConditionalExpression,BlockStatement
       const validIds = new Set(workingLayout.map(item => item.i));
       let changed = false;
       const next = new Set<string | number>();
@@ -643,10 +652,12 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
 
   useEffect(() => {
     const el = containerRef.current;
+    // Stryker disable ConditionalExpression,BlockStatement: unreachable — see the v8 ignore comment below; containerRef is attached to this component's own root element.
     /* v8 ignore next 3 -- `containerRef` is attached directly to this component's own root element with no conditional rendering in between; by the time an effect with an empty dependency array runs (after the initial commit), the ref is already populated. Not reachable through any normal render path, only by directly manipulating the internal ref (which isn't exposed) — kept as a defensive guard matching the same `!(ref instanceof HTMLElement)` pattern the Vue package's own composables use for the identical reason. */
     if(!el) {
       return undefined;
     }
+    // Stryker restore ConditionalExpression,BlockStatement
     const measure = (): void => {
       if(el.offsetWidth > 0) {
         setContainerWidth(el.offsetWidth);
@@ -731,6 +742,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
         layoutsCacheRef.current,
         breakpoints,
         newBreakpoint,
+        // Stryker disable next-line LogicalOperator: equivalent — findOrGenerateResponsiveLayout ignores its lastBreakpoint argument.
         currentBreakpoint ?? newBreakpoint,
         newCols,
         compactType,
@@ -859,10 +871,12 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
 
     adjustments.forEach((adjustment, id) => {
       const item = getLayoutItem(next, id);
+      // Stryker disable ConditionalExpression,BlockStatement: unreachable — see the v8 ignore comment below; the selection-pruning effect keeps selected ids matching real items.
       /* v8 ignore next 3 -- genuinely hard to reach in practice, not just untested: this component's own "prune any selected id that no longer matches a real item" effect (see its own declaration above) runs on every `workingLayout` change and flushes synchronously after any act()-wrapped render in tests, so a selectedId reaching this function while no longer corresponding to a real item would require calling alignSelected/distributeSelected in the exact same synchronous batch as the layout change that removed it — before that pruning effect has had a chance to run at all. Kept as a defensive guard (the invariant it protects against is real, even if the normal render/effect cycle makes it very hard to actually observe), same category as `findItemElement`'s own container-ref guard above. */
       if(!item) {
         return;
       }
+      // Stryker restore ConditionalExpression,BlockStatement
       const candidate = { ...item, ...adjustment };
       if(preventCollision) {
         const collisions = getAllCollisions(next, candidate)
@@ -944,10 +958,12 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * `findItemElement`.
    */
   const findItemElement = useCallback((id: string | number): HTMLElement | null => {
+    // Stryker disable ConditionalExpression,BlockStatement: unreachable — see the v8 ignore comment below; containerRef is attached to this component's own root element.
     /* v8 ignore next 3 -- same class of genuinely-unreachable-in-practice guard as this file's own container-width-measurement effect above (see that one's comment for the full rationale) — `containerRef` is attached directly to this component's own root element with no conditional rendering in between, so by the time any callback using it can actually be invoked (post-mount), it's already populated. */
     if(!containerRef.current) {
       return null;
     }
+    // Stryker restore ConditionalExpression,BlockStatement
     const idAsString = String(id);
     const candidates = containerRef.current.querySelectorAll<HTMLElement>(`[data-grid-item-id]`);
     return Array.from(candidates).find(el => el.getAttribute(`data-grid-item-id`) === idAsString) ?? null;
@@ -992,6 +1008,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     workingLayoutRef.current = previous;
     setWorkingLayout(previous);
     onLayoutChange?.(previous);
+    // Stryker disable next-line ArithmeticOperator,ArrowFunction: equivalent — see commitUndoPoint above; setWorkingLayout(previous) already re-renders.
     setUndoRedoVersion(version => version + 1);
   }, [onLayoutChange]);
 
@@ -1004,6 +1021,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     workingLayoutRef.current = next;
     setWorkingLayout(next);
     onLayoutChange?.(next);
+    // Stryker disable next-line ArithmeticOperator,ArrowFunction: equivalent — see commitUndoPoint above; setWorkingLayout(next) already re-renders.
     setUndoRedoVersion(version => version + 1);
   }, [onLayoutChange]);
 
@@ -1063,10 +1081,12 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     // via a real interaction. Not exposed via ref either, so there's no
     // other call path to reach it through. Kept as a defensive guard —
     // same category as this file's own container-ref checks.
+    // Stryker disable ConditionalExpression,BlockStatement: unreachable — see the comment above; GridItem's own click handler already gates on multiSelect before ever calling this.
     /* v8 ignore next 3 -- see the comment above: unreachable since GridItem's own click handler already gates on multiSelect before ever calling this. */
     if(!multiSelect) {
       return;
     }
+    // Stryker restore ConditionalExpression,BlockStatement
     if(modifiers.shiftKey && lastAnchorIdRef.current !== null) {
       const range = computeRangeSelection(workingLayoutRef.current, lastAnchorIdRef.current, id);
       setSelectedItemIds(new Set(range));
@@ -1212,9 +1232,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       const dx = x - anchorStart.x;
       const dy = y - anchorStart.y;
       groupMoveStartPositions.current.forEach((startPos, passengerId) => {
+        // Stryker disable ConditionalExpression,BlockStatement: equivalent — handing the anchor its own delta gives it the position it is about to be moved to anyway by moveElement().
         if(passengerId === id) {
           return;
         }
+        // Stryker restore ConditionalExpression,BlockStatement
         const passenger = getLayoutItem(next, passengerId);
         if(passenger && !passenger.isStatic && passenger.isDraggable !== false) {
           passenger.x = Math.max(startPos.x + dx, 0);
@@ -1241,9 +1263,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       const dw = w - anchorStart.w;
       const dh = h - anchorStart.h;
       groupResizeStartSizes.current.forEach((startSize, passengerId) => {
+        // Stryker disable ConditionalExpression,BlockStatement: equivalent — the anchor's own size is overwritten with the requested size straight after this loop.
         if(passengerId === id) {
           return;
         }
+        // Stryker restore ConditionalExpression,BlockStatement
         const passenger = getLayoutItem(next, passengerId);
         if(passenger && !passenger.isStatic && passenger.isResizable !== false) {
           passenger.w = Math.min(Math.max(startSize.w + dw, passenger.minW ?? 1), passenger.maxW ?? Infinity);
@@ -1603,6 +1627,8 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    */
   const activePlaceholder = itemGesturePlaceholder ?? outsideDropPlaceholder;
   const activePlaceholderStyle = itemGesturePlaceholderStyle ?? outsideDropPlaceholderStyle;
+  // Stryker disable next-line ConditionalExpression: equivalent — the placeholder is only rendered when activePlaceholderStyle is set, which implies activePlaceholder is not null.
+  const isPlaceholderActive = activePlaceholder !== null;
 
   /**
    * `heightMode`'s own precedence rule: an explicit `heightMode` always
@@ -1626,10 +1652,12 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       containerHeight = `100%`;
       break;
     }
+    // Stryker disable ConditionalExpression,BlockStatement: equivalent — `containerHeight` is declared without a value above, so assigning `undefined` here changes nothing.
     default: {
       containerHeight = undefined;
       break;
     }
+    // Stryker restore ConditionalExpression,BlockStatement
   }
   const containerOverflow = resolvedHeightMode === `scroll` || resolvedHeightMode === `fit` ? `auto` : undefined;
 
@@ -1704,7 +1732,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       )}
       {renderPlaceholder && activePlaceholderStyle && (
         <div style={activePlaceholderStyle}>
-          {renderPlaceholder(activePlaceholder, activePlaceholder !== null)}
+          {renderPlaceholder(activePlaceholder, isPlaceholderActive)}
         </div>
       )}
     </>

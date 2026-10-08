@@ -144,6 +144,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
 
     const position = offsetXYFromParentOf(event);
     const { x, y } = position;
+    // Stryker disable next-line ObjectLiteral: equivalent — every recognised event type assigns both left and top before newPosition is read, and unrecognised ones return early.
     const newPosition = { left: 0, top: 0 };
 
     switch(event.type) {
@@ -162,6 +163,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
         setDragging(draggingRef.current);
         setIsDragging(true);
         if(autoScroll) {
+          // Stryker disable next-line OptionalChaining: equivalent — autoScrollRef is initialised eagerly (see the lazy-init test) and never reset.
           autoScrollRef.current?.start(target);
         }
         break;
@@ -175,6 +177,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
         draggingRef.current = undefined;
         setDragging(undefined);
         setIsDragging(false);
+        // Stryker disable next-line OptionalChaining: equivalent — autoScrollRef is initialised eagerly and never reset.
         autoScrollRef.current?.stop();
         break;
       }
@@ -198,6 +201,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
           const bottomBoundary = parentTarget.clientHeight - calcGridItemWH(h, rowHeight, margin[1]);
           top = clamp(top, 0, bottomBoundary);
           const colWidth = calcColWidth(containerWidth, margin[0], cols);
+          // Stryker disable next-line ArithmeticOperator: unkillable through onDrag — calcXY's outer Math.min(x, cols - w) absorbs any wider boundary (worked through in useGridItemDrag.hook.spec.tsx).
           const rightBoundary = containerWidth - calcGridItemWH(w, colWidth, margin[0]);
           left = clamp(left, 0, rightBoundary);
         }
@@ -206,6 +210,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
         draggingRef.current = newPosition as IGridItemPosition;
         setDragging(draggingRef.current);
         if(autoScroll) {
+          // Stryker disable next-line OptionalChaining: equivalent — autoScrollRef is initialised eagerly and never reset.
           autoScrollRef.current?.update(event.clientX, event.clientY);
         }
         break;
@@ -228,10 +233,12 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
 
   useEffect(() => {
     const el = rootRef.current;
+    // Stryker disable BlockStatement: unreachable — see the v8 ignore comment below; rootRef is attached to this component's own root element.
     /* v8 ignore next 3 -- same class of genuinely-unreachable-in-practice guard as GridLayout.tsx's own container-ref check; see that file's comment for the full rationale. */
     if(!el) {
       return undefined;
     }
+    // Stryker restore BlockStatement
     const native = createNativeDraggable(
       el,
       () => ({

@@ -105,6 +105,7 @@ export function useLayoutPresets(key: string, options: IUseLayoutPresetsOptions 
       return {};
     }
     const raw = target.getItem(key);
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — JSON.parse(null) parses to `null`, which the object check below already rejects, returning the same `{}`.
     if(!raw) {
       return {};
     }
@@ -120,10 +121,12 @@ export function useLayoutPresets(key: string, options: IUseLayoutPresetsOptions 
   }, [resolveStorage, key]);
 
   const writeAllPresets = useCallback((presets: Record<string, string>): void => {
+    // Stryker disable next-line OptionalChaining: equivalent — both callers return early when no storage resolves, so it is never null by the time this runs.
     resolveStorage()?.setItem(key, JSON.stringify(presets));
   }, [resolveStorage, key]);
 
   const savePreset = useCallback((name: string, layout: TLayout): void => {
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — writeAllPresets() already null-guards its own storage access, so dropping this early return is unobservable.
     if(!resolveStorage()) {
       return;
     }
@@ -135,6 +138,7 @@ export function useLayoutPresets(key: string, options: IUseLayoutPresetsOptions 
   const loadPreset = useCallback((name: string): TLayout | null => {
     const presets = readAllPresets();
     const raw = presets[name];
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — deserializeLayout(undefined) already returns null, the same value this early return gives.
     if(!raw) {
       return null;
     }
@@ -142,6 +146,7 @@ export function useLayoutPresets(key: string, options: IUseLayoutPresetsOptions 
   }, [readAllPresets]);
 
   const deletePreset = useCallback((name: string): void => {
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — same redundancy as savePreset(): writeAllPresets() null-guards its own storage access.
     if(!resolveStorage()) {
       return;
     }

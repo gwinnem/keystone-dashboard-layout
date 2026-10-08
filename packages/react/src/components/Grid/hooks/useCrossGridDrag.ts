@@ -91,8 +91,10 @@ export function useCrossGridDrag(options: IUseCrossGridDragOptions): IUseCrossGr
         optionsRef.current.onAcceptExternalItem(item);
         optionsRef.current.onCrossGridItemDropped?.({ item, sourceLayoutId });
       },
+      // Stryker disable OptionalChaining: equivalent — see the v8 ignore comment below; this zone is deregistered before containerRef.current can be null.
       /* v8 ignore next -- the `?? null` fallback here protects against `containerRef.current` being null while this zone is *still registered* — not reachable in practice: this ref is the same element this effect itself runs on, populated for the entire span between mount and unmount, and unmounting is the only thing that clears it, which *also* runs this same effect's own cleanup (deregistering the zone) in the same commit. A registered zone with a null container ref isn't a real, reachable state under React's own lifecycle guarantees — kept as a defensive fallback for the type (`RefObject<HTMLDivElement | null>` genuinely allows null), not because it's expected to fire. */
       getRect: () => optionsRef.current.containerRef.current?.getBoundingClientRect() ?? null,
+      // Stryker restore OptionalChaining
       isExternalDropDisabled: () => optionsRef.current.disableExternalDrop,
       layoutId: options.layoutId,
       rejectDrop: (itemId, sourceLayoutId) => {

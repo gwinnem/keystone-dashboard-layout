@@ -206,10 +206,12 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       return undefined;
     }
     const wrapper = autoHeightWrapperRef.current;
+    // Stryker disable ConditionalExpression,BlockStatement: unreachable — see the v8 ignore comment below; the wrapper only ever fails to exist when resolvedAutoHeight is false, which already returned above.
     /* v8 ignore next 3 -- same class of genuinely-unreachable-in-practice guard as GridLayout.tsx's own container-ref check; see that file's comment for the full rationale — the wrapper is only ever conditionally *absent* from the JSX when `resolvedAutoHeight` is false, in which case this effect already returned above. */
     if(!wrapper) {
       return undefined;
     }
+    // Stryker restore ConditionalExpression,BlockStatement
     const observer = new ResizeObserver(() => {
       autoSize(wrapper);
     });

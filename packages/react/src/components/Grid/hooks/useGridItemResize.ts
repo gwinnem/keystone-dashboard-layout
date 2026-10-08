@@ -232,6 +232,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     const measured = calcWH(rect.height, rect.width, true);
     let newW = measured.w;
     let newH = measured.h;
+    // Stryker disable EqualityOperator: equivalent — each clamp only assigns the bound it just compared against, so `<` versus `<=` (and `>` versus `>=`) gives the same value.
     if(newW < minW) {
       newW = minW;
     }
@@ -250,6 +251,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     if(newW < 1) {
       newW = 1;
     }
+    // Stryker restore EqualityOperator
     if(newW !== currentW || newH !== currentH) {
       onResize(i, `resizeend`, innerX, innerY, newW, newH);
     }
@@ -275,6 +277,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
         lastW.current = x;
         lastH.current = y;
         if(autoScroll) {
+          // Stryker disable next-line OptionalChaining: equivalent — the ref is initialised eagerly above and never reset, so it is never null here.
           autoScrollRef.current?.start(event.target);
         }
         onResize(i, event.type, innerX, innerY, w, h);
@@ -341,6 +344,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
         }
 
         if(autoScroll) {
+          // Stryker disable next-line OptionalChaining: equivalent — the ref is initialised eagerly above and never reset, so it is never null here.
           autoScrollRef.current?.update(event.clientX, event.clientY);
         }
 
@@ -363,6 +367,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
         setResizing(undefined);
         setIsResizing(false);
         aspectRatioRef.current = undefined;
+        // Stryker disable next-line OptionalChaining: equivalent — autoScrollRef is initialised eagerly and never reset.
         autoScrollRef.current?.stop();
         break;
       }
@@ -372,6 +377,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     }
 
     pos = calcWH(newSize.height, newSize.width);
+    // Stryker disable EqualityOperator: equivalent — each clamp only assigns the bound it just compared against, so `<` and `<=` (and `>`/`>=`) give the same result at the boundary.
     if(pos.w < minW) {
       pos.w = minW;
     }
@@ -390,6 +396,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     if(pos.w < 1) {
       pos.w = 1;
     }
+    // Stryker restore EqualityOperator
 
     let newX = innerX;
     let newY = innerY;
@@ -427,10 +434,12 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
 
   useEffect(() => {
     const root = rootRef.current;
+    // Stryker disable BlockStatement: unreachable — see the v8 ignore comment below; rootRef is attached to this component's own root element.
     /* v8 ignore next 3 -- same class of genuinely-unreachable-in-practice guard as GridLayout.tsx's own container-ref check; see that file's comment for the full rationale. */
     if(!root) {
       return undefined;
     }
+    // Stryker restore BlockStatement
 
     const handleEls: Partial<Record<TResizeHandle, HTMLElement>> = {};
     (Object.keys(RESIZE_EDGE_MAP) as TResizeHandle[]).forEach(key => {
