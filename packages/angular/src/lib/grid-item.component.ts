@@ -80,6 +80,7 @@ interface IResizingPosition {
   width: number;
 }
 
+// Stryker disable next-line BooleanLiteral,ObjectLiteral: equivalent — only read between a stray resizemove and the first resizestart, where every other value is still NaN anyway; resizestart always overwrites it first.
 const NO_ACTIVE_EDGES: IInteractEdges = { bottom: false, left: false, right: false, top: false };
 const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se`, `sw`];
 
@@ -391,6 +392,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   /** `resizeHandles` (this item's own, when set) or all 8, matching Vue's own per-item-override-else-default resolution — read by the template to decide which handle spans actually render. */
   resolvedResizeHandles: TResizeHandle[] = ALL_RESIZE_HANDLES;
   /** `multiSelect` support (Phase 7) — whether this item is part of `GridLayoutComponent`'s own current selection, cascaded via the eventBus's `selectedItemIds$`; always `false` with no eventBus present. */
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by ngOnChanges/ngOnInit before anything renders from it.
   isSelected = false;
   /**
    * `isDraggable`/`isResizable`/`isBounded`/`isMirrored` resolved
@@ -408,13 +410,19 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * reads it directly — Angular's own template compiler can't reach a
    * `private` field.
    */
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
   resolvedIsBounded = false;
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
   resolvedIsDraggable = true;
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
   resolvedIsMirrored = false;
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
   resolvedIsResizable = true;
   resolvedMaxRows = Infinity;
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
   resolvedUseBorderRadius = false;
   resolvedBorderRadiusPx = 10;
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
   resolvedShowCloseButton = false;
   /**
    * `enableEditMode` resolved against the grid-wide cascade, same
@@ -425,6 +433,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * on `enableEditMode` for the full list of what this does and
    * doesn't affect.
    */
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
   resolvedEnableEditMode = true;
   /**
    * Whether header content was actually projected (Phase 22) — kept
@@ -436,6 +445,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * component class itself, hence `GridItemHeaderDirective`'s own
    * existence purely as a queryable marker.
    */
+  // Stryker disable next-line BooleanLiteral: equivalent — ngAfterContentChecked() runs straight after content init and sets the real value.
   hasHeaderContent = false;
   @ContentChild(GridItemHeaderDirective) private readonly headerContentQuery: GridItemHeaderDirective | undefined;
   /**
@@ -500,6 +510,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * resized anything at all until this field's own comparison was
    * added.
    */
+  // Stryker disable next-line StringLiteral: equivalent — any value different from a real handle-set key makes the very first ngOnChanges schedule its one re-wire, which is the intended behaviour.
   private lastResolvedResizeHandlesKey = ``;
   private readonly autoScrollEngine: INativeAutoScroll = createNativeAutoScroll();
   /** The most recently received (or, absent any eventBus, standalone-usage-default) `IGridDefaults` snapshot — kept so `resolveGridDefaults()` can be re-run from `ngOnChanges` whenever this item's own `isDraggable`/`isResizable`/`isBounded`/`isMirrored`/`maxRows` change, without needing to wait for the grid's own next emission too. */
@@ -521,7 +532,9 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
+  // Stryker disable next-line BlockStatement: equivalent — ngAfterContentChecked() runs right after this and sets the same value, and covers every later change.
   ngAfterContentInit(): void {
+    // Stryker disable next-line BooleanLiteral: equivalent — same reason as above.
     this.hasHeaderContent = !!this.headerContentQuery;
   }
 
@@ -752,6 +765,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * matters far more than skipping one redundant call at mount).
    */
   private checkResizeHandlesContentChange(): void {
+    // Stryker disable next-line StringLiteral: equivalent — the separator only has to make different handle sets produce different keys, and any separator does.
     const key = this.resolvedResizeHandles.join(`,`);
     if(key === this.lastResolvedResizeHandlesKey) {
       return;
@@ -1121,7 +1135,9 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    */
   private calcResizePosition(x: number, y: number, w: number, h: number): IResizingPosition {
     const colWidth = calcColWidth(this.containerWidth, this.margin[0], this.colNum);
+    // Stryker disable next-line ConditionalExpression: equivalent — Math.round(rowHeight * Infinity + ...) is already Infinity, the same value the early branch returns.
     const height = h === Infinity ? h : Math.round(this.rowHeight * h + Math.max(0, h - 1) * this.margin[1]);
+    // Stryker disable next-line ConditionalExpression: equivalent — same reasoning as the height line above.
     const width = w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * this.margin[0]);
     const top = Math.round(this.rowHeight * y + (y + 1) * this.margin[1]);
     if(this.resolvedIsMirrored) {
@@ -1207,6 +1223,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     }
     const rect = this.autoHeightWrapperRef.nativeElement.getBoundingClientRect();
     const pos = this.calcWH(rect.height, rect.width, true);
+    // Stryker disable EqualityOperator: equivalent — each clamp only assigns the bound it just compared against, so `<` versus `<=` (and `>` versus `>=`) yields the same value.
     if(pos.w < this.minW) {
       pos.w = this.minW;
     }
@@ -1219,6 +1236,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     if(pos.h > this.maxH) {
       pos.h = this.maxH;
     }
+    // Stryker restore EqualityOperator
     // Confirmed unreachable, not assumed — matching this project's own
     // established precedent for the identical case elsewhere (Vue's own
     // autoSize() flags this exact branch the same way): calcWH's own
@@ -1229,12 +1247,14 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     // below 1. Left as a documented, understood gap rather than forced
     // with a manufactured negative-height double.
     /* istanbul ignore next -- see the comment above: Math.ceil already floors height to >=1 whenever it's non-negative, which a real getBoundingClientRect() always is. */
+    // Stryker disable BlockStatement,ConditionalExpression,EqualityOperator: unreachable — see the comment above (Math.ceil already floors the height to >= 1); `<` versus `<=` is equivalent anyway since each branch only assigns 1.
     if(pos.h < 1) {
       pos.h = 1;
     }
     if(pos.w < 1) {
       pos.w = 1;
     }
+    // Stryker restore BlockStatement,ConditionalExpression,EqualityOperator
 
     if(this.w !== pos.w || this.h !== pos.h) {
       this.eventBus?.emitItemResize({ eventType: `resizeend`, h: pos.h, i: this.i, w: pos.w, x: this.x, y: this.y });
@@ -1259,6 +1279,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
 
     const position = offsetXYFromParentOf(event);
     const { x, y } = position;
+    // Stryker disable next-line ObjectLiteral: equivalent — `top` is assigned in every switch branch before it is read.
     const newPosition: IDragPosition = { top: 0 };
 
     switch(event.type) {
@@ -1268,6 +1289,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         const parentRect = parentTarget.getBoundingClientRect();
         const clientRect = target.getBoundingClientRect();
         if(this.resolvedIsMirrored) {
+          // Stryker disable next-line ArithmeticOperator: equivalent — multiplying and dividing by -1 give the same result.
           newPosition.right = (clientRect.right - parentRect.right) * -1;
         } else {
           newPosition.left = clientRect.left - parentRect.left;
@@ -1291,12 +1313,14 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         // between however many dragmove ticks already ran
         // synchronously and Angular's own (asynchronous) rendering of
         // the resulting style.
+        // Stryker disable OptionalChaining: equivalent — the `if(!this.isDragging) return` guard above means `dragging` is always set here (dragstart sets both together).
         if(this.resolvedIsMirrored) {
           newPosition.right = Number(this.dragging?.right);
         } else {
           newPosition.left = Number(this.dragging?.left);
         }
         newPosition.top = Number(this.dragging?.top);
+        // Stryker restore OptionalChaining
         this.dragging = undefined;
         this.isDragging = false;
         this.autoScrollEngine.stop();
@@ -1338,6 +1362,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       // strings before calling this handler at all — there is no call
       // path that reaches this switch with any fourth value.
       /* istanbul ignore next -- see the comment above: unreachable since event.type can never be a fourth value the native handler would forward. */
+      // Stryker disable next-line ConditionalExpression,BlockStatement: unreachable — see the comment above; the native handler only ever forwards three event types.
       default: {
         return;
       }
@@ -1388,6 +1413,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
 
     const position = offsetXYFromParentOf(event);
     const { x, y } = position;
+    // Stryker disable next-line ObjectLiteral: equivalent — height and width are assigned in every resize branch before they are read.
     const newSize: { height: number; horizontal?: number; top?: number; width: number } = { height: 0, width: 0 };
 
     switch(event.type) {
@@ -1410,6 +1436,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         // confirmed-unreachable case this file's own `autoSize()` already
         // documents for its own height-floor check.
         /* istanbul ignore next -- see the comment above: pos.height can never be <=0 for a valid (h >= 1) item, since calcGridItemWH itself already rejects h<=0 before this could run with such a value. */
+        // Stryker disable next-line ConditionalExpression,EqualityOperator: unreachable — see the comment above; a valid item never has a non-positive pixel height here.
         this.aspectRatio = pos.height > 0 ? pos.width / pos.height : undefined;
         this.lastW = x;
         this.lastH = y;
@@ -1505,10 +1532,12 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         if(!this.isResizing) {
           return;
         }
+        // Stryker disable OptionalChaining: equivalent — the `if(!this.isResizing) return` guard above means `resizing` is always set here (resizestart sets both together).
         newSize.width = Number(this.resizing?.width);
         newSize.height = Number(this.resizing?.height);
         newSize.top = Number(this.resizing?.top);
         newSize.horizontal = this.resolvedIsMirrored ? Number(this.resizing?.right) : Number(this.resizing?.left);
+        // Stryker restore OptionalChaining
         this.resizing = undefined;
         this.isResizing = false;
         this.aspectRatio = undefined;
@@ -1521,12 +1550,14 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       // literal strings before calling this handler at all — there is
       // no call path that reaches this switch with any fourth value.
       /* istanbul ignore next -- see the comment above: unreachable since event.type can never be a fourth value the native handler would forward. */
+      // Stryker disable next-line ConditionalExpression,BlockStatement: unreachable — see the comment above; the native handler only ever forwards three event types.
       default: {
         return;
       }
     }
 
     const pos = this.calcWH(newSize.height, newSize.width);
+    // Stryker disable EqualityOperator: equivalent — each clamp only assigns the bound it just compared against, so `<` versus `<=` (and `>` versus `>=`) yields the same value.
     if(pos.w < this.minW) {
       pos.w = this.minW;
     }
@@ -1545,6 +1576,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     if(pos.w < 1) {
       pos.w = 1;
     }
+    // Stryker restore EqualityOperator
 
     let newX = this.x;
     let newY = this.y;

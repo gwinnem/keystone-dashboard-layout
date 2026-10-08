@@ -38,6 +38,7 @@ const hasWindow = (): boolean => typeof window !== `undefined`;
 export class GridLayoutPresetsService {
   /** Serializes `layout` and saves it under `name`, overwriting any existing preset of the same name. A no-op if no `Storage` is available. */
   savePreset(key: string, name: string, layout: TLayout, storage?: Storage): void {
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — writeAllPresets() already null-guards via `resolveStorage(storage)?.setItem`, so dropping this early return is unobservable (no storage means nothing is read or written either way).
     if(!this.resolveStorage(storage)) {
       return;
     }
@@ -55,6 +56,7 @@ export class GridLayoutPresetsService {
   loadPreset(key: string, name: string, storage?: Storage): TLayout | null {
     const presets = this.readAllPresets(key, storage);
     const raw = presets[name];
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — deserializeLayout(undefined) already returns null for a missing/empty value, the same result as this early return.
     if(!raw) {
       return null;
     }
@@ -63,6 +65,7 @@ export class GridLayoutPresetsService {
 
   /** Removes the preset saved under `name`. A no-op if it doesn't exist, or no `Storage` is available. */
   deletePreset(key: string, name: string, storage?: Storage): void {
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — same redundancy as savePreset(): writeAllPresets() null-guards its own storage access.
     if(!this.resolveStorage(storage)) {
       return;
     }
@@ -94,6 +97,7 @@ export class GridLayoutPresetsService {
       return {};
     }
     const raw = target.getItem(key);
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — JSON.parse(null) parses to `null`, which the object check below already rejects, returning the same `{}`.
     if(!raw) {
       return {};
     }
@@ -109,6 +113,7 @@ export class GridLayoutPresetsService {
   }
 
   private writeAllPresets(key: string, presets: Record<string, string>, storage?: Storage): void {
+    // Stryker disable next-line OptionalChaining: equivalent — both callers return early when no storage resolves, so `resolveStorage()` is never null by the time this runs.
     this.resolveStorage(storage)?.setItem(key, JSON.stringify(presets));
   }
 }

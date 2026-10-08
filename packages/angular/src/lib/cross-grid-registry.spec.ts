@@ -123,4 +123,47 @@ describe(`cross-grid-registry`, () => {
       unregister();
     }
   });
+
+  // The inclusive-edge tests above only prove the boundary itself is
+  // inside. Each test below places exactly one coordinate just OUTSIDE
+  // one edge, with the other coordinate safely mid-rect — the earlier
+  // "outside" test (5000, 5000) is beyond the right AND bottom edges at
+  // once, so it can't tell which of the four comparisons rejected it
+  // (a mutant forcing any single comparison to `true` still passed,
+  // since another comparison was still false).
+  it(`Should treat a point just left of the left edge (x < rect.left) as outside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-j` }));
+    try {
+      expect(findCrossGridZoneAt(-1, 50, `some-other-id`)).toBeUndefined();
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should treat a point just right of the right edge (x > rect.right) as outside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-k` }));
+    try {
+      expect(findCrossGridZoneAt(101, 50, `some-other-id`)).toBeUndefined();
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should treat a point just above the top edge (y < rect.top) as outside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-l` }));
+    try {
+      expect(findCrossGridZoneAt(50, -1, `some-other-id`)).toBeUndefined();
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should treat a point just below the bottom edge (y > rect.bottom) as outside`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-m` }));
+    try {
+      expect(findCrossGridZoneAt(50, 101, `some-other-id`)).toBeUndefined();
+    } finally {
+      unregister();
+    }
+  });
 });

@@ -2584,7 +2584,7 @@ describe(`GridLayoutComponent`, () => {
 
     it(`Should skip an adjustment that would collide with a non-selected item, when preventCollision is on`, () => {
       const threeItemLayout: TLayout = [
-        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `a`, w: 2, x: 0, y: 4 },
         { h: 2, i: `b`, w: 2, x: 6, y: 4 },
         { h: 2, i: `c`, w: 2, x: 0, y: 4 },
       ];
@@ -3723,6 +3723,76 @@ describe(`GridLayoutComponent`, () => {
 
       expect(component.placeholderTemplate).toBeUndefined();
       expect(fixture.nativeElement.querySelector(`.kdl-grid-placeholder`)).toBeTruthy();
+    });
+  });
+
+  describe(`generateLayoutId (module-level auto-increment)`, () => {
+    it(`Should increment (not decrement) the counter, and produce distinct "grid-layout-N" ids for successive un-named grids`, () => {
+      // Kills the AssignmentOperator (-= instead of +=), BlockStatement
+      // (body emptied entirely), and StringLiteral (template literal
+      // emptied to ``) mutants on generateLayoutId(), all at once. Two
+      // successive un-named grids' own auto-generated ids must differ
+      // by exactly 1, and both must match the documented
+      // `grid-layout-N` shape.
+      const fixtureA = TestBed.createComponent(GridLayoutComponent);
+      Object.assign(fixtureA.componentInstance, { layout });
+      fixtureA.detectChanges();
+      const idA = fixtureA.componentInstance.resolvedLayoutId;
+
+      const fixtureB = TestBed.createComponent(GridLayoutComponent);
+      Object.assign(fixtureB.componentInstance, { layout });
+      fixtureB.detectChanges();
+      const idB = fixtureB.componentInstance.resolvedLayoutId;
+
+      expect(idA).toMatch(/^grid-layout-\d+$/);
+      expect(idB).toMatch(/^grid-layout-\d+$/);
+      const numA = Number(idA.replace(`grid-layout-`, ``));
+      const numB = Number(idB.replace(`grid-layout-`, ``));
+      expect(numB).toBe(numA + 1);
+
+      fixtureA.nativeElement.remove();
+      fixtureB.nativeElement.remove();
+    });
+  });
+
+  describe(`documented field/@Input() defaults`, () => {
+    it(`Should have every documented default value, before any input override or ngOnInit runs`, () => {
+      // A broad, single assertion sweep across every survivor that's
+      // simply "this field's own declared default value" — a mutant
+      // flipping any one of these (a BooleanLiteral default, an empty
+      // array/object/string default) is only ever caught by actually
+      // checking it, which nothing in this spec's own many
+      // behavior-focused tests happens to do for every single one,
+      // since most of these get overridden by an explicit input
+      // before any assertion runs elsewhere in this file. Read
+      // directly off a freshly-created component, deliberately BEFORE
+      // `fixture.detectChanges()` (so `resolvedLayoutId` is still its
+      // own raw class-field default, not yet overwritten by
+      // `ngOnInit`'s own `generateLayoutId()` call).
+      const freshFixture = TestBed.createComponent(GridLayoutComponent);
+      const freshComponent = freshFixture.componentInstance;
+
+      expect(freshComponent.useCssTransforms).toBe(true);
+      expect(freshComponent.autoSize).toBe(true);
+      expect(freshComponent.horizontalShift).toBe(false);
+      expect(freshComponent.showAlignmentGuides).toBe(false);
+      expect(freshComponent.showSpacingGuides).toBe(false);
+      expect(freshComponent.multiSelect).toBe(false);
+      expect(freshComponent.enableUndoRedo).toBe(false);
+      expect(freshComponent.showResizeHandles).toBe(false);
+      expect(freshComponent.allowCrossGridDrag).toBe(false);
+      expect(freshComponent.allowOutsideDrop).toBe(false);
+      expect(freshComponent.resolvedLayoutId).toBe(``);
+      expect(freshComponent.spacingIndicatorStyles).toEqual([]);
+      expect(freshComponent.containerStyle).toEqual({ isolation: `isolate`, position: `relative` });
+      // Private fields — accessed via bracket-notation casting, a
+      // standard, accepted TS-testing idiom for reaching a private
+      // class member from its own spec file without adding a public
+      // getter purely for this test's sake.
+      expect((freshComponent as unknown as { workingLayout: TLayout }).workingLayout).toEqual([]);
+      expect((freshComponent as unknown as { lastSnapshot: TLayout }).lastSnapshot).toEqual([]);
+
+      freshFixture.nativeElement.remove();
     });
   });
 });

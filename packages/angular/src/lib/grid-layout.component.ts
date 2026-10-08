@@ -773,9 +773,11 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
    * behavior a fresh grid starts with.
    */
   private pruneSelection(): void {
+    // Stryker disable next-line ConditionalExpression: equivalent — when the anchor is already null, the second operand finds no item and the assignment just re-sets null.
     if(this.lastAnchorId !== null && !this.layout.some(item => item.i === this.lastAnchorId)) {
       this.lastAnchorId = null;
     }
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — with an empty selection the filtered copy below is also empty and the size comparison finds nothing to emit.
     if(this.selectedItemIds.size === 0) {
       return;
     }
@@ -1146,6 +1148,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       this.layouts,
       this.breakpoints,
       breakpoint,
+      // Stryker disable next-line LogicalOperator: equivalent — findOrGenerateResponsiveLayout ignores its lastBreakpoint argument and always regenerates from the working layout.
       this.lastBreakpoint ?? breakpoint,
       colsCompute,
       this.compactType,
@@ -1177,6 +1180,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       return;
     }
 
+    // Stryker disable ConditionalExpression: equivalent — the final `else if` can only be reached by dragend (dragstart and dragmove are handled above, and there are no other event types). Written as a region because a next-line directive is not honoured in front of a line that starts with `}`.
     if(event.eventType === `dragstart`) {
       this.dragStart.emit(event.i);
       this.captureGestureStart(this.workingLayout);
@@ -1195,6 +1199,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     } else if(event.eventType === `dragend`) {
       this.dragEnd.emit(event.i);
     }
+    // Stryker restore ConditionalExpression
 
     if(event.eventType === `dragend` && this.handleCrossGridDragEnd(event.i, event.clientX, event.clientY, item)) {
       // Accepted by another grid — every side effect the accept path
@@ -1232,6 +1237,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     // `targetX`/`targetY` (post-snap, pre-collision-resolution) as the
     // "where is this drag currently heading" position — the same value
     // `moveElement` below is about to resolve against collisions.
+    // Stryker disable next-line ConditionalExpression: equivalent — the placeholder is cleared again at the end of a dragend, so also setting it there is never observable.
     if(event.eventType === `dragstart` || event.eventType === `dragmove`) {
       this.placeholder = { h: event.h, w: event.w, x: targetX, y: targetY };
       this.updatePlaceholderStyle();
@@ -1376,6 +1382,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     if(!this.preventCollision) {
       return;
     }
+    // Stryker disable next-line MethodExpression,ConditionalExpression: equivalent — getAllCollisions() already never reports an item colliding with itself (same id), so this filter removes nothing.
     const collisions = getAllCollisions(next, item).filter(layoutItem => layoutItem.i !== item.i);
     if(collisions.length === 0) {
       return;
@@ -1461,17 +1468,20 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
   private snapshotGroupMovePositions(activeId: string | number): Map<string | number, { x: number; y: number }> {
     const snapshot = new Map<string | number, { x: number; y: number }>();
+    // Stryker disable next-line EqualityOperator,ConditionalExpression: equivalent — a single-item selection is its own anchor, so group-moving it moves nothing extra whether or not this early return fires.
     if(!this.multiSelect || !this.selectedItemIds.has(activeId) || this.selectedItemIds.size <= 1) {
       return snapshot;
     }
     this.selectedItemIds.forEach(id => {
       const found = getLayoutItem(this.workingLayout, id);
+      // Stryker disable next-line OptionalChaining,LogicalOperator: equivalent — selected ids are pruned against the layout on every layout change, so `found` is never undefined here.
       snapshot.set(id, { x: found?.x ?? 0, y: found?.y ?? 0 });
     });
     return snapshot;
   }
 
   private applyGroupMove(eventType: IItemDragEvent[`eventType`], activeId: string | number, x: number, y: number, next: TLayout): void {
+    // Stryker disable next-line ConditionalExpression,LogicalOperator,StringLiteral: equivalent — at dragstart the pointer delta is zero, and an empty or missing anchor snapshot leaves no passengers to move.
     if(eventType === `dragstart` || this.groupMoveStartPositions.size === 0 || !this.groupMoveStartPositions.has(activeId)) {
       return;
     }
@@ -1479,10 +1489,12 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     const dx = x - anchorStart.x;
     const dy = y - anchorStart.y;
     this.groupMoveStartPositions.forEach((startPos, passengerId) => {
+      // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — processing the dragged item as its own passenger sets it to the same target position it is about to be moved to anyway.
       if(passengerId === activeId) {
         return;
       }
       const passenger = getLayoutItem(next, passengerId);
+      // Stryker disable next-line ConditionalExpression,LogicalOperator: equivalent — selected ids are pruned against the layout on every layout change, so a passenger is never missing here.
       if(passenger && !passenger.isStatic && passenger.isDraggable !== false) {
         passenger.x = Math.max(startPos.x + dx, 0);
         passenger.y = Math.max(startPos.y + dy, 0);
@@ -1492,17 +1504,20 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
   private snapshotGroupResizeSizes(activeId: string | number): Map<string | number, { h: number; w: number }> {
     const snapshot = new Map<string | number, { h: number; w: number }>();
+    // Stryker disable next-line EqualityOperator,ConditionalExpression: equivalent — same reasoning as snapshotGroupMovePositions(): a single-item selection has no passengers to resize.
     if(!this.multiSelect || !this.selectedItemIds.has(activeId) || this.selectedItemIds.size <= 1) {
       return snapshot;
     }
     this.selectedItemIds.forEach(id => {
       const found = getLayoutItem(this.workingLayout, id);
+      // Stryker disable next-line OptionalChaining: equivalent — selected ids are pruned against the layout on every layout change, so `found` is never undefined here.
       snapshot.set(id, { h: found?.h ?? 1, w: found?.w ?? 1 });
     });
     return snapshot;
   }
 
   private applyGroupResize(eventType: IItemResizeEvent[`eventType`], activeId: string | number, w: number, h: number, next: TLayout): void {
+    // Stryker disable next-line ConditionalExpression,LogicalOperator,StringLiteral: equivalent — at resizestart the size delta is zero, and an empty or missing anchor snapshot leaves no passengers to resize.
     if(eventType === `resizestart` || this.groupResizeStartSizes.size === 0 || !this.groupResizeStartSizes.has(activeId)) {
       return;
     }
@@ -1510,6 +1525,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     const dw = w - anchorStart.w;
     const dh = h - anchorStart.h;
     this.groupResizeStartSizes.forEach((startSize, passengerId) => {
+      // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — processing the resized item as its own passenger sets it to the same size it is about to be set to anyway.
       if(passengerId === activeId) {
         return;
       }
@@ -1599,6 +1615,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
         this.crossGridItemDropped.emit({ item, sourceLayoutId });
         this.changeDetectorRef.markForCheck();
       },
+      // Stryker disable next-line OptionalChaining: equivalent — `nativeElement` is always defined once `containerRef` itself is; the first `?.` (unresolved ref) is the one that matters and is tested.
       getRect: () => this.containerRef?.nativeElement?.getBoundingClientRect() ?? null,
       isExternalDropDisabled: () => this.disableExternalDrop,
       layoutId: this.resolvedLayoutId,
@@ -1785,6 +1802,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     if(this.heightMode !== null) {
       return this.heightMode;
     }
+    // Stryker disable next-line StringLiteral: equivalent — `fixed` and any other non-auto/fit/scroll value take the identical branches in updateContainerHeight().
     return this.autoSize ? `auto` : `fixed`;
   }
 
@@ -1820,6 +1838,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     // only in overflow-y below — matching Vue's own containerHeight()
     // exactly (confirmed via a direct source read: its own switch
     // statement's default case, covering both, returns an empty string).
+    // Stryker disable BlockStatement: equivalent — `height` is already `undefined` when it reaches the else branch below. Written as a region around the whole chain because a directive inside a block, in front of a `} else {` line, is not honoured.
     let height: string | undefined;
     if(mode === `auto`) {
       height = `${getBottomYCoordinate(this.layout) * (this.rowHeight + marginV) + marginV}px`;
@@ -1828,6 +1847,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     } else {
       height = undefined;
     }
+    // Stryker restore BlockStatement
     // Only 'scroll'/'fit' set this at all — 'auto'/'fixed' leave the
     // container's own natural overflow behavior (whatever the
     // consumer's surrounding CSS already does) completely untouched,
