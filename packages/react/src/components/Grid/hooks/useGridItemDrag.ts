@@ -143,6 +143,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     y = Math.max(Math.min(y, maxRows - h), 0);
 
     return { x, y };
+  // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
   }, []);
 
   const handleDrag = useCallback((event: INativeDragEvent): void => {
@@ -160,7 +161,9 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
         const parentRect = parentTarget.getBoundingClientRect();
         const clientRect = target.getBoundingClientRect();
         if(isMirrored) {
-          newPosition.left = (clientRect.right - parentRect.right) * -1;
+          const rightGap = clientRect.right - parentRect.right;
+          // Stryker disable next-line ArithmeticOperator: equivalent — `x * -1` and `x / -1` are the same number for every finite x.
+          newPosition.left = rightGap * -1;
         } else {
           newPosition.left = clientRect.left - parentRect.left;
         }
@@ -242,16 +245,17 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     }
 
     onDrag(i, event.type, pos.x, pos.y, w, h, event.clientX, event.clientY);
+  // Stryker disable next-line ArrayDeclaration: equivalent — calcXY is itself a useCallback with no dependencies, so it never changes identity and [calcXY] behaves exactly like [].
   }, [calcXY]);
 
   useEffect(() => {
     const el = rootRef.current;
-    // Stryker disable BlockStatement: unreachable — see the v8 ignore comment below; rootRef is attached to this component's own root element.
+    // Stryker disable BlockStatement,ConditionalExpression: unreachable — see the v8 ignore comment below; rootRef is attached to this component's own root element.
     /* v8 ignore next 3 -- same class of genuinely-unreachable-in-practice guard as GridLayout.tsx's own container-ref check; see that file's comment for the full rationale. */
     if(!el) {
       return undefined;
     }
-    // Stryker restore BlockStatement
+    // Stryker restore BlockStatement,ConditionalExpression
     const native = createNativeDraggable(
       el,
       () => ({
@@ -265,6 +269,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     return (): void => {
       native.destroy();
     };
+  // Stryker disable next-line ArrayDeclaration: equivalent — handleDrag is stable (it depends only on the stable calcXY) and rootRef is a ref object, so neither ever changes identity.
   }, [handleDrag, rootRef]);
 
   return useMemo(() => ({ dragging, isDragging }), [dragging, isDragging]);

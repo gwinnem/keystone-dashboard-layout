@@ -382,6 +382,20 @@ describe(`GridItem — live style for a mirrored (RTL) item`, () => {
 
     expect(target.style.transform).not.toBe(atStart);
   });
+
+  it(`Should follow the pointer within a single column while a mirrored item is being resized, not only in whole-column steps`, () => {
+    stubOffsetWidth(1200);
+    const { container } = render(grid([{ h: 2, i: `0`, w: 2, x: 4, y: 0 }], { isMirrored: true }));
+    const target = itemEl(container, `0`);
+
+    dispatchResizeEvent(target, `resizestart`);
+    const atStart = target.style.transform;
+    // The test above moves 100px, more than half a column (about 99px a step), so the item's grid cell changes and the snapped position
+    // moves the style on its own. 10px leaves the cell alone: only the pixel-precise anchor from the live resize can move the style.
+    dispatchResizeEvent(target, `resizemove`, { clientX: 10, clientY: 0 });
+
+    expect(target.style.transform).not.toBe(atStart);
+  });
 });
 
 describe(`GridItem — resizing state and wiring`, () => {
@@ -427,6 +441,40 @@ describe(`GridItem — resizing state and wiring`, () => {
       unmount();
 
       expect(disconnect).toHaveBeenCalled();
+    } finally {
+      vi.stubGlobal(`ResizeObserver`, sharedMock);
+    }
+  });
+
+  it(`Should disconnect every ResizeObserver it created on unmount, the auto-height one and the grid's container one alike`, () => {
+    stubOffsetWidth(1200);
+    // The test above shares one disconnect spy across every observer, so it is satisfied by whichever cleanup runs, and it cannot notice
+    // the other being lost. Here each instance records its own disconnect.
+    const created: { disconnected: boolean }[] = [];
+    const sharedMock = globalThis.ResizeObserver;
+    vi.stubGlobal(`ResizeObserver`, class {
+      disconnected = false;
+
+      constructor() {
+        created.push(this);
+      }
+
+      disconnect = (): void => {
+        this.disconnected = true;
+      };
+
+      observe = vi.fn();
+
+      unobserve = vi.fn();
+    });
+    try {
+      const { unmount } = render(grid([{ autoHeight: true, h: 2, i: `0`, w: 2, x: 0, y: 0 }]));
+      // The grid measures its container, and the auto-height item observes its own wrapper.
+      expect(created.length).toBeGreaterThanOrEqual(2);
+
+      unmount();
+
+      expect(created.every(observer => observer.disconnected)).toBe(true);
     } finally {
       vi.stubGlobal(`ResizeObserver`, sharedMock);
     }

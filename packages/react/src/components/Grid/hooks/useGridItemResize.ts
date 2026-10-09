@@ -124,7 +124,14 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
   const [resizing, setResizing] = useState<IGridItemPosition | undefined>(undefined);
 
   const resizingRef = useRef<IGridItemPosition | undefined>(undefined);
-  const edgesRef = useRef<IInteractEdges>({ bottom: false, left: false, right: false, top: false });
+  // Stryker disable next-line ObjectLiteral: equivalent — an empty object reads as all-false too, and the initial value is only ever read by an event that arrives before any resizestart, which treats a missing edge exactly like a false one.
+  const edgesRef = useRef<IInteractEdges>({
+    // Stryker disable next-line BooleanLiteral: equivalent — the bottom edge only ever moves the height, and with no gesture started the height is NaN whether or not it counts as active.
+    bottom: false,
+    left: false,
+    right: false,
+    top: false,
+  });
   const aspectRatioRef = useRef<number | undefined>(undefined);
   /**
    * The grid size (`w`/`h`) the item had when the resize started, captured at `resizestart`. Lets `onItemResized` stay silent
@@ -166,6 +173,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     se: seRef,
     sw: swRef,
     w: wRef,
+  // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
   }), []);
 
   const calcPosition = useCallback((x: number, y: number, w: number, h: number): IGridItemPosition => {
@@ -180,6 +188,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     return isMirrored
       ? { height, right: horizontal, top, width }
       : { height, left: horizontal, top, width };
+  // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
   }, []);
 
   const calcWH = useCallback((height: number, width: number, autoSizeFlag: boolean = false): ICalcWh => {
@@ -198,6 +207,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     w = Math.max(Math.min(w, cols - innerX), 0);
     const clampedH = Math.max(Math.min(h, maxRows - innerY), 0);
     return { h: clampedH, w };
+  // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
   }, []);
 
   const pixelsToGridX = useCallback((leftPx: number, newW: number): number => {
@@ -206,6 +216,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     let gridX = Math.round((leftPx - margin[0]) / (colWidth + margin[0]));
     gridX = Math.max(Math.min(gridX, cols - newW), 0);
     return gridX;
+  // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
   }, []);
 
   const pixelsToGridY = useCallback((topPx: number, newH: number): number => {
@@ -213,6 +224,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     let gridY = Math.round((topPx - margin[1]) / (rowHeight + margin[1]));
     gridY = Math.max(Math.min(gridY, maxRows - newH), 0);
     return gridY;
+  // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
   }, []);
 
   /**
@@ -261,6 +273,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     if(newW !== currentW || newH !== currentH) {
       onResize(i, `resizeend`, innerX, innerY, newW, newH);
     }
+  // Stryker disable next-line ArrayDeclaration: equivalent — calcWH is a useCallback with no dependencies, so it never changes identity and [calcWH] behaves exactly like [].
   }, [calcWH]);
 
   const handleResize = useCallback((event: INativeResizeEvent): void => {
@@ -269,6 +282,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     const position = offsetXYFromParentOf(event);
     const { x, y } = position;
 
+    // Stryker disable next-line ObjectLiteral: equivalent — every recognised event type assigns both width and height before they are read, and an unrecognised one returns early.
     const newSize: { height: number; horizontal?: number; top?: number; width: number } = { height: 0, width: 0 };
     let pos: (IGridItemPosition | ICalcWh) & { h?: number; w?: number };
 
@@ -409,10 +423,14 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     let newY = innerY;
     const edges = edgesRef.current;
     const horizontalAnchorEdge = isMirrored ? edges.right : edges.left;
-    if(horizontalAnchorEdge && newSize.horizontal !== undefined) {
+    if(horizontalAnchorEdge &&
+      // Stryker disable next-line ConditionalExpression: equivalent — newSize.horizontal is always assigned (by resizemove and resizeend) before this point, if only as NaN, so it is never undefined here.
+      newSize.horizontal !== undefined) {
       newX = pixelsToGridX(newSize.horizontal, pos.w);
     }
-    if(edges.top && newSize.top !== undefined) {
+    if(edges.top &&
+      // Stryker disable next-line ConditionalExpression: equivalent — newSize.top is always assigned (by resizemove and resizeend) before this point, if only as NaN, so it is never undefined here.
+      newSize.top !== undefined) {
       newY = pixelsToGridY(newSize.top, pos.h);
     }
 
@@ -428,6 +446,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     }
 
     onResize(i, event.type, newX, newY, pos.w, pos.h);
+  // Stryker disable next-line ArrayDeclaration: equivalent — calcPosition, calcWH, pixelsToGridX and pixelsToGridY are all useCallbacks with no dependencies, so none ever changes identity and the list behaves exactly like an empty one.
   }, [calcPosition, calcWH, pixelsToGridX, pixelsToGridY]);
 
   // A plain, per-render value (not read via optionsRef) — deliberately
@@ -451,12 +470,12 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
 
   useEffect(() => {
     const root = rootRef.current;
-    // Stryker disable BlockStatement: unreachable — see the v8 ignore comment below; rootRef is attached to this component's own root element.
+    // Stryker disable BlockStatement,ConditionalExpression: unreachable — see the v8 ignore comment below; rootRef is attached to this component's own root element.
     /* v8 ignore next 3 -- same class of genuinely-unreachable-in-practice guard as GridLayout.tsx's own container-ref check; see that file's comment for the full rationale. */
     if(!root) {
       return undefined;
     }
-    // Stryker restore BlockStatement
+    // Stryker restore BlockStatement,ConditionalExpression
 
     const handleEls: Partial<Record<TResizeHandle, HTMLElement>> = {};
     (Object.keys(RESIZE_EDGE_MAP) as TResizeHandle[]).forEach(key => {

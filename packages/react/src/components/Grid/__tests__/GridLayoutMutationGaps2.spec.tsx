@@ -838,7 +838,7 @@ describe(`GridItem — attributes, text and class names`, () => {
     stubOffsetWidth(1200);
     const { container } = render(grid([{ h: 2, i: `0`, w: 2, x: 0, y: 0 }]));
 
-    const className = itemEl(container, `0`).className;
+    const {className} = itemEl(container, `0`);
 
     expect(className).not.toMatch(/false|undefined|null/);
     expect(className).not.toMatch(/\s{2,}/);
@@ -871,5 +871,51 @@ describe(`GridItem — attributes, text and class names`, () => {
     rerender(grid(layout, { ariaLabels: { moveInstruction: `Second grid text.` } }));
 
     expect((container.querySelector(`.kdl-visually-hidden`) as HTMLElement).textContent).toContain(`Second grid text.`);
+  });
+});
+
+describe(`GridLayout — how a drag is committed`, () => {
+  it(`Should swap a dragged item with the one it lands on, putting that one above it, not pushing it below`, () => {
+    stubOffsetWidth(1200);
+    const onLayoutChange = vi.fn();
+    const layout: TLayout = [
+      { h: 2, i: `0`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `1`, w: 2, x: 0, y: 2 },
+    ];
+    const { container } = render(grid(layout, { onLayoutChange }));
+    const target = itemEl(container, `0`);
+
+    // Straight down onto row 2, where item 1 is. A user's drag lets the displaced item jump above the dragged one. Compaction is off here
+    // (grid()'s default), so nothing tidies up afterwards and the difference between "swapped" and "pushed below" stays visible.
+    dispatchDragEvent(target, `dragstart`);
+    dispatchDragEvent(target, `dragmove`, { clientX: 0, clientY: 225 });
+    dispatchDragEvent(target, `dragend`, { clientX: 0, clientY: 225 });
+
+    const settled = lastLayout(onLayoutChange);
+    expect(byId(settled, `0`).y).toBe(2);
+    expect(byId(settled, `1`).y).toBe(0);
+  });
+
+  it(`Should not hold the other items at a row recorded by an earlier drag, once restoreOnDrag has been switched off`, () => {
+    stubOffsetWidth(1200);
+    const onLayoutChange = vi.fn();
+    const layout: TLayout = [
+      { h: 2, i: `0`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `1`, w: 2, x: 0, y: 2 },
+    ];
+    const withOption = (restoreOnDrag: boolean): ReactElement => (
+      grid(layout, { compactType: ECompactType.VERTICAL, onLayoutChange, restoreOnDrag })
+    );
+    const { container, rerender } = render(withOption(true));
+    const target = itemEl(container, `0`);
+
+    // A drag that begins with the option on records that item 1 sits in row 2. That drag never ends, the option is switched off, and a
+    // new one begins: it must not still be bound by the old record, so moving item 0 aside lets item 1 rise into row 0 at once.
+    dispatchDragEvent(target, `dragstart`);
+    rerender(withOption(false));
+    dispatchDragEvent(target, `dragstart`);
+    dispatchDragEvent(target, `dragmove`, { clientX: 501, clientY: 0 });
+
+    expect(byId(lastLayout(onLayoutChange), `1`).y).toBe(0);
   });
 });

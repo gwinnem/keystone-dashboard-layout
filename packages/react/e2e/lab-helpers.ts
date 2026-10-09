@@ -60,13 +60,13 @@ export const colStep = (g: IGeometry): number => colWidth(g) + g.marginX;
 export const rowStep = (g: IGeometry): number => g.rowHeight + g.marginY;
 
 /** The pixel box a grid cell should occupy, given where the grid itself sits on the page. */
-export function expectedBox(g: IGeometry, gridBox: ILabBox, cell: { h: number; w: number; x: number; y: number }): ILabBox {
+export function expectedBox(g: IGeometry, container: ILabBox, cell: { h: number; w: number; x: number; y: number }): ILabBox {
   const cw = colWidth(g);
   return {
     height: Math.round(g.rowHeight * cell.h + Math.max(0, cell.h - 1) * g.marginY),
     width: Math.round(cw * cell.w + Math.max(0, cell.w - 1) * g.marginX),
-    x: gridBox.x + Math.round(cw * cell.x + (cell.x + 1) * g.marginX),
-    y: gridBox.y + Math.round(g.rowHeight * cell.y + (cell.y + 1) * g.marginY),
+    x: container.x + Math.round(cw * cell.x + (cell.x + 1) * g.marginX),
+    y: container.y + Math.round(g.rowHeight * cell.y + (cell.y + 1) * g.marginY),
   };
 }
 

@@ -99,4 +99,16 @@ describe(`GridItem — the click that trails a drag or resize`, () => {
 
     expect(onSelectionChanged).toHaveBeenLastCalledWith([`a`]);
   });
+
+  it(`Should not suppress a click after a resize that only just started, with no end reported`, () => {
+    const onSelectionChanged = vi.fn();
+    const target = renderGrid(onSelectionChanged);
+
+    // The resize counterpart of the drag test above. Only resizeend arms the suppression, and the test for it cannot tell: resizestart
+    // followed by resizeend leaves the flag up either way when the click lands in the same task.
+    dispatchResizeEvent(target, `resizestart`);
+    fireEvent.click(target);
+
+    expect(onSelectionChanged).toHaveBeenLastCalledWith([`a`]);
+  });
 });

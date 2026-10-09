@@ -12,7 +12,12 @@ import { GridItem } from '../GridItem';
 
 const layout = (): TLayout => [{ h: 2, i: `a`, w: 2, x: 3, y: 1 }];
 
-function renderItem(handlers: { onItemMoved?: (payload: { i: string | number; x: number; y: number }) => void; onItemResized?: (payload: { i: string | number; h: number; w: number; height: number; width: number }) => void }): HTMLElement {
+interface IItemHandlers {
+  onItemMoved?: (payload: { i: string | number; x: number; y: number }) => void;
+  onItemResized?: (payload: { i: string | number; h: number; w: number; height: number; width: number }) => void;
+}
+
+function renderItem(handlers: IItemHandlers): HTMLElement {
   const { container } = render(
     <GridLayout layout={layout()} margin={[10, 10]} rowHeight={100}>
       <GridItem i="a" {...handlers}>A</GridItem>
