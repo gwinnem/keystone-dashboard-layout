@@ -173,8 +173,9 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     se: seRef,
     sw: swRef,
     w: wRef,
+  }),
   // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
-  }), []);
+  []);
 
   const calcPosition = useCallback((x: number, y: number, w: number, h: number): IGridItemPosition => {
     const { containerWidth, margin, cols, rowHeight, isMirrored } = optionsRef.current;
@@ -188,8 +189,9 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     return isMirrored
       ? { height, right: horizontal, top, width }
       : { height, left: horizontal, top, width };
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   const calcWH = useCallback((height: number, width: number, autoSizeFlag: boolean = false): ICalcWh => {
     const { containerWidth, margin, cols, rowHeight, innerX, innerY, maxRows } = optionsRef.current;
@@ -207,8 +209,9 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     w = Math.max(Math.min(w, cols - innerX), 0);
     const clampedH = Math.max(Math.min(h, maxRows - innerY), 0);
     return { h: clampedH, w };
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   const pixelsToGridX = useCallback((leftPx: number, newW: number): number => {
     const { containerWidth, margin, cols } = optionsRef.current;
@@ -216,16 +219,18 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     let gridX = Math.round((leftPx - margin[0]) / (colWidth + margin[0]));
     gridX = Math.max(Math.min(gridX, cols - newW), 0);
     return gridX;
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   const pixelsToGridY = useCallback((topPx: number, newH: number): number => {
     const { margin, rowHeight, maxRows } = optionsRef.current;
     let gridY = Math.round((topPx - margin[1]) / (rowHeight + margin[1]));
     gridY = Math.max(Math.min(gridY, maxRows - newH), 0);
     return gridY;
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   /**
    * `autoHeight`'s own backing implementation (Phase 19) — see this
@@ -273,8 +278,9 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     if(newW !== currentW || newH !== currentH) {
       onResize(i, `resizeend`, innerX, innerY, newW, newH);
     }
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — calcWH is a useCallback with no dependencies, so it never changes identity and [calcWH] behaves exactly like [].
-  }, [calcWH]);
+  [calcWH]);
 
   const handleResize = useCallback((event: INativeResizeEvent): void => {
     const { h, i, innerX, innerY, minW, maxW, minH, maxH, onResize, onItemResized, transformScale, w, isMirrored, preserveAspectRatio, autoScroll } = optionsRef.current;
@@ -446,8 +452,9 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     }
 
     onResize(i, event.type, newX, newY, pos.w, pos.h);
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — calcPosition, calcWH, pixelsToGridX and pixelsToGridY are all useCallbacks with no dependencies, so none ever changes identity and the list behaves exactly like an empty one.
-  }, [calcPosition, calcWH, pixelsToGridX, pixelsToGridY]);
+  [calcPosition, calcWH, pixelsToGridX, pixelsToGridY]);
 
   // A plain, per-render value (not read via optionsRef) — deliberately
   // NOT the raw `options.resizeHandles` array itself as the wiring

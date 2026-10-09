@@ -108,8 +108,9 @@ export function useCrossGridDrag(options: IUseCrossGridDragOptions): IUseCrossGr
     if(optionsRef.current.allowCrossGridDrag) {
       draggedIdRef.current = id;
     }
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   const handleDragEnd = useCallback((
     id: string | number,
@@ -144,8 +145,9 @@ export function useCrossGridDrag(options: IUseCrossGridDragOptions): IUseCrossGr
     // `workingLayoutRef` itself.
     targetZone.acceptDrop({ ...currentItem }, optionsRef.current.layoutId);
     return true;
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   return { handleDragEnd, handleDragStart };
 }

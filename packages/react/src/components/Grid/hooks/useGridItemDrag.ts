@@ -143,8 +143,9 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     y = Math.max(Math.min(y, maxRows - h), 0);
 
     return { x, y };
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   const handleDrag = useCallback((event: INativeDragEvent): void => {
     const { h, i, isBounded, isMirrored, margin, cols, containerWidth, rowHeight, transformScale, w, onDrag, onItemMoved, autoScroll } = optionsRef.current;
@@ -245,8 +246,9 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     }
 
     onDrag(i, event.type, pos.x, pos.y, w, h, event.clientX, event.clientY);
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — calcXY is itself a useCallback with no dependencies, so it never changes identity and [calcXY] behaves exactly like [].
-  }, [calcXY]);
+  [calcXY]);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -269,8 +271,9 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     return (): void => {
       native.destroy();
     };
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — handleDrag is stable (it depends only on the stable calcXY) and rootRef is a ref object, so neither ever changes identity.
-  }, [handleDrag, rootRef]);
+  [handleDrag, rootRef]);
 
   return useMemo(() => ({ dragging, isDragging }), [dragging, isDragging]);
 }

@@ -701,8 +701,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return (): void => observer.disconnect();
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   /**
    * Mount-time layout validation — matches the Vue package's own
@@ -723,11 +724,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * nearby error boundary catches it the same way it would any other
    * render-phase throw.
    */
+  // Stryker disable ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
   useEffect(() => {
     if(!layoutValidator(layout)) {
       throw new Error(EErrorMessage.INVALID_LAYOUT_VALIDATED);
     }
-    // Stryker disable ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately validates only the initial `layout` value, once, matching Vue's own mount-only validation scope exactly — including `layout` here would re-run this on every later change, which Vue's own equivalent never does either.
   }, []);
   // Stryker restore ArrayDeclaration
@@ -920,8 +921,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       const candidate = { ...item, ...adjustment };
       if(preventCollision) {
         const collisions = getAllCollisions(next, candidate)
-          // Stryker disable next-line ConditionalExpression: equivalent — adjustments only exist for selected items, so the item itself is already excluded by the selection test on the next line.
-          .filter(layoutItem => layoutItem.i !== item.i &&
+          .filter(layoutItem =>
+            // Stryker disable next-line ConditionalExpression: equivalent — adjustments only exist for selected items, so the item itself is already excluded by the selection test on the next line.
+            layoutItem.i !== item.i &&
             !selectedIdSet.has(layoutItem.i));
         if(collisions.length > 0) {
           return;
@@ -1009,8 +1011,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     const idAsString = String(id);
     const candidates = containerRef.current.querySelectorAll<HTMLElement>(`[data-grid-item-id]`);
     return Array.from(candidates).find(el => el.getAttribute(`data-grid-item-id`) === idAsString) ?? null;
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   /**
    * Scrolls the item with the given id into view, if it's currently
@@ -1030,8 +1033,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
         resolve();
       }, 0);
     })
+  ),
   // Stryker disable next-line ArrayDeclaration: equivalent — findItemElement is a useCallback with no dependencies, so it never changes identity and the list behaves exactly like an empty one.
-  ), [findItemElement]);
+  [findItemElement]);
 
   /** Moves keyboard focus to the item with the given id, if it's currently rendered and focusable — the React port of Vue's own `focusItem`. Same deferral/no-op rationale as `scrollToItem` above. */
   const focusItem = useCallback((id: string | number): Promise<void> => (
@@ -1041,8 +1045,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
         resolve();
       }, 0);
     })
+  ),
   // Stryker disable next-line ArrayDeclaration: equivalent — findItemElement is a useCallback with no dependencies, so it never changes identity and the list behaves exactly like an empty one.
-  ), [findItemElement]);
+  [findItemElement]);
 
   const undo = useCallback((): void => {
     if(historyRef.current.length === 0) {
@@ -1072,8 +1077,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
 
   const selectItem = useCallback((id: string | number): void => {
     setSelectedItemIds(prev => (prev.has(id) ? prev : new Set(prev).add(id)));
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   const deselectItem = useCallback((id: string | number): void => {
     setSelectedItemIds(prev => {
@@ -1084,8 +1090,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       next.delete(id);
       return next;
     });
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   const toggleItemSelection = useCallback((id: string | number): void => {
     setSelectedItemIds(prev => {
@@ -1097,14 +1104,16 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       }
       return next;
     });
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   const clearSelection = useCallback((): void => {
     lastAnchorIdRef.current = null;
     setSelectedItemIds(prev => (prev.size === 0 ? prev : new Set()));
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   /**
    * A click reported by a `GridItem`'s own root (`multiSelect` only —
@@ -1154,8 +1163,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     if(event.target === event.currentTarget) {
       clearSelection();
     }
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — clearSelection is a useCallback with no dependencies, so it never changes identity and the list behaves exactly like an empty one.
-  }, [clearSelection]);
+  [clearSelection]);
 
   useImperativeHandle(ref, () => ({
     alignSelected,
@@ -1266,8 +1276,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   const clearGuidesAndIndicators = useCallback((): void => {
     setAlignmentGuideStyles([]);
     setSpacingIndicatorStyles([]);
+  },
   // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
-  }, []);
+  []);
 
   /**
    * `multiSelect`'s group move: dragging a selected item while more
@@ -1293,8 +1304,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
           return [selectedId, { x: selectedItem?.x ?? 0, y: selectedItem?.y ?? 0 }];
         }),
       );
-    // Stryker disable next-line ConditionalExpression: equivalent — dragstart was handled by the branch above and the event types are a closed union (dragstart, dragmove, dragend), so this is always one of the other two.
-    } else if((eventType === `dragmove` || eventType === `dragend`) && groupMoveStartPositions.current.has(id)) {
+    } else if(
+      // Stryker disable next-line ConditionalExpression: equivalent — dragstart was handled by the branch above and the event types are a closed union (dragstart, dragmove, dragend), so this is always one of the other two.
+      (eventType === `dragmove` || eventType === `dragend`) && groupMoveStartPositions.current.has(id)) {
       const anchorStart = groupMoveStartPositions.current.get(id)!;
       const dx = x - anchorStart.x;
       const dy = y - anchorStart.y;
@@ -1327,8 +1339,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
           return [selectedId, { h: selectedItem?.h ?? 1, w: selectedItem?.w ?? 1 }];
         }),
       );
-    // Stryker disable next-line ConditionalExpression: equivalent — resizestart was handled by the branch above and the event types are a closed union, so this is always resizemove or resizeend.
-    } else if((eventType === `resizemove` ||
+    } else if(
+      // Stryker disable next-line ConditionalExpression: equivalent — resizestart was handled by the branch above and the event types are a closed union, so this is always resizemove or resizeend.
+      (eventType === `resizemove` ||
       // Stryker disable next-line ConditionalExpression,EqualityOperator,StringLiteral: equivalent — at resizeend the passengers already hold the sizes the last resizemove gave them (compaction changes positions, never sizes), so applying them again changes nothing.
       eventType === `resizeend`) && groupResizeStartSizes.current.has(id)) {
       const anchorStart = groupResizeStartSizes.current.get(id)!;
