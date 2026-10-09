@@ -390,6 +390,26 @@ describe(`useGridItemResize — mutation-testing gap coverage`, () => {
       expect(backdoor()).toBeDefined();
     });
 
+    it(`Should not wire anything up for a listed handle whose span has not been rendered yet, and pick it up once it has`, () => {
+      const { ctx, gridItem, helper, resizeHandleRefs } = createContext({}, false, 1, []);
+      const backdoor = (): unknown => (gridItem.value as unknown as { __nativeResizeHandler?: unknown }).__nativeResizeHandler;
+      const handleRef = resizeHandleRefs.e as unknown as Ref<HTMLSpanElement | null>;
+      ctx.resizeHandles.value = [`e`];
+      handleRef.value = null;
+
+      helper.tryMakeResizable();
+      expect(backdoor()).toBeUndefined();
+
+      // The span renders a tick later. Had the first call committed to a handle that was not there, the engine would be attached
+      // to nothing and this call would find it already wired and leave the real span inert.
+      const span = document.createElement(`span`);
+      handleRef.value = span;
+      helper.resizable.value = true;
+      helper.tryMakeResizable();
+
+      expect(pointerDown(span).defaultPrevented).toBe(true);
+    });
+
     it(`Should not attach a second set of listeners when tryMakeResizable runs again`, () => {
       const { emit, helper, resizeHandleRefs } = createContext();
       helper.resizable.value = true;
@@ -521,6 +541,25 @@ describe(`useGridItemResize — mutation-testing gap coverage`, () => {
       // 5px from the left edge: -12 * (1 - 5 / 40) = -10.5. Without the update the scroller
       // would still believe the pointer is at x = 0 and scroll the full -12.
       expect(scrollBy).toHaveBeenCalledWith(-10.5, 0);
+    });
+
+    it(`Should stop feeding the pointer position to the scroller once autoScroll is switched off mid-resize`, () => {
+      const { ctx, dispatch } = createContext({ autoScroll: true });
+      const scrollBy = vi.fn();
+      document.body.scrollBy = scrollBy as unknown as typeof document.body.scrollBy;
+      document.body.getBoundingClientRect = () => (
+        { bottom: 1000, height: 1000, left: 0, right: 1000, toJSON: () => ({}), top: 0, width: 1000, x: 0, y: 0 }
+      );
+      const right = { right: true };
+
+      dispatch({ edges: right, type: `resizestart` });
+      ctx.props.autoScroll = false;
+      dispatch({ clientX: 5, clientY: 500, edges: right, type: `resizemove` });
+      frameCallback!();
+
+      // Still ticking from the start, but with autoScroll off the new pointer position must not reach it: fed that position it
+      // would scroll (-10.5, 0), as in the test above.
+      expect(scrollBy).not.toHaveBeenCalledWith(-10.5, 0);
     });
   });
 

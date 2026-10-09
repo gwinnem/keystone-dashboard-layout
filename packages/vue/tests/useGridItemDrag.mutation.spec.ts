@@ -189,6 +189,24 @@ describe(`useGridItemDrag — mutation-testing gap coverage`, () => {
       // would still believe the pointer is at x = 0 and scroll the full -12.
       expect(scrollBy).toHaveBeenCalledWith(-10.5, 0);
     });
+
+    it(`Should stop feeding the pointer position to the scroller once autoScroll is switched off mid-drag`, () => {
+      const { ctx, dispatch } = createContext({ autoScroll: true });
+      const scrollBy = vi.fn();
+      document.body.scrollBy = scrollBy as unknown as typeof document.body.scrollBy;
+      document.body.getBoundingClientRect = () => (
+        { bottom: 1000, height: 1000, left: 0, right: 1000, toJSON: () => ({}), top: 0, width: 1000, x: 0, y: 0 }
+      );
+
+      dispatch({ clientX: 0, clientY: 0, type: `dragstart` });
+      ctx.props.autoScroll = false;
+      dispatch({ clientX: 5, clientY: 500, type: `dragmove` });
+      frameCallback!();
+
+      // The scroller was started while autoScroll was on and is still ticking. Fed the new position it would scroll (-10.5, 0),
+      // as in the test above; with autoScroll off it must be left believing the pointer is still where the drag started.
+      expect(scrollBy).not.toHaveBeenCalledWith(-10.5, 0);
+    });
   });
 
   describe(`which move events get reported`, () => {
