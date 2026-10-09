@@ -142,7 +142,8 @@ worst bugs, across all three framework packages.
 
 ## How releases happen
 
-Releasing is manual and has two steps.
+Releasing is manual and has two steps. The full account, with the CI check, changelog format
+and troubleshooting, is in [`docs/RELEASING.md`](./docs/RELEASING.md).
 
 1. **Version, locally.** From the repo root run `pnpm version-packages`. It
    consumes the pending changesets, bumps each affected package's version
