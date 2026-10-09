@@ -747,5 +747,109 @@ describe(`GridItemComponent — mutation-testing gap coverage`, () => {
         expect(reported.filter(event => event.eventType === `resizeend`)).toEqual([]);
       });
     });
+
+    describe(`what a gesture reports, and when`, () => {
+      type TMoved = { i: string | number; x: number; y: number };
+      type TResized = { h: number; height: number; i: string | number; w: number; width: number };
+
+      const collectMoved = (): TMoved[] => {
+        const moved: TMoved[] = [];
+        component.itemMoved.subscribe((event: TMoved) => moved.push(event));
+        return moved;
+      };
+      const collectResized = (): TResized[] => {
+        const resized: TResized[] = [];
+        component.itemResized.subscribe((event: TResized) => resized.push(event));
+        return resized;
+      };
+
+      it(`Should report a move that only changed the row`, () => {
+        // The item's rect starts at (100, 50): column 1, row 0. Straight down 220px lands on row 2 and leaves the column alone.
+        const item = mountInParent({ x: 1, y: 0 });
+        const moved = collectMoved();
+
+        dragHandlerOf(item)({ clientX: 100, clientY: 50, target: item, type: `dragstart` });
+        dragHandlerOf(item)({ clientX: 100, clientY: 270, target: item, type: `dragmove` });
+        dragHandlerOf(item)({ clientX: 100, clientY: 270, target: item, type: `dragend` });
+
+        expect(moved).toEqual([{ i: `0`, x: 1, y: 2 }]);
+      });
+
+      it(`Should report a resize once, when it ends, with the size it ended at`, () => {
+        const item = mountInParent({ h: 2, w: 2, x: 0, y: 0 });
+        const resized = collectResized();
+        const edges = { ...NO_EDGES, right: true };
+
+        resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges, target: item, type: `resizestart` });
+        resizeHandlerOf(item)({ clientX: 100, clientY: 0, edges, target: item, type: `resizemove` });
+        expect(resized).toEqual([]);
+
+        resizeHandlerOf(item)({ clientX: 100, clientY: 0, edges, target: item, type: `resizeend` });
+
+        // 192px plus the 100px dragged is 292px, which is 3 columns; the height is untouched.
+        expect(resized).toEqual([{ h: 2, height: 210, i: `0`, w: 3, width: 292 }]);
+      });
+
+      it(`Should report a resize that only changed the height`, () => {
+        const item = mountInParent({ h: 2, w: 2, x: 0, y: 0 });
+        const resized = collectResized();
+        const edges = { ...NO_EDGES, bottom: true };
+
+        resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges, target: item, type: `resizestart` });
+        resizeHandlerOf(item)({ clientX: 0, clientY: 110, edges, target: item, type: `resizemove` });
+        resizeHandlerOf(item)({ clientX: 0, clientY: 110, edges, target: item, type: `resizeend` });
+
+        // 210px plus the 110px dragged is 320px, which is 3 rows; the width is untouched.
+        expect(resized).toEqual([{ h: 3, height: 320, i: `0`, w: 2, width: 192 }]);
+      });
+
+      it(`Should follow the pointer with its pixel size while a resize is running`, () => {
+        const item = mountInParent({ h: 2, useCssTransforms: false, w: 2, x: 0, y: 0 });
+        const edges = { ...NO_EDGES, right: true };
+
+        resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges, target: item, type: `resizestart` });
+        resizeHandlerOf(item)({ clientX: 100, clientY: 0, edges, target: item, type: `resizemove` });
+
+        // Not the 192px of the two columns it still occupies in the layout, but the live 192 + 100.
+        expect((component.style as Record<string, string | undefined>)[`width`]).toBe(`292px`);
+      });
+
+      it(`Should leave x alone when a resize does not touch the left edge, even if minW pushes the item past the right edge`, () => {
+        const { reported } = attachBus();
+        // x 10 + w 2 fills the last two columns; minW 4 then widens it to a size that no longer fits there from x 10.
+        const item = mountInParent({ h: 2, minW: 4, w: 2, x: 10, y: 0 });
+        const edges = { ...NO_EDGES, bottom: true };
+
+        resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges, target: item, type: `resizestart` });
+        resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges, target: item, type: `resizemove` });
+
+        expect(reported.at(-1)).toMatchObject({ w: 4, x: 10 });
+      });
+
+      it(`Should leave y alone when a resize does not touch the top edge, even if minH pushes the item past the bottom`, () => {
+        const { reported } = attachBus();
+        const item = mountInParent({ h: 2, minH: 4, w: 2, x: 0, y: 4 });
+        // y 4 + h 2 reaches the last row; minH 4 then makes the item taller than the rows left below y 4.
+        component.resolvedMaxRows = 6;
+        const edges = { ...NO_EDGES, right: true };
+
+        resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges, target: item, type: `resizestart` });
+        resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges, target: item, type: `resizemove` });
+
+        expect(reported.at(-1)).toMatchObject({ h: 4, y: 4 });
+      });
+
+      it(`Should still work out the pixel height of a keyboard resize in a container exactly 1px wide`, () => {
+        setInputs({ ...baseGeometry, h: 2, w: 2, x: 2, y: 1 });
+        // Set after the inputs: an item cannot be styled at this width, but the keyboard path only does arithmetic.
+        component.containerWidth = 1;
+        const resized = collectResized();
+
+        privates().resizeByKeyboard(0, 1);
+
+        // The height does not depend on the column width (negative here): 100 * 3 + 2 * 10.
+        expect(resized.at(-1)?.height).toBe(320);
+      });
+    });
   });
 });

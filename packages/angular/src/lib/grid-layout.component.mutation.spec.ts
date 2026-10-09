@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import type { SimpleChanges } from '@angular/core';
 import { ECompactType } from 'keystone-dashboard-layout-core';
 import type { ICompactor, TLayout } from 'keystone-dashboard-layout-core';
+import { findCrossGridZoneAt, registerCrossGridZone } from './cross-grid-registry';
 import { GridEventBusService } from './grid-event-bus.service';
 import { GridLayoutComponent } from './grid-layout.component';
 
@@ -939,6 +940,263 @@ describe(`GridLayoutComponent — mutation-testing gap coverage`, () => {
         drag(`dragmove`, `a`, 2, 0);
         expect(component.spacingIndicatorStyles.length).toBeGreaterThan(0);
       });
+    });
+  });
+
+  describe(`a layout input that only partly differs from the rendered one`, () => {
+    const movingCompactor: ICompactor = { compact: (current: TLayout) => current.map(item => ({ ...item, y: 9 })), type: `moving` };
+    const identityCompactor: ICompactor = { compact: (current: TLayout) => current, type: `identity` };
+
+    const collectEmitted = (): TLayout[] => {
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+      return emitted;
+    };
+
+    it(`Should compact when only the row of one item differs and the rest are identical`, () => {
+      setInputs({ colNum: 12, compactor: movingCompactor, layout });
+      const emitted = collectEmitted();
+
+      changeLayoutExternally([{ ...layout[0], y: 1 }, layout[1]]);
+
+      expect(emitted.length).toBe(1);
+    });
+
+    it(`Should compact when only the height of one item differs and the rest are identical`, () => {
+      setInputs({ colNum: 12, compactor: movingCompactor, layout });
+      const emitted = collectEmitted();
+
+      changeLayoutExternally([{ ...layout[0], h: 3 }, layout[1]]);
+
+      expect(emitted.length).toBe(1);
+    });
+
+    it(`Should not emit when compacting a genuinely new layout leaves it exactly as it was`, () => {
+      setInputs({ colNum: 12, compactor: identityCompactor, layout });
+      const emitted = collectEmitted();
+
+      // The positions differ from what is rendered, so this is not an echo and does get compacted; the compactor changes nothing.
+      changeLayoutExternally(layout.map(item => ({ ...item, x: item.x + 1 })));
+
+      expect(emitted).toEqual([]);
+      expect(workingLayoutOf().map(item => item.x)).toEqual([1, 3]);
+    });
+  });
+
+  describe(`responsive measurement`, () => {
+    type TObserver = { callback: () => void };
+    let observers: TObserver[];
+    let originalObserver: typeof ResizeObserver;
+    let widthSpy: jest.SpyInstance;
+    let currentWidth: number;
+
+    beforeEach(() => {
+      observers = [];
+      currentWidth = 1300;
+      originalObserver = global.ResizeObserver;
+      global.ResizeObserver = class {
+        callback: () => void;
+        disconnect = jest.fn();
+        observe = jest.fn();
+        unobserve = jest.fn();
+        constructor(callback: () => void) {
+          this.callback = callback;
+          observers.push(this as unknown as TObserver);
+        }
+      } as unknown as typeof ResizeObserver;
+      widthSpy = jest.spyOn(HTMLElement.prototype, `offsetWidth`, `get`).mockImplementation(() => currentWidth);
+    });
+
+    afterEach(() => {
+      widthSpy.mockRestore();
+      global.ResizeObserver = originalObserver;
+    });
+
+    const resizeTo = (width: number): void => {
+      currentWidth = width;
+      observers[0].callback();
+    };
+
+    it(`Should not run the responsive pass again when the observer fires with an unchanged width`, () => {
+      setInputs({ colNum: 12, layout, responsive: true });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+
+      observers[0].callback();
+
+      expect(emitted).toEqual([]);
+    });
+
+    it(`Should only hold a stored layout for breakpoints that have actually been visited`, () => {
+      // 1300px is the `lg` breakpoint; nothing was current before it, so nothing may be stored for a breakpoint before it.
+      setInputs({ colNum: 12, layout, responsive: true });
+
+      expect(Object.keys(component.layouts)).toEqual([`lg`]);
+    });
+
+    it(`Should keep an edit made at a breakpoint when the grid moves on to another one`, () => {
+      setInputs({ colNum: 12, layout, responsive: true });
+      drag(`dragmove`, `0`, 6, 0);
+
+      // 700px is `xs`. The `lg` entry written on arrival still has item 0 at x 0; leaving has to refresh it to where the edit put it.
+      resizeTo(700);
+
+      expect(component.layouts[`lg`].find(item => item.i === `0`)?.x).toBe(6);
+    });
+  });
+
+  describe(`snapToGrid`, () => {
+    it(`Should not snap at dragstart, where the item has not been dragged anywhere yet`, () => {
+      // Item a's right edge (2) is one column from b's left edge (3): within the default threshold, so a snap would pull it to x 1.
+      const apart: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 3, y: 0 },
+      ];
+      setInputs({ colNum: 12, compactType: ECompactType.NONE, layout: apart, snapToGrid: true });
+
+      drag(`dragstart`, `a`, 0, 0);
+
+      expect(workingLayoutOf().find(item => item.i === `a`)?.x).toBe(0);
+    });
+  });
+
+  describe(`a drag onto another item`, () => {
+    it(`Should swap the two, putting the displaced item above the dragged one, not pushing it below`, () => {
+      const stacked: TLayout = [
+        { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+        { h: 2, i: `b`, w: 2, x: 0, y: 2 },
+      ];
+      // Compaction is off, so nothing tidies up afterwards and "swapped" stays distinguishable from "pushed below".
+      setInputs({ colNum: 12, compactType: ECompactType.NONE, layout: stacked });
+
+      drag(`dragmove`, `a`, 0, 2);
+
+      expect(workingLayoutOf().find(item => item.i === `a`)?.y).toBe(2);
+      expect(workingLayoutOf().find(item => item.i === `b`)?.y).toBe(0);
+    });
+  });
+
+  describe(`restoreOnDrag`, () => {
+    const pair: TLayout = [
+      { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `b`, w: 2, x: 0, y: 2 },
+    ];
+
+    it(`Should hold the dragged item where it was dropped while everything else is compacted`, () => {
+      setInputs({ colNum: 12, layout: pair, restoreOnDrag: true });
+      drag(`dragstart`, `a`, 0, 0);
+
+      drag(`dragmove`, `a`, 4, 3);
+
+      // Left to compaction, it would float back up to the row it started on (its own pre-drag position is the floor).
+      expect(workingLayoutOf().find(item => item.i === `a`)?.y).toBe(3);
+    });
+
+    it(`Should not leave the dragged item flagged static once compaction is done`, () => {
+      setInputs({ colNum: 12, layout: pair, restoreOnDrag: true });
+      drag(`dragstart`, `a`, 0, 0);
+
+      drag(`dragmove`, `a`, 4, 3);
+
+      expect(workingLayoutOf().find(item => item.i === `a`)?.isStatic).toBeUndefined();
+    });
+
+    it(`Should stop constraining compaction once restoreOnDrag is switched off during a drag`, () => {
+      const contexts: { minPositions?: unknown }[] = [];
+      const spyCompactor: ICompactor = {
+        compact: (current, _cols, context) => {
+          contexts.push(context);
+          return current;
+        },
+        type: `spy`,
+      };
+      setInputs({ colNum: 12, compactor: spyCompactor, layout: pair, restoreOnDrag: true });
+      drag(`dragstart`, `a`, 0, 0);
+
+      component.restoreOnDrag = false;
+      drag(`dragmove`, `a`, 1, 0);
+
+      expect(contexts.at(-1)?.minPositions).toBeUndefined();
+    });
+  });
+
+  describe(`dragging out of a grid and into another`, () => {
+    let deregisterTarget: (() => void) | undefined;
+
+    /** A stand-in for another grid, covering (0, 0) where every drag event in this file is reported. */
+    const registerTarget = (): jest.Mock => {
+      const acceptDrop = jest.fn();
+      deregisterTarget = registerCrossGridZone({
+        acceptDrop,
+        getRect: () => ({ bottom: 1000, left: 0, right: 1000, top: 0 }) as DOMRect,
+        isExternalDropDisabled: () => false,
+        layoutId: `target`,
+        rejectDrop: jest.fn(),
+      });
+      return acceptDrop;
+    };
+
+    const collectContexts = (): { compactType?: ECompactType }[] => [];
+
+    afterEach(() => {
+      deregisterTarget?.();
+      deregisterTarget = undefined;
+    });
+
+    it(`Should not hand an item to another grid when this grid has allowCrossGridDrag off`, () => {
+      const acceptDrop = registerTarget();
+      setInputs({ colNum: 12, layout, layoutId: `source` });
+
+      drag(`dragstart`, `0`, 0, 0);
+      drag(`dragend`, `0`, 0, 0);
+
+      expect(acceptDrop).not.toHaveBeenCalled();
+    });
+
+    it(`Should not hand an item over when allowCrossGridDrag is on but no drag of it was ever started`, () => {
+      const acceptDrop = registerTarget();
+      setInputs({ allowCrossGridDrag: true, colNum: 12, layout, layoutId: `source` });
+
+      drag(`dragend`, `0`, 0, 0);
+
+      expect(acceptDrop).not.toHaveBeenCalled();
+    });
+
+    it(`Should give the compactor the compactType when the dragged item has left for another grid`, () => {
+      registerTarget();
+      const contexts = collectContexts();
+      const spyCompactor: ICompactor = {
+        compact: (current, _cols, context) => {
+          contexts.push(context);
+          return current;
+        },
+        type: `spy`,
+      };
+      setInputs({ allowCrossGridDrag: true, colNum: 12, compactor: spyCompactor, layout, layoutId: `source` });
+      drag(`dragstart`, `0`, 0, 0);
+      contexts.splice(0);
+
+      drag(`dragend`, `0`, 0, 0);
+
+      expect(contexts.at(-1)?.compactType).toBe(ECompactType.VERTICAL);
+    });
+
+    it(`Should give the compactor the compactType when an item arrives from another grid`, () => {
+      const contexts = collectContexts();
+      const spyCompactor: ICompactor = {
+        compact: (current, _cols, context) => {
+          contexts.push(context);
+          return current;
+        },
+        type: `spy`,
+      };
+      setInputs({ allowCrossGridDrag: true, colNum: 12, compactor: spyCompactor, layout, layoutId: `receiving` });
+      contexts.splice(0);
+
+      // jsdom lays nothing out, so this grid's rect is all zeros and (0, 0) lies on it.
+      findCrossGridZoneAt(0, 0, `elsewhere`)?.acceptDrop({ h: 2, i: `arrived`, w: 2, x: 0, y: 0 }, `elsewhere`);
+
+      expect(contexts.at(-1)?.compactType).toBe(ECompactType.VERTICAL);
     });
   });
 });

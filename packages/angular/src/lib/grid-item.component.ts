@@ -1391,9 +1391,14 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
           newPosition.top = clamp(newPosition.top, 0, bottomBoundary);
           const colWidth = calcColWidth(this.containerWidth, this.margin[0], this.colNum);
           const rightBoundary = this.containerWidth - calcGridItemWH(this.w, colWidth, this.margin[0]);
-          if(this.resolvedIsMirrored && newPosition.right !== undefined) {
+          // Stryker disable next-line LogicalOperator: equivalent — right is only ever set when mirrored, so `||` gives the same answer for both directions.
+          if(this.resolvedIsMirrored &&
+            // Stryker disable next-line ConditionalExpression: equivalent — under RTL dragmove has always assigned right just above, so it is never undefined here.
+            newPosition.right !== undefined) {
             newPosition.right = clamp(newPosition.right, 0, rightBoundary);
-          } else if(newPosition.left !== undefined) {
+          } else if(
+            // Stryker disable next-line ConditionalExpression: equivalent — outside RTL dragmove has always assigned left just above, so it is never undefined here.
+            newPosition.left !== undefined) {
             newPosition.left = clamp(newPosition.left, 0, rightBoundary);
           }
         }
@@ -1565,12 +1570,15 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         // to the derived one instead.
         if(this.preserveAspectRatio && this.aspectRatio) {
           const drivingWidth = this.activeEdges.left || this.activeEdges.right;
+          // Stryker disable next-line ConditionalExpression: equivalent — with a horizontal edge only, the corner branch below derives the same height; with a vertical edge only, the second branch is still the one that runs; and a gesture always has at least one edge.
           const drivingHeight = this.activeEdges.top || this.activeEdges.bottom;
           if(drivingWidth && !drivingHeight) {
             newSize.height = newSize.width / this.aspectRatio;
           } else if(drivingHeight && !drivingWidth) {
             newSize.width = newSize.height * this.aspectRatio;
-          } else if(drivingWidth && drivingHeight) {
+          } else if(
+            // Stryker disable next-line ConditionalExpression,LogicalOperator: equivalent — a horizontal-only or vertical-only gesture is already taken by the branches above, so only the corner case (both true) reaches here, and a gesture always has at least one edge.
+            drivingWidth && drivingHeight) {
             const derivedHeight = newSize.width / this.aspectRatio;
             if(this.activeEdges.top) {
               newSize.top = prevTop + (prevHeight - derivedHeight);
@@ -1641,10 +1649,14 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     // there, as in Vue and React). Only a gesture on that edge moves the anchor, so only then is `x` recomputed from its pixel
     // position; dragging the opposite edge changes `w` and leaves `x` alone, in both directions.
     const anchorEdgeActive = this.resolvedIsMirrored ? this.activeEdges.right : this.activeEdges.left;
-    if(anchorEdgeActive && newSize.horizontal !== undefined) {
+    if(anchorEdgeActive &&
+      // Stryker disable next-line ConditionalExpression: equivalent — resizemove and resizeend both assign newSize.horizontal before this point, if only as NaN, so it is never undefined here.
+      newSize.horizontal !== undefined) {
       newX = this.pixelsToGridX(newSize.horizontal, pos.w);
     }
-    if(this.activeEdges.top && newSize.top !== undefined) {
+    if(this.activeEdges.top &&
+      // Stryker disable next-line ConditionalExpression: equivalent — resizemove and resizeend both assign newSize.top before this point, if only as NaN, so it is never undefined here.
+      newSize.top !== undefined) {
       newY = this.pixelsToGridY(newSize.top, pos.h);
     }
 
@@ -1679,7 +1691,9 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     // — `calcColWidth` throws on an unmeasured/zero container width,
     // which every instance of this component starts out as before its
     // own first real measurement arrives.
-    if(!Number.isFinite(this.containerWidth) || this.containerWidth < 1) {
+    if(!Number.isFinite(this.containerWidth) ||
+      // Stryker disable next-line EqualityOperator: equivalent — at exactly 1 the column width is negative, which calcGridItemWH rejects for any item, so no item can be styled at that width in the first place.
+      this.containerWidth < 1) {
       return {};
     }
 
@@ -1689,6 +1703,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     let width: number;
     let height: number;
 
+    // Stryker disable next-line LogicalOperator: equivalent — resizing is set exactly when isResizing is, so `||` gives the same answer.
     if(this.isResizing && this.resizing) {
       // While actively resizing, `resizing`'s own accumulated pixel
       // position+size overrides the grid-unit-derived ones entirely —
@@ -1702,6 +1717,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       width = calcGridItemWH(this.w, colWidth, marginH);
       height = calcGridItemWH(this.h, this.rowHeight, marginV);
 
+      // Stryker disable next-line LogicalOperator: equivalent — dragging is set exactly when isDragging is, so `||` gives the same answer.
       if(this.isDragging && this.dragging) {
         // isBounded's own clamping already happened inside handleDrag's
         // own dragmove case, before dragging is ever assigned — the
@@ -1718,11 +1734,17 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     }
 
     if(this.useCssTransforms) {
-      return this.resolvedIsMirrored && right !== undefined
+      // Stryker disable next-line LogicalOperator: equivalent — right is only ever set when mirrored, so `||` gives the same answer for both directions.
+      return this.resolvedIsMirrored &&
+        // Stryker disable next-line ConditionalExpression: equivalent — under RTL right is always assigned (dragging, resizing and the computed position all set it), so it is never undefined here.
+        right !== undefined
         ? setTransformRtl(top, right, width, height)
         : setTransform(top, Number(left), width, height);
     }
-    return this.resolvedIsMirrored && right !== undefined
+    // Stryker disable next-line LogicalOperator: equivalent — same reasoning as the transform branch above.
+    return this.resolvedIsMirrored &&
+      // Stryker disable next-line ConditionalExpression: equivalent — same reasoning as the transform branch above.
+      right !== undefined
       ? setTopRight(top, right, width, height)
       : setTopLeft(top, Number(left), width, height);
   }

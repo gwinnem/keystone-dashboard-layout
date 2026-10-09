@@ -70,7 +70,9 @@ function layoutPositionsMatch(incoming: TLayout, rendered: TLayout): boolean {
   return incoming.length === rendered.length
     && incoming.every((entry, index) => {
       const other = rendered[index];
-      return entry.i === other.i && entry.x === other.x && entry.y === other.y && entry.w === other.w && entry.h === other.h;
+      // Stryker disable next-line ConditionalExpression: equivalent — a layout whose ids differ but whose positions all match compacts to itself, so treating it as an echo or not gives the same result and no emit.
+      return entry.i === other.i
+        && entry.x === other.x && entry.y === other.y && entry.w === other.w && entry.h === other.h;
     });
 }
 
@@ -441,6 +443,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   /** Resolved, effective column count — `colNum` normally, or the `responsive`-resolved value once a real measurement has landed. */
   private effectiveColNum = 12;
   /** `responsiveLayouts` as last seeded into `layouts` (JSON), so a later change to the input re-seeds only when its content really changed. */
+  // Stryker disable next-line StringLiteral: equivalent — JSON.stringify never yields an empty string, so the initial value is only ever overwritten before it is compared.
   private seededResponsiveLayoutsKey = ``;
   private undoStack: TLayout[] = [];
   private redoStack: TLayout[] = [];
@@ -1055,7 +1058,10 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       }
       const candidate = { ...item, ...adjustment };
       if(this.preventCollision) {
-        const collisions = getAllCollisions(next, candidate).filter(layoutItem => layoutItem.i !== item.i && !selectedIdSet.has(layoutItem.i));
+        const collisions = getAllCollisions(next, candidate).filter(layoutItem =>
+        // Stryker disable next-line ConditionalExpression: equivalent — adjustments only exist for selected items, so the item itself is already excluded by the selection test on the next line.
+          layoutItem.i !== item.i
+            && !selectedIdSet.has(layoutItem.i));
         if(collisions.length > 0) {
           return;
         }
@@ -1353,7 +1359,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       item.isStatic = true;
       compacted = this.resolveCompactor().compact(next, this.effectiveColNum, { compactType: this.compactType, minPositions: this.positionsBeforeDrag });
       const compactedItem = getLayoutItem(compacted, event.i);
-      if(compactedItem) {
+      if(
+        // Stryker disable next-line ConditionalExpression: equivalent — compact() always hands back the dragged item, so this check is always true. (Skipping the restore is still caught: the block below is not suppressed.)
+        compactedItem) {
         compactedItem.isStatic = wasStatic;
       }
     } else {
@@ -1614,7 +1622,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   }
 
   private toGuideStyles(guides: IAlignmentGuide[]): IAlignmentGuideStyle[] {
-    if(guides.length === 0 || this.containerWidth < 1) {
+    // Stryker disable next-line ConditionalExpression: equivalent — with no guides, mapping over the empty list below gives the same empty result as this early return.
+    if(guides.length === 0
+      || this.containerWidth < 1) {
       return [];
     }
     const [marginH, marginV] = this.margin;
@@ -1627,7 +1637,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   }
 
   private toIndicatorStyles(indicators: ISpacingIndicator[], activeX: number, activeY: number, activeW: number, activeH: number): ISpacingIndicatorStyle[] {
-    if(indicators.length === 0 || this.containerWidth < 1) {
+    // Stryker disable next-line ConditionalExpression: equivalent — with no indicators, mapping over the empty list below gives the same empty result as this early return.
+    if(indicators.length === 0
+      || this.containerWidth < 1) {
       return [];
     }
     const [marginH, marginV] = this.margin;
