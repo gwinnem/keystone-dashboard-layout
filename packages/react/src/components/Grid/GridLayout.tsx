@@ -269,16 +269,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * and one was generated instead. Re-seed it whenever the prop's *content* changes. Keyed on the serialised content, not the
    * object's identity, because an inline literal (`responsiveLayouts={{ ... }}`) is a new object on every render, and
    * re-seeding on identity would wipe what the cache has accumulated (the layouts edited at each breakpoint). The first run
-   * is skipped: the ref already holds the mount-time value. Declared before the breakpoint effect below so a change to this
+   * just re-assigns the mount-time value the ref already holds (nothing has used the cache yet), so it needs no guard. Declared before the breakpoint effect below so a change to this
    * prop and a breakpoint switch in the same commit see the new cache.
    */
   const responsiveLayoutsKey = JSON.stringify(responsiveLayouts);
-  const hasSeededResponsiveLayoutsRef = useRef(false);
   useEffect(() => {
-    if(!hasSeededResponsiveLayoutsRef.current) {
-      hasSeededResponsiveLayoutsRef.current = true;
-      return;
-    }
     layoutsCacheRef.current = responsiveLayouts;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately keyed on the serialised content (see above), not the object's identity.
   }, [responsiveLayoutsKey]);

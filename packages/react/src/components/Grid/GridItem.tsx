@@ -158,7 +158,9 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     setTimeout(() => {
       suppressNextClickRef.current = false;
     }, 0);
-  }, []);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — the callback only touches a ref and a timer, so a constant dependency list behaves exactly like an empty one.
+  []);
   const reportItemDrag = context.onItemDrag;
   const reportItemResize = context.onItemResize;
   const handleDragReport = useCallback((...args: Parameters<typeof reportItemDrag>): void => {
@@ -239,6 +241,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   });
 
   useEffect(() => {
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — with autoHeight off the wrapper is not rendered, so the wrapper check below returns in exactly the same case.
     if(!resolvedAutoHeight) {
       return undefined;
     }
@@ -288,6 +291,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   const style = useMemo<CSSProperties>(() => {
     const pos = calcPosition(item.x, item.y, item.w, item.h);
 
+    // Stryker disable next-line LogicalOperator: equivalent — resizing is set exactly when isResizing is, so `||` gives the same answer.
     if(isResizing && resizing) {
       pos.top = resizing.top;
       pos.width = resizing.width;
@@ -310,6 +314,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       // direction needs. Kept as defensive guards — the same reasoning
       // as the Vue package's own identical `useGridItemResize.ts` gap
       // — rather than removed.
+      // Stryker disable ConditionalExpression: equivalent — resizing.right is defined exactly when mirrored and resizing.left exactly when not, so each pair of checks below is redundant and removing either one changes nothing. A region, because the v8 comments inside leave no room for a next-line directive; it is restored inside the condition of the branch that follows.
       if(resolvedIsMirrored) {
         /* v8 ignore next 3 -- see the comment above: resizing.right is always set by calcPosition() while isResizing is true. */
         if(resizing.right !== undefined) {
@@ -322,7 +327,10 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
           pos.left = resizing.left;
         }
       }
-    } else if(isDragging && dragging) {
+    } else if(
+      // Stryker restore ConditionalExpression
+      // Stryker disable next-line LogicalOperator: equivalent — dragging is set exactly when isDragging is, so `||` gives the same answer.
+      isDragging && dragging) {
       pos.top = dragging.top;
       // `dragging.left` always holds the value (RTL-negated or not —
       // see `useGridItemDrag.ts`'s own doc comment), regardless of
@@ -350,6 +358,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     // An explicit per-item zIndex always wins over the CSS-class-based
     // static/dragging/resizing defaults — same override rule as the
     // Vue package's own `zIndex` prop.
+    // Stryker disable next-line ConditionalExpression: equivalent — with no zIndex the spread would carry `zIndex: undefined`, which React leaves out of the rendered style, so forcing that branch changes nothing visible.
     const withZIndex = item.zIndex != null ? { ...baseStyle, zIndex: item.zIndex } : baseStyle;
     // `useBorderRadius`/`borderRadiusPx`: a plain numeric inline style,
     // not a CSS custom property (unlike `transitionDurationMs`/

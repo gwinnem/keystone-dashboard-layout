@@ -356,12 +356,15 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
         // line-for-line from Vue's own `handleResize`.
         if(preserveAspectRatio && aspectRatioRef.current) {
           const drivingWidth = edges.left || edges.right;
+          // Stryker disable next-line ConditionalExpression: equivalent — with a horizontal edge only, the corner branch below derives the same height; with a vertical edge only, the second branch is still the one that runs; and a gesture always has at least one edge.
           const drivingHeight = edges.top || edges.bottom;
           if(drivingWidth && !drivingHeight) {
             newSize.height = newSize.width / aspectRatioRef.current;
           } else if(drivingHeight && !drivingWidth) {
             newSize.width = newSize.height * aspectRatioRef.current;
-          } else if(drivingWidth && drivingHeight) {
+          } else if(
+            // Stryker disable next-line ConditionalExpression,LogicalOperator: equivalent — a horizontal-only or vertical-only gesture is already taken by the branches above, so only the corner case (both true) reaches here, and a gesture always has at least one edge.
+            drivingWidth && drivingHeight) {
             const derivedHeight = newSize.width / aspectRatioRef.current;
             if(edges.top) {
               newSize.top = prevTop + (prevHeight - derivedHeight);
