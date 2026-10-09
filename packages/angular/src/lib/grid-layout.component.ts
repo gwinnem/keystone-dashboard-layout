@@ -836,7 +836,16 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
    * comment).
    */
   compactNow(): void {
-    const beforeCompact = cloneLayout(this.workingLayout);
+    this.compactWithSnapshot(cloneLayout(this.workingLayout));
+  }
+
+  /**
+   * The body of `compactNow()`, taking the "before" snapshot as a parameter instead of capturing it itself, so a caller
+   * that has already changed the layout (`duplicateItem()` appends the copy first) can pass the state from *before* that
+   * change. Capturing inside `compactNow()` made the copy part of the "before" state, so one undo left it in place (or
+   * recorded nothing at all when compaction then moved nothing).
+   */
+  private compactWithSnapshot(beforeCompact: TLayout): void {
     const compactTypeOverride = this.compactType === ECompactType.NONE ? ECompactType.VERTICAL : this.compactType;
     // Bug fix: this used to call `this.resolveCompactor()` with no
     // argument — that method's own (then-parameterless) implementation
@@ -898,8 +907,10 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
     const { i: _unusedId, moved: _unusedMoved, ...rest } = source;
     const duplicated: ILayoutItem = { ...rest, i: newId, y: source.y + source.h };
+    // Taken before the copy is appended, so that one undo removes it again (see compactWithSnapshot).
+    const beforeDuplicate = cloneLayout(this.workingLayout);
     this.workingLayout = [...this.workingLayout, duplicated];
-    this.compactNow();
+    this.compactWithSnapshot(beforeDuplicate);
 
     return newId;
   }
@@ -1112,22 +1123,12 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
    * no-op against an already-correct layout, but is not specially
    * skipped.
    *
-   * Bug fix (dead-code removal, not a functional change): an earlier
-   * version of this method also explicitly cached `this.layouts[this.
-   * lastBreakpoint]` before switching away from it, on the theory that
-   * the outgoing breakpoint's own layout needed capturing before it was
-   * lost. Traced carefully and confirmed unreachable: `this.layouts
-   * [breakpoint] = cloneLayout(newLayout)` a few lines below already
-   * runs unconditionally for *every* breakpoint this method ever
-   * resolves to, and `lastBreakpoint` can only ever become some value X
-   * as a direct result of this same method having resolved X as
-   * `breakpoint` in an earlier call — meaning `this.layouts[X]` was
-   * already written back when X was current, before any later call ever
-   * gets a chance to switch away from it. The separate "cache before
-   * leaving" branch could therefore never actually run against a truly
-   * uncached entry. Removed rather than left in as inert insurance,
-   * since dead code that looks load-bearing is worse than no code at
-   * all for whoever reads this next.
+   * Correction to an earlier "dead-code removal" note that used to sit here: it argued that caching the outgoing
+   * breakpoint's layout before leaving it was unreachable, because `this.layouts[breakpoint]` is written on arrival. True
+   * for *existence*, but that entry is only ever written on arrival and never refreshed, so edits made while at a
+   * breakpoint were lost, and the entry was never read back either (`findOrGenerateResponsiveLayout` ignores its `layouts`
+   * argument). Returning to a breakpoint therefore regenerated it from the layout of the one just left, and a layout
+   * supplied through `responsiveLayouts` was never used. The refresh-on-leave and start-from-stored steps above fix both.
    */
   private resolveResponsiveColNum(): void {
     if(!this.responsive || this.containerWidth <= 0) {
@@ -1143,8 +1144,20 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     this.effectiveColNum = colsCompute;
     this.eventBus.setColNum(colsCompute);
 
+    const breakpointChanged = breakpoint !== this.lastBreakpoint;
+    // Leaving a breakpoint: store its layout as it stands now, so edits made there survive a trip through another one.
+    // The entry written on arrival (below) is otherwise never refreshed, so returning would regenerate from whatever
+    // layout was current in the *other* breakpoint instead of restoring this one.
+    if(this.lastBreakpoint !== null && breakpointChanged) {
+      this.layouts[this.lastBreakpoint] = cloneLayout(this.workingLayout);
+    }
+    // Entering a breakpoint that already has a stored layout (an earlier visit, or one supplied through
+    // `responsiveLayouts`): start from that, not from the layout being left. findOrGenerateResponsiveLayout never reads its
+    // `layouts` argument, so the stored entry has to be handed over as the source layout; it is still bounds-corrected and
+    // compacted for the current column count. Staying inside the same breakpoint keeps regenerating from the working layout.
+    const storedLayout = breakpointChanged ? this.layouts[breakpoint] : undefined;
     const newLayout = findOrGenerateResponsiveLayout(
-      this.workingLayout,
+      storedLayout ?? this.workingLayout,
       this.layouts,
       this.breakpoints,
       breakpoint,
@@ -1158,7 +1171,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     this.workingLayout = newLayout;
     this.layoutChange.emit(newLayout);
 
-    if(breakpoint !== this.lastBreakpoint) {
+    if(breakpointChanged) {
       this.lastBreakpoint = breakpoint;
       this.breakpointChanged.emit(breakpoint);
     }
