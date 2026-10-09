@@ -55,7 +55,9 @@ const NEGATIVE_INFINITY_SENTINEL = `\uE000-Infinity\uE000`;
 const NAN_SENTINEL = `\uE000NaN\uE000`;
 
 function cloneLayoutReplacer(key: string, value: unknown): unknown {
-  if(INFINITY_SENTINEL_KEYS.has(key) && typeof value === `number`) {
+  if(INFINITY_SENTINEL_KEYS.has(key) &&
+    // Stryker disable next-line ConditionalExpression: equivalent — for a listed key holding a non-number, none of the three checks below match (`Number.isNaN` does not coerce), so the value is returned untouched either way.
+    typeof value === `number`) {
     if(value === Infinity) {
       return INFINITY_SENTINEL;
     }
@@ -97,6 +99,7 @@ export function cloneLayoutItem(layoutItem: ILayoutItem): ILayoutItem {
 
 /** Deep-clone an entire layout array (see {@link cloneLayoutItem}) — used whenever a layout needs to be mutated without affecting the caller's original array/objects (e.g. per-breakpoint layout caching in `useResponsiveLayout`). */
 export function cloneLayout(layout: TLayout): TLayout {
+  // Stryker disable next-line ArrayDeclaration: equivalent — every index is assigned below, so a plain Array() ends up the same length.
   const newLayout = Array(layout.length);
   for(let i = 0, len = layout.length; i < len; i++) {
     newLayout[i] = cloneLayoutItem(layout[i]);
@@ -188,6 +191,7 @@ export function compactLayout(
   // We go through the items by row and column.
   const sorted = sortLayoutItemsByRowCol(layout);
   // Holding for new items.
+  // Stryker disable next-line ArrayDeclaration: equivalent — every index is assigned below, so a plain Array() ends up the same length.
   const out: TLayout = Array(layout.length);
 
   for(let i = 0, len = sorted.length; i < len; i++) {
@@ -277,6 +281,7 @@ export function compactLayoutHorizontal(
 ): TLayout {
   const compareWith = getAllStaticGridItems(layout);
   const sorted = sortLayoutItemsByColRow(layout);
+  // Stryker disable next-line ArrayDeclaration: equivalent — every index is assigned below, so a plain Array() ends up the same length.
   const out: TLayout = Array(layout.length);
 
   for(let i = 0, len = sorted.length; i < len; i++) {
@@ -304,6 +309,7 @@ export function compactLayoutHorizontal(
  * by design.
  */
 export function compactLayoutOverlapVertical(layout: TLayout): TLayout {
+  // Stryker disable next-line ArrayDeclaration: equivalent — every index is assigned below, so a plain Array() ends up the same length.
   const out: TLayout = Array(layout.length);
   for(let i = 0, len = layout.length; i < len; i++) {
     const l = layout[i];
@@ -322,6 +328,7 @@ export function compactLayoutOverlapVertical(layout: TLayout): TLayout {
  * unconditionally, with no collision checking.
  */
 export function compactLayoutOverlapHorizontal(layout: TLayout): TLayout {
+  // Stryker disable next-line ArrayDeclaration: equivalent — every index is assigned below, so a plain Array() ends up the same length.
   const out: TLayout = Array(layout.length);
   for(let i = 0, len = layout.length; i < len; i++) {
     const l = layout[i];
@@ -356,6 +363,7 @@ export function getLayoutItem(layout: TLayout, id: string | number | undefined):
       if(layout[i].i.toString().toLowerCase() === id.toString().toLowerCase()) {
         return layout[i];
       }
+    // Stryker disable next-line ConditionalExpression: equivalent — `id` is typed string | number, so once it is not a string it is always a number.
     } else if(typeof id === 'number') {
       if(layout[i].i === id) {
         return layout[i];
@@ -401,6 +409,7 @@ export function setTransform(top: number, left: number, width: number, height: n
  */
 export function setTransformRtl(top: number, right: number, width: number, height: number): ITransformStyle {
   // Replace unit less items with px
+  // Stryker disable next-line ArithmeticOperator: equivalent — `right * -1` and `right / -1` are the same number for every finite input.
   const translate = `translate3d(${right * -1}px,${top}px, 0)`;
   return {
     MozTransform: translate,

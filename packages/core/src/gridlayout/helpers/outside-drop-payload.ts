@@ -55,6 +55,7 @@ export function readOutsideDropPayload<T>(
   }
 
   const raw = dataTransfer.getData(mimeType);
+  // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — without this early return, JSON.parse('') throws and the catch below returns the same null.
   if(!raw) {
     return null;
   }

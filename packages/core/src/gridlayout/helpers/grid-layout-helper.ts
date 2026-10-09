@@ -14,6 +14,7 @@ export function getBottomYCoordinate(layout: TLayout): number {
   if(layout === undefined) {
     throw new Error(EErrorMessage.INVALID_LAYOUT);
   }
+  // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — an empty layout skips the loop below and returns the initial 0 anyway.
   if(layout.length === 0) {
     return 0;
   }
@@ -21,6 +22,7 @@ export function getBottomYCoordinate(layout: TLayout): number {
   let bottomY;
   for(let i = 0, len = layout.length; i < len; i++) {
     bottomY = layout[i].y + layout[i].h;
+    // Stryker disable next-line EqualityOperator: equivalent — on equality the assignment gives `max` the value it already has.
     if(bottomY > max) max = bottomY;
   }
   return max;

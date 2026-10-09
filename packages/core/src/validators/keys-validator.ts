@@ -12,7 +12,9 @@
 export const keysValidator = (requiredKeys: string[], propsKeys: string[]): boolean => {
   const coincidenceKeys = propsKeys.filter(k => requiredKeys.indexOf(k) >= 0);
 
-  return propsKeys.length >= requiredKeys.length && coincidenceKeys.length === requiredKeys.length;
+  // Stryker disable next-line ConditionalExpression: equivalent — the second operand already implies this one (the matches cannot outnumber the keys), so forcing it true changes nothing. Split so the mutants on the second operand stay active.
+  return propsKeys.length >= requiredKeys.length &&
+    coincidenceKeys.length === requiredKeys.length;
 };
 
 /**
@@ -23,14 +25,24 @@ export const keysValidator = (requiredKeys: string[], propsKeys: string[]): bool
  */
 const isKeyNumericAndMinValidValue = (value: Record<string, unknown>, str: string, minValue: number): boolean => {
   const result = value[str];
+  // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — `Number.isFinite` does not coerce and `===` needs matching types, so a non-number fails the check below anyway.
   if(typeof result !== 'number') {
     return false;
   }
 
-  return (Number.isFinite(result) && result > minValue) || result === minValue;
+  return result === minValue ||
+    (Number.isFinite(result) &&
+      // Stryker disable next-line EqualityOperator: equivalent — `result >= minValue` only differs at equality, which `result === minValue` above already accepts.
+      result > minValue);
 };
 
-/** Checks that a layout item object has all five required position/size keys (`i`, `h`, `w`, `x`, `y`). */
+/**
+ * Checks that a layout item object has all five required position/size keys (`i`, `h`, `w`, `x`, `y`).
+ *
+ * Redundant: `validateLayoutItemRequiredKeys` checks every one of these keys again, with a stricter rule, so a missing key is rejected
+ * there either way. Kept as a cheap early exit; deleting it would not change any result.
+ */
+// Stryker disable all: equivalent — see above. No mutation of this pre-check can change what validateLayoutItemRequiredKeys returns.
 const isLayoutCorrectSize = (layoutItem: Record<string, unknown>): boolean => {
   if(
     Object.hasOwn(layoutItem, 'i') &&
@@ -43,6 +55,7 @@ const isLayoutCorrectSize = (layoutItem: Record<string, unknown>): boolean => {
 
   return false;
 };
+// Stryker restore all
 
 /** Checks that `value[str]` is a finite number. */
 const isKeyNumeric = (value: Record<string, unknown>, str: string): boolean => {
@@ -64,7 +77,9 @@ const isValidIKeyString = (value: Record<string, unknown>): boolean => {
 const isIValid = (layoutItem: Record<string, unknown>): boolean => {
   const tmpIsNumeric = isKeyNumeric(layoutItem, 'i');
   const tmpIsString = isValidIKeyString(layoutItem);
-  if((!tmpIsNumeric && !tmpIsString) || (tmpIsNumeric && tmpIsString)) return false;
+  if((!tmpIsNumeric && !tmpIsString) ||
+    // Stryker disable next-line ConditionalExpression: equivalent — a value cannot be both a finite number and a string, so this operand is never true.
+    (tmpIsNumeric && tmpIsString)) return false;
   return true;
 };
 
@@ -77,6 +92,7 @@ const isIValid = (layoutItem: Record<string, unknown>): boolean => {
  * @returns `true` if the object satisfies every check.
  */
 export const validateLayoutItemRequiredKeys = (layoutItem: Record<string, unknown>): boolean => {
+  // Stryker disable next-line ConditionalExpression: equivalent — see isLayoutCorrectSize: the checks below reject a missing key anyway.
   if(!isLayoutCorrectSize(layoutItem)) return false;
   if(!isIValid(layoutItem)) return false;
   if(!isKeyNumericAndMinValidValue(layoutItem, 'h', 1)) return false;

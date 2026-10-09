@@ -37,6 +37,7 @@ export function computeAlignAdjustments(
   edge: TAlignEdge,
 ): Map<string | number, { x?: number; y?: number }> {
   const result = new Map<string | number, { x?: number; y?: number }>();
+  // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — with fewer than two ids, `layout.find` finds no anchor or `restIds` is empty, so the same empty map comes back without this early return.
   if(itemIds.length < 2) {
     return result;
   }

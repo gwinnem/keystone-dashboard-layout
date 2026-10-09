@@ -42,6 +42,7 @@ export function correctBounds(layout: TLayout, bounds: { cols: number }, distrib
       // Simplified to a plain `else` rather than adding a v8-ignore
       // comment for an unreachable branch that shouldn't have existed
       // as a branch at all.)
+      // Stryker disable next-line EqualityOperator: equivalent — at exactly `x + w === cols`, `cols - w` equals `x`, so the correction assigns the value it already has.
       if(l.x + l.w > bounds.cols) {
         l.x = bounds.cols - l.w;
       }
@@ -82,6 +83,7 @@ export function correctBounds(layout: TLayout, bounds: { cols: number }, distrib
        * than the item silently breaking layout with no visual escape
        * hatch at all.
        */
+      // Stryker disable next-line EqualityOperator: equivalent — at exactly `w === cols` both branches of the ternary give the same value.
       l.w = Math.max(l.w > bounds.cols ? bounds.cols : l.w, l.minW ?? 1);
     }
 

@@ -117,6 +117,7 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
   const activeTop = activeItem.y;
   const activeBottom = activeItem.y + activeItem.h;
 
+  // Stryker disable next-line MethodExpression,ConditionalExpression: equivalent — an item is never its own neighbour (each edge test below fails for a box with w, h >= 1), so leaving it in changes nothing.
   const others = layout.filter(item => item.i !== activeItem.i);
   const indicators: ISpacingIndicator[] = [];
 
@@ -130,7 +131,9 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
       bestLeft = otherRight;
     }
   });
-  if(bestLeft !== undefined && bestLeft < activeLeft) {
+  // Stryker disable next-line ConditionalExpression: equivalent — an undefined best fails the comparison on the next line anyway (`undefined < n` is false). Split so the mutants on that comparison stay active.
+  if(bestLeft !== undefined &&
+    bestLeft < activeLeft) {
     indicators.push({ axis: `x`, distance: activeLeft - bestLeft, gapEnd: activeLeft, gapStart: bestLeft });
   }
 
@@ -144,7 +147,9 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
       bestRight = otherLeft;
     }
   });
-  if(bestRight !== undefined && bestRight > activeRight) {
+  // Stryker disable next-line ConditionalExpression: equivalent — an undefined best fails the comparison on the next line anyway (`undefined > n` is false). Split so the mutants on that comparison stay active.
+  if(bestRight !== undefined &&
+    bestRight > activeRight) {
     indicators.push({ axis: `x`, distance: bestRight - activeRight, gapEnd: bestRight, gapStart: activeRight });
   }
 
@@ -158,7 +163,9 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
       bestTop = otherBottom;
     }
   });
-  if(bestTop !== undefined && bestTop < activeTop) {
+  // Stryker disable next-line ConditionalExpression: equivalent — an undefined best fails the comparison on the next line anyway (`undefined < n` is false). Split so the mutants on that comparison stay active.
+  if(bestTop !== undefined &&
+    bestTop < activeTop) {
     indicators.push({ axis: `y`, distance: activeTop - bestTop, gapEnd: activeTop, gapStart: bestTop });
   }
 
@@ -172,7 +179,9 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
       bestBottom = otherTop;
     }
   });
-  if(bestBottom !== undefined && bestBottom > activeBottom) {
+  // Stryker disable next-line ConditionalExpression: equivalent — an undefined best fails the comparison on the next line anyway (`undefined > n` is false). Split so the mutants on that comparison stay active.
+  if(bestBottom !== undefined &&
+    bestBottom > activeBottom) {
     indicators.push({ axis: `y`, distance: bestBottom - activeBottom, gapEnd: bestBottom, gapStart: activeBottom });
   }
 

@@ -51,6 +51,7 @@ export function serializeLayout(layout: TLayout): string {
  *   shape.
  */
 export function deserializeLayout(json: string | null | undefined): TLayout | null {
+  // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — without this early return, JSON.parse('') / JSON.parse(undefined) throw and the catch below returns the same null.
   if(!json) {
     return null;
   }
@@ -58,6 +59,7 @@ export function deserializeLayout(json: string | null | undefined): TLayout | nu
   let parsed: unknown;
   try {
     parsed = JSON.parse(json);
+    // Stryker disable next-line BlockStatement: equivalent — with an empty catch `parsed` stays undefined, which the Array.isArray check below turns into the same null.
   } catch{
     return null;
   }
