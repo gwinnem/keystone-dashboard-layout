@@ -6,8 +6,8 @@
 // whatever's currently on disk, not a hand-copied snapshot that can
 // drift out of sync with a real release.
 //
-// Core has no Changelog page (not in its sidebar — see astro.config.mjs's
-// own Core section), so it's deliberately excluded here.
+// Core is included too: it is published independently, has its own release history, and its own Changelog page in the sidebar.
+// It carries no pre-rename history, so it needs no seed file (see below).
 //
 // Vue carries real, hand-written pre-1.0 release history under this
 // project's earlier npm name(s) — that content predates Changesets
@@ -39,6 +39,19 @@ function extractReleaseEntries(changelogMd) {
 }
 
 const PACKAGES = {
+  core: {
+    description: 'Release history for the shared keystone-dashboard-layout-core engine.',
+    intro: `Synced directly from [\`packages/core/CHANGELOG.md\`](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/core/CHANGELOG.md)
+by this site's own build process (see \`scripts/sync-changelogs.mjs\`) —
+not hand-maintained on this page.
+
+Installing Vue, React or Angular pulls this package in as a dependency,
+so a change here can reach you without that framework package itself
+changing — its own changelog will say so under "Updated dependencies".`,
+    noReleasesYet: `There is no changelog entry yet because there has been no release yet;
+this section will list real entries automatically once one has.`,
+    seedFile: null,
+  },
   vue: {
     description: 'Release history for Keystone Dashboard Layout for Vue.',
     intro: `:::note[Package renamed — version numbers reset]
@@ -114,11 +127,10 @@ for (const [pkg, config] of Object.entries(PACKAGES)) {
     ? fs.readFileSync(path.join(seedsDir, config.seedFile), 'utf8').trim()
     : '';
 
-  const sections = [
-    '## Unreleased',
-    '',
-    entries || config.noReleasesYet,
-  ];
+  // No wrapper heading: each entry already starts with its own `## <version>` heading, and nesting them all under a
+  // "## Unreleased" heading mislabelled every released version (including dated ones) as unreleased. Changesets writes an
+  // entry only when a version is cut, so there is nothing that is still "unreleased" to show here.
+  const sections = [entries || config.noReleasesYet];
   if (seed) sections.push('', seed);
 
   const content = `---

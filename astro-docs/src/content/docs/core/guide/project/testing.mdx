@@ -1,0 +1,99 @@
+---
+title: Testing
+description: How keystone-dashboard-layout-core is tested — coverage gates, mutation testing, and what an equivalent mutant is.
+---
+
+Every bug in this package is a bug in all three framework packages at
+once, so it is tested harder than any of them. Three gates apply, each
+catching something the previous one cannot.
+
+## Unit tests
+
+[Vitest](https://vitest.dev/) with a `jsdom` environment (needed only
+by the Pointer Events engine; everything else would run fine in plain
+Node). One spec file per module, in `tests/`, named after the module it
+covers — `move-helper.spec.ts` tests `move-helper.ts`.
+
+```sh
+pnpm --filter keystone-dashboard-layout-core test
+```
+
+## Coverage gate
+
+`vitest.config.ts` enforces **90%** on lines, functions, branches and
+statements. The suite runs well above that floor; the gate exists to
+stop a regression, not to describe the current state.
+
+```sh
+pnpm --filter keystone-dashboard-layout-core test:coverage
+```
+
+Pure type declarations are excluded, since no JavaScript is emitted for
+them and there is nothing a runtime test could cover. So is `index.ts`,
+the public barrel (see [Architecture](/core/guide/project/architecture/)).
+One file in that same directory, `aria-labels.interface.ts`, is
+deliberately *not* excluded: it exports real runtime code
+(`DEFAULT_ARIA_LABELS`, `resolveAriaLabels`) alongside its types.
+
+## Mutation testing
+
+Coverage says a line ran. It does not say an assertion would have
+noticed if that line were wrong. [Stryker](https://stryker-mutator.io/)
+answers the second question: it makes small changes to the source — a
+`<` becomes `<=`, a `&&` becomes `||`, a condition is forced true — and
+re-runs the suite. A mutant that survives is a line no test actually
+checks.
+
+```sh
+pnpm --filter keystone-dashboard-layout-core test:mutation
+```
+
+This is slow (minutes, not seconds) and is not part of CI's normal run;
+the Mutation testing workflow is manual-dispatch only. To check one file
+while working on it, narrow the run:
+
+```sh
+pnpm exec stryker run --mutate src/gridlayout/helpers/move-helper.ts
+```
+
+Mutation testing is what found the most interesting bugs in this
+project, precisely because the mutants that survive point at code with
+coverage but no real assertion behind it.
+
+## Equivalent mutants
+
+Some mutants cannot be killed, because the change they make has no
+observable effect. A classic case is a tie-break: in a comparator that
+already returns `0` for equal values, flipping `===` to `!==` on a
+branch only reachable when the values are equal changes nothing any
+test could detect.
+
+These are marked with a Stryker directive naming the mutator and
+explaining *why* the mutant is equivalent:
+
+```ts
+// Stryker disable next-line EqualityOperator: equivalent — equal x/y already returned 0 above, so this branch cannot be reached with a different result.
+```
+
+Two rules about these directives, both learned the hard way:
+
+- **The comment must lead an operand or a statement.** A directive
+  placed above a line starting with `}` is silently ignored — no error,
+  no warning, the mutant simply survives. A directive sitting between
+  an operand and its own operator (`a` newline comment, then `&& b`) is
+  read as trailing `a` and is ignored for the same reason.
+- **Suppressing is a last resort.** A surviving mutant usually means a
+  missing test, not an equivalent mutant. The suppression comment has
+  to say what makes it unkillable, so a later reader can disagree.
+
+## Adding a test
+
+The bar for a change to this package is a test that would fail without
+it. That is not a formality here: the project's worst bugs were found
+by someone writing a test, and several survived for a long time because
+an existing test looked like it asserted something it did not.
+
+When you add or change a helper, the quickest check that your test
+actually earns its place is to run mutation testing against that one
+file. If mutants survive on lines your test covers, the test runs the
+code without checking the result.

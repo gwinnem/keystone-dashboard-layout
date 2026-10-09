@@ -1,0 +1,31 @@
+---
+title: Changelog
+description: Release history for the shared keystone-dashboard-layout-core engine.
+---
+
+Synced directly from [`packages/core/CHANGELOG.md`](https://github.com/gwinnem/keystone-dashboard-layout/blob/main/packages/core/CHANGELOG.md)
+by this site's own build process (see `scripts/sync-changelogs.mjs`) —
+not hand-maintained on this page.
+
+Installing Vue, React or Angular pulls this package in as a dependency,
+so a change here can reach you without that framework package itself
+changing — its own changelog will say so under "Updated dependencies".
+
+## 1.0.2
+
+### Patch Changes
+
+- e82c175: Minor bug fixing
+
+## 1.0.1 (2026-09-08)
+
+### Features
+
+* First stable release of the framework-agnostic grid-layout engine
+  shared by the Vue, React, and Angular packages: bin-packing,
+  collision detection, five built-in compaction strategies plus a
+  pluggable custom-compactor interface, responsive breakpoint
+  resolution, alignment-guide and magnetic-snap math, ARIA label
+  resolution, layout serialization/deserialization, SVG export, and a
+  native Pointer-Events-based drag/resize engine. Zero runtime
+  dependencies.
