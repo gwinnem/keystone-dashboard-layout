@@ -105,3 +105,38 @@ export function dispatchResizeEvent(
     });
   });
 }
+
+/**
+ * Dispatches ONE real `PointerEvent` on `target`, wrapped in `act()`. The native drag/resize engine's own listeners call React
+ * state setters from outside React's event system, so a bare `target.dispatchEvent(...)` makes React warn that the update was
+ * not wrapped in `act(...)`; this is the same reason `dispatchDragEvent`/`dispatchResizeEvent` above wrap their own calls.
+ * Use this (or {@link pointerGesture}) for tests that must go through the REAL pointer path, not the `__nativeDragHandler`
+ * backdoor those two helpers use.
+ */
+export function firePointerEvent(
+  target: Element,
+  type: `pointerdown` | `pointermove` | `pointerup`,
+  init: { clientX: number; clientY?: number; pointerId?: number; pointerType?: string },
+): void {
+  act(() => {
+    target.dispatchEvent(new PointerEvent(type, {
+      bubbles: true,
+      button: 0,
+      clientX: init.clientX,
+      clientY: init.clientY ?? 0,
+      pointerId: init.pointerId ?? 1,
+      ...(init.pointerType === undefined ? {} : { pointerType: init.pointerType }),
+    }));
+  });
+}
+
+/** A whole pointer gesture on `target`: `pointerdown` at x 0, then `pointermove` and `pointerup` at `toX`, each one wrapped in `act()`. */
+export function pointerGesture(
+  target: Element,
+  toX: number,
+  options: { pointerId?: number; pointerType?: string } = {},
+): void {
+  firePointerEvent(target, `pointerdown`, { clientX: 0, ...options });
+  firePointerEvent(target, `pointermove`, { clientX: toX, ...options });
+  firePointerEvent(target, `pointerup`, { clientX: toX, ...options });
+}

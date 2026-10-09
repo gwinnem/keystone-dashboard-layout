@@ -1,6 +1,6 @@
 import { createRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { ECompactType } from 'keystone-dashboard-layout-core';
 import type { TLayout } from 'keystone-dashboard-layout-core';
 import { GridLayout } from '../GridLayout';
@@ -68,7 +68,10 @@ describe(`GridLayout restoreOnDrag`, () => {
     const afterDragCall = handleChange.mock.calls.at(-1)![0] as TLayout;
     expect(afterDragCall.find(entry => entry.i === `b`)!.y).toBe(2);
 
-    ref.current!.compactNow();
+    // Wrapped in act(): compactNow() updates state from outside React's own event system.
+    act(() => {
+      ref.current!.compactNow();
+    });
 
     const afterCompactNowCall = handleChange.mock.calls.at(-1)![0] as TLayout;
     expect(afterCompactNowCall.find(entry => entry.i === `b`)!.y).toBe(0);
