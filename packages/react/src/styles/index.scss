@@ -93,6 +93,9 @@
 
 .kdl-grid-item--dragging {
   transition: none;
+  /* Safari/WebKit still only honours the prefixed form, so without it a dragged item could select the text it passes over there. */
+  /* stylelint-disable-next-line property-no-vendor-prefix */
+  -webkit-user-select: none;
   user-select: none;
   z-index: 3;
 }
@@ -294,11 +297,34 @@
   z-index: 17;
 }
 
+/*
+ * The in-grid drag/resize placeholder (`.kdl-grid-placeholder`, or the wrapper around a custom `renderPlaceholder`) — where the
+ * dragged/resized item will land. It had no rule at all, so it rendered as a static block: its inline left/top were ignored
+ * and it sat in the normal flow instead of on the grid cell it describes. `border-box` keeps the dashed border inside the
+ * computed pixel size, so the box matches the cell exactly. Above ordinary items (z-index auto), below an item that is
+ * being dragged or resized (3), and `pointer-events: none` so it never intercepts the drag itself or a cross-grid drop.
+ */
+.kdl-grid-placeholder,
+.kdl-grid-placeholder-wrapper {
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.kdl-grid-placeholder {
+  background: rgb(37 99 235 / 15%);
+  border: 2px dashed rgb(37 99 235 / 60%);
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
 /* allowOutsideDrop — the live drop-position preview, tracking the pointer while a native HTML5 drag is over the grid. */
 .kdl-grid-outside-drop-placeholder {
   background: rgb(37 99 235 / 15%);
   border: 2px dashed rgb(37 99 235 / 60%);
   border-radius: 4px;
+  /* border-box, so the dashed border sits inside the computed pixel size: without it the preview was 4px wider and taller than the cell the drop would land in. */
+  box-sizing: border-box;
   pointer-events: none;
   position: absolute;
   z-index: 4;
