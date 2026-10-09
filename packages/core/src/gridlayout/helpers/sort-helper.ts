@@ -15,7 +15,9 @@ export function sortLayoutItemsByRowCol(layout: TLayout): TLayout {
       return 0;
     }
 
-    if(itemA.y > itemB.y || (itemA.y === itemB.y && itemA.x > itemB.x)) {
+    if(itemA.y > itemB.y || (itemA.y === itemB.y &&
+      // Stryker disable next-line EqualityOperator: equivalent — equal x and y already returned 0 above, so `>` and `>=` never differ here.
+      itemA.x > itemB.x)) {
       return 1;
     }
 
@@ -43,7 +45,9 @@ export function sortLayoutItemsByColRow(layout: TLayout): TLayout {
       return 0;
     }
 
-    if(itemA.x > itemB.x || (itemA.x === itemB.x && itemA.y > itemB.y)) {
+    if(itemA.x > itemB.x || (itemA.x === itemB.x &&
+      // Stryker disable next-line EqualityOperator: equivalent — equal x and y already returned 0 above, so `>` and `>=` never differ here.
+      itemA.y > itemB.y)) {
       return 1;
     }
 

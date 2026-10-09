@@ -87,6 +87,7 @@ export function correctBounds(layout: TLayout, bounds: { cols: number }, distrib
       l.w = Math.max(l.w > bounds.cols ? bounds.cols : l.w, l.minW ?? 1);
     }
 
+    // Stryker disable next-line ConditionalExpression: equivalent — collidesWith already holds every static item (it is built from them above), so pushing one a second time changes neither `includes` nor any collision check. (Skipping the push for a non-static item is still caught: the block below is not suppressed.)
     if(!l.isStatic) {
       collidesWith.push(l);
     }

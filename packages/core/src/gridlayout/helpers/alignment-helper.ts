@@ -127,7 +127,9 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
     const otherTop = item.y;
     const otherBottom = item.y + item.h;
     const yOverlaps = otherTop < activeBottom && otherBottom > activeTop;
-    if(yOverlaps && otherRight <= activeLeft && (bestLeft === undefined || otherRight > bestLeft)) {
+    if(yOverlaps && otherRight <= activeLeft && (bestLeft === undefined ||
+      // Stryker disable next-line EqualityOperator: equivalent — on a tie the assignment below stores the very same number again.
+      otherRight > bestLeft)) {
       bestLeft = otherRight;
     }
   });
@@ -143,7 +145,9 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
     const otherTop = item.y;
     const otherBottom = item.y + item.h;
     const yOverlaps = otherTop < activeBottom && otherBottom > activeTop;
-    if(yOverlaps && otherLeft >= activeRight && (bestRight === undefined || otherLeft < bestRight)) {
+    if(yOverlaps && otherLeft >= activeRight && (bestRight === undefined ||
+      // Stryker disable next-line EqualityOperator: equivalent — on a tie the assignment below stores the very same number again.
+      otherLeft < bestRight)) {
       bestRight = otherLeft;
     }
   });
@@ -159,7 +163,9 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
     const otherLeft = item.x;
     const otherRight = item.x + item.w;
     const xOverlaps = otherLeft < activeRight && otherRight > activeLeft;
-    if(xOverlaps && otherBottom <= activeTop && (bestTop === undefined || otherBottom > bestTop)) {
+    if(xOverlaps && otherBottom <= activeTop && (bestTop === undefined ||
+      // Stryker disable next-line EqualityOperator: equivalent — on a tie the assignment below stores the very same number again.
+      otherBottom > bestTop)) {
       bestTop = otherBottom;
     }
   });
@@ -175,7 +181,9 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
     const otherLeft = item.x;
     const otherRight = item.x + item.w;
     const xOverlaps = otherLeft < activeRight && otherRight > activeLeft;
-    if(xOverlaps && otherTop >= activeBottom && (bestBottom === undefined || otherTop < bestBottom)) {
+    if(xOverlaps && otherTop >= activeBottom && (bestBottom === undefined ||
+      // Stryker disable next-line EqualityOperator: equivalent — on a tie the assignment below stores the very same number again.
+      otherTop < bestBottom)) {
       bestBottom = otherTop;
     }
   });
