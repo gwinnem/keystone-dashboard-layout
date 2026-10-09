@@ -1,5 +1,14 @@
 # keystone-dashboard-layout-vue
 
+## 1.0.1
+
+### Patch Changes
+
+- e82c175: Minor bug fixing
+- e82c175: Minor bug fixing
+- Updated dependencies [e82c175]
+  - keystone-dashboard-layout-core@1.0.2
+
 ## 1.0.0 (2026-09-08)
 
 ### Features

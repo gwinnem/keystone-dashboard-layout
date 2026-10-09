@@ -1,6 +1,6 @@
 {
   "name": "keystone-dashboard-layout-react",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "React port of the responsive & dynamic grid / dashboard layout with drag, drop and resizable actions.",
   "author": "Geirr Winnem <geirr@winnem.tech>",

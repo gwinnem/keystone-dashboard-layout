@@ -1,5 +1,11 @@
 # keystone-dashboard-layout-core
 
+## 1.0.2
+
+### Patch Changes
+
+- e82c175: Minor bug fixing
+
 ## 1.0.1 (2026-09-08)
 
 ### Features
