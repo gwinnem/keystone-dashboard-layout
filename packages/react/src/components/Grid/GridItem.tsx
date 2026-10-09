@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, KeyboardEvent, MouseEvent } from 'react';
 import { resolveAriaLabels, setTopLeft, setTopRight, setTransform, setTransformRtl } from 'keystone-dashboard-layout-core';
 import type { ITopLeftStyle, ITopRightStyle, ITransformStyle } from 'keystone-dashboard-layout-core';
@@ -87,7 +87,9 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   const resolvedEnableEditMode = item.enableEditMode ?? context.enableEditMode;
   const resolvedDraggable = (item.isDraggable ?? context.isDraggable) && resolvedEnableEditMode && !isStatic;
   const resolvedResizable = (item.isResizable ?? context.isResizable) && resolvedEnableEditMode && !isStatic;
-  const resolvedShowCloseButton = (item.showCloseButton ?? context.showCloseButton) && resolvedEnableEditMode;
+  // A static item never shows a close button, whatever is configured (the Vue package's own rule, and the same reason it
+  // has no role, tab stop or handles): there is nothing to operate on a static item.
+  const resolvedShowCloseButton = (item.showCloseButton ?? context.showCloseButton) && resolvedEnableEditMode && !isStatic;
   const resolvedAutoScroll = item.autoScroll ?? context.autoScroll;
   const resolvedPreserveAspectRatio = item.preserveAspectRatio ?? context.preserveAspectRatio;
   const resolvedIsBounded = item.isBounded ?? context.isBounded;
@@ -137,6 +139,41 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   // incorrectly fall through to the grid-wide default instead.
   const resolvedResizeHandleEdges = item.resizeHandles ?? context.resizeHandles;
 
+  /**
+   * Suppresses the trailing `click` a browser dispatches when a drag or resize ends. The native engine captures the pointer
+   * on this item (`setPointerCapture`), so the `click` that follows `pointerup` is delivered to it however far the pointer
+   * travelled in between. With `multiSelect` on, `handleClick` below treats that as a plain click, which selects *only this
+   * item* — so every drag of a selected item used to collapse the selection to just that item once it ended.
+   *
+   * Armed synchronously inside the engine's own `dragend`/`resizeend` callback, not from an effect watching `isDragging`/
+   * `isResizing` (which is how the Vue package does it): the browser dispatches `pointerup`, `mouseup` and `click` back to
+   * back in one task, and React renders an update made from a native listener in a *later* task, so an effect would arm the
+   * flag after the click had already gone by. The flag clears on the next task (`setTimeout(0)`), by which point the
+   * trailing click is long gone, so a genuine click straight afterwards is not swallowed. A pointer that never moved far
+   * enough to start a drag produces no `dragend`, so a plain click is never suppressed.
+   */
+  const suppressNextClickRef = useRef(false);
+  const armClickSuppression = useCallback((): void => {
+    suppressNextClickRef.current = true;
+    setTimeout(() => {
+      suppressNextClickRef.current = false;
+    }, 0);
+  }, []);
+  const reportItemDrag = context.onItemDrag;
+  const reportItemResize = context.onItemResize;
+  const handleDragReport = useCallback((...args: Parameters<typeof reportItemDrag>): void => {
+    if(args[1] === `dragend`) {
+      armClickSuppression();
+    }
+    reportItemDrag(...args);
+  }, [reportItemDrag, armClickSuppression]);
+  const handleResizeReport = useCallback((...args: Parameters<typeof reportItemResize>): void => {
+    if(args[1] === `resizeend`) {
+      armClickSuppression();
+    }
+    reportItemResize(...args);
+  }, [reportItemResize, armClickSuppression]);
+
   const { dragging, isDragging } = useGridItemDrag(rootRef, {
     activationDistance: resolvedDragActivationDistance,
     allowFrom: resolvedDragAllowFrom,
@@ -153,7 +190,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     isMirrored: resolvedIsMirrored,
     margin: context.margin,
     maxRows: context.maxRows,
-    onDrag: context.onItemDrag,
+    onDrag: handleDragReport,
     onItemMoved,
     rowHeight: context.rowHeight,
     transformScale: context.transformScale,
@@ -192,7 +229,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     maxW,
     minH,
     minW,
-    onResize: context.onItemResize,
+    onResize: handleResizeReport,
     onItemResized,
     preserveAspectRatio: resolvedPreserveAspectRatio,
     resizeHandles: resolvedResizeHandleEdges,
@@ -382,6 +419,10 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       return;
     }
     event.stopPropagation();
+    // The click that trails a drag/resize is not a selection click (see suppressNextClickRef above).
+    if(suppressNextClickRef.current) {
+      return;
+    }
     context.onItemClick(i, { ctrlKey: event.ctrlKey, metaKey: event.metaKey, shiftKey: event.shiftKey });
   };
 
@@ -420,6 +461,10 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       }
       context.onItemResize(i, `resizestart`, item.x, item.y, item.w, item.h);
       context.onItemResize(i, `resizeend`, item.x, item.y, w, h);
+      // The per-item callback is otherwise only fired by the resize hook at the end of a pointer gesture, so a keyboard
+      // resize never reached it. Reports the same payload (grid units and pixels), like the Vue package's own `resized`.
+      const resizedPx = calcPosition(item.x, item.y, w, h);
+      onItemResized?.({ h, height: Number(resizedPx.height), i, w, width: Number(resizedPx.width) });
     } else {
       if(!resolvedDraggable) {
         return;
@@ -432,6 +477,8 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       }
       context.onItemDrag(i, `dragstart`, item.x, item.y, item.w, item.h);
       context.onItemDrag(i, `dragend`, x, y, item.w, item.h);
+      // Same gap as the resize branch above: `onItemMoved` was only fired by the drag hook, never for a keyboard move.
+      onItemMoved?.({ i, x, y });
     }
   };
 

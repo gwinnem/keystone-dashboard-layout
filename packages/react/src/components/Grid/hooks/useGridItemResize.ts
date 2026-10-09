@@ -126,6 +126,12 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
   const resizingRef = useRef<IGridItemPosition | undefined>(undefined);
   const edgesRef = useRef<IInteractEdges>({ bottom: false, left: false, right: false, top: false });
   const aspectRatioRef = useRef<number | undefined>(undefined);
+  /**
+   * The grid size (`w`/`h`) the item had when the resize started, captured at `resizestart`. Lets `onItemResized` stay silent
+   * for a resize that ends at the size it began with, including the resizestart/resizeend pair a plain click on a handle
+   * produces, as the Vue package's `resized` does. Compared on size only: a resize cannot change position without changing size.
+   */
+  const startSizeRef = useRef<{ h: number; w: number } | undefined>(undefined);
   const lastW = useRef(NaN);
   const lastH = useRef(NaN);
 
@@ -274,6 +280,7 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
         setIsResizing(true);
         edgesRef.current = event.edges;
         aspectRatioRef.current = pos.height > 0 ? pos.width / pos.height : undefined;
+        startSizeRef.current = { h, w };
         lastW.current = x;
         lastH.current = y;
         if(autoScroll) {
@@ -413,7 +420,11 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     lastH.current = y;
 
     if(event.type === `resizeend`) {
-      onItemResized?.({ h: pos.h, height: newSize.height, i, w: pos.w, width: newSize.width });
+      const start = startSizeRef.current;
+      startSizeRef.current = undefined;
+      if(!start || start.w !== pos.w || start.h !== pos.h) {
+        onItemResized?.({ h: pos.h, height: newSize.height, i, w: pos.w, width: newSize.width });
+      }
     }
 
     onResize(i, event.type, newX, newY, pos.w, pos.h);
@@ -431,6 +442,12 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
   // GridItemComponent (`lastResolvedResizeHandlesKey`), for the
   // identical underlying bug.
   const resolvedResizeHandlesKey = options.resizeHandles.join(`,`);
+  // `enabled` is read live through `optionsRef` by the engine itself, so it is not used inside the wiring effect below —
+  // but it decides whether GridItem renders any hint spans at all (`resolvedResizable && ...map`). A non-resizable item
+  // has no spans, so the effect finds nothing to attach to and returns early; when the item later becomes resizable the
+  // spans appear while `resolvedResizeHandlesKey` is unchanged, so without `enabled` as a dependency the effect never
+  // re-ran and the newly drawn handles stayed inert. See the effect's own doc comment below.
+  const { enabled } = options;
 
   useEffect(() => {
     const root = rootRef.current;
@@ -483,7 +500,14 @@ export function useGridItemResize(rootRef: RefObject<HTMLDivElement | null>, opt
     // changes, not just at mount. Confirmed as a real, reachable bug
     // via a live e2e run enabling a previously-disabled handle and
     // dragging it — not a hypothetical found by inspection alone.
-  }, [handleResize, handleRefs, rootRef, resolvedResizeHandlesKey]);
+    // A second, separate gap of the same shape, confirmed via a live e2e run (the cascade spec's "grid false, item true"
+    // and "isStatic turned off again" tests): an item that is NOT resizable at mount (grid `isResizable: false`, or
+    // `isStatic`) renders no hint spans at all, so the first run of this effect finds no handles and returns early. Making
+    // it resizable later renders the spans, but neither `handleResize`, `handleRefs`, `rootRef` nor the handle set's key
+    // has changed, so the effect never re-ran and the handles were drawn but inert. `enabled` (the resolved
+    // `resolvedResizable`) is what flips in that case, so it is a dependency too. Same bug, and same fix, as the Vue
+    // package's `tryMakeResizable()` not being re-run after `resizable`/`isStatic` toggled.
+  }, [handleResize, handleRefs, rootRef, resolvedResizeHandlesKey, enabled]);
 
   return { autoSize, calcPosition, handleRefs, isResizing, resizing };
 }

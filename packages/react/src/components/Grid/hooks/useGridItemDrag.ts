@@ -110,6 +110,12 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
   const [dragging, setDragging] = useState<IGridItemPosition | undefined>(undefined);
 
   const draggingRef = useRef<IGridItemPosition | undefined>(undefined);
+  /**
+   * The grid cell the item occupied when the drag started, captured at `dragstart`. By `dragend` the layout already holds the
+   * live position (every tick commits it), so the item's own `innerX`/`innerY` can no longer say where it began; this is what
+   * lets `onItemMoved` stay silent for a drag that ends in the cell it started in, as the Vue package's `item-moved` does.
+   */
+  const startCellRef = useRef<{ x: number; y: number } | undefined>(undefined);
   const lastX = useRef(NaN);
   const lastY = useRef(NaN);
 
@@ -160,6 +166,7 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
         }
         newPosition.top = clientRect.top - parentRect.top;
         draggingRef.current = newPosition as IGridItemPosition;
+        startCellRef.current = { x: optionsRef.current.innerX, y: optionsRef.current.innerY };
         setDragging(draggingRef.current);
         setIsDragging(true);
         if(autoScroll) {
@@ -225,7 +232,13 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     lastY.current = y;
 
     if(event.type === `dragend`) {
-      onItemMoved?.({ i, x: pos.x, y: pos.y });
+      const start = startCellRef.current;
+      startCellRef.current = undefined;
+      // Only a drag that actually changed the cell is a move: one that ends where it began (a click with a little jitter, or
+      // a drag put back) reports nothing.
+      if(!start || start.x !== pos.x || start.y !== pos.y) {
+        onItemMoved?.({ i, x: pos.x, y: pos.y });
+      }
     }
 
     onDrag(i, event.type, pos.x, pos.y, w, h, event.clientX, event.clientY);
