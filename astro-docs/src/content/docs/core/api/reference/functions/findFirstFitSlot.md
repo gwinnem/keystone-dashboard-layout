@@ -63,12 +63,12 @@ Height, in grid units, of the item being placed.
 
 `object`
 
-The first `(x, y)` slot the item fits in. If every
-               row already in use is completely full, returns
-               `{ x: 0, y: maxY }` — one fresh row past everything
-               currently occupied, the correct behavior once there
-               genuinely is no gap anywhere, not a fallback masking
-               a bug.
+The first `(x, y)` slot the item fits in. Row `maxY` (one past
+               everything occupied) is always empty, so an item no wider than
+               `colNum` always finds a slot there at the latest. The
+               `{ x: 0, y: maxY }` fallback is therefore only reached for an
+               item WIDER than the grid (`w > colNum`), which can fit in no
+               column at all: it is placed on a fresh row at the left edge.
 
 ### x
 
