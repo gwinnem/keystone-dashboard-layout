@@ -27,6 +27,7 @@
     "audit:all": "pnpm audit --audit-level=high",
     "check:licenses": "node scripts/check-licenses.mjs",
     "check:security": "pnpm run audit:prod && pnpm run check:licenses",
+    "check:changeset": "node scripts/check-changeset.mjs",
     "format": "prettier --write \"packages/**/src/**/*\"",
     "commit": "cz",
     "prepare": "husky",

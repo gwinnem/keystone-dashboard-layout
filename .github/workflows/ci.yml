@@ -272,3 +272,27 @@ jobs:
         # each package under packages/ on its own, because the root package.json has no production dependencies, so a scan
         # from the root would look at nothing and always pass.
         run: pnpm run check:licenses
+
+  changeset:
+    name: Changeset recorded
+    # Pull requests only: a push to main has no base branch to compare against. See scripts/check-changeset.mjs for the rule (source
+    # changed under packages/*/src, tests excluded, needs a changeset naming that package; an empty changeset opts out).
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so the merge base with the base branch can be found.
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION_DEFAULT }}
+
+      - name: Check that changed packages have a changeset
+        # The script needs only git and Node, so no pnpm install.
+        run: node scripts/check-changeset.mjs
+        env:
+          BASE_REF: origin/${{ github.base_ref }}

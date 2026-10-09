@@ -119,6 +119,15 @@ is applied once. For a change spanning several packages, or to see what is
 pending, use the stock CLI from the repo root: `pnpm changeset` /
 `pnpm changeset status`.
 
+CI enforces this on pull requests (the `Changeset recorded` job). It fails
+when a package's source under `packages/<name>/src/` changed, test files
+excluded, and no changeset added by the PR names that package. A package
+whose `CHANGELOG.md` the PR already changed counts as versioned, since
+`pnpm version-packages` consumes the changeset files. If the change
+needs no release (a refactor, say), add an empty changeset from the repo root
+instead: `pnpm changeset --empty`. To run the same check locally against
+`main`: `pnpm check:changeset`.
+
 ## Tests are not optional
 
 Vue's own codebase has a specific, documented history of bugs that
