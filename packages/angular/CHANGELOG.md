@@ -1,15 +1,4 @@
-# Changelog
-
-All notable changes to this project are documented in this file. Format is
-loosely based on [Keep a Changelog](https://keepachangelog.com/); dates are
-`YYYY-MM-DD`.
-
-Entries from `[Unreleased]` onward are generated automatically by
-[semantic-release](https://semantic-release.gitbook.io/) from conventional
-commit messages on every merge to `main` — see
-`.github/workflows/release.yml`. Scoped to commits touching this package's
-own path via `semantic-release-monorepo` — see `.releaserc.json`'s own
-`extends` entry.
+# keystone-dashboard-layout-angular
 
 ## 1.0.0 (2026-09-08)
 

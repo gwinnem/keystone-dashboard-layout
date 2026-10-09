@@ -17,6 +17,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    # Weekly, so a newly published advisory against a dependency that has not changed still surfaces: the audit job below is the
+    # only job whose result can change without a code change. Only that job runs on a schedule (see the `if` on verify and e2e).
+    - cron: '0 6 * * 1'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -36,6 +40,7 @@ env:
 jobs:
   verify:
     name: Verify (Node ${{ matrix.node }})
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -161,6 +166,7 @@ jobs:
 
   e2e:
     name: End-to-end tests
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -247,19 +253,22 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Audit production dependencies (blocking)
-        run: pnpm audit --prod --audit-level=high
+        # What a consumer of a published package actually installs (tslib for Angular, plus the workspace-internal core), so this
+        # rarely has anything to say; the advisory step below is where dev-tooling findings show up. `audit:prod` is the root
+        # script of the same name, so a local `pnpm run audit:prod` runs exactly this.
+        run: pnpm run audit:prod
 
       - name: Audit all dependencies (advisory)
         # Broader dev-dependency audit than the production-only gate
         # above — kept advisory rather than blocking, since a dev-only
         # transitive advisory shouldn't fail CI the way a production one
         # should; doesn't affect published consumers either way.
-        run: pnpm audit --audit-level=high
+        run: pnpm run audit:all
         continue-on-error: true
 
       - name: Check production dependency licenses (blocking)
-        # Fails if any production (or transitive) dependency is under a
-        # license outside the allowlist — mainly catches copyleft licenses,
-        # which would impose obligations on every consumer of a published
-        # package.
+        # Fails if any production dependency of a published package is under a license outside the allowlist in
+        # scripts/check-licenses.mjs: mainly catches copyleft licenses, which would impose obligations on every consumer. Scans
+        # each package under packages/ on its own, because the root package.json has no production dependencies, so a scan
+        # from the root would look at nothing and always pass.
         run: pnpm run check:licenses

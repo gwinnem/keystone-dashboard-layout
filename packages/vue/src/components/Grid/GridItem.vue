@@ -835,7 +835,7 @@
   // Turning any of those off destroys the spans the native engine was attached to, and turning it back on renders
   // NEW ones. `tryMakeResizable()` alone then no-ops (it never re-attaches once `nativeResizable` is set), leaving the
   // item showing handles that nothing listens to. So, as for `resizeHandles` below, tear down and re-attach.
-  watch([resizable, () => props.isStatic, editModeEnabled], () => {
+  watch([resizable, (): boolean | null => props.isStatic, editModeEnabled], () => {
     teardownResizable();
     tryMakeResizable();
   }, { flush: `post` });

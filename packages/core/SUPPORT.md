@@ -25,9 +25,9 @@ biggest thing that speeds up a fix.
 ## Versioning and maintenance model
 
 This package follows [semantic versioning](https://semver.org/).
-Released via [semantic-release](https://semantic-release.gitbook.io/)
-from conventional commits — every published version corresponds to a
-real, tagged commit in the
+Released with [Changesets](https://github.com/changesets/changesets):
+each version and its changelog entry are recorded when the change is made,
+and every published version has a git tag in the
 [repository](https://github.com/gwinnem/keystone-dashboard-layout).
 
 **Maintenance is currently a single-maintainer effort** ([Geirr

@@ -64,7 +64,8 @@
     "lint:fix": "eslint --fix --color",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:mutation": "stryker run"
+    "test:mutation": "stryker run",
+    "changeset": "node ../../scripts/changeset.mjs"
   },
   "devDependencies": {
     "@stryker-mutator/core": "^9.6.1",

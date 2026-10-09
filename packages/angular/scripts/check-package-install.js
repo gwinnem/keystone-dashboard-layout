@@ -21,8 +21,8 @@
  * version of this script packed from that nested `ng-packagr` output
  * directory instead, which was a real, confirmed mismatch with how this
  * package is actually released: the real release pipeline
- * (`@anolilab/semantic-release-pnpm`, invoked from this exact directory
- * per `.github/workflows/release.yml`) packs and publishes from here,
+ * (`changeset publish`, which runs `pnpm publish` from each package's own
+ * directory per `.github/workflows/release.yml`) packs and publishes from here,
  * using this file's own `package.json` — whose `files` array already
  * declares `dist/keystone-dashboard-layout-angular/*` as what gets
  * included, `main`/`types` pointing at paths inside it. Packing from

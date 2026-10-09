@@ -918,7 +918,7 @@
     }
     try {
       return { failed: false, value: JSON.parse(raw) as T };
-    } catch {
+    } catch{
       return { failed: true, value: undefined };
     }
   };
@@ -1145,7 +1145,7 @@
     let patch: Record<string, unknown>;
     try {
       patch = JSON.parse(layoutPatch.value) as Record<string, unknown>;
-    } catch {
+    } catch{
       return;
     }
     layout.value = layout.value.map(entry => (String(entry.i) === itemTarget.value ? { ...entry, ...patch } : entry));

@@ -42,6 +42,17 @@ pnpm test                                                 # turbo run test
 pnpm typecheck                                            # turbo run typecheck
 ```
 
+### Pre-commit hook
+
+`pnpm install` also installs a [Husky](https://typicode.github.io/husky) pre-commit hook (through the root `prepare`
+script). It runs `typecheck` and `lint` through Turborepo for every package your changes touch **and for the packages
+that depend on it**, so a change in `core` also checks Vue, React and Angular. Turborepo caches both tasks, so packages
+whose files have not changed since the last green run cost nothing; the first commit after a fresh install is slower, as
+`typecheck` builds `core` first.
+
+A type error or a lint *error* blocks the commit locally; lint *warnings* do not. (CI still treats lint as advisory, see
+below.) To skip the hook once, use `git commit --no-verify`.
+
 ## Before opening a PR
 
 Run the same checks CI runs:
@@ -50,6 +61,7 @@ Run the same checks CI runs:
 pnpm typecheck
 pnpm lint:style          # must be clean on packages that define it — a hard gate
 pnpm lint                # advisory for now; see the note below
+pnpm check:security      # production audit + license check (the CI "Dependency audit" job); `pnpm audit:all` adds dev tooling, advisory
 pnpm test:coverage       # must stay at or above each package's own configured floor
 pnpm build
 ```
@@ -77,16 +89,35 @@ enforced informally via [Commitizen](https://commitizen-tools.github.io/commitiz
 pnpm commit
 ```
 
-walks you through generating a properly-formatted commit message. This
-matters beyond style — each package's own `semantic-release` config
-(scoped to that package's own path via `semantic-release-monorepo`; see
-`packages/*/.releaserc.json` and `.github/workflows/release.yml`) parses
-commit messages to decide *that package's own* next version number and
-generate its own `CHANGELOG.md` automatically on every merge to `main`.
-A `fix:` commit triggers a patch release, `feat:` a minor release, and
-`feat!:`/a `BREAKING CHANGE:` footer a major release, for whichever
-package(s) the commit's own changed files fall under — get the type
-wrong and you'll get the wrong kind of release for that package.
+walks you through generating a properly-formatted commit message. This is
+for a readable history only: commit messages no longer decide versions or
+changelogs. Those come from changesets, below.
+
+## Recording a change (changesets)
+
+Each package is versioned independently, and every change that should
+reach consumers needs a changeset. From the package directory:
+
+```sh
+pnpm changeset
+```
+
+It shows the package's current version, asks which version it is being
+updated to (patch, minor or major, each shown with the version it
+produces) and for a one-line summary, then writes a small file to
+`.changeset/`. Commit that file together with the change. The summary
+becomes the changelog line, so write it for someone upgrading, not for a
+reviewer. Work that changes nothing for consumers (tests, tooling, docs)
+does not need one.
+
+- **patch**: a bug fix, nothing changes for consumers
+- **minor**: a new backwards-compatible feature
+- **major**: a breaking change
+
+If several changesets are pending for one package, the highest bump wins and
+is applied once. For a change spanning several packages, or to see what is
+pending, use the stock CLI from the repo root: `pnpm changeset` /
+`pnpm changeset status`.
 
 ## Tests are not optional
 
@@ -102,16 +133,18 @@ worst bugs, across all three framework packages.
 
 ## How releases happen
 
-Nothing manual: merging to `main` triggers
-`.github/workflows/release.yml`, which runs `semantic-release`
-separately for each of Vue, React, and Angular (in that order, chained
-rather than parallel, to avoid a `git push` race between the three) —
-each determines its own version bump from commit messages touching its
-own package path since its own last release, updates its own
-`CHANGELOG.md`, publishes to npm, and creates a GitHub release. See that
-workflow file's own top comment for the full account, including what
-still requires a maintainer's one-time setup (an `NPM_TOKEN` secret,
-branch protection).
+Releasing is manual and has two steps.
+
+1. **Version, locally.** From the repo root run `pnpm version-packages`. It
+   consumes the pending changesets, bumps each affected package's version
+   and writes its `CHANGELOG.md`. Commit the result and push it to `main`.
+2. **Publish, in CI.** Run the `Release` workflow from the Actions tab (or
+   `gh workflow run release.yml`). It refuses to run while unconsumed
+   changesets remain, runs typecheck, tests and build, then publishes every
+   package whose version is not on npm yet (`core` first) and pushes the git
+   tags. Re-running after a partial failure is safe: versions already on npm
+   are skipped. See that workflow file's own top comment for what still needs
+   a maintainer's one-time setup (an `NPM_TOKEN` secret).
 
 ### Generating a package tarball locally
 

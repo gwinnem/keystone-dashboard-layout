@@ -52,7 +52,7 @@ Each package under `packages/*` is self-contained: its own `package.json`,
 `tsconfig.json` (extends the root `tsconfig.base.json`), and — where
 applicable — its own `eslint.config.js`, `vite.config.js`, test config, etc.
 Shared tooling (TypeScript, ESLint core, Prettier, Stylelint, Turborepo,
-semantic-release) lives in the **root** `package.json`'s `devDependencies`
+Changesets) lives in the **root** `package.json`'s `devDependencies`
 and is available to every package automatically (pnpm/Node resolve it via
 the workspace root — no need to duplicate it per package).
 
@@ -159,14 +159,16 @@ TypeScript via `typescript.tsdk` in `.vscode/settings.json`.
 
 ## 6. Git and commits
 
-- **Pre-commit hook**: `.husky/pre-commit` runs `npx lint-staged` (see the
-  root `package.json`'s `lint-staged` field) — this runs ESLint/Stylelint/
-  Prettier on staged files before every commit. If a commit seems to hang
-  or fail unexpectedly, this is usually why — check the terminal output.
-- **Commit messages**: this repo uses Conventional Commits (feeding
-  semantic-release for `packages/vue`'s automated releases). Run
-  `pnpm commit` from the root to get a guided commit message prompt
-  (Commitizen) instead of writing one by hand.
+- **Pre-commit hook**: `.husky/pre-commit` runs `typecheck` and `lint`
+  through Turborepo for every package your changes touch and for the
+  packages that depend on it. A type error or a lint error blocks the
+  commit; if a commit fails unexpectedly, this is usually why — check the
+  terminal output. Skip it once with `git commit --no-verify`.
+- **Commit messages**: this repo uses Conventional Commits for a readable
+  history. Run `pnpm commit` from the root to get a guided commit message
+  prompt (Commitizen) instead of writing one by hand. Versions and
+  changelogs do not come from commit messages: record a change with
+  `pnpm changeset` from the package directory (see `CONTRIBUTING.md`).
 - **Don't `cd` into a package and run `git` commands** expecting a separate
   repo — this is a single Git repository rooted at the top level; all
   packages share one `.git` folder and one commit history.
