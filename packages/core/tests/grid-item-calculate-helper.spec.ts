@@ -54,6 +54,11 @@ describe(`calcGridItemWH tests`, () => {
   it(`Should throw an error when marginPx is negative`, () => {
     expect(() => calcGridItemWH(1, 1, -1)).toThrowError(new Error(EErrorMessage.INVALID_MARGIN));
   });
+
+  it(`Should return Infinity unchanged for an infinite unit count, even with a zero margin`, () => {
+    // Without the early return the sum is Infinity + (Infinity * 0): the zero margin makes the second term NaN, and so the whole result.
+    expect(calcGridItemWH(Infinity, 100, 0)).toBe(Infinity);
+  });
 });
 
 describe(`calcColWidth`, () => {

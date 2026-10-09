@@ -195,6 +195,42 @@ describe(`computeAlignAdjustments`, () => {
     expect(result.has(`ghost`)).toBe(false);
     expect(result.get(`real`)).toStrictEqual({ x: 5 });
   });
+
+  // In the switch, each case's `break` sits inside its own braces, so a case whose body is lost falls through into the NEXT one (left into
+  // right, top into bottom). With equal widths/heights both give the same number, which is why the left/top tests above could not tell.
+  // These use unequal sizes so left and right (and top and bottom) land on different cells.
+  it(`Should align left to the anchor's x, not right-align, when the item is a different width`, () => {
+    // left: x 5. A right-align would give 5 + 4 - 2 = 7.
+    const layout = [
+      { h: 2, i: `anchor`, w: 4, x: 5, y: 0 },
+      { h: 2, i: `other`, w: 2, x: 0, y: 4 },
+    ];
+
+    expect(computeAlignAdjustments(layout, [`anchor`, `other`], `left`).get(`other`)).toStrictEqual({ x: 5 });
+  });
+
+  it(`Should align top to the anchor's y, not bottom-align, when the item is a different height`, () => {
+    // top: y 5. A bottom-align would give 5 + 4 - 2 = 7.
+    const layout = [
+      { h: 4, i: `anchor`, w: 2, x: 0, y: 5 },
+      { h: 2, i: `other`, w: 2, x: 4, y: 0 },
+    ];
+
+    expect(computeAlignAdjustments(layout, [`anchor`, `other`], `top`).get(`other`)).toStrictEqual({ y: 5 });
+  });
+
+  it(`Should take the anchor from the first id given, not the first item in the layout`, () => {
+    // `b` is the anchor even though `a` comes first in the layout, so `a` moves to b's x.
+    const layout = [
+      { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `b`, w: 2, x: 5, y: 4 },
+    ];
+
+    const result = computeAlignAdjustments(layout, [`b`, `a`], `left`);
+
+    expect(result.get(`a`)).toStrictEqual({ x: 5 });
+    expect(result.has(`b`)).toBe(false);
+  });
 });
 
 describe(`computeDistributeAdjustments`, () => {
@@ -301,5 +337,51 @@ describe(`computeDistributeAdjustments`, () => {
     ];
 
     expect(() => computeDistributeAdjustments(layout, [`first`, `middle`, `last`], `horizontal`)).not.toThrow();
+  });
+
+  // Every test above keeps w equal to h, puts the first item at 0 and passes ids already in order, so a swapped size key, a dropped sort or
+  // a wrong span formula all produce the same numbers. These use unequal sizes, a first item away from 0, and ids out of order.
+  it(`Should space along x using widths (not heights), measuring the span from the first item's own x`, () => {
+    // sorted by x: a (1..3), b (4..6), c (11..15). span = (11 + 4) - 1 = 14; widths total 2 + 2 + 4 = 8; gap = (14 - 8) / 2 = 3.
+    // b = round(3 + 3) = 6. Using heights (1 + 9 + 1), or adding first.x into the span instead of subtracting it, gives other values.
+    const layout = [
+      { h: 1, i: `a`, w: 2, x: 1, y: 0 },
+      { h: 9, i: `b`, w: 2, x: 4, y: 0 },
+      { h: 1, i: `c`, w: 4, x: 11, y: 0 },
+    ];
+
+    // Ids deliberately out of order: the order has to come from the positions.
+    const result = computeDistributeAdjustments(layout, [`c`, `a`, `b`], `horizontal`);
+
+    expect(result.get(`b`)).toStrictEqual({ x: 6 });
+    expect(result.size).toBe(1);
+  });
+
+  it(`Should space along y using heights (not widths), measuring the span from the first item's own y`, () => {
+    const layout = [
+      { h: 2, i: `a`, w: 1, x: 0, y: 1 },
+      { h: 2, i: `b`, w: 9, x: 0, y: 4 },
+      { h: 4, i: `c`, w: 1, x: 0, y: 11 },
+    ];
+
+    const result = computeDistributeAdjustments(layout, [`c`, `a`, `b`], `vertical`);
+
+    expect(result.get(`b`)).toStrictEqual({ y: 6 });
+    expect(result.size).toBe(1);
+  });
+
+  it(`Should only ever move the items strictly between the first and last, even when rounding would shift the last one`, () => {
+    // span = (9 + 2) - 0 = 11; widths total 6; gap = 2.5. b = round(2 + 2.5) = 5. Carrying on to the last item would compute
+    // round((5 + 2) + 2.5) = round(9.5) = 10, a move of c from 9 to 10: the outer two items are the fixed frame.
+    const layout = [
+      { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `b`, w: 2, x: 3, y: 0 },
+      { h: 2, i: `c`, w: 2, x: 9, y: 0 },
+    ];
+
+    const result = computeDistributeAdjustments(layout, [`a`, `b`, `c`], `horizontal`);
+
+    expect(result.get(`b`)).toStrictEqual({ x: 5 });
+    expect(result.has(`c`)).toBe(false);
   });
 });

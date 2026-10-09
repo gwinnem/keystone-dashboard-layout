@@ -449,3 +449,123 @@ describe('setTopRight', () => {
     expect(result).toStrictEqual(expectedValue);
   });
 });
+
+describe(`cloneLayoutItem: values JSON cannot carry`, () => {
+  // JSON turns Infinity, -Infinity and NaN into null, so a clone swaps them for sentinel strings and back again. That only applies to the
+  // layout's own numeric fields, listed by name, so each needs its own check: a field dropped from the list silently clones to null.
+  const NUMERIC_KEYS = [`h`, `w`, `x`, `y`, `minH`, `minW`, `maxH`, `maxW`, `zIndex`, `borderRadiusPx`];
+
+  for(const key of NUMERIC_KEYS) {
+    it(`Should round-trip Infinity, -Infinity and NaN in "${key}"`, () => {
+      const base = { h: 1, i: `a`, w: 1, x: 0, y: 0 };
+
+      expect(cloneLayoutItem({ ...base, [key]: Infinity })[key]).toBe(Infinity);
+      expect(cloneLayoutItem({ ...base, [key]: -Infinity })[key]).toBe(-Infinity);
+      expect(cloneLayoutItem({ ...base, [key]: NaN })[key]).toBeNaN();
+    });
+  }
+
+  it(`Should leave an empty string in a numeric field as it is: only the exact sentinels are turned back into numbers`, () => {
+    // Encoding and decoding stay consistent with each other even if a sentinel were an empty string, so a round trip cannot show it.
+    // An empty string that was never a sentinel can: it must not come back as Infinity, -Infinity or NaN.
+    expect(cloneLayoutItem({ h: 1, i: `a`, w: 1, x: 0, y: 0, zIndex: `` }).zIndex).toBe(``);
+  });
+
+  it(`Should not touch a number outside the layout's own fields, such as one inside data`, () => {
+    // Scoped by key name so a consumer's own data is never rewritten: Infinity there is serialised the way JSON always does, as null.
+    const cloned = cloneLayoutItem({ data: { limit: Infinity }, h: 1, i: `a`, w: 1, x: 0, y: 0 });
+
+    expect(cloned.data.limit).toBeNull();
+  });
+});
+
+describe(`compaction of an item whose position is not finite`, () => {
+  // `y: Infinity` is the usual way to say "place this after everything". It is clamped to the lowest bottom edge first, because counting
+  // down from Infinity would never end. With compaction off, nothing moves the item afterwards, so the clamp is what is left to see.
+  it(`Should clamp a non-finite y to the bottom edge of everything already placed`, () => {
+    const compareWith = [
+      { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+      { h: 3, i: `b`, w: 2, x: 0, y: 2 },
+    ];
+    const item = { h: 1, i: `c`, w: 1, x: 5, y: Infinity }; // a free column, so nothing collides with it
+
+    expect(compactItem(compareWith, item, false).y).toBe(5); // 2 + 3, the lowest bottom edge
+  });
+
+  it(`Should clamp a non-finite x to the right edge of everything already placed`, () => {
+    const compareWith = [
+      { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `b`, w: 3, x: 2, y: 0 },
+    ];
+    const item = { h: 1, i: `c`, w: 1, x: Infinity, y: 5 };
+
+    expect(compactItemHorizontal(compareWith, item, false).x).toBe(5); // 2 + 3, the rightmost edge
+  });
+
+  it(`Should rise to 0 when minPositions has no entry for this item`, () => {
+    // minPositions only lists the items that were being dragged; an item absent from it has no floor and must not throw.
+    const item = { h: 1, i: `c`, w: 1, x: 5, y: 4 };
+
+    expect(compactItem([], item, true, { other: { y: 3 } }).y).toBe(0);
+  });
+
+  it(`Should move left to 0 when minPositions has no entry for this item`, () => {
+    const item = { h: 1, i: `c`, w: 1, x: 4, y: 5 };
+
+    expect(compactItemHorizontal([], item, true, { other: { x: 3 } }).x).toBe(0);
+  });
+});
+
+describe(`static items are never moved by compaction`, () => {
+  // A static item is already in the set the others compact against, and compacting it too would let it rise or slide towards the origin.
+  it(`compactLayout leaves a static item where it is`, () => {
+    const layout = [{ h: 1, i: `s`, isStatic: true, w: 1, x: 0, y: 5 }];
+
+    expect(compactLayout(layout, true)[0].y).toBe(5);
+  });
+
+  it(`compactLayoutHorizontal leaves a static item where it is`, () => {
+    const layout = [{ h: 1, i: `s`, isStatic: true, w: 1, x: 5, y: 0 }];
+
+    expect(compactLayoutHorizontal(layout, true)[0].x).toBe(5);
+  });
+
+  it(`compactLayoutOverlapVertical sends the other items to y 0 but leaves a static item where it is`, () => {
+    const layout = [
+      { h: 1, i: `s`, isStatic: true, w: 1, x: 0, y: 5 },
+      { h: 1, i: `a`, w: 1, x: 3, y: 3 },
+    ];
+
+    const result = compactLayoutOverlapVertical(layout);
+
+    expect(result[0].y).toBe(5);
+    expect(result[1].y).toBe(0);
+  });
+
+  it(`compactLayoutOverlapHorizontal sends the other items to x 0 but leaves a static item where it is`, () => {
+    const layout = [
+      { h: 1, i: `s`, isStatic: true, w: 1, x: 5, y: 0 },
+      { h: 1, i: `a`, w: 1, x: 3, y: 3 },
+    ];
+
+    const result = compactLayoutOverlapHorizontal(layout);
+
+    expect(result[0].x).toBe(5);
+    expect(result[1].x).toBe(0);
+  });
+});
+
+describe(`getLayoutItem ids`, () => {
+  it(`Should find an item whose id is 0: zero is a valid id, not a negative one`, () => {
+    const layout = [{ h: 1, i: 0, w: 1, x: 0, y: 0 }];
+
+    expect(getLayoutItem(layout, 0)).toBe(layout[0]);
+    expect(getLayoutItem(layout, `0`)).toBe(layout[0]);
+  });
+
+  it(`Should match a numeric id strictly: the number 5 does not find an item whose id is the string "5"`, () => {
+    const layout = [{ h: 1, i: `5`, w: 1, x: 0, y: 0 }];
+
+    expect(getLayoutItem(layout, 5)).toBeUndefined();
+  });
+});

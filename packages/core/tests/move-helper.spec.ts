@@ -66,6 +66,13 @@ describe(`moveToCorrectPlace`, () => {
       .toThrow(EErrorMessage.INVALID_LAYOUT_ITEM);
   });
 
+  it(`Should throw an error if parameter layoutItem is an empty object`, () => {
+    // The guard used to compare against a fresh `{}` literal with `==`, a reference comparison that is never true, so an empty
+    // object slipped through and every later x/y/w/h read was undefined.
+    expect(() => moveToCorrectPlace({} as never, {cols: 3}, []))
+      .toThrow(EErrorMessage.INVALID_LAYOUT_ITEM);
+  });
+
   it(`Should throw an error if parameter bounds is less than 1`, () => {
     expect(() => moveToCorrectPlace(testDataOne[0], { cols: 0 }, [testDataOne[0]]))
       .toThrow(EErrorMessage.INVALID_BOUNDS);
@@ -300,6 +307,141 @@ describe(`moveElement`, () => {
     expect(result.find(item => item.i === `a`)).toMatchObject({ x: 0, y: 2 });
     expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 3 });
   });
+
+  it(`Should leave a static item exactly where it is, and hand back the very same layout object`, () => {
+    // The existing static test builds the static item OUTSIDE its layout, so `expect(testDataOne).toMatchObject(result)` passes whether
+    // or not the guard returns early. Here the item is in the layout and its own position is asserted.
+    const staticItem = { h: 1, i: `s`, isStatic: true, w: 1, x: 1, y: 1 };
+    const layout: TLayout = [staticItem, { h: 1, i: `o`, w: 1, x: 5, y: 5 }];
+
+    const result = moveElement(layout, staticItem, 0, 0, false, false, false);
+
+    expect(result).toBe(layout);
+    expect(staticItem).toStrictEqual({ h: 1, i: `s`, isStatic: true, w: 1, x: 1, y: 1 });
+  });
+
+  // The direction of a move only decides anything when horizontalShift is on, and only then does the placement of the displaced item
+  // differ between $default (one row down) and the directional shortcut. Every test below therefore uses horizontalShift: true and
+  // isUserAction: false (true would try the "move directly above" shortcut first and hide the direction).
+  describe(`the direction of a move, with horizontalShift`, () => {
+    it(`DOWN: the displaced item jumps back up by the mover's height, i.e. the two swap`, () => {
+      const layout: TLayout = [
+        { i: `a`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `b`, x: 0, y: 2, w: 2, h: 2 },
+      ];
+
+      const result = moveElement(layout, layout[0], 0, 2, false, true, false);
+
+      // b: [DOWN] = [b.x, b.y - a.h] = [0, 2 - 2]. Without a DOWN flag it would fall to $default (0, 3).
+      expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 0 });
+      expect(result.find(item => item.i === `a`)).toMatchObject({ x: 0, y: 2 });
+    });
+
+    it(`LEFT: the displaced item moves to the right of the mover, level with it`, () => {
+      const layout: TLayout = [
+        { i: `a`, x: 4, y: 0, w: 2, h: 2 },
+        { i: `b`, x: 2, y: 0, w: 2, h: 2 },
+      ];
+
+      const result = moveElement(layout, layout[0], 2, 0, false, true, false);
+
+      // b: [LEFT] = [b.x + a.w, a.y] = [2 + 2, 0]. Without a LEFT flag it would fall to $default (2, 1).
+      expect(result.find(item => item.i === `b`)).toMatchObject({ x: 4, y: 0 });
+      expect(result.find(item => item.i === `a`)).toMatchObject({ x: 2, y: 0 });
+    });
+
+    it(`UP: the displaced item moves below the mover by the mover's height`, () => {
+      const layout: TLayout = [
+        { i: `a`, x: 0, y: 5, w: 2, h: 2 },
+        { i: `b`, x: 0, y: 2, w: 2, h: 2 },
+      ];
+
+      const result = moveElement(layout, layout[0], 0, 2, false, true, false);
+
+      // b: [UP] = [b.x, b.y + a.h] = [0, 2 + 2]. Without an UP flag it would fall to $default (0, 3), still overlapping a.
+      expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 4 });
+      expect(result.find(item => item.i === `a`)).toMatchObject({ x: 0, y: 2 });
+    });
+
+    it(`no movement at all: no direction applies, so $default is used and not a directional shortcut`, () => {
+      // The same-position test above runs with horizontalShift false, where direction is ignored, so it could not tell `oldX > x` from
+      // `oldX >= x` (or `oldY > y` from `>=`). With horizontalShift on, a wrongly-set LEFT or UP flag sends b to (2, 0) or (0, 2).
+      const layout: TLayout = [
+        { i: `a`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `b`, x: 0, y: 0, w: 2, h: 2 },
+      ];
+
+      const result = moveElement(layout, layout[0], 0, 0, false, true, false);
+
+      expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 1 });
+    });
+  });
+
+  // With isUserAction on, each displaced item first tries the slot directly above the mover. The first collision processed takes it and
+  // the second finds it occupied and is pushed down instead, so which collision is processed first changes the final layout.
+  describe(`the order collisions are resolved in`, () => {
+    it(`moving DOWN resolves them top-to-bottom: the upper item takes the free slot above, the lower one is pushed down`, () => {
+      const layout: TLayout = [
+        { i: `a`, x: 0, y: 0, w: 2, h: 4 },
+        { i: `b`, x: 0, y: 4, w: 2, h: 1 },
+        { i: `c`, x: 0, y: 5, w: 2, h: 1 },
+      ];
+
+      // a drops from y 0 to y 3 (covering rows 3-6), landing on both b (row 4) and c (row 5). The slot above a is row 2.
+      const result = moveElement(layout, layout[0], 0, 3, true, false, false);
+
+      // Top-to-bottom: b (row 4) is first and takes row 2; c then finds row 2 taken and is pushed to row 6.
+      // (Reversed, it would be c at row 2 and b at row 5.)
+      expect(result.find(item => item.i === `b`)).toMatchObject({ y: 2 });
+      expect(result.find(item => item.i === `c`)).toMatchObject({ y: 6 });
+    });
+
+    it(`moving UP resolves them bottom-to-top: the lower item takes the free slot above, the upper one is pushed down`, () => {
+      const layout: TLayout = [
+        { i: `a`, x: 0, y: 8, w: 2, h: 4 },
+        { i: `b`, x: 0, y: 4, w: 2, h: 1 },
+        { i: `c`, x: 0, y: 5, w: 2, h: 1 },
+      ];
+
+      // a rises from y 8 to y 3 (covering rows 3-6), landing on both b (row 4) and c (row 5). The slot above a is row 2.
+      const result = moveElement(layout, layout[0], 0, 3, true, false, false);
+
+      // Bottom-to-top: c (row 5) is first and takes row 2; b then finds row 2 taken and is pushed to row 5.
+      // (In plain row order it would be b at row 2 and c at row 6.)
+      expect(result.find(item => item.i === `c`)).toMatchObject({ y: 2 });
+      expect(result.find(item => item.i === `b`)).toMatchObject({ y: 5 });
+    });
+  });
+
+  // An item the mover has only slightly overlapped from below is not pushed ("waits to swap"): it must be overlapped by MORE than a
+  // quarter of its own height first.
+  describe(`the wait-to-swap threshold`, () => {
+    it(`does not push an item that is overlapped by more than a quarter of its height`, () => {
+      const layout: TLayout = [
+        { i: `b`, x: 0, y: 0, w: 2, h: 2 },
+        { i: `a`, x: 0, y: 6, w: 2, h: 2 },
+      ];
+
+      // a rises to y 1: 1 row of overlap into b (h 2), more than 2 / 4 = 0.5, so b stays put.
+      const result = moveElement(layout, layout[1], 0, 1, false, false, false);
+
+      expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 0 });
+      expect(result.find(item => item.i === `a`)).toMatchObject({ x: 0, y: 1 });
+    });
+
+    it(`does push an item that is overlapped by exactly a quarter of its height (the boundary is exclusive)`, () => {
+      const layout: TLayout = [
+        { i: `b`, x: 0, y: 2, w: 2, h: 4 },
+        { i: `a`, x: 0, y: 10, w: 2, h: 2 },
+      ];
+
+      // a rises to y 3: 3 - 2 = 1 row of overlap into b (h 4), exactly 4 / 4, which is not MORE than a quarter, so b is pushed (to y + 1 = 3).
+      // b sits at y 2 (not 0) deliberately: it separates the real difference (3 - 2) from a sum (3 + 2), which would wrongly skip it.
+      const result = moveElement(layout, layout[1], 0, 3, false, false, false);
+
+      expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 3 });
+    });
+  });
 });
 
 describe(`moveElementAwayFromCollision`, () => {
@@ -433,6 +575,47 @@ describe(`moveElementAwayFromCollision`, () => {
 
       const b = result.find(item => item.i === `b`)!;
       expect(b).toMatchObject({ x: 0, y: 1 });
+    });
+  });
+
+  // horizontalShift only replaces the default drop position with the directional shortcut when the collided item is not both narrower
+  // AND offset from the item being moved, and that rule applies to horizontal directions only.
+  describe(`when the directional shortcut applies`, () => {
+    it(`LEFT, narrower and offset: falls back to the default drop position, like RIGHT does`, () => {
+      const layout: TLayout = [
+        { i: `a`, x: 5, y: 0, w: 2, h: 2 },
+        { i: `b`, x: 0, y: 0, w: 4, h: 2 },
+      ];
+
+      const result = moveElementAwayFromCollision(layout, layout[0], layout[1], false, EMovingDirections.LEFT, true);
+
+      // a (w 2) is narrower than b (w 4) and offset (x 5 vs 0), so the LEFT shortcut (2, 0) is not used: $default is (0, 0 + 1).
+      expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 1 });
+    });
+
+    it(`DOWN, narrower and offset: still uses the shortcut, because only horizontal directions are subject to that rule`, () => {
+      const layout: TLayout = [
+        { i: `a`, x: 5, y: 3, w: 2, h: 2 },
+        { i: `b`, x: 0, y: 4, w: 4, h: 2 },
+      ];
+
+      const result = moveElementAwayFromCollision(layout, layout[0], layout[1], false, EMovingDirections.DOWN, true);
+
+      // [DOWN] = [b.x, b.y - a.h] = [0, 4 - 2]. Treating DOWN as horizontal would fall back to $default (0, 5).
+      expect(result.find(item => item.i === `b`)).toMatchObject({ x: 0, y: 2 });
+    });
+
+    it(`RIGHT, narrower but at the same x: uses the shortcut, because the item is not offset`, () => {
+      const layout: TLayout = [
+        { i: `a`, x: 4, y: 0, w: 2, h: 2 },
+        { i: `b`, x: 4, y: 1, w: 4, h: 2 },
+      ];
+
+      const result = moveElementAwayFromCollision(layout, layout[0], layout[1], false, EMovingDirections.RIGHT, true);
+
+      // a is narrower than b but at the same x, so the rule's "offset" half is false and the RIGHT shortcut applies: [b.x - a.w, a.y] = [2, 0].
+      // Ignoring the x comparison would fall back to $default (4, 2).
+      expect(result.find(item => item.i === `b`)).toMatchObject({ x: 2, y: 0 });
     });
   });
 });

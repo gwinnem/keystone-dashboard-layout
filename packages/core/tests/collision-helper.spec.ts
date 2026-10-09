@@ -163,4 +163,30 @@ describe(`getAllCollisions`, () => {
     const result = getAllCollisions([l1, l3], l2);
     expect(result.length).toBe(1);
   });
+
+  // Each operand of the two guards below is the only thing deciding the outcome in exactly one input. The tests above give a non-empty
+  // layout whenever the item is undefined, where collides() raises the same error anyway.
+  it(`Should throw INVALID_PARAMS for an undefined layoutItem even when the layout is empty`, () => {
+    // With nothing to iterate, only the guard itself can raise it.
+    expect(() => getAllCollisions([], undefined)).toThrowError(EErrorMessage.INVALID_PARAMS);
+  });
+
+  it(`Should throw INVALID_PARAMS (not a TypeError) for an undefined layout`, () => {
+    expect(() => getAllCollisions(undefined, l1)).toThrowError(EErrorMessage.INVALID_PARAMS);
+  });
+});
+
+describe(`getFirstCollision guards`, () => {
+  it(`Should return undefined, not throw, for an undefined layout`, () => {
+    expect(getFirstCollision(undefined, l1)).toBeUndefined();
+  });
+
+  it(`Should return undefined, not throw, for an undefined layoutItem against a non-empty layout`, () => {
+    // Without the guard, collides(layout[0], undefined) would raise INVALID_PARAMS.
+    expect(getFirstCollision([l1], undefined)).toBeUndefined();
+  });
+
+  it(`Should return undefined for an empty layout`, () => {
+    expect(getFirstCollision([], l1)).toBeUndefined();
+  });
 });

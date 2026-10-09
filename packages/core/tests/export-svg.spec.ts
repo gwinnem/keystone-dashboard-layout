@@ -133,4 +133,37 @@ describe(`exportLayoutAsSvg`, () => {
     // pixelY=10, pixelH=310 -> label y = 10+155 = 165.
     expect(svg).toContain(`<text x="105" y="165"`);
   });
+
+  // The tests above check fragments with toContain, which cannot see a wrong default value or a wrong separator between parts. These
+  // two pin the whole document.
+  it(`Should produce exactly this document for one item with every option left at its default`, () => {
+    // Defaults: 12 columns, 1200px wide, margin 10x10, rowHeight 150, no background, and the library's own indigo item colours.
+    // colWidth = (1200 - 13 * 10) / 12. Item (x 0, y 0, w 2, h 2): pixelX = pixelY = 10; pixelW = round(2 * colWidth + 10) = 188;
+    // pixelH = 150 * 2 + 10 = 310; label at (10 + 94, 10 + 155). Total height = 310 + 10.
+    expect(exportLayoutAsSvg([{ h: 2, i: `a`, w: 2, x: 0, y: 0 }])).toBe(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320">` +
+      `<rect x="10" y="10" width="188" height="310" fill="#eef2ff" stroke="#c7d2fe" stroke-width="1" rx="8" ry="8" />` +
+      `<text x="104" y="165" fill="#3730a3" font-family="sans-serif" font-size="13" text-anchor="middle" dominant-baseline="middle">a</text>` +
+      `</svg>`,
+    );
+  });
+
+  it(`Should place the item rectangles one directly after another, with nothing between them`, () => {
+    // colNum 4 in 450px with margin 10: colWidth is exactly (450 - 5 * 10) / 4 = 100, so every number below is an integer.
+    // a: pixelX = 10. b: pixelX = 100 + 2 * 10 = 120. Both 100 x 150, at pixelY 10. Total height = 150 + 10 = 160.
+    expect(exportLayoutAsSvg(
+      [
+        { h: 1, i: `a`, w: 1, x: 0, y: 0 },
+        { h: 1, i: `b`, w: 1, x: 1, y: 0 },
+      ],
+      { colNum: 4, containerWidth: 450 },
+    )).toBe(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 160" width="450" height="160">` +
+      `<rect x="10" y="10" width="100" height="150" fill="#eef2ff" stroke="#c7d2fe" stroke-width="1" rx="8" ry="8" />` +
+      `<text x="60" y="85" fill="#3730a3" font-family="sans-serif" font-size="13" text-anchor="middle" dominant-baseline="middle">a</text>` +
+      `<rect x="120" y="10" width="100" height="150" fill="#eef2ff" stroke="#c7d2fe" stroke-width="1" rx="8" ry="8" />` +
+      `<text x="170" y="85" fill="#3730a3" font-family="sans-serif" font-size="13" text-anchor="middle" dominant-baseline="middle">b</text>` +
+      `</svg>`,
+    );
+  });
 });

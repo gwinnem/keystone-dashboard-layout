@@ -187,6 +187,30 @@ describe(`findSnapAdjustment`, () => {
     ];
     expect(findSnapAdjustment(bottomToBottom, bottomToBottom[0], 3).y).toBe(12);
   });
+
+  // The y loop is a copy of the x loop, and the x loop's boundary tests above have no y counterpart: a mutated threshold or tie rule on
+  // the y side changed nothing the suite could see.
+  it(`Should not snap y when the nearest vertical edge is further than threshold`, () => {
+    // Every y edge pairing is at least 8 apart, so nothing is within a threshold of 2. (x is not asserted: it happens to snap.)
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 4, y: 10 },
+      { h: 2, i: `other`, w: 2, x: 0, y: 0 },
+    ];
+
+    expect(findSnapAdjustment(layout, layout[0], 2).y).toBeUndefined();
+  });
+
+  it(`Should keep the FIRST y match found when two candidates are exactly equidistant, not the later one`, () => {
+    // first: active top (5) meets first's bottom (4), distance 1 -> y 4. second: active bottom (7) meets second's top (8), also
+    // distance 1, found later -> would be y 8 - 2 = 6. A strict less-than keeps the first.
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 20, y: 5 },
+      { h: 2, i: `first`, w: 2, x: 0, y: 2 },
+      { h: 2, i: `second`, w: 2, x: 0, y: 8 },
+    ];
+
+    expect(findSnapAdjustment(layout, layout[0], 3).y).toBe(4);
+  });
 });
 
 
@@ -288,6 +312,45 @@ describe(`findAlignmentGuides`, () => {
 
   it(`Should return no guides for an empty layout (only the active item, already excluded)`, () => {
     expect(findAlignmentGuides([], { h: 2, i: `active`, w: 2, x: 0, y: 0 })).toStrictEqual([]);
+  });
+
+  // The tests above assert with toContainEqual and mostly align on the left/top edge, so a guide that depended on ONLY the right, top-to-
+  // bottom or bottom edge matching could be lost without any of them noticing. Each case below aligns exactly one edge, and asserts the
+  // whole result.
+  it(`Should find a guide when ONLY the active item's right edge meets another item's left edge`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 0 }, // right edge at x=2
+      { h: 2, i: `other`, w: 2, x: 2, y: 5 }, // left edge at x=2
+    ];
+
+    expect(findAlignmentGuides(layout, layout[0])).toStrictEqual([{ axis: `x`, position: 2 }]);
+  });
+
+  it(`Should find a guide when ONLY the active item's right edge meets another item's right edge`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 0 }, // right edge at x=2
+      { h: 2, i: `other`, w: 1, x: 1, y: 5 }, // left edge at x=1, right edge at x=2
+    ];
+
+    expect(findAlignmentGuides(layout, layout[0])).toStrictEqual([{ axis: `x`, position: 2 }]);
+  });
+
+  it(`Should find a guide when ONLY the active item's top edge meets another item's bottom edge`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 4 }, // top edge at y=4
+      { h: 2, i: `other`, w: 2, x: 5, y: 2 }, // bottom edge at y=4
+    ];
+
+    expect(findAlignmentGuides(layout, layout[0])).toStrictEqual([{ axis: `y`, position: 4 }]);
+  });
+
+  it(`Should find a guide when ONLY the active item's bottom edge meets another item's top edge`, () => {
+    const layout = [
+      { h: 2, i: `active`, w: 2, x: 0, y: 0 }, // bottom edge at y=2
+      { h: 2, i: `other`, w: 2, x: 5, y: 2 }, // top edge at y=2
+    ];
+
+    expect(findAlignmentGuides(layout, layout[0])).toStrictEqual([{ axis: `y`, position: 2 }]);
   });
 });
 
@@ -571,5 +634,102 @@ describe(`findSpacingIndicators`, () => {
     const layout = [{ h: 2, i: `active`, w: 2, x: 0, y: 0 }];
 
     expect(findSpacingIndicators(layout, layout[0])).toStrictEqual([]);
+  });
+
+  // The tests above give each side at most one neighbour, or put the nearer neighbour first in the layout, and never put a neighbour
+  // exactly flush against the active item next to a farther one. These do, on every side. Fixed active box throughout: x 4-6, y 4-6.
+  describe(`neighbour selection on each side`, () => {
+    const active = { h: 2, i: `active`, w: 2, x: 4, y: 4 };
+
+    it(`left: the nearest neighbour wins even when a farther one comes later in the layout`, () => {
+      const layout = [
+        active,
+        { h: 2, i: `near`, w: 1, x: 2, y: 4 }, // right edge 3
+        { h: 2, i: `far`, w: 1, x: 0, y: 4 }, // right edge 1, processed last
+      ];
+
+      expect(findSpacingIndicators(layout, active)).toStrictEqual([{ axis: `x`, distance: 1, gapEnd: 4, gapStart: 3 }]);
+    });
+
+    it(`left: a neighbour flush against the item means no gap, even though a farther one exists behind it`, () => {
+      const layout = [
+        active,
+        { h: 2, i: `flush`, w: 2, x: 2, y: 4 }, // right edge 4, touching
+        { h: 2, i: `far`, w: 1, x: 0, y: 4 },
+      ];
+
+      expect(findSpacingIndicators(layout, active)).toStrictEqual([]);
+    });
+
+    it(`right: the nearest neighbour wins even when a farther one comes later in the layout`, () => {
+      const layout = [
+        active,
+        { h: 2, i: `near`, w: 1, x: 7, y: 4 }, // left edge 7
+        { h: 2, i: `far`, w: 1, x: 9, y: 4 }, // left edge 9, processed last
+      ];
+
+      expect(findSpacingIndicators(layout, active)).toStrictEqual([{ axis: `x`, distance: 1, gapEnd: 7, gapStart: 6 }]);
+    });
+
+    it(`right: a neighbour flush against the item means no gap, with or without a farther one behind it`, () => {
+      const flush = { h: 2, i: `flush`, w: 2, x: 6, y: 4 }; // left edge 6, touching
+
+      expect(findSpacingIndicators([active, flush], active)).toStrictEqual([]);
+      expect(findSpacingIndicators([active, flush, { h: 2, i: `far`, w: 1, x: 9, y: 4 }], active)).toStrictEqual([]);
+    });
+
+    it(`right: an item that only touches the corner (directly above-right) is not a neighbour`, () => {
+      // bottom edge 4 == active top 4: touching vertically is not overlapping, so there is no row in common.
+      expect(findSpacingIndicators([active, { h: 2, i: `corner`, w: 2, x: 7, y: 2 }], active)).toStrictEqual([]);
+    });
+
+    it(`right: an item that only touches the corner (directly below-right) is not a neighbour`, () => {
+      // top edge 6 == active bottom 6.
+      expect(findSpacingIndicators([active, { h: 2, i: `corner`, w: 2, x: 7, y: 6 }], active)).toStrictEqual([]);
+    });
+
+    it(`above: the nearest neighbour wins even when a farther one comes later in the layout`, () => {
+      const layout = [
+        active,
+        { h: 1, i: `near`, w: 2, x: 4, y: 2 }, // bottom edge 3
+        { h: 1, i: `far`, w: 2, x: 4, y: 0 }, // bottom edge 1, processed last
+      ];
+
+      expect(findSpacingIndicators(layout, active)).toStrictEqual([{ axis: `y`, distance: 1, gapEnd: 4, gapStart: 3 }]);
+    });
+
+    it(`above: a neighbour flush against the item means no gap, with or without a farther one behind it`, () => {
+      const flush = { h: 2, i: `flush`, w: 2, x: 4, y: 2 }; // bottom edge 4, touching
+
+      expect(findSpacingIndicators([active, flush], active)).toStrictEqual([]);
+      expect(findSpacingIndicators([active, flush, { h: 1, i: `far`, w: 2, x: 4, y: 0 }], active)).toStrictEqual([]);
+    });
+
+    it(`below: the nearest neighbour wins even when a farther one comes later in the layout`, () => {
+      const layout = [
+        active,
+        { h: 1, i: `near`, w: 2, x: 4, y: 7 }, // top edge 7
+        { h: 1, i: `far`, w: 2, x: 4, y: 9 }, // top edge 9, processed last
+      ];
+
+      expect(findSpacingIndicators(layout, active)).toStrictEqual([{ axis: `y`, distance: 1, gapEnd: 7, gapStart: 6 }]);
+    });
+
+    it(`below: a neighbour flush against the item means no gap, with or without a farther one behind it`, () => {
+      const flush = { h: 2, i: `flush`, w: 2, x: 4, y: 6 }; // top edge 6, touching
+
+      expect(findSpacingIndicators([active, flush], active)).toStrictEqual([]);
+      expect(findSpacingIndicators([active, flush, { h: 1, i: `far`, w: 2, x: 4, y: 9 }], active)).toStrictEqual([]);
+    });
+
+    it(`below: an item that only touches the corner (directly below-left) is not a neighbour`, () => {
+      // right edge 4 == active left 4: touching horizontally is not overlapping, so there is no column in common.
+      expect(findSpacingIndicators([active, { h: 2, i: `corner`, w: 2, x: 2, y: 7 }], active)).toStrictEqual([]);
+    });
+
+    it(`below: an item that only touches the corner (directly below-right) is not a neighbour`, () => {
+      // left edge 6 == active right 6.
+      expect(findSpacingIndicators([active, { h: 2, i: `corner`, w: 2, x: 6, y: 7 }], active)).toStrictEqual([]);
+    });
   });
 });

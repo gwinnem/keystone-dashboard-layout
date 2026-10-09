@@ -2,13 +2,37 @@ import { describe, expect, it } from 'vitest';
 import { layoutValidator, layoutValidatorPayload } from '../src/validators/layout-validator';
 
 describe(`layoutValidator`, () => {
-  const {
-    invalidOptionalLayout,
-    invalidRequiredLayout,
-    invalidRequiredLayoutTwo,
-    validRequiredLayout,
-    validOptionalLayout,
-  } = layoutValidatorPayload;
+  const { validRequiredLayout, validOptionalLayout } = layoutValidatorPayload;
+
+  // Test-only fixtures. They used to sit in layoutValidatorPayload in src/, where nothing but this spec read them.
+  const invalidOptionalLayout = {
+    h: 1,
+    i: -1,
+    isDraggable: true,
+    isResizable: false,
+    isStatic: false,
+    maxH: 0,
+    maxW: 0,
+    minH: -1,
+    minW: 0,
+    moved: false,
+    w: 1,
+    x: 0,
+    y: 0,
+  };
+  const invalidRequiredLayout = {
+    h: 1,
+    i: 1,
+    w: 0,
+    x: 0,
+    y: 'a',
+  };
+  const invalidRequiredLayoutTwo = {
+    h: 0,
+    i: 1,
+    w: 0,
+    x: 0,
+  };
 
   it(`Should return true (not throw) for an empty layout`, () => {
     // Behavior change (see docs/REFACTORING.md #33): an empty layout has
@@ -121,5 +145,10 @@ describe(`layoutValidator`, () => {
     const result = layoutValidator([{ ...validRequiredLayout, i: `` }]);
 
     expect(result).toBe(false);
+  });
+
+  it(`Should reject a layout item whose id (i) is neither a number nor a string, even though it has a length`, () => {
+    // An array has a length too, so a check that only looked at `.length` would let it through.
+    expect(layoutValidator([{ ...validRequiredLayout, i: [`a`] }])).toBe(false);
   });
 });
