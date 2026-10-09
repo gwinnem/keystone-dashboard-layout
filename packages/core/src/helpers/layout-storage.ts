@@ -59,7 +59,8 @@ export function deserializeLayout(json: string | null | undefined): TLayout | nu
   let parsed: unknown;
   try {
     parsed = JSON.parse(json);
-    // Stryker disable next-line BlockStatement: equivalent — with an empty catch `parsed` stays undefined, which the Array.isArray check below turns into the same null.
+    // Equivalent mutant, left visible on purpose: with an empty catch `parsed` stays undefined, which the Array.isArray check below turns into the same null.
+    // (A Stryker directive placed here was observed to be ignored, so none is used: the comment trails the try block instead of leading a node.)
   } catch{
     return null;
   }

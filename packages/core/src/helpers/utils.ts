@@ -363,8 +363,9 @@ export function getLayoutItem(layout: TLayout, id: string | number | undefined):
       if(layout[i].i.toString().toLowerCase() === id.toString().toLowerCase()) {
         return layout[i];
       }
-    // Stryker disable next-line ConditionalExpression: equivalent — `id` is typed string | number, so once it is not a string it is always a number.
-    } else if(typeof id === 'number') {
+    } else if(
+      // Stryker disable next-line ConditionalExpression: equivalent — `id` is typed string | number, so once it is not a string it is always a number.
+      typeof id === 'number') {
       if(layout[i].i === id) {
         return layout[i];
       }
