@@ -107,6 +107,10 @@
 
 .kdl-grid-item--dragging {
   transition: none;
+
+  /* Safari/WebKit still only honours the prefixed form, so without it a dragged item could select the text it passes over there. */
+  /* stylelint-disable-next-line property-no-vendor-prefix */
+  -webkit-user-select: none;
   user-select: none;
   z-index: 3;
 }
@@ -389,13 +393,28 @@
 }
 
 /* allowOutsideDrop/allowCrossGridDrag — the live drop-position preview, tracking the pointer while a native HTML5 drag (or a cross-grid drag) is over the grid. Note this package's own class is `.kdl-grid-placeholder` — not `.kdl-grid-outside-drop-placeholder` (React's own name for the same feature) — confirmed directly against this component's own template. */
+
+/*
+ * The placeholder is shown for an in-grid drag or resize as well as an outside drop or cross-grid drag, and a consumer can
+ * replace its content with a `placeholder` template. That template is wrapped in `.kdl-grid-placeholder-wrapper`, which had no
+ * rule at all: its inline left/top were ignored and it sat in the normal flow instead of on the cell it describes (the same
+ * defect the React package had). Both sit above ordinary items (z-index auto) but below an item being dragged or resized (3),
+ * so the dragged item is not tinted by the box it is about to land in, and never intercept the pointer.
+ */
+.kdl-grid-placeholder,
+.kdl-grid-placeholder-wrapper {
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
 .kdl-grid-placeholder {
   background: rgb(37 99 235 / 15%);
   border: 2px dashed rgb(37 99 235 / 60%);
   border-radius: 4px;
-  pointer-events: none;
-  position: absolute;
-  z-index: 4;
+
+  /* border-box, so the dashed border sits inside the computed pixel size: without it the box was 4px wider and taller than the cell it marks. */
+  box-sizing: border-box;
 }
 
 /*

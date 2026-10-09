@@ -79,20 +79,21 @@ export interface IGridDefaults {
    * Master interactivity switch (revisits the TODOs left on
    * `tabindexValue`/`showCloseButton`'s own doc comments in Phases 15/
    * 16/22, now closed). Default `enableEditMode` for items that don't
-   * set their own (`null`). Confirmed via a direct source read, not
-   * assumed, that this gates: `tabindexValue`/`role`/
-   * `aria-roledescription`/`aria-describedby`/the keyboard-instructions
-   * span (all via `isDraggableOrResizableAndNotStatic` and its two
-   * siblings), and the close button's own render — but *not* the
-   * native drag/resize engine's own `enabled` flag, nor
-   * `handleKeydown`'s own guard, which both read the raw
-   * `resolvedIsDraggable`/`resolvedIsResizable` directly. This
-   * asymmetry is Vue's own actual, confirmed behavior (`GridItem.vue`'s
-   * own `handleKeydown` is wired from `useGridItemKeyboard({...,
-   * draggable, resizable})`, the *un*-gated refs, not the `editModeEnabled`-
-   * gated `draggableAndNotStatic`/`resizableAndNotStatic` computeds) —
-   * ported exactly as Vue actually behaves, not "corrected" into a
-   * fully-symmetric gate Vue itself doesn't have.
+   * set their own (`null`). It is a real view-mode lock, as in Vue: it
+   * gates `tabindexValue`/`role`/`aria-roledescription`/
+   * `aria-describedby`/the keyboard-instructions span (all via
+   * `isDraggableOrResizableAndNotStatic` and its two siblings), the
+   * close button's own render, the resize handles (so the native resize
+   * engine has nothing to attach to), and both the drag handler and
+   * `handleKeydown` (each returns early while it is off). The native
+   * drag engine's own `enabled` flag still reads only the raw
+   * `resolvedIsDraggable`, which is why the *handler*, not the engine,
+   * is where view mode takes effect (Vue's `handleDrag` and
+   * `handleKeydown` both open with `!editModeEnabled.value`). An earlier
+   * version of this comment, and two unit tests, claimed Vue leaves the
+   * drag engine and keyboard un-gated; reading Vue's handlers showed it
+   * does not, and the e2e suite (`props-cascade`) showed an item still
+   * dragging in view mode.
    */
   enableEditMode: boolean;
   /** Default `isBounded` for items that don't set their own (`null`). */

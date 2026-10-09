@@ -186,10 +186,123 @@ describe(`GridLayoutComponent — mutation-testing gap coverage`, () => {
       const emitted: TLayout[] = [];
       component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
 
-      changeLayoutExternally([...layout]);
+      // Positions differ from the rendered layout, so this is a genuinely new layout and gets compacted. (A copy with
+      // identical positions is an echo of what is already shown and is deliberately left alone: see the echo tests below.)
+      changeLayoutExternally(layout.map(item => ({ ...item, x: item.x + 1 })));
 
       expect(emitted.length).toBe(1);
       expect(emitted[0].every(item => item.y === 9)).toBe(true);
+    });
+
+    it(`Should not compact a layout that only echoes the one already rendered`, () => {
+      const movingCompactor: ICompactor = { compact: (current: TLayout) => current.map(item => ({ ...item, y: 9 })), type: `moving` };
+      setInputs({ colNum: 12, compactor: movingCompactor, layout });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+
+      changeLayoutExternally([...layout]);
+
+      expect(emitted.length).toBe(0);
+      expect(workingLayoutOf().every(item => item.y === 0)).toBe(true);
+    });
+
+    it(`Should still compact when only the size of an item differs from the rendered layout`, () => {
+      const movingCompactor: ICompactor = { compact: (current: TLayout) => current.map(item => ({ ...item, y: 9 })), type: `moving` };
+      setInputs({ colNum: 12, compactor: movingCompactor, layout });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+
+      changeLayoutExternally(layout.map(item => ({ ...item, w: item.w + 1 })));
+
+      expect(emitted.length).toBe(1);
+    });
+
+    it(`Should still compact when the same items arrive in a different order`, () => {
+      const movingCompactor: ICompactor = { compact: (current: TLayout) => current.map(item => ({ ...item, y: 9 })), type: `moving` };
+      setInputs({ colNum: 12, compactor: movingCompactor, layout });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+
+      changeLayoutExternally([...layout].reverse());
+
+      expect(emitted.length).toBe(1);
+    });
+
+    it(`Should not undo restoreOnDrag when the layout it produced is applied straight back to the layout input`, () => {
+      const stacked: TLayout = [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }, { h: 2, i: `b`, w: 2, x: 0, y: 2 }];
+      setInputs({ colNum: 12, layout: stacked, restoreOnDrag: true });
+      const emitted: TLayout[] = [];
+      component.layoutChange.subscribe((next: TLayout) => emitted.push(next));
+
+      // Drag "a" away: with restoreOnDrag, "b" keeps the row it had before the drag instead of rising into the gap.
+      drag(`dragstart`, `a`, 0, 0);
+      drag(`dragmove`, `a`, 6, 0);
+      drag(`dragend`, `a`, 6, 0);
+      expect(workingLayoutOf().find(item => item.i === `b`)?.y).toBe(2);
+      const emittedBeforeEcho = emitted.length;
+
+      // What a consumer binding `(layoutChange)="layout = $event"` does with the layout it has just been given.
+      changeLayoutExternally(emitted.at(-1)!);
+
+      expect(workingLayoutOf().find(item => item.i === `b`)?.y).toBe(2);
+      expect(emitted.length).toBe(emittedBeforeEcho);
+    });
+
+    describe(`responsiveLayouts supplied after mount`, () => {
+      const supplied: Record<string, TLayout> = { md: [{ h: 3, i: `0`, w: 3, x: 0, y: 0 }] };
+
+      const changeResponsiveLayouts = (next: Record<string, TLayout>): void => {
+        component.responsiveLayouts = next;
+        component.ngOnChanges({ responsiveLayouts: { firstChange: false } } as unknown as SimpleChanges);
+      };
+
+      it(`Should replace the per-breakpoint cache when the input's content changes`, () => {
+        setInputs({ colNum: 12, layout, responsive: true });
+        expect(component.layouts).toEqual({});
+
+        changeResponsiveLayouts(supplied);
+
+        expect(component.layouts[`md`]).toEqual(supplied[`md`]);
+      });
+
+      it(`Should hold a copy of what was supplied, not the consumer's own arrays`, () => {
+        setInputs({ colNum: 12, layout, responsive: true });
+
+        changeResponsiveLayouts(supplied);
+
+        expect(component.layouts[`md`]).not.toBe(supplied[`md`]);
+      });
+
+      it(`Should keep per-breakpoint edits when a new object with identical content arrives`, () => {
+        setInputs({ colNum: 12, layout, responsive: true, responsiveLayouts: supplied });
+        const edited: TLayout = [{ h: 5, i: `0`, w: 5, x: 0, y: 0 }];
+        component.layouts[`md`] = edited;
+
+        // A fresh reference with the same content, as a template that builds the object inline hands over on every pass.
+        changeResponsiveLayouts(JSON.parse(JSON.stringify(supplied)) as Record<string, TLayout>);
+
+        expect(component.layouts[`md`]).toBe(edited);
+      });
+
+      it(`Should re-seed when the content differs from what was last seeded, even though the new object is the same size`, () => {
+        setInputs({ colNum: 12, layout, responsive: true, responsiveLayouts: supplied });
+        const replacement: Record<string, TLayout> = { md: [{ h: 4, i: `0`, w: 4, x: 0, y: 0 }] };
+
+        changeResponsiveLayouts(replacement);
+
+        expect(component.layouts[`md`]).toEqual(replacement[`md`]);
+      });
+
+      it(`Should leave the cache alone on the input's first change, which ngOnInit already seeded`, () => {
+        setInputs({ colNum: 12, layout, responsive: true, responsiveLayouts: supplied });
+        const edited: TLayout = [{ h: 5, i: `0`, w: 5, x: 0, y: 0 }];
+        component.layouts[`md`] = edited;
+
+        component.responsiveLayouts = { md: [{ h: 9, i: `0`, w: 9, x: 0, y: 0 }] };
+        component.ngOnChanges({ responsiveLayouts: { firstChange: true } } as unknown as SimpleChanges);
+
+        expect(component.layouts[`md`]).toBe(edited);
+      });
     });
 
     it(`Should not emit layoutChange when auto-compaction of an external layout change leaves everything where it was`, () => {
@@ -392,7 +505,8 @@ describe(`GridLayoutComponent — mutation-testing gap coverage`, () => {
       setInputs({ colNum: 12, compactType: ECompactType.HORIZONTAL, compactor, layout });
       contexts.length = 0;
 
-      changeLayoutExternally([...layout]);
+      // A genuinely new layout (the same positions would be an echo of what is already rendered, which is not compacted).
+      changeLayoutExternally(layout.map(item => ({ ...item, x: item.x + 1 })));
 
       expect(contexts.at(-1)?.compactType).toBe(ECompactType.HORIZONTAL);
     });

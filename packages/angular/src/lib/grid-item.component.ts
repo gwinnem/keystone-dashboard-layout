@@ -126,10 +126,8 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
  * what actually commits the new size through `GridLayoutComponent`,
  * which is the functionally load-bearing half).
  *
- * `transformScale` is received via the eventBus and divides drag deltas
- * the same way Vue's own composable does; it is not yet applied to
- * resize deltas, matching how Phase 7's own scope prioritized drag
- * first.
+ * `transformScale` is received via the eventBus and divides both drag and
+ * resize deltas, the same way Vue's own composable does.
  *
  * Reuses `keystone-dashboard-layout-core`'s own `createNativeDraggable`/
  * `createNativeResizable`/`createNativeAutoScroll` directly, wired up in
@@ -180,42 +178,42 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
         </div>
       }
       @if (isResizableAndNotStatic && resolvedResizeHandles.includes('n')) {
-        <span #nHandle class="kdl-resize-hint kdl-resize-hint--n">
+        <span #nHandle aria-hidden="true" class="kdl-resize-hint kdl-resize-hint--n">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'n', edge: 'n' }"></ng-container>
         </span>
       }
       @if (isResizableAndNotStatic && resolvedResizeHandles.includes('s')) {
-        <span #sHandle class="kdl-resize-hint kdl-resize-hint--s">
+        <span #sHandle aria-hidden="true" class="kdl-resize-hint kdl-resize-hint--s">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 's', edge: 's' }"></ng-container>
         </span>
       }
       @if (isResizableAndNotStatic && resolvedResizeHandles.includes('e')) {
-        <span #eHandle class="kdl-resize-hint kdl-resize-hint--e">
+        <span #eHandle aria-hidden="true" class="kdl-resize-hint kdl-resize-hint--e">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'e', edge: 'e' }"></ng-container>
         </span>
       }
       @if (isResizableAndNotStatic && resolvedResizeHandles.includes('w')) {
-        <span #wHandle class="kdl-resize-hint kdl-resize-hint--w">
+        <span #wHandle aria-hidden="true" class="kdl-resize-hint kdl-resize-hint--w">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'w', edge: 'w' }"></ng-container>
         </span>
       }
       @if (isResizableAndNotStatic && resolvedResizeHandles.includes('ne')) {
-        <span #neHandle class="kdl-resize-hint kdl-resize-hint--ne">
+        <span #neHandle aria-hidden="true" class="kdl-resize-hint kdl-resize-hint--ne">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'ne', edge: 'ne' }"></ng-container>
         </span>
       }
       @if (isResizableAndNotStatic && resolvedResizeHandles.includes('nw')) {
-        <span #nwHandle class="kdl-resize-hint kdl-resize-hint--nw">
+        <span #nwHandle aria-hidden="true" class="kdl-resize-hint kdl-resize-hint--nw">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'nw', edge: 'nw' }"></ng-container>
         </span>
       }
       @if (isResizableAndNotStatic && resolvedResizeHandles.includes('se')) {
-        <span #seHandle class="kdl-resize-hint kdl-resize-hint--se">
+        <span #seHandle aria-hidden="true" class="kdl-resize-hint kdl-resize-hint--se">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'se', edge: 'se' }"></ng-container>
         </span>
       }
       @if (isResizableAndNotStatic && resolvedResizeHandles.includes('sw')) {
-        <span #swHandle class="kdl-resize-hint kdl-resize-hint--sw">
+        <span #swHandle aria-hidden="true" class="kdl-resize-hint kdl-resize-hint--sw">
           <ng-container *ngTemplateOutlet="resizeHandleTemplate ?? null; context: { $implicit: 'sw', edge: 'sw' }"></ng-container>
         </span>
       }
@@ -274,8 +272,9 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * grid-wide default cascaded via `GridEventBusService.gridDefaults$`
    * — `true` with no eventBus present, matching Vue/React's own
    * ultimate default. See `IGridDefaults`'s own doc comment on
-   * `enableEditMode` for exactly what this gates (and, just as
-   * importantly, what it deliberately doesn't).
+   * `enableEditMode` for exactly what this gates: it is a real
+   * view-mode lock (tab stop, ARIA, close button, resize handles,
+   * and both the drag and keyboard handlers).
    */
   @Input() enableEditMode: boolean | null = null;
   /**
@@ -473,6 +472,18 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   /** Pixel width/height ratio captured at `resizestart`, used by `preserveAspectRatio` to derive one dimension from the other during `resizemove`. `undefined` when not resizing or the starting height was 0. */
   private aspectRatio: number | undefined;
   private autoHeightObserver: ResizeObserver | undefined;
+  /**
+   * Set when a drag or resize ends, cleared on the next task: swallows the `click` a browser dispatches right after the
+   * gesture. The native engine captures the pointer on this host, so that click is delivered to it however far the pointer
+   * travelled, and `handleClick` below would report it as a selection click: with `multiSelect` on, every drag of a selected
+   * item collapsed the whole selection to just that item once it ended. Armed synchronously from the gesture's own end
+   * (`handleDrag`/`handleResize`), because the browser dispatches pointerup, mouseup and click back to back in one task.
+   */
+  private suppressNextClick = false;
+  /** The grid cell this item occupied when the current drag began (captured at `dragstart`), so `itemMoved` can stay silent for a drag that ends where it started. */
+  private dragStartCell: { x: number; y: number } | undefined;
+  /** The grid size this item had when the current resize began (captured at `resizestart`), so `itemResized` can stay silent for a resize that ends at the size it started with. */
+  private resizeStartSize: { h: number; w: number } | undefined;
   private nativeDraggable: { destroy: () => void } | undefined;
   private nativeResizable: { destroy: () => void } | undefined;
   /**
@@ -531,6 +542,8 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   private readonly destroyRef = inject(DestroyRef);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  /** The `resizeHandleTemplate` the view was last checked against, so a template that appears or goes away later is noticed. */
+  private renderedResizeHandleTemplate: TemplateRef<unknown> | undefined;
 
   // Stryker disable next-line BlockStatement: equivalent — ngAfterContentChecked() runs right after this and sets the same value, and covers every later change.
   ngAfterContentInit(): void {
@@ -561,11 +574,20 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * unconditionally on every single content-check cycle (which happens
    * far more often than genuine header-content changes) would be needless
    * churn.
+   *
+   * The same applies to the `#resizeHandle` template: it is also a content query on an `OnPush` component, so a consumer
+   * that projects it conditionally (an `@if` toggled after mount) updates the query but not the eight `ngTemplateOutlet`s that
+   * render it, which stayed empty until some unrelated input change happened to refresh the view. Found by `props-item`'s
+   * "is rendered inside every resize hint" e2e test, which toggles the template with no other change.
    */
   ngAfterContentChecked(): void {
     const next = !!this.headerContentQuery;
     if(next !== this.hasHeaderContent) {
       this.hasHeaderContent = next;
+      this.changeDetectorRef.markForCheck();
+    }
+    if(this.resizeHandleTemplate !== this.renderedResizeHandleTemplate) {
+      this.renderedResizeHandleTemplate = this.resizeHandleTemplate;
       this.changeDetectorRef.markForCheck();
     }
   }
@@ -835,13 +857,26 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
 
   /** `multiSelect` support (Phase 7) — reports the click up to `GridLayoutComponent` via the eventBus, matching Vue's own `itemClickedHandler`. `stopPropagation()` is required, not optional: without it, the click also bubbles to `GridLayoutComponent`'s own host `(click)` binding (`handleBackgroundClick`), which would immediately clear the very selection this same click just set. A no-op with no eventBus present (standalone usage). */
   handleClick(event: MouseEvent): void {
+    // Always stopped, even for the click swallowed below: left to bubble, it would reach the grid's own background click
+    // handler and clear the very selection it just failed to change.
     event.stopPropagation();
+    if(this.suppressNextClick) {
+      return;
+    }
     this.eventBus?.emitItemClicked({
       ctrlKey: event.ctrlKey,
       i: this.i,
       metaKey: event.metaKey,
       shiftKey: event.shiftKey,
     });
+  }
+
+  /** Swallows the click that trails the gesture that just ended (see `suppressNextClick`); the flag clears on the next task, by which point that click has gone by, so a genuine click straight afterwards is not swallowed. */
+  private armClickSuppression(): void {
+    this.suppressNextClick = true;
+    setTimeout(() => {
+      this.suppressNextClick = false;
+    }, 0);
   }
 
   /**
@@ -964,7 +999,9 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * elsewhere in this file).
    */
   handleKeydown(event: KeyboardEvent): void {
-    if(this.isStatic) {
+    // View mode (enableEditMode off) locks the keyboard too, as in Vue's own handleKeydown: an item that has no tab stop and
+    // no instructions must not still move when something else gives it focus (focusItem, a click, a script).
+    if(this.isStatic || !this.resolvedEnableEditMode) {
       return;
     }
     if(event.ctrlKey || event.altKey || event.metaKey) {
@@ -1035,6 +1072,9 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
 
     this.eventBus?.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragstart`, h: this.h, i: this.i, w: this.w, x: this.x, y: this.y });
     this.eventBus?.emitItemDrag({ clientX: 0, clientY: 0, eventType: `dragend`, h: this.h, i: this.i, w: this.w, x, y });
+    // The per-item output too, not just the grid-level message: a keyboard move is a move like any other, but only the
+    // pointer path used to call it.
+    this.itemMoved.emit({ i: this.i, x, y });
   }
 
   /** Same synthetic-start-then-end rationale as `moveByKeyboard` above, for resize — so `multiSelect` group-resize also engages correctly for a keyboard-driven resize, not just a mouse/touch one. A direct port of Vue's own `resizeBy`. */
@@ -1049,6 +1089,10 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
 
     this.eventBus?.emitItemResize({ eventType: `resizestart`, h: this.h, i: this.i, w: this.w, x: this.x, y: this.y });
     this.eventBus?.emitItemResize({ eventType: `resizeend`, h, i: this.i, w, x: this.x, y: this.y });
+    // The per-item output too (see moveByKeyboard). The pixel size is only computable once the container has been measured
+    // (calcColWidth rejects an unmeasured width), which a standalone item may never have been.
+    const size = Number.isFinite(this.containerWidth) && this.containerWidth >= 1 ? this.calcResizePosition(this.x, this.y, w, h) : { height: 0, width: 0 };
+    this.itemResized.emit({ h, height: size.height, i: this.i, w, width: size.width });
   }
 
   /**
@@ -1141,10 +1185,10 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     const width = w === Infinity ? w : Math.round(colWidth * w + Math.max(0, w - 1) * this.margin[0]);
     const top = Math.round(this.rowHeight * y + (y + 1) * this.margin[1]);
     if(this.resolvedIsMirrored) {
-      // Mirrors the RTL anchor Vue's own calcPosition uses: `right`,
-      // measured as the number of columns *after* the item's own right
-      // edge to the container's own right edge.
-      const right = Math.round(colWidth * (this.colNum - x - w) + (this.colNum - x - w + 1) * this.margin[0]);
+      // The RTL anchor, as Vue's and React's calcPosition compute it: `right`, the distance from the container's right edge to
+      // the item's right edge, counted from `x` itself. Under RTL `x` counts from the right (x:0 is the rightmost column), so
+      // this is the mirror image of `left` below, not the same position expressed from the other side.
+      const right = Math.round(colWidth * x + (x + 1) * this.margin[0]);
       return { height, right, top, width };
     }
     const left = Math.round(colWidth * x + (x + 1) * this.margin[0]);
@@ -1273,7 +1317,9 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * actually populated).
    */
   private handleDrag(event: INativeDragEvent): void {
-    if(this.isStatic || this.isResizing) {
+    // The engine itself stays attached whatever the mode (its `enabled` flag only reads the raw draggable state), so the
+    // handler is where view mode takes effect: Vue's handleDrag opens with the same check.
+    if(this.isStatic || !this.resolvedEnableEditMode || this.isResizing) {
       return;
     }
 
@@ -1297,6 +1343,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         newPosition.top = clientRect.top - parentRect.top;
         this.dragging = newPosition;
         this.isDragging = true;
+        this.dragStartCell = { x: this.x, y: this.y };
         if(this.autoScroll) {
           this.autoScrollEngine.start(target);
         }
@@ -1323,6 +1370,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         // Stryker restore OptionalChaining
         this.dragging = undefined;
         this.isDragging = false;
+        this.armClickSuppression();
         this.autoScrollEngine.stop();
         break;
       }
@@ -1368,14 +1416,10 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       }
     }
 
-    // Convert whichever of left/right is currently populated back to a
-    // plain "distance from the left edge" pixel value for calcXY's own
-    // (LTR-only) math — RTL's own x-from-right conversion mirrors
-    // Vue's own calcXY, which likewise always resolves to a plain left
-    // distance internally regardless of render direction.
-    const leftForCalc = this.resolvedIsMirrored
-      ? this.containerWidth - Number(newPosition.right) - calcGridItemWH(this.w, calcColWidth(this.containerWidth, this.margin[0], this.colNum), this.margin[0])
-      : Number(newPosition.left);
+    // Whichever of left/right is populated is the distance from the edge `x` counts from: the left edge normally, the right
+    // edge under RTL (where x:0 is the rightmost column). calcXY therefore converts it the same way in both directions, as
+    // Vue's and React's calcXY do.
+    const leftForCalc = this.resolvedIsMirrored ? Number(newPosition.right) : Number(newPosition.left);
     const pos = this.calcXY(newPosition.top, leftForCalc);
     this.lastX = x;
     this.lastY = y;
@@ -1384,7 +1428,13 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     this.changeDetectorRef.markForCheck();
 
     if(event.type === `dragend`) {
-      this.itemMoved.emit({ i: this.i, x: pos.x, y: pos.y });
+      const start = this.dragStartCell;
+      this.dragStartCell = undefined;
+      // Only a drag that changed the cell is a move: one that ends where it began (a click with a little jitter, or a drag
+      // put back) reports nothing, as the Vue package's `item-moved` does.
+      if(!start || start.x !== pos.x || start.y !== pos.y) {
+        this.itemMoved.emit({ i: this.i, x: pos.x, y: pos.y });
+      }
     }
 
     this.eventBus?.emitItemDrag({
@@ -1407,7 +1457,10 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * for the left/right anchor specifically.
    */
   private handleResize(event: INativeResizeEvent): void {
-    if(this.isStatic) {
+    // Defensive, as in Vue: the resize handles are not rendered in view mode (they are gated on `isResizableAndNotStatic`), so
+    // the native engine has nothing to listen to and this cannot be reached through a real gesture.
+    // Stryker disable next-line ConditionalExpression,LogicalOperator: unreachable, see the comment above.
+    if(this.isStatic || !this.resolvedEnableEditMode) {
       return;
     }
 
@@ -1422,6 +1475,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         this.resizing = { ...pos };
         this.isResizing = true;
         this.activeEdges = event.edges;
+        this.resizeStartSize = { h: this.h, w: this.w };
         // Confirmed unreachable, not assumed — discovered while trying to
         // write a test for the false branch here and hitting a real,
         // immediate throw instead (`calcGridItemWH`'s own validation
@@ -1447,8 +1501,10 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       }
       case `resizemove`: {
         const coreEvent = createCoreData(this.lastW, this.lastH, x, y);
-        const dx = coreEvent.deltaX;
-        const dy = coreEvent.deltaY;
+        // Divided by transformScale, as a drag's delta is: under a CSS scale() ancestor the pointer travels `transformScale` times
+        // as many screen pixels as the item does, so an unscaled delta resized the item by the wrong amount.
+        const dx = coreEvent.deltaX / this.transformScale;
+        const dy = coreEvent.deltaY / this.transformScale;
 
         const prevAnchor = this.resolvedIsMirrored ? Number(this.resizing?.right) : Number(this.resizing?.left);
         const prevTop = Number(this.resizing?.top);
@@ -1541,6 +1597,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         this.resizing = undefined;
         this.isResizing = false;
         this.aspectRatio = undefined;
+        this.armClickSuppression();
         break;
       }
       // Confirmed unreachable, not assumed: event.type's own type
@@ -1580,42 +1637,12 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
 
     let newX = this.x;
     let newY = this.y;
-    // Bug fix, found via a live e2e run (not assumed) — a real, deterministic
-    // bug, not flakiness: this reproduced with byte-identical values on
-    // every single run ("Expected: 738, Received: 841", every time). In
-    // LTR, `x` (grid-unit, left-anchored) is the authoritative quantity:
-    // dragging the right edge changes `w` but genuinely leaves the left
-    // edge's own position untouched, so gating this recalculation on
-    // `activeEdges.left` specifically (only recompute when the *left*
-    // edge itself moved) is correct there. RTL breaks that symmetry:
-    // `x` is *always* a derived value there (`colNum - rightAnchorGridX
-    // - w`), never an independent anchor of its own — so even when only
-    // the *left* handle is active (`activeEdges.left`, not `right`) and
-    // `newSize.horizontal` (the right-anchor pixel value) never itself
-    // changes on that branch (see the `resizemove` case above: the
-    // `activeEdges.left` branch only ever reassigns `newSize.width`, never
-    // `newSize.horizontal`), the *same* right-anchor pixel value combined
-    // with the *new, larger* width still resolves to a genuinely
-    // different grid-unit `x` than before. Gating this on `this.
-    // activeEdges.right` alone (the old `anchorEdgeActive`, unconditionally
-    // reused for both directions) skipped that recalculation entirely
-    // whenever the *left* handle drove an RTL resize — `x` stayed at its
-    // stale, pre-resize value while `w` grew, which the RTL branch of
-    // `computeStyle()`'s own `right = colWidth*(colNum-x-w)+...` formula
-    // then resolves to a *smaller* `right`, visibly shifting the item's
-    // own right edge further right instead of holding it fixed — exactly
-    // the observed, reproduced failure. Recomputing whenever *either*
-    // horizontal edge is active in RTL (`activeEdges.left ||
-    // activeEdges.right`) closes this: the right-anchor pixel value used
-    // (`newSize.horizontal`) is already correct either way (unchanged when
-    // only the left edge moved, freshly updated when the right edge did),
-    // so re-deriving `x` from it plus the current, already-correct `pos.w`
-    // is safe and correct regardless of which edge actually drove the
-    // gesture.
-    const anchorEdgeActive = this.resolvedIsMirrored ? (this.activeEdges.left || this.activeEdges.right) : this.activeEdges.left;
+    // The anchor is whichever edge `x` counts from: the left edge normally, the right edge under RTL (x counts from the right
+    // there, as in Vue and React). Only a gesture on that edge moves the anchor, so only then is `x` recomputed from its pixel
+    // position; dragging the opposite edge changes `w` and leaves `x` alone, in both directions.
+    const anchorEdgeActive = this.resolvedIsMirrored ? this.activeEdges.right : this.activeEdges.left;
     if(anchorEdgeActive && newSize.horizontal !== undefined) {
-      const anchorGridX = this.pixelsToGridX(newSize.horizontal, pos.w);
-      newX = this.resolvedIsMirrored ? this.colNum - anchorGridX - pos.w : anchorGridX;
+      newX = this.pixelsToGridX(newSize.horizontal, pos.w);
     }
     if(this.activeEdges.top && newSize.top !== undefined) {
       newY = this.pixelsToGridY(newSize.top, pos.h);
@@ -1628,7 +1655,13 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     this.changeDetectorRef.markForCheck();
 
     if(event.type === `resizeend`) {
-      this.itemResized.emit({ h: pos.h, height: newSize.height, i: this.i, w: pos.w, width: newSize.width });
+      const start = this.resizeStartSize;
+      this.resizeStartSize = undefined;
+      // Compared on size only: a resize cannot change position without changing size. Also keeps a plain click on a resize
+      // handle (a resizestart immediately followed by a resizeend) from reporting a resize that never happened.
+      if(!start || start.w !== pos.w || start.h !== pos.h) {
+        this.itemResized.emit({ h: pos.h, height: newSize.height, i: this.i, w: pos.w, width: newSize.width });
+      }
     }
 
     this.eventBus?.emitItemResize({
@@ -1676,7 +1709,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         // further adjustment needed at render time.
         ({ left, right, top } = this.dragging);
       } else if(this.resolvedIsMirrored) {
-        right = Math.round(colWidth * (this.colNum - this.x - this.w) + (this.colNum - this.x - this.w + 1) * marginH);
+        right = Math.round(colWidth * this.x + (this.x + 1) * marginH);
         top = Math.round(this.rowHeight * this.y + (this.y + 1) * marginV);
       } else {
         left = Math.round(colWidth * this.x + (this.x + 1) * marginH);

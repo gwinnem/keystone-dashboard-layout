@@ -1297,8 +1297,8 @@ describe(`GridItemComponent`, () => {
       resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizestart` });
 
       expect(component.resizing?.left).toBeUndefined();
-      // colWidth = 90.8333; right = round(90.8333*(12-0-2) + (12-0-2+1)*10) = 1018
-      expect(component.resizing?.right).toBe(1018);
+      // x:0 is the rightmost column under RTL, so the anchor is one margin in from the right edge: right = round(90.8333*0 + (0+1)*10) = 10
+      expect(component.resizing?.right).toBe(10);
     });
 
     it(`Should grow width via the left edge without moving the (right-measured) anchor, when isMirrored is true`, () => {
@@ -1410,8 +1410,26 @@ describe(`GridItemComponent`, () => {
 
       const style = styleAsMap();
       expect(style[`left`]).toBeUndefined();
-      // colWidth = 90.8333; right = round(90.8333*(12-0-2) + (12-0-2+1)*10) = round(908.33+110) = 1018
-      expect(style[`transform`]).toBe(`translate3d(-1018px,10px, 0)`);
+      // x:0 is the rightmost column under RTL, so the item sits one margin in from the right edge: right = round(90.8333*0 + (0+1)*10) = 10
+      expect(style[`transform`]).toBe(`translate3d(-10px,10px, 0)`);
+    });
+
+    it(`Should count x from the right under RTL: an item at x:4 sits four columns in from the right edge`, () => {
+      setInputsAndDetectChanges({
+        colNum: 12,
+        containerWidth: 1220,
+        h: 2,
+        i: `0`,
+        isMirrored: true,
+        margin: [10, 10],
+        rowHeight: 100,
+        w: 2,
+        x: 4,
+        y: 0,
+      });
+
+      // colWidth = 90.8333; right = round(90.8333*4 + (4+1)*10) = round(363.33 + 50) = 413. The item's width does not enter into it.
+      expect(styleAsMap()[`transform`]).toBe(`translate3d(-413px,10px, 0)`);
     });
 
     it(`Should add the kdl-grid-item--rtl host class when isMirrored is true`, () => {
@@ -1438,8 +1456,8 @@ describe(`GridItemComponent`, () => {
       const style = styleAsMap();
       expect(style[`transform`]).toBeUndefined();
       expect(style[`left`]).toBeUndefined();
-      // Same right value as the useCssTransforms:true RTL test above (1018).
-      expect(style[`right`]).toBe(`1018px`);
+      // Same right value as the useCssTransforms:true RTL test above (10: x:0 is one margin in from the right edge).
+      expect(style[`right`]).toBe(`10px`);
       expect(style[`top`]).toBe(`10px`);
     });
 
@@ -3225,7 +3243,7 @@ describe(`GridItemComponent`, () => {
       expect(fixture.nativeElement.querySelector(`.kdl-grid-item-close-button`)).toBeFalsy();
     });
 
-    it(`Should still let the native engine start a drag via a real pointerdown when enableEditMode is false — confirming the asymmetry is real, not accidental: enableEditMode gates ARIA/tabindex/the close button, but not the underlying drag/resize engine itself, matching Vue's own confirmed behavior`, () => {
+    it(`Should not start a drag from a real pointerdown when enableEditMode is false: view mode is a lock, not just a hidden tab stop`, () => {
       setInputsAndDetectChanges({
         colNum: 12,
         containerWidth: 1220,
@@ -3252,15 +3270,76 @@ describe(`GridItemComponent`, () => {
       item.dispatchEvent(mockPointerEvent(`pointerdown`, { button: 0, clientX: 100, clientY: 50, pointerId: 1 }));
       item.dispatchEvent(mockPointerEvent(`pointermove`, { clientX: 130, clientY: 80, pointerId: 1 }));
 
+      // The engine is still attached (its `enabled` flag reads only the raw draggable state), so the handler is what refuses.
+      expect(component.isDragging).toBe(false);
+    });
+
+    it(`Should start the same drag when enableEditMode is true (the control for the test above)`, () => {
+      setInputsAndDetectChanges({
+        colNum: 12,
+        containerWidth: 1220,
+        enableEditMode: true,
+        h: 2,
+        i: `0`,
+        isDraggable: true,
+        margin: [10, 10],
+        rowHeight: 100,
+        w: 2,
+        x: 0,
+        y: 0,
+      });
+      const item = fixture.nativeElement as HTMLElement;
+      const parent = document.createElement(`div`);
+      document.body.appendChild(parent);
+      parent.appendChild(item);
+      Object.defineProperty(item, `offsetParent`, { configurable: true, get: () => parent });
+      mockRect(parent, { left: 0, top: 0 });
+      mockRect(item, { left: 100, top: 50 });
+      createdParent = parent;
+      (item as unknown as { setPointerCapture: () => void }).setPointerCapture = () => {};
+
+      item.dispatchEvent(mockPointerEvent(`pointerdown`, { button: 0, clientX: 100, clientY: 50, pointerId: 1 }));
+      item.dispatchEvent(mockPointerEvent(`pointermove`, { clientX: 130, clientY: 80, pointerId: 1 }));
+
       expect(component.isDragging).toBe(true);
     });
 
-    it(`Should still let handleKeydown itself report a move even when enableEditMode is false — the same asymmetry confirmed from the other direction: the handler's own guard reads the raw resolvedIsDraggable, not gated by resolvedEnableEditMode`, () => {
+    it(`Should not let handleKeydown move the item when enableEditMode is false, even though it is draggable`, () => {
       const eventBus = new GridEventBusService();
       const reported: unknown[] = [];
       eventBus.itemDrag$.subscribe(event => reported.push(event));
       (component as unknown as { eventBus: GridEventBusService }).eventBus = eventBus;
       setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, enableEditMode: false, h: 2, i: `0`, isDraggable: true, w: 2, x: 4, y: 4 });
+      const moved: unknown[] = [];
+      component.itemMoved.subscribe(payload => moved.push(payload));
+
+      component.handleKeydown(new KeyboardEvent(`keydown`, { key: `ArrowRight` }));
+
+      expect(reported).toEqual([]);
+      expect(moved).toEqual([]);
+    });
+
+    it(`Should not let handleKeydown resize the item when enableEditMode is false, even though it is resizable`, () => {
+      const eventBus = new GridEventBusService();
+      const reported: unknown[] = [];
+      eventBus.itemResize$.subscribe(event => reported.push(event));
+      (component as unknown as { eventBus: GridEventBusService }).eventBus = eventBus;
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, enableEditMode: false, h: 2, i: `0`, isResizable: true, w: 2, x: 0, y: 0 });
+      const resized: unknown[] = [];
+      component.itemResized.subscribe(payload => resized.push(payload));
+
+      component.handleKeydown(new KeyboardEvent(`keydown`, { key: `ArrowRight`, shiftKey: true }));
+
+      expect(reported).toEqual([]);
+      expect(resized).toEqual([]);
+    });
+
+    it(`Should still let handleKeydown move the item when enableEditMode is true`, () => {
+      const eventBus = new GridEventBusService();
+      const reported: unknown[] = [];
+      eventBus.itemDrag$.subscribe(event => reported.push(event));
+      (component as unknown as { eventBus: GridEventBusService }).eventBus = eventBus;
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, enableEditMode: true, h: 2, i: `0`, isDraggable: true, w: 2, x: 4, y: 4 });
 
       component.handleKeydown(new KeyboardEvent(`keydown`, { key: `ArrowRight` }));
 
@@ -3361,15 +3440,192 @@ describe(`GridItemComponent`, () => {
       component.itemResized.subscribe(payload => resized.push(payload));
 
       resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizestart` });
+      resizeHandlerOf(item)({ clientX: 101, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizemove` });
+      resizeHandlerOf(item)({ clientX: 101, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizeend` });
+
+      // Starting width 192 (see Phase 4's own identical resizestart math) + 101 = 293px; grid-unit w =
+      // round((293+10)/(90.8333+10)) = round(3.005) = 3. The item really changed size (2 -> 3), which is what makes
+      // this a resize worth reporting: a move that stays under the 2.5 rounding threshold (50px, say) ends at w 2
+      // again and reports nothing, see the next test.
+      expect(resized).toEqual([{ h: 2, height: 210, i: `0`, w: 3, width: 293 }]);
+    });
+
+    it(`Should not emit itemResized for a resize that ends at the grid size it started with`, () => {
+      const { item } = setupItem();
+      const resized: unknown[] = [];
+      component.itemResized.subscribe(payload => resized.push(payload));
+
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizestart` });
+      // 192 + 50 = 242px rounds back to w 2 (round(2.4996)): the item is where it started.
       resizeHandlerOf(item)({ clientX: 50, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizemove` });
       resizeHandlerOf(item)({ clientX: 50, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizeend` });
 
-      // Starting width 192 (see Phase 4's own identical resizestart
-      // math) + 50 = 242px; grid-unit w = round((242+10)/(90.8333+10)) =
-      // round(2.4996...) = 2 (below the 2.5 rounding threshold, not above
-      // it as an earlier version of this comment's own arithmetic
-      // mistakenly assumed).
-      expect(resized).toEqual([{ h: 2, height: 210, i: `0`, w: 2, width: 242 }]);
+      expect(resized).toEqual([]);
+    });
+
+    it(`Should not emit itemResized for a resizestart immediately followed by a resizeend (a plain click on a handle)`, () => {
+      const { item } = setupItem();
+      const resized: unknown[] = [];
+      component.itemResized.subscribe(payload => resized.push(payload));
+
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizestart` });
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizeend` });
+
+      expect(resized).toEqual([]);
+    });
+
+    it(`Should divide a resize's pointer delta by transformScale, as a drag's is`, () => {
+      const { item } = setupItem();
+      (component as unknown as { transformScale: number }).transformScale = 2;
+
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizestart` });
+      resizeHandlerOf(item)({ clientX: 100, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizemove` });
+
+      // 100px of pointer movement at scale 2 is 50px of item: the starting width of 192 grows to 242, not 292.
+      expect(component.resizing?.width).toBe(242);
+    });
+
+    it(`Should divide a resize's vertical pointer delta by transformScale too`, () => {
+      const { item } = setupItem();
+      (component as unknown as { transformScale: number }).transformScale = 2;
+
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, bottom: true }, target: item, type: `resizestart` });
+      resizeHandlerOf(item)({ clientX: 0, clientY: 60, edges: { ...NO_EDGES, bottom: true }, target: item, type: `resizemove` });
+
+      // Starting height 210 (h 2 at rowHeight 100) + 60 / 2 = 240.
+      expect(component.resizing?.height).toBe(240);
+    });
+
+    it(`Should not emit itemMoved for a drag that ends in the cell it started in`, () => {
+      const { item } = setupItem();
+      const moved: unknown[] = [];
+      component.itemMoved.subscribe(payload => moved.push(payload));
+
+      dragHandlerOf(item)({ clientX: 0, clientY: 0, target: item, type: `dragstart` });
+      // 10px is well under half a column: the item snaps back to x:0.
+      dragHandlerOf(item)({ clientX: 10, clientY: 0, target: item, type: `dragmove` });
+      dragHandlerOf(item)({ clientX: 10, clientY: 0, target: item, type: `dragend` });
+
+      expect(moved).toEqual([]);
+    });
+
+    it(`Should emit itemMoved for a keyboard move, with the destination cell`, () => {
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, h: 2, i: `0`, isDraggable: true, w: 2, x: 4, y: 4 });
+      const moved: { i: string | number; x: number; y: number }[] = [];
+      component.itemMoved.subscribe(payload => moved.push(payload));
+
+      component.handleKeydown(new KeyboardEvent(`keydown`, { key: `ArrowRight` }));
+
+      expect(moved).toEqual([{ i: `0`, x: 5, y: 4 }]);
+    });
+
+    it(`Should not emit itemMoved for a keyboard move the edge of the grid blocks`, () => {
+      // x 10 + w 2 already reaches the 12th column, so ArrowRight has nowhere to go.
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, h: 2, i: `0`, isDraggable: true, w: 2, x: 10, y: 0 });
+      const moved: unknown[] = [];
+      component.itemMoved.subscribe(payload => moved.push(payload));
+
+      component.handleKeydown(new KeyboardEvent(`keydown`, { key: `ArrowRight` }));
+
+      expect(moved).toEqual([]);
+    });
+
+    it(`Should emit itemResized for a keyboard resize, with the new size in grid units and in pixels`, () => {
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, h: 2, i: `0`, isResizable: true, margin: [10, 10], rowHeight: 100, w: 2, x: 0, y: 0 });
+      const resized: { i: string | number; h: number; w: number; height: number; width: number }[] = [];
+      component.itemResized.subscribe(payload => resized.push(payload));
+
+      component.handleKeydown(new KeyboardEvent(`keydown`, { key: `ArrowRight`, shiftKey: true }));
+
+      expect(resized).toHaveLength(1);
+      // h 2 -> 100 * 2 + 10 = 210px. w 3 -> 90.8333 * 3 + 2 * 10 = 292.5px, rounded: asserted to the pixel, not to the
+      // half-pixel the floating-point product lands on.
+      expect(resized[0]).toMatchObject({ h: 2, height: 210, i: `0`, w: 3 });
+      expect(Math.abs(resized[0].width - 293)).toBeLessThanOrEqual(1);
+    });
+
+    it(`Should still report a keyboard resize in grid units when the container has not been measured yet`, () => {
+      // No containerWidth: calcColWidth rejects an unmeasured width, so the pixel size is reported as 0 rather than throwing.
+      setInputsAndDetectChanges({ colNum: 12, h: 2, i: `0`, isResizable: true, w: 2, x: 0, y: 0 });
+      const resized: { i: string | number; h: number; w: number; height: number; width: number }[] = [];
+      component.itemResized.subscribe(payload => resized.push(payload));
+
+      component.handleKeydown(new KeyboardEvent(`keydown`, { key: `ArrowRight`, shiftKey: true }));
+
+      expect(resized).toEqual([{ h: 2, height: 0, i: `0`, w: 3, width: 0 }]);
+    });
+
+    it(`Should not emit itemResized for a keyboard resize that is already at its limit`, () => {
+      setInputsAndDetectChanges({ colNum: 12, containerWidth: 1220, h: 2, i: `0`, isResizable: true, maxW: 2, w: 2, x: 0, y: 0 });
+      const resized: unknown[] = [];
+      component.itemResized.subscribe(payload => resized.push(payload));
+
+      component.handleKeydown(new KeyboardEvent(`keydown`, { key: `ArrowRight`, shiftKey: true }));
+
+      expect(resized).toEqual([]);
+    });
+
+    it(`Should swallow the click that trails a drag, but not a genuine click in a later task`, async () => {
+      const eventBus = new GridEventBusService();
+      eventBus.setContainerWidth(1220);
+      const clicked: (string | number)[] = [];
+      eventBus.itemClicked$.subscribe(event => clicked.push(event.i));
+      (component as unknown as { eventBus: GridEventBusService }).eventBus = eventBus;
+      const { item } = setupItem();
+      const stopPropagation = jest.fn();
+      const click = { ctrlKey: false, metaKey: false, shiftKey: false, stopPropagation } as unknown as MouseEvent;
+
+      dragHandlerOf(item)({ clientX: 0, clientY: 0, target: item, type: `dragstart` });
+      dragHandlerOf(item)({ clientX: 101, clientY: 0, target: item, type: `dragmove` });
+      dragHandlerOf(item)({ clientX: 101, clientY: 0, target: item, type: `dragend` });
+      component.handleClick(click);
+
+      expect(clicked).toEqual([]);
+      // Still stopped: left to bubble, the swallowed click would reach the grid's own background click handler and clear the selection.
+      expect(stopPropagation).toHaveBeenCalledTimes(1);
+
+      await new Promise<void>(resolve => {
+        setTimeout(resolve, 0);
+      });
+      component.handleClick(click);
+
+      expect(clicked).toEqual([`0`]);
+    });
+
+    it(`Should swallow the click that trails a resize, but not a genuine click in a later task`, async () => {
+      const eventBus = new GridEventBusService();
+      eventBus.setContainerWidth(1220);
+      const clicked: (string | number)[] = [];
+      eventBus.itemClicked$.subscribe(event => clicked.push(event.i));
+      (component as unknown as { eventBus: GridEventBusService }).eventBus = eventBus;
+      const { item } = setupItem();
+      const click = { ctrlKey: false, metaKey: false, shiftKey: false, stopPropagation: () => {} } as unknown as MouseEvent;
+
+      resizeHandlerOf(item)({ clientX: 0, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizestart` });
+      resizeHandlerOf(item)({ clientX: 101, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizemove` });
+      resizeHandlerOf(item)({ clientX: 101, clientY: 0, edges: { ...NO_EDGES, right: true }, target: item, type: `resizeend` });
+      component.handleClick(click);
+
+      expect(clicked).toEqual([]);
+
+      await new Promise<void>(resolve => {
+        setTimeout(resolve, 0);
+      });
+      component.handleClick(click);
+
+      expect(clicked).toEqual([`0`]);
+    });
+
+    it(`Should not swallow a click when no drag or resize has just ended`, () => {
+      const eventBus = new GridEventBusService();
+      const clicked: (string | number)[] = [];
+      eventBus.itemClicked$.subscribe(event => clicked.push(event.i));
+      (component as unknown as { eventBus: GridEventBusService }).eventBus = eventBus;
+      setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+
+      component.handleClick({ ctrlKey: false, metaKey: false, shiftKey: false, stopPropagation: () => {} } as unknown as MouseEvent);
+
+      expect(clicked).toEqual([`0`]);
     });
 
     it(`Should not emit itemResized at all on resizestart or resizemove, only on resizeend`, () => {
@@ -3452,6 +3708,17 @@ describe(`GridItemComponent`, () => {
       expect(component.resizeHandleTemplate).toBeUndefined();
     });
 
+    it(`Should hide every resize hint from assistive technology: they are decorative drag targets, and may hold consumer content`, () => {
+      setInputsAndDetectChanges({ containerWidth: 1220, h: 2, i: `0`, w: 2, x: 0, y: 0 });
+
+      const hints = Array.from(fixture.nativeElement.querySelectorAll(`.kdl-resize-hint`)) as HTMLElement[];
+
+      expect(hints.length).toBe(8);
+      for(const hint of hints) {
+        expect(hint.getAttribute(`aria-hidden`)).toBe(`true`);
+      }
+    });
+
     it(`Should only render the template inside the resize handles actually included in resizeHandles, when that's restricted`, () => {
       @Component({
         imports: [GridItemComponent],
@@ -3474,6 +3741,74 @@ describe(`GridItemComponent`, () => {
 
       expect(hostFixture.nativeElement.querySelectorAll(`.custom-handle-marker`).length).toBe(1);
       expect(hostFixture.nativeElement.querySelector(`.kdl-resize-hint--se .custom-handle-marker`)?.textContent).toBe(`se`);
+
+      hostFixture.nativeElement.remove();
+    });
+
+    it(`Should render a template that is projected only after the item has already rendered, with no other input changing`, () => {
+      // The item is OnPush and the template is a content query: toggling it from the consumer's own @if updates the query but
+      // used to leave the eight outlets empty, because nothing marked the item for check.
+      @Component({
+        imports: [GridItemComponent],
+        standalone: true,
+        template: `
+          <kdl-grid-item [containerWidth]="1220" [h]="2" i="0" [w]="2" [x]="0" [y]="0">
+            content
+            @if (show) {
+              <ng-template #resizeHandle let-edge>
+                <span class="custom-handle-marker">{{ edge }}</span>
+              </ng-template>
+            }
+          </kdl-grid-item>
+        `,
+      })
+      class TestHostComponent {
+        show = false;
+      }
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ imports: [TestHostComponent] });
+      const hostFixture = TestBed.createComponent(TestHostComponent);
+      hostFixture.detectChanges();
+      expect(hostFixture.nativeElement.querySelectorAll(`.custom-handle-marker`).length).toBe(0);
+
+      hostFixture.componentInstance.show = true;
+      hostFixture.detectChanges();
+
+      expect(hostFixture.nativeElement.querySelectorAll(`.custom-handle-marker`).length).toBe(8);
+
+      hostFixture.nativeElement.remove();
+    });
+
+    it(`Should stop rendering the template when it is later removed, again with no other input changing`, () => {
+      @Component({
+        imports: [GridItemComponent],
+        standalone: true,
+        template: `
+          <kdl-grid-item [containerWidth]="1220" [h]="2" i="0" [w]="2" [x]="0" [y]="0">
+            content
+            @if (show) {
+              <ng-template #resizeHandle let-edge>
+                <span class="custom-handle-marker">{{ edge }}</span>
+              </ng-template>
+            }
+          </kdl-grid-item>
+        `,
+      })
+      class TestHostComponent {
+        show = true;
+      }
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ imports: [TestHostComponent] });
+      const hostFixture = TestBed.createComponent(TestHostComponent);
+      hostFixture.detectChanges();
+      expect(hostFixture.nativeElement.querySelectorAll(`.custom-handle-marker`).length).toBe(8);
+
+      hostFixture.componentInstance.show = false;
+      hostFixture.detectChanges();
+
+      expect(hostFixture.nativeElement.querySelectorAll(`.custom-handle-marker`).length).toBe(0);
 
       hostFixture.nativeElement.remove();
     });

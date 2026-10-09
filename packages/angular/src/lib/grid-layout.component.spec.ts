@@ -942,6 +942,31 @@ describe(`GridLayoutComponent`, () => {
       expect(component.selectedItemIds).toEqual(new Set([`0`]));
     });
 
+    it(`Should be a no-op via selectItem() when that item is already the whole selection`, () => {
+      setInputsAndDetectChanges({ colNum: 12, layout, multiSelect: true });
+      component.selectItem(`0`);
+      const selectionChanges: (string | number)[][] = [];
+      component.selectionChanged.subscribe(ids => selectionChanges.push(ids));
+
+      component.selectItem(`0`);
+
+      expect(selectionChanges.length).toBe(0);
+      expect(component.selectedItemIds).toEqual(new Set([`0`]));
+    });
+
+    it(`Should still narrow a larger selection down to one item via selectItem(), even when that item is already part of it`, () => {
+      setInputsAndDetectChanges({ colNum: 12, layout, multiSelect: true });
+      component.selectItem(`0`);
+      component.toggleItemSelection(`1`);
+      const selectionChanges: (string | number)[][] = [];
+      component.selectionChanged.subscribe(ids => selectionChanges.push(ids));
+
+      component.selectItem(`0`);
+
+      expect(selectionChanges).toEqual([[`0`]]);
+      expect(component.selectedItemIds).toEqual(new Set([`0`]));
+    });
+
     it(`Should clear the selection when the grid's own background is clicked, while multiSelect is on`, () => {
       setInputsAndDetectChanges({ colNum: 12, layout, multiSelect: true });
       component.selectItem(`0`);
@@ -1827,17 +1852,16 @@ describe(`GridLayoutComponent`, () => {
     const setupTwoGrids = (): { source: GridLayoutComponent; target: GridLayoutComponent } => {
       const sourceLayout: TLayout = [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }];
       setInputsAndDetectChanges({ allowCrossGridDrag: true, colNum: 12, layout: sourceLayout, layoutId: `source` });
-      const sourceContainer = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
-      mockRect(sourceContainer, { bottom: 300, left: 0, right: 300, top: 0 });
+      // The registered cross-grid zone is the host element (what a consumer sizes), so that is the rect to mock.
+      mockRect(fixture.nativeElement as HTMLElement, { bottom: 300, left: 0, right: 300, top: 0 });
 
       targetFixture = TestBed.createComponent(GridLayoutComponent);
       const target = targetFixture.componentInstance;
       Object.assign(target, { allowCrossGridDrag: true, colNum: 12, layout: [], layoutId: `target` });
       target.ngOnChanges({ layout: {} } as unknown as SimpleChanges);
       targetFixture.detectChanges();
-      const targetContainer = targetFixture.nativeElement.querySelector(`div`) as HTMLDivElement;
       // Positioned well to the right of the source grid's own 0–300 rect.
-      mockRect(targetContainer, { bottom: 300, left: 500, right: 800, top: 0 });
+      mockRect(targetFixture.nativeElement as HTMLElement, { bottom: 300, left: 500, right: 800, top: 0 });
 
       return { source: component, target };
     };
@@ -1866,11 +1890,11 @@ describe(`GridLayoutComponent`, () => {
       // correct (keep items where i !== event.i) or a mutant that keeps
       // nothing at all, never distinguishing the two.
       setupTwoGrids();
-      const sourceContainer = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      const sourceHost = fixture.nativeElement as HTMLElement;
       component.layout = [...component.layout, { h: 2, i: `staying`, w: 2, x: 6, y: 0 }];
       component.ngOnChanges({ layout: {} } as unknown as SimpleChanges);
       fixture.detectChanges();
-      mockRect(sourceContainer, { bottom: 300, left: 0, right: 300, top: 0 });
+      mockRect(sourceHost, { bottom: 300, left: 0, right: 300, top: 0 });
       const sourceEmitted: TLayout[] = [];
       component.layoutChange.subscribe((next: TLayout) => sourceEmitted.push(next));
       const eventBus = fixture.debugElement.injector.get(GridEventBusService);
@@ -1882,22 +1906,110 @@ describe(`GridLayoutComponent`, () => {
       expect(sourceFinal.find(item => item.i === `staying`)).toBeTruthy();
     });
 
-    it(`Should not throw, and should not accept the drop, when the target's own containerRef is unresolved (its own getRect returns null)`, () => {
+    it(`Should accept a drop that lands inside the target's host element but below its content-sized inner container`, () => {
       const { target } = setupTwoGrids();
-      (target as unknown as { containerRef: unknown }).containerRef = undefined;
+      // An empty autoSize target's own container is only about one margin tall, while the host, which a consumer sizes (a column's
+      // min-height, a fixed height), is 300px tall: the whole host is the drop zone, not just the part the content fills.
+      mockRect(targetFixture!.nativeElement.querySelector(`div`) as HTMLDivElement, { bottom: 10, left: 500, right: 800, top: 0 });
       const targetEmitted: TLayout[] = [];
       target.layoutChange.subscribe((next: TLayout) => targetEmitted.push(next));
       const eventBus = fixture.debugElement.injector.get(GridEventBusService);
 
-      expect(() => {
-        eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
-        // Same drop point that, with a real containerRef, would fall
-        // inside the target's own rect — with getRect() now returning
-        // null instead, there's nothing for this point to match against.
-        eventBus.emitItemDrag({ clientX: 600, clientY: 100, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
-      }).not.toThrow();
+      eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 600, clientY: 200, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+
+      expect(targetEmitted[targetEmitted.length - 1]?.find(item => item.i === `a`)).toBeTruthy();
+    });
+
+    it(`Should not accept a drop that lands outside the target's host element`, () => {
+      const { target } = setupTwoGrids();
+      const targetEmitted: TLayout[] = [];
+      target.layoutChange.subscribe((next: TLayout) => targetEmitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      // Below the target's 0–300 rows, and to the right of the source grid's own rect.
+      eventBus.emitItemDrag({ clientX: 600, clientY: 400, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
 
       expect(targetEmitted.length).toBe(0);
+    });
+
+    it(`Should place an accepted item in the first free slot of the target, not at the x/y it had in its source grid`, () => {
+      const { target } = setupTwoGrids();
+      const targetEmitted: TLayout[] = [];
+      target.layoutChange.subscribe((next: TLayout) => targetEmitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      // Released at x:2 in the source's own coordinates; the target is empty, so its first free slot is the origin.
+      eventBus.emitItemDrag({ clientX: 600, clientY: 100, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+
+      const dropped = targetEmitted[targetEmitted.length - 1].find(item => item.i === `a`);
+      expect(dropped).toMatchObject({ h: 2, w: 2, x: 0, y: 0 });
+    });
+
+    it(`Should not drop an accepted item on top of one already in the target, even with compaction off`, () => {
+      const { target } = setupTwoGrids();
+      target.compactType = ECompactType.NONE;
+      const blocker: TLayout = [{ h: 2, i: `b`, w: 2, x: 0, y: 0 }];
+      (target as unknown as { workingLayout: TLayout }).workingLayout = blocker;
+      const targetEmitted: TLayout[] = [];
+      target.layoutChange.subscribe((next: TLayout) => targetEmitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      // The source's own x:0 y:0 is exactly where the target's existing item sits.
+      eventBus.emitItemDrag({ clientX: 600, clientY: 100, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+
+      const final = targetEmitted[targetEmitted.length - 1];
+      const placed = final.find(item => item.i === `a`)!;
+      const existing = final.find(item => item.i === `b`)!;
+      const overlaps = placed.x < existing.x + existing.w && existing.x < placed.x + placed.w
+        && placed.y < existing.y + existing.h && existing.y < placed.y + placed.h;
+      expect(overlaps).toBe(false);
+    });
+
+    it(`Should not carry the source's compaction bookkeeping flag into the target's layout`, () => {
+      const { target } = setupTwoGrids();
+      const targetEmitted: TLayout[] = [];
+      target.layoutChange.subscribe((next: TLayout) => targetEmitted.push(next));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 600, clientY: 100, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+
+      const dropped = targetEmitted[targetEmitted.length - 1].find(item => item.i === `a`)!;
+      expect(dropped.moved).not.toBe(true);
+    });
+
+    it(`Should report a layoutId changed after mount as the source id of a later drop`, () => {
+      const { target } = setupTwoGrids();
+      component.layoutId = `renamed`;
+      component.ngOnChanges({ layoutId: { firstChange: false } } as unknown as SimpleChanges);
+      const dropped: { sourceLayoutId: string }[] = [];
+      target.crossGridItemDropped.subscribe(payload => dropped.push(payload));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 600, clientY: 100, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+
+      expect(dropped.map(payload => payload.sourceLayoutId)).toEqual([`renamed`]);
+    });
+
+    it(`Should generate a fresh id when a layoutId is cleared after mount, and still be a working source`, () => {
+      const { target } = setupTwoGrids();
+      component.layoutId = null;
+      component.ngOnChanges({ layoutId: { firstChange: false } } as unknown as SimpleChanges);
+      const dropped: { sourceLayoutId: string }[] = [];
+      target.crossGridItemDropped.subscribe(payload => dropped.push(payload));
+      const eventBus = fixture.debugElement.injector.get(GridEventBusService);
+
+      eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
+      eventBus.emitItemDrag({ clientX: 600, clientY: 100, eventType: `dragend`, h: 2, i: `a`, w: 2, x: 2, y: 0 });
+
+      expect(dropped.length).toBe(1);
+      expect(dropped[0].sourceLayoutId).toMatch(/^grid-layout-\d+$/);
+      expect(dropped[0].sourceLayoutId).not.toBe(`source`);
     });
 
     it(`Should emit crossGridItemDropped on the target grid when it accepts the drop`, () => {
@@ -2383,19 +2495,43 @@ describe(`GridLayoutComponent`, () => {
       expect(dropped.length).toBe(0);
     });
 
-    it(`Should be a no-op, not a throw, when allowOutsideDrop is toggled with containerRef unresolved`, () => {
-      // Same corrected approach as the equivalent scrollToItem()/
-      // focusItem() test above — a "before any detectChanges()" fresh
-      // fixture didn't actually leave containerRef unresolved (confirmed
-      // via a real coverage run), so this directly overrides the private
-      // field instead, deterministically exercising
-      // setOutsideDropEnabled's own "no container" guard.
-      setInputsAndDetectChanges({ allowOutsideDrop: false, layout: [] });
-      (component as unknown as { containerRef: unknown }).containerRef = undefined;
+    it(`Should handle a drop dispatched on the host element itself, not only on the inner container, so the grid's whole visible area is a drop zone`, () => {
+      // `heightMode: 'fixed'` leaves the inner container without a height, so a drop onto the empty part of such a grid lands on
+      // the host. Listening on the container alone never saw it.
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, containerWidth: 1220, layout: [] });
+      const dropped: unknown[] = [];
+      component.itemDroppedFromOutside.subscribe(payload => dropped.push(payload));
 
-      component.allowOutsideDrop = true;
+      dispatchDragEvent(fixture.nativeElement as HTMLElement, `drop`, { clientX: 0, clientY: 0 });
 
-      expect(() => component.ngOnChanges({ allowOutsideDrop: { firstChange: false } } as unknown as SimpleChanges)).not.toThrow();
+      expect(dropped.length).toBe(1);
+    });
+
+    it(`Should still handle a drop that starts inside the container, which bubbles up to the host`, () => {
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, containerWidth: 1220, layout: [] });
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      const dropped: unknown[] = [];
+      component.itemDroppedFromOutside.subscribe(payload => dropped.push(payload));
+
+      dispatchDragEvent(containerDiv, `drop`, { clientX: 0, clientY: 0 });
+
+      expect(dropped.length).toBe(1);
+    });
+
+    it(`Should remove its listeners from the host when the component is destroyed`, () => {
+      setInputsAndDetectChanges({ allowOutsideDrop: true, colNum: 12, containerWidth: 1220, layout: [] });
+      const dropped: unknown[] = [];
+      component.itemDroppedFromOutside.subscribe(payload => dropped.push(payload));
+      const host = fixture.nativeElement as HTMLElement;
+      // The control: the same drop is handled while the component is alive, so the silence afterwards is the listeners going away
+      // and not a drop that was never going to be handled.
+      dispatchDragEvent(host, `drop`, { clientX: 0, clientY: 0 });
+      expect(dropped.length).toBe(1);
+
+      component.ngOnDestroy();
+      dispatchDragEvent(host, `drop`, { clientX: 0, clientY: 0 });
+
+      expect(dropped.length).toBe(1);
     });
   });
 
@@ -3637,16 +3773,15 @@ describe(`GridLayoutComponent`, () => {
       };
       const sourceLayout: TLayout = [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }];
       setInputsAndDetectChanges({ allowCrossGridDrag: true, colNum: 12, containerWidth: 1220, layout: sourceLayout, layoutId: `source`, margin: [10, 10], rowHeight: 100 });
-      const sourceContainer = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
-      mockRect(sourceContainer, { bottom: 300, left: 0, right: 300, top: 0 });
+      // The registered cross-grid zone is the host element, so that is the rect to mock.
+      mockRect(fixture.nativeElement as HTMLElement, { bottom: 300, left: 0, right: 300, top: 0 });
 
       const targetFixture = TestBed.createComponent(GridLayoutComponent);
       const target = targetFixture.componentInstance;
       Object.assign(target, { allowCrossGridDrag: true, colNum: 12, layout: [], layoutId: `target` });
       target.ngOnChanges({ layout: {} } as unknown as SimpleChanges);
       targetFixture.detectChanges();
-      const targetContainer = targetFixture.nativeElement.querySelector(`div`) as HTMLDivElement;
-      mockRect(targetContainer, { bottom: 300, left: 500, right: 800, top: 0 });
+      mockRect(targetFixture.nativeElement as HTMLElement, { bottom: 300, left: 500, right: 800, top: 0 });
 
       const eventBus = fixture.debugElement.injector.get(GridEventBusService);
       eventBus.emitItemDrag({ clientX: 100, clientY: 100, eventType: `dragstart`, h: 2, i: `a`, w: 2, x: 0, y: 0 });
@@ -3708,6 +3843,8 @@ describe(`GridLayoutComponent`, () => {
       expect(marker.getAttribute(`data-x`)).toBe(`3`);
       expect(marker.getAttribute(`data-y`)).toBe(`1`);
       expect(marker.getAttribute(`data-dragging`)).toBe(`true`);
+      // The consumer's content sits in the positioned wrapper (see the stylesheet), not loose in the normal flow.
+      expect(marker.parentElement?.classList.contains(`kdl-grid-placeholder-wrapper`)).toBe(true);
       // The fallback plain placeholder div should not also render.
       expect(hostFixture.nativeElement.querySelector(`.kdl-grid-placeholder`)).toBeFalsy();
 
