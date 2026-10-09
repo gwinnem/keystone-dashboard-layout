@@ -75,7 +75,12 @@ export interface IGridLayoutProps {
    * the Vue package's own `EGridLayoutEvent.COLUMNS_CHANGED`.
    */
   onColumnsChanged?: (colNum: number) => void;
-  /** Maximum number of columns. Default `12`. */
+  /**
+   * Maximum number of columns. Default `12`. With `responsive` on it is a hard ceiling on whatever the current breakpoint's
+   * `cols` entry says (`min(colNum, breakpoint columns)`, the same rule as the Vue and Angular packages): a breakpoint with
+   * more columns than `colNum` is capped to it, and one with fewer is not raised to it. So with `responsive` on and the
+   * default `colNum` of `12`, a `cols` entry above 12 needs `colNum` raised to match.
+   */
   colNum?: number;
   /** Height of one grid row, in pixels. Default `150`. */
   rowHeight?: number;
@@ -262,9 +267,8 @@ export interface IGridLayoutProps {
   /** Maximum number of snapshots kept for `undo()` — the oldest is dropped once exceeded. Only relevant when `enableUndoRedo` is on. Default `50`. */
   undoHistoryLimit?: number;
   /**
-   * Enables responsive breakpoints: `colNum` becomes derived from
-   * `breakpoints`/`cols` and the measured container width instead of
-   * the plain `colNum` prop. Default `false`.
+   * Enables responsive breakpoints: the column count is derived from `breakpoints`/`cols` and the measured container width,
+   * capped by `colNum` (see that prop), instead of being the plain `colNum` prop. Default `false`.
    */
   responsive?: boolean;
   /**
@@ -283,7 +287,11 @@ export interface IGridLayoutProps {
    * without its own explicit entry gets an auto-generated layout
    * (bounds-corrected and compacted from the nearest already-seen
    * breakpoint) the first time it's entered. Every key is optional.
-   * Only relevant when `responsive` is on.
+   * Only relevant when `responsive` is on. Read at mount and again
+   * whenever its *content* changes (a new object with identical
+   * content, such as an inline literal re-created on every render, is
+   * not a change): a change replaces what the grid has cached for each
+   * breakpoint, including layouts edited there since.
    */
   responsiveLayouts?: TResponsiveLayout;
   /** Called whenever `responsive` causes the active breakpoint to change, with the new breakpoint's own name and column count. */

@@ -264,6 +264,25 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   // during render.
   const layoutsCacheRef = useRef<TResponsiveLayout>(responsiveLayouts);
   /**
+   * The cache above is initialised from `responsiveLayouts` once, at mount, so a value supplied *after* mount (state that
+   * arrives later, or a prop changed on purpose) was never used: the supplied layout for a breakpoint was silently ignored
+   * and one was generated instead. Re-seed it whenever the prop's *content* changes. Keyed on the serialised content, not the
+   * object's identity, because an inline literal (`responsiveLayouts={{ ... }}`) is a new object on every render, and
+   * re-seeding on identity would wipe what the cache has accumulated (the layouts edited at each breakpoint). The first run
+   * is skipped: the ref already holds the mount-time value. Declared before the breakpoint effect below so a change to this
+   * prop and a breakpoint switch in the same commit see the new cache.
+   */
+  const responsiveLayoutsKey = JSON.stringify(responsiveLayouts);
+  const hasSeededResponsiveLayoutsRef = useRef(false);
+  useEffect(() => {
+    if(!hasSeededResponsiveLayoutsRef.current) {
+      hasSeededResponsiveLayoutsRef.current = true;
+      return;
+    }
+    layoutsCacheRef.current = responsiveLayouts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately keyed on the serialised content (see above), not the object's identity.
+  }, [responsiveLayoutsKey]);
+  /**
    * Merged with the built-in English defaults via `core`'s own
    * `resolveAriaLabels` — memoized specifically because a fresh merged
    * object literal every render (regardless of whether `ariaLabels`
@@ -285,7 +304,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * written before `responsive` existed — keeps working unchanged
    * against the resolved value, without needing to touch each call site.
    */
-  const colNum = responsive && currentBreakpoint ? getColsFromBreakpoint(currentBreakpoint, cols) : colNumProp;
+  const colNum = responsive && currentBreakpoint ? Math.min(colNumProp, getColsFromBreakpoint(currentBreakpoint, cols)) : colNumProp;
   /**
    * This grid's own actually-used width for every colWidth-derived
    * calculation (item positioning, guides, grid lines, SVG export,
@@ -495,7 +514,17 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     // spot. Confirmed directly via a real, reproduced case: a
     // freshly-added item's own `.style.transform` measured as an empty
     // string, sitting exactly on top of the grid's own first item.
-    const compacted = (compactor ?? getCompactor(compactType)).compact(cloned, colNum, { compactType });
+    // A controlled consumer feeds every `onLayoutChange` straight back in as `layout`, so most prop changes are just the
+    // echo of a layout this component produced itself a moment ago (identical positions to what is already rendered).
+    // Compacting that echo again is not merely redundant, it is wrong whenever the layout was produced by a compaction
+    // with extra constraints that a plain pass does not share: `restoreOnDrag` holds other items at their pre-drag row
+    // via `minPositions`, and an unconstrained pass over the echo lifted them straight back up on the very next render,
+    // so the option did nothing for any consumer that stored the layout (i.e. every real one). Only a layout that
+    // genuinely differs from what is rendered (a new item, an external edit) needs compacting here.
+    const isEchoOfRenderedLayout = layoutPositionsEqual(cloned, workingLayoutRef.current);
+    const compacted = isEchoOfRenderedLayout
+      ? cloned
+      : (compactor ?? getCompactor(compactType)).compact(cloned, colNum, { compactType });
     // Compared against the incoming `layout` prop, not `cloned`: the compactors
     // mutate their input in place and return the same item objects, so by this
     // point `cloned` already holds the compacted positions and comparing the two
@@ -717,7 +746,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     if(newBreakpoint === currentBreakpoint) {
       return;
     }
-    const newCols = getColsFromBreakpoint(newBreakpoint, cols);
+    // `colNum` is a hard ceiling on whatever the breakpoint would give, as in the Vue and Angular packages (their `colsCompute` is
+    // `min(colNum, breakpoint columns)`). It used to be replaced outright, so a grid with `colNum: 8` still got 12 columns at a
+    // wide breakpoint. Capped here too, not only in the derived `colNum` above: this is the count the layout for the new
+    // breakpoint is bounds-corrected and compacted against, and the one reported to `onBreakpointChange`.
+    const newCols = Math.min(colNumProp, getColsFromBreakpoint(newBreakpoint, cols));
 
     // Cache the breakpoint being left, so returning to it later restores
     // its own last-known state instead of regenerating from scratch —
@@ -755,7 +788,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     setCurrentBreakpoint(newBreakpoint);
     onLayoutChange?.(nextLayout);
     onBreakpointChange?.(newBreakpoint, newCols);
-  }, [responsive, hasMeasuredWidth, containerWidth, breakpoints, cols, currentBreakpoint, compactType, distributeEvenly, onLayoutChange, onBreakpointChange]);
+  }, [responsive, hasMeasuredWidth, containerWidth, breakpoints, cols, colNumProp, currentBreakpoint, compactType, distributeEvenly, onLayoutChange, onBreakpointChange]);
 
   const commitLayout = useCallback((next: TLayout, minPositions?: Record<string | number, { x?: number; y?: number }>): void => {
     const compacted = (compactor ?? getCompactor(compactType)).compact(next, colNum, { compactType, minPositions });
@@ -1109,8 +1142,15 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
 
   useImperativeHandle(ref, () => ({
     alignSelected,
-    canRedo: futureRef.current.length > 0,
-    canUndo: historyRef.current.length > 0,
+    // Getters, not booleans computed when the handle is built: the history is pushed by an effect after that (an item added through
+    // the `layout` prop is recorded there), so a snapshot said `false` for a handle already in the consumer's hands, and nothing
+    // made the consumer read it again. A getter always answers for the history as it is now.
+    get canRedo(): boolean {
+      return futureRef.current.length > 0;
+    },
+    get canUndo(): boolean {
+      return historyRef.current.length > 0;
+    },
     clearSelection,
     compactNow,
     deselectItem,
@@ -1731,7 +1771,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
         <div className="kdl-grid-placeholder" style={itemGesturePlaceholderStyle} />
       )}
       {renderPlaceholder && activePlaceholderStyle && (
-        <div style={activePlaceholderStyle}>
+        <div className="kdl-grid-placeholder-wrapper" style={activePlaceholderStyle}>
           {renderPlaceholder(activePlaceholder, isPlaceholderActive)}
         </div>
       )}
