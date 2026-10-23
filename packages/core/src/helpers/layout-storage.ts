@@ -59,10 +59,8 @@ export function deserializeLayout(json: string | null | undefined): TLayout | nu
   let parsed: unknown;
   try {
     parsed = JSON.parse(json);
-    // Equivalent mutant, left visible on purpose: with an empty catch `parsed` stays undefined, which the Array.isArray check below turns into the same null.
-    // (A Stryker directive placed here was observed to be ignored, so none is used: the comment trails the try block instead of leading a node.)
   } catch{
-    return null;
+    // Deliberately empty: `parsed` stays undefined, and the Array.isArray check below turns that into the same `null` as for any other value that is not an array, so there is no separate failure path to write here.
   }
 
   if(!Array.isArray(parsed)) {
