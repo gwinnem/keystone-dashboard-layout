@@ -758,7 +758,8 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     // Cache the breakpoint being left, so returning to it later restores
     // its own last-known state instead of regenerating from scratch —
     // same rationale as Vue's own `useResponsiveLayout.ts`.
-    if(currentBreakpoint) {
+    // Stryker disable next-line ConditionalExpression: equivalent — with no current breakpoint (the very first resolution) the cache would only gain a `null` key that nothing reads: lookups use real breakpoint names and findOrGenerateResponsiveLayout ignores its cache argument. Never caching the breakpoint being left is still caught by the `!==` -> `===` mutant on this line, which the cache-restore test kills.
+    if(currentBreakpoint !== null) {
       layoutsCacheRef.current = { ...layoutsCacheRef.current, [currentBreakpoint]: workingLayoutRef.current };
     }
 
@@ -1440,16 +1441,16 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       clearGuidesAndIndicators();
     } else {
       updateGuidesAndIndicators(id, resolvedX, resolvedY, w, h);
-    }
-
-    // Regular in-grid drag placeholder — the React equivalent of Vue's
-    // own #placeholder scoped slot rendering during any in-grid drag,
-    // not just outside-drop (which `outsideDropPlaceholder` below
-    // already covers separately). Uses the same, already-computed
-    // `resolvedX`/`resolvedY` (post-snap, pre-collision-resolution) as
-    // the "where is this drag currently heading" position — the same
-    // value `moveElement` below is about to resolve against collisions.
-    if(eventType === `dragstart` || eventType === `dragmove`) {
+      // Regular in-grid drag placeholder — the React equivalent of Vue's
+      // own #placeholder scoped slot rendering during any in-grid drag,
+      // not just outside-drop (which `outsideDropPlaceholder` below
+      // already covers separately). Set for dragstart and dragmove, i.e.
+      // everything but dragend (cleared at the end of this function), the
+      // same shape as `handleItemResize`'s own. Uses the same,
+      // already-computed `resolvedX`/`resolvedY` (post-snap,
+      // pre-collision-resolution) as the "where is this drag currently
+      // heading" position — the same value `moveElement` below is about
+      // to resolve against collisions.
       setItemGesturePlaceholder({ h, w, x: resolvedX, y: resolvedY });
     }
 
