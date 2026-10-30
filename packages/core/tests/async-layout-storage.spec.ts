@@ -11,14 +11,21 @@ import type { TLayout } from '../src/layout-definition';
 const layout = (): TLayout => [{ h: 2, i: `a`, w: 2, x: 0, y: 0 }, { h: 2, i: `b`, w: 2, x: 2, y: 0 }];
 
 /** A just-enough IndexedDB: one database, one object store, requests and transactions that complete on a later tick. */
-const createFakeIndexedDb = (behaviour: { failOpen?: number; failWrites?: boolean } = {}) => {
+const createFakeIndexedDb = (behaviour: { abortWrites?: boolean; failOpen?: number; failReads?: boolean; failWrites?: boolean } = {}) => {
   const data = new Map<string, unknown>();
+  /** `[storeName, mode]` of every transaction, in order. */
+  const transactions: [string, string][] = [];
   let failOpen = behaviour.failOpen ?? 0;
   let created = false;
   const createObjectStore = vi.fn();
   const request = (compute: () => unknown) => {
     const result: { error: unknown; onerror: (() => void) | null; onsuccess: (() => void) | null; result: unknown } = { error: null, onerror: null, onsuccess: null, result: undefined };
     queueMicrotask(() => {
+      if(behaviour.failReads) {
+        result.error = new Error(`read failed`);
+        result.onerror?.();
+        return;
+      }
       result.result = compute();
       result.onsuccess?.();
     });
@@ -26,7 +33,8 @@ const createFakeIndexedDb = (behaviour: { failOpen?: number; failWrites?: boolea
   };
   const database = {
     createObjectStore,
-    transaction: () => {
+    transaction: (storeName: string, mode: string) => {
+      transactions.push([storeName, mode]);
       const transaction: { error: unknown; objectStore: () => unknown; onabort: (() => void) | null; oncomplete: (() => void) | null; onerror: (() => void) | null } = {
         error: null,
         objectStore: () => ({
@@ -46,7 +54,10 @@ const createFakeIndexedDb = (behaviour: { failOpen?: number; failWrites?: boolea
       };
       const finish = (): void => {
         setTimeout(() => {
-          if(behaviour.failWrites) {
+          if(behaviour.abortWrites) {
+            transaction.error = new Error(`write aborted`);
+            transaction.onabort?.();
+          } else if(behaviour.failWrites) {
             transaction.error = new Error(`write failed`);
             transaction.onerror?.();
           } else {
@@ -80,7 +91,7 @@ const createFakeIndexedDb = (behaviour: { failOpen?: number; failWrites?: boolea
     }, 0);
     return openRequest;
   });
-  return { createObjectStore, data, factory: { open } as unknown as IDBFactory, open };
+  return { createObjectStore, data, factory: { open } as unknown as IDBFactory, open, transactions };
 };
 
 const response = (status: number, body = ``) => ({ ok: status >= 200 && status < 300, status, text: () => Promise.resolve(body) }) as unknown as Response;
@@ -181,6 +192,29 @@ describe(`async-layout-storage`, () => {
 
       await expect(createIndexedDbStorage({ indexedDB: factory }).setItem(`k`, `v`)).rejects.toThrow(`write failed`);
     });
+
+    it(`Should reject a write whose transaction is aborted`, async () => {
+      const { factory } = createFakeIndexedDb({ abortWrites: true });
+
+      await expect(createIndexedDbStorage({ indexedDB: factory }).setItem(`k`, `v`)).rejects.toThrow(`write aborted`);
+    });
+
+    it(`Should reject a read that fails`, async () => {
+      const { factory } = createFakeIndexedDb({ failReads: true });
+
+      await expect(createIndexedDbStorage({ indexedDB: factory }).getItem(`k`)).rejects.toThrow(`read failed`);
+    });
+
+    it(`Should read in a readonly transaction and write in a readwrite one, on the configured store`, async () => {
+      const { factory, transactions } = createFakeIndexedDb();
+      const storage = createIndexedDbStorage({ indexedDB: factory, storeName: `s` });
+
+      await storage.getItem(`k`);
+      await storage.setItem(`k`, `v`);
+      await storage.removeItem(`k`);
+
+      expect(transactions).toEqual([[`s`, `readonly`], [`s`, `readwrite`], [`s`, `readwrite`]]);
+    });
   });
 
   describe(`createHttpStorage`, () => {
@@ -190,6 +224,8 @@ describe(`async-layout-storage`, () => {
 
       expect(await storage.getItem(`my key/1`)).toBe(`[]`);
       expect(doFetch).toHaveBeenCalledWith(`https://api.test/layouts/my%20key%2F1`, { headers: {}, method: `GET` });
+      // Strict: a request without a body must not carry a `body: undefined` key either.
+      expect(doFetch.mock.calls[0][1]).toStrictEqual({ headers: {}, method: `GET` });
     });
 
     it(`Should read a 404 as nothing stored`, async () => {

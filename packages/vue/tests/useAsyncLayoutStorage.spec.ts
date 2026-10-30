@@ -1,8 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { nextTick, ref } from 'vue';
-import { flushPromises } from '@vue/test-utils';
+import { defineComponent, nextTick, ref } from 'vue';
+import { flushPromises, mount } from '@vue/test-utils';
 import { createMemoryAsyncStorage } from '@/core/helpers/async-layout-storage';
 import { serializeLayout } from '@/core/helpers/layout-storage';
 import { useAsyncLayoutStorage } from '@/composables/useAsyncLayoutStorage';
@@ -15,6 +15,16 @@ const storageWith = (value) => createMemoryAsyncStorage(value === undefined ? {}
 describe(`useAsyncLayoutStorage`, () => {
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  describe(`initial state`, () => {
+    it(`Should start neither loading nor saving, with no error`, () => {
+      const { error, isLoading, isSaving } = useAsyncLayoutStorage(`k`, ref(defaults()), storageWith(), { autoLoad: false });
+
+      expect(isLoading.value).toBe(false);
+      expect(isSaving.value).toBe(false);
+      expect(error.value).toBeNull();
+    });
   });
 
   describe(`load`, () => {
@@ -267,6 +277,55 @@ describe(`useAsyncLayoutStorage`, () => {
       await vi.advanceTimersByTimeAsync(100);
 
       expect(setItem).toHaveBeenCalledTimes(1);
+    });
+
+    it(`Should cancel a pending save when the owning component unmounts`, async () => {
+      vi.useFakeTimers();
+      const base = storageWith();
+      const setItem = vi.spyOn(base, `setItem`);
+      const layout = ref(defaults());
+      const wrapper = mount(defineComponent({
+        setup() {
+          useAsyncLayoutStorage(`k`, layout, base, { autoLoad: false, autoSave: true, debounceMs: 100 });
+          return () => null;
+        },
+      }));
+
+      layout.value[0].x = 1;
+      await nextTick();
+      wrapper.unmount();
+      await vi.advanceTimersByTimeAsync(500);
+
+      expect(setItem).not.toHaveBeenCalled();
+    });
+
+    it(`Should unmount cleanly when no save is pending, and stop watching afterwards`, async () => {
+      vi.useFakeTimers();
+      const base = storageWith();
+      const setItem = vi.spyOn(base, `setItem`);
+      const layout = ref(defaults());
+      const wrapper = mount(defineComponent({
+        setup() {
+          useAsyncLayoutStorage(`k`, layout, base, { autoLoad: false, autoSave: true, debounceMs: 100 });
+          return () => null;
+        },
+      }));
+
+      wrapper.unmount();
+      layout.value[0].x = 1;
+      await nextTick();
+      await vi.advanceTimersByTimeAsync(500);
+
+      expect(setItem).not.toHaveBeenCalled();
+    });
+
+    it(`Should not warn about a missing component instance when used outside a component`, () => {
+      const warn = vi.spyOn(console, `warn`).mockImplementation(() => undefined);
+
+      useAsyncLayoutStorage(`k`, ref(defaults()), storageWith(), { autoLoad: false, autoSave: true });
+
+      expect(warn).not.toHaveBeenCalled();
+      warn.mockRestore();
     });
 
     it(`Should not save by itself when autoSave is off`, async () => {

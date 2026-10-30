@@ -66,7 +66,8 @@ export function createIndexedDbStorage(options: IIndexedDbStorageOptions = {}): 
 
   const open = (): Promise<IDBDatabase> => {
     if(opening === undefined) {
-      const factory = options.indexedDB ?? (typeof indexedDB === `undefined` ? undefined : indexedDB);
+      // Not a bare `indexedDB`: that is a ReferenceError where the global does not exist (SSR, workers without it).
+      const factory: IDBFactory | undefined = options.indexedDB ?? globalThis.indexedDB;
       opening = new Promise<IDBDatabase>((resolve, reject) => {
         if(factory === undefined) {
           reject(new Error(`IndexedDB is not available`));
@@ -122,7 +123,7 @@ export function createHttpStorage(options: IHttpStorageOptions): IAsyncLayoutSto
   const baseUrl = options.baseUrl.replace(/\/+$/, ``);
 
   const send = async (key: string, method: `DELETE` | `GET` | `PUT`, body?: string): Promise<Response> => {
-    const doFetch = options.fetch ?? (typeof fetch === `undefined` ? undefined : fetch);
+    const doFetch: typeof fetch | undefined = options.fetch ?? globalThis.fetch;
     if(doFetch === undefined) {
       throw new Error(`fetch is not available`);
     }

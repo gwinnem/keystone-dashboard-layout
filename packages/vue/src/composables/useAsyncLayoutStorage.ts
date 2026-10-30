@@ -133,9 +133,7 @@ export function useAsyncLayoutStorage(
           skipNextAutoSave = false;
           return;
         }
-        if(debounceHandle !== undefined) {
-          clearTimeout(debounceHandle);
-        }
+        clearTimeout(debounceHandle);
         debounceHandle = setTimeout(() => {
           void save();
         }, debounceMs);
@@ -145,9 +143,7 @@ export function useAsyncLayoutStorage(
     // Only inside a component: called from a plain function (a test, a store) there is nothing to hook into.
     if(getCurrentInstance() !== null) {
       onBeforeUnmount(() => {
-        if(debounceHandle !== undefined) {
-          clearTimeout(debounceHandle);
-        }
+        clearTimeout(debounceHandle);
       });
     }
   }

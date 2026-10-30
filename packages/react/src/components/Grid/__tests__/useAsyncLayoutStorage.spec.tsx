@@ -33,6 +33,14 @@ describe(`useAsyncLayoutStorage`, () => {
       expect(result.current.isLoading).toBe(false);
     });
 
+    it(`Should start neither loading nor saving, with no error`, () => {
+      const { result } = renderHook(() => useAsyncLayoutStorage(`k`, createMemoryAsyncStorage()));
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isSaving).toBe(false);
+      expect(result.current.error).toBeNull();
+    });
+
     it(`Should resolve null when nothing is stored`, async () => {
       const { result } = renderHook(() => useAsyncLayoutStorage(`k`, createMemoryAsyncStorage()));
 
@@ -45,10 +53,12 @@ describe(`useAsyncLayoutStorage`, () => {
     });
 
     it(`Should be loading until the store has answered`, async () => {
-      let release: (value: string | null) => void = () => undefined;
+      let release: () => void = () => undefined;
+      let requested = false;
       const storage: IAsyncLayoutStorage = {
         getItem: () => new Promise<string | null>(resolve => {
-          release = resolve;
+          requested = true;
+          release = (): void => resolve(null);
         }),
         removeItem: () => Promise.resolve(),
         setItem: () => Promise.resolve(),
@@ -60,10 +70,47 @@ describe(`useAsyncLayoutStorage`, () => {
         pending = result.current.load();
       });
       expect(result.current.isLoading).toBe(true);
+      // The queue starts the read a microtask later: wait for the store to be asked before answering it.
+      await waitFor(() => expect(requested).toBe(true));
 
       await act(async () => {
-        release(null);
+        release();
         await pending;
+      });
+
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it(`Should stay loading until the last of several queued loads is done`, async () => {
+      const releases: ((value: string | null) => void)[] = [];
+      const storage: IAsyncLayoutStorage = {
+        getItem: () => new Promise<string | null>(resolve => {
+          releases.push(resolve);
+        }),
+        removeItem: () => Promise.resolve(),
+        setItem: () => Promise.resolve(),
+      };
+      const { result } = renderHook(() => useAsyncLayoutStorage(`k`, storage));
+
+      let first: Promise<TLayout | null> = Promise.resolve(null);
+      let second: Promise<TLayout | null> = Promise.resolve(null);
+      act(() => {
+        first = result.current.load();
+        second = result.current.load();
+      });
+      expect(result.current.isLoading).toBe(true);
+      await waitFor(() => expect(releases.length).toBe(1));
+
+      await act(async () => {
+        releases[0](null);
+        await first;
+      });
+      expect(result.current.isLoading).toBe(true);
+      await waitFor(() => expect(releases.length).toBe(2));
+
+      await act(async () => {
+        releases[1](null);
+        await second;
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -140,15 +187,17 @@ describe(`useAsyncLayoutStorage`, () => {
         second = result.current.save(stored());
       });
       expect(result.current.isSaving).toBe(true);
+      await waitFor(() => expect(releases.length).toBe(1));
 
       await act(async () => {
         releases[0]();
         await first;
       });
       expect(result.current.isSaving).toBe(true);
+      // The second write only reaches the store once the first has finished.
+      await waitFor(() => expect(releases.length).toBe(2));
 
       await act(async () => {
-        await waitFor(() => expect(releases.length).toBe(2));
         releases[1]();
         await second;
       });
@@ -202,6 +251,27 @@ describe(`useAsyncLayoutStorage`, () => {
       expect(await result.current.hasSaved()).toBe(false);
     });
 
+    it(`Should clear an earlier error once clearing succeeds`, async () => {
+      let fail = true;
+      const storage: IAsyncLayoutStorage = {
+        getItem: () => Promise.resolve(null),
+        removeItem: () => (fail ? Promise.reject(new Error(`down`)) : Promise.resolve()),
+        setItem: () => Promise.resolve(),
+      };
+      const { result } = renderHook(() => useAsyncLayoutStorage(`k`, storage));
+      await act(async () => {
+        await result.current.clear();
+      });
+      expect(result.current.error).not.toBeNull();
+
+      fail = false;
+      await act(async () => {
+        await result.current.clear();
+      });
+
+      expect(result.current.error).toBeNull();
+    });
+
     it(`Should resolve false and record the error when clearing fails`, async () => {
       const { result } = renderHook(() => useAsyncLayoutStorage(`k`, failing(new Error(`down`))));
 
@@ -225,6 +295,26 @@ describe(`useAsyncLayoutStorage`, () => {
 
       expect(result.current.load).toBe(load);
       expect(result.current.save).toBe(save);
+    });
+
+    it(`Should load, clear and check the new key after the key changes`, async () => {
+      const storage = createMemoryAsyncStorage({ two: serializeLayout(stored()) });
+      const { result, rerender } = renderHook(({ k }) => useAsyncLayoutStorage(k, storage), { initialProps: { k: `one` } });
+      rerender({ k: `two` });
+
+      let loaded: TLayout | null = null;
+      await act(async () => {
+        loaded = await result.current.load();
+      });
+      expect(loaded).toEqual(stored());
+      expect(await result.current.hasSaved()).toBe(true);
+
+      await act(async () => {
+        await result.current.clear();
+      });
+
+      expect(await storage.getItem(`two`)).toBeNull();
+      expect(await result.current.hasSaved()).toBe(false);
     });
 
     it(`Should use the key it is given`, async () => {
@@ -308,13 +398,16 @@ describe(`useAsyncLayoutStorage`, () => {
       vi.useFakeTimers();
       const storage = createMemoryAsyncStorage();
       const setItem = vi.spyOn(storage, `setItem`);
-      renderHook(() => useAsyncLayoutStorage(`k`, storage, { autoSave: true }));
+      const onError = vi.fn();
+      renderHook(() => useAsyncLayoutStorage(`k`, storage, { autoSave: true, onError }));
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(1000);
       });
 
       expect(setItem).not.toHaveBeenCalled();
+      // A save of `undefined` would fail inside the write queue and land here rather than in setItem.
+      expect(onError).not.toHaveBeenCalled();
     });
 
     it(`Should cancel a pending save on unmount`, async () => {
