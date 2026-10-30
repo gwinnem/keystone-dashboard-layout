@@ -19,7 +19,7 @@ import { RouterLink } from '@angular/router';
     <h1>Examples</h1>
     <p class="gallery-intro">
       Every example below renders the real, published component — not a
-      screenshot. All 55 are ported; grouped here the same way the
+      screenshot. All 56 are ported; grouped here the same way the
       <a href="https://kdl.winnem.tech/angular/features/" target="_blank" rel="noopener">Features</a>
       guide groups its own categories, so a bullet there and an example
       here always mean the same thing.
@@ -48,6 +48,7 @@ import { RouterLink } from '@angular/router';
       <li><a routerLink="/examples/10-add-remove-items"><strong>Add or remove items</strong></a> — the grid re-compacts automatically, no manual position math.</li>
       <li><a routerLink="/examples/15-horizontal-shift"><strong>Horizontal shift</strong></a> — push colliding items left/right instead of down.</li>
       <li><a routerLink="/examples/19-save-load-layout"><strong>Save/load layout</strong></a> — layout is a plain, JSON-serializable array.</li>
+      <li><a routerLink="/examples/56-async-persistence"><strong>Async persistence</strong></a> — save to a server, IndexedDB or any promise-based store; failures reported, never thrown.</li>
       <li><a routerLink="/examples/20-auto-size-grid"><strong>Auto-size grid on content</strong></a> — the container's own height grows/shrinks to fit.</li>
       <li><a routerLink="/examples/26-alignment-guides"><strong>Alignment guides while dragging</strong></a> — Figma-style guide lines, purely visual.</li>
       <li><a routerLink="/examples/28-svg-export"><strong>Export layout as SVG</strong></a> — a dependency-free standalone SVG snapshot.</li>

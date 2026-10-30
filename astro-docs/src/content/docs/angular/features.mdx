@@ -3,15 +3,15 @@ title: Features
 description: Everything Keystone Dashboard Layout for Angular does, grouped by category, with a live example linked from every bullet.
 ---
 
-:::note[All 55 examples are live in a real, separate Angular app]
-Angular has reached full feature parity with Vue and React, and all 55
+:::note[All 56 examples are live in a real, separate Angular app]
+Angular has reached full feature parity with Vue and React, and all 56
 of this package's own interactive examples have been ported and
 verified — but they live in a real, separate, standalone Angular CLI
 app rather than as embedded Astro islands on this site (the community
 `@analogjs/astro-angular` integration this site's Vue/React examples
 rely on proved too fragile for Angular specifically; see that app's own
 README for the full account). Every link below opens that app directly
-— see the sidebar's own **Examples** section for the same 55, or
+— see the sidebar's own **Examples** section for the same 56, or
 [Vue's own Examples](/vue/examples/)/[React's own Examples](/react/examples/)
 if you'd rather stay on this site; the underlying behavior across all
 three is identical. Every example in that app also has its own "Open in
@@ -46,6 +46,7 @@ exact example's own source.
 - **Auto-sizing container** — the grid's height grows/shrinks to fit its content by default (`autoSize`, or the newer `heightMode` `@Input()` for finer control including `'scroll'`/`'fit'` modes). See [Auto-size grid on content](https://kdla.winnem.tech/examples/20-auto-size-grid) and [Height modes](https://kdla.winnem.tech/examples/50-height-modes).
 - **Spacing indicators** (`showSpacingGuides`) — a labeled distance badge (e.g. "2 cols") in the gap between the active item and its nearest neighbor on each side, independently toggleable alongside alignment guides. See [Spacing indicators](https://kdla.winnem.tech/examples/47-spacing-indicators).
 - **Serializable layout.** The `layout` array is a plain, JSON-serializable structure you own — persist it anywhere. See [Save/load layout](https://kdla.winnem.tech/examples/19-save-load-layout).
+- **Async persistence** (`GridLayoutAsyncStorageService`) — save and load through a promise-based store: ready-made HTTP and IndexedDB adapters (from `keystone-dashboard-layout-core`), or your own `IAsyncLayoutStorage`. Writes are queued so a slow save never overwrites a newer one, and failures are emitted on `errors$` rather than thrown. Sits alongside the synchronous `GridLayoutStorageService`. See [Async persistence](https://kdla.winnem.tech/examples/56-async-persistence).
 - **Named layout presets** (`GridLayoutPresetsService`) — save and switch between multiple named arrangements, layered on the same serialize/restore primitives `GridLayoutStorageService` uses. See [Named layout presets](https://kdla.winnem.tech/examples/35-named-presets).
 - **Grid-to-SVG export** (`exportLayoutAsSvg()`, a public method on `GridLayoutComponent`) — a dependency-free utility producing a standalone SVG snapshot of the current layout. See [Export layout as SVG](https://kdla.winnem.tech/examples/28-svg-export).
 - **Undo/redo** (`enableUndoRedo`, capped via `undoHistoryLimit`) — opt-in history at committed-change granularity (drag/resize end, add/remove), not per intermediate frame. Reach `undo()`/`redo()` and the `canUndo`/`canRedo` flags via a template reference variable on `GridLayoutComponent`. See [Undo/redo](https://kdla.winnem.tech/examples/43-undo-redo).

@@ -55,6 +55,7 @@ import { RestrictResizeHandlesPageComponent } from './pages/52-restrict-resize-h
 import { ResizeDirectionTogglesPageComponent } from './pages/53-resize-direction-toggles.page.component';
 import { PluggablePositioningPageComponent } from './pages/54-pluggable-positioning.page.component';
 import { SwapOnDragPageComponent } from './pages/55-swap-on-drag.page.component';
+import { AsyncPersistencePageComponent } from './pages/56-async-persistence.page.component';
 
 export const ROUTES: Routes = [
   { path: '', component: HomeComponent },
@@ -113,4 +114,5 @@ export const ROUTES: Routes = [
   { path: 'examples/53-resize-direction-toggles', component: ResizeDirectionTogglesPageComponent },
   { path: 'examples/54-pluggable-positioning', component: PluggablePositioningPageComponent },
   { path: 'examples/55-swap-on-drag', component: SwapOnDragPageComponent },
+  { path: 'examples/56-async-persistence', component: AsyncPersistencePageComponent },
 ];

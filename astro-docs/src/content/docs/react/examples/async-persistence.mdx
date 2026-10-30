@@ -1,0 +1,24 @@
+---
+title: Async persistence
+description: Save and load a layout through a promise-based store (HTTP, IndexedDB or your own) with useAsyncLayoutStorage.
+---
+import AsyncPersistence from '../../../../components/examples-react/56-async-persistence.tsx';
+import AsyncPersistenceSource from '../../../../components/examples-react/56-async-persistence.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={AsyncPersistenceSource} filename="async-persistence.tsx" lang="tsx" playground>
+  <AsyncPersistence client:visible />
+</ExampleTryIt>
+
+`useAsyncLayoutStorage` is the asynchronous sibling of
+[`useLayoutStorage`](/react/examples/save-load-layout/). Hand it any
+`IAsyncLayoutStorage`: `createHttpStorage`, `createIndexedDbStorage` and
+`createMemoryAsyncStorage` come from `keystone-dashboard-layout-core`, or write
+your own three-method object. This demo uses an in-memory stand-in for a server
+so you can pick a latency, or tick "Server is down" and save, to see a failure
+reported.
+
+Nothing it returns rejects. A failing store sets `error` (and calls `onError`)
+and the method resolves `false` or `null`. Writes are queued, so a slow earlier
+save can never overwrite a later one. Create the store once (module scope or
+`useMemo`): a new store object on every render starts a new queue.

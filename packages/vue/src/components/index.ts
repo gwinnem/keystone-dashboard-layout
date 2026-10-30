@@ -31,6 +31,14 @@ import { IBreakpoints, IColumns, IGridLayoutProps } from './Grid/grid-layout-pro
 import { ICustomCloseButtonProps } from './common/CustomCloseButton.vue';
 import { ICustomDragElementProps } from './common/CustomDragElement.vue';
 import { deserializeLayout, serializeLayout } from '@/core/helpers/layout-storage';
+import {
+  createHttpStorage,
+  createIndexedDbStorage,
+  createMemoryAsyncStorage,
+  IAsyncLayoutStorage,
+  IHttpStorageOptions,
+  IIndexedDbStorageOptions,
+} from '@/core/helpers/async-layout-storage';
 import { readOutsideDropPayload } from '@/core/gridlayout/helpers/outside-drop-payload';
 import { exportLayoutAsSvg, IExportLayoutAsSvgOptions } from '@/core/gridlayout/helpers/export-svg';
 import {
@@ -52,6 +60,11 @@ import {
 } from '@/core/gridlayout/helpers/position-strategy';
 import { TCollisionMode } from '@/core/gridlayout/helpers/swap-helper';
 import { IUseLayoutStorage, IUseLayoutStorageOptions, useLayoutStorage } from '@/composables/useLayoutStorage';
+import {
+  IUseAsyncLayoutStorage,
+  IUseAsyncLayoutStorageOptions,
+  useAsyncLayoutStorage,
+} from '@/composables/useAsyncLayoutStorage';
 import { IUseLayoutPresets, IUseLayoutPresetsOptions, useLayoutPresets } from '@/composables/useLayoutPresets';
 import { IOutsideItemDropped } from '@/core/gridlayout/interfaces/outside-drop.interfaces';
 import { ICrossGridDropRejected, ICrossGridItemDropped } from '@/core/gridlayout/interfaces/cross-grid.interfaces';
@@ -87,6 +100,12 @@ export {
   deserializeLayout,
   useLayoutStorage,
   useLayoutPresets,
+  // Async persistence — the asynchronous sibling of useLayoutStorage, with ready-made
+  // IndexedDB / HTTP / in-memory stores (or bring your own IAsyncLayoutStorage).
+  useAsyncLayoutStorage,
+  createHttpStorage,
+  createIndexedDbStorage,
+  createMemoryAsyncStorage,
   // Outside-drop payload helper — see docs/FEATURE_RECOMMENDATIONS.md #2
   // (the ROADMAP.md typed-payload-convention item) for the design
   // rationale.
@@ -145,6 +164,12 @@ export type {
   IUseLayoutStorageOptions,
   IUseLayoutPresets,
   IUseLayoutPresetsOptions,
+  // Async layout persistence.
+  IAsyncLayoutStorage,
+  IHttpStorageOptions,
+  IIndexedDbStorageOptions,
+  IUseAsyncLayoutStorage,
+  IUseAsyncLayoutStorageOptions,
   // Grid-to-image export.
   IExportLayoutAsSvgOptions,
   // Pluggable compaction — see the `compactor` prop on `IGridLayoutProps`.

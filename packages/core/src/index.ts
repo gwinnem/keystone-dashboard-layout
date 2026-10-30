@@ -170,6 +170,21 @@ export {
 
 // Serialization, SVG export, and the outside-drop payload helper.
 export { serializeLayout, deserializeLayout } from '@/core/helpers/layout-storage';
+
+// Async persistence — the `IAsyncLayoutStorage` contract, IndexedDB/HTTP/in-memory adapters, and the ordered, never-rejecting
+// wrapper the framework wrappers (`useAsyncLayoutStorage`, `GridLayoutAsyncStorageService`) are built on.
+export type {
+  IAsyncLayoutPersistence,
+  IAsyncLayoutStorage,
+  IHttpStorageOptions,
+  IIndexedDbStorageOptions,
+} from '@/core/helpers/async-layout-storage';
+export {
+  createAsyncLayoutPersistence,
+  createHttpStorage,
+  createIndexedDbStorage,
+  createMemoryAsyncStorage,
+} from '@/core/helpers/async-layout-storage';
 export type { IExportLayoutAsSvgOptions } from '@/core/gridlayout/helpers/export-svg';
 export { exportLayoutAsSvg } from '@/core/gridlayout/helpers/export-svg';
 export { readOutsideDropPayload } from '@/core/gridlayout/helpers/outside-drop-payload';

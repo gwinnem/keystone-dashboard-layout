@@ -27,6 +27,8 @@ export { GridItemComponent } from './lib/grid-item.component';
 // describes them as.
 export { GridItemHeaderDirective } from './lib/grid-item-header.directive';
 export { GridLayoutStorageService } from './lib/grid-layout-storage.service';
+export { GridLayoutAsyncStorageService } from './lib/grid-layout-async-storage.service';
+export type { IAsyncLayoutStorageError } from './lib/grid-layout-async-storage.service';
 export { GridLayoutPresetsService } from './lib/grid-layout-presets.service';
 // Standalone utility components, ported from Vue's own
 // CustomDragElement.vue/CustomCloseButton.vue (confirmed via a direct
