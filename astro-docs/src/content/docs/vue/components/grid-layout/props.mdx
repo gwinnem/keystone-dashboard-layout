@@ -38,6 +38,7 @@ that can override it per-item; see each prop's note.
 | `enableEditMode` | `boolean` | `true` | Grid-wide default for `enableEditMode` on every `GridItem` that doesn't set its own. See [Edit mode toggle](/vue/examples/edit-mode-toggle/). |
 | `enableUndoRedo` | `boolean` | `false` | Opts into `undo()`/`redo()` history, at committed-change granularity. See [Undo/redo](/vue/examples/undo-redo/). |
 | `preventCollision` | `boolean` | `false` | Block a drag/resize that would collide, instead of pushing the other item. See [Prevent collision](/vue/examples/prevent-collision/). |
+| `collisionMode` | `'push' \| 'swap'` | `'push'` | What dropping a dragged item onto another one does. `'push'` shoves the item underneath out of the way. `'swap'` trades places with it, when the drop lands on exactly one other non-static item that fits into the dragged item's starting cell; anything else (several items, a static item, or the other item not fitting the starting cell) falls back to `'push'`. Only affects dragging, and is ignored while `preventCollision` is on. See [Swap on drag](/vue/examples/swap-on-drag/). |
 | `responsive` | `boolean` | `false` | Enables breakpoint switching. See [Responsive breakpoints](/vue/examples/responsive-breakpoints/). |
 | `responsiveLayouts` | `TResponsiveLayout` | `{}` | Pre-defined layouts per breakpoint, instead of auto-generating one. See [Responsive predefined layouts](/vue/examples/responsive-predefined-layouts/). |
 | `restoreOnDrag` | `boolean` | `false` | While dragging, don't let other items compact past their pre-drag position until the drag ends. |
@@ -55,7 +56,8 @@ that can override it per-item; see each prop's note.
 | `transitionDurationMs` | `number` | `200` | Duration, in milliseconds, of the transition applied to item position/size changes and this grid's own auto-height resizing. |
 | `transitionTimingFunction` | `string` | `'ease'` | CSS `transition-timing-function` for the same transitions. |
 | `useBorderRadius` | `boolean` | `false` | Applies `borderRadiusPx` as a border radius — cascades to every `GridItem` that doesn't set its own. |
-| `useCssTransforms` | `boolean` | `true` | Position items via CSS `transform` instead of `top`/`left`. |
+| `useCssTransforms` | `boolean` | `true` | Position items via CSS `transform` instead of `top`/`left`. Ignored when `positionStrategy` is set. |
+| `positionStrategy` | `IPositionStrategy \| null` | `null` | Replaces the `useCssTransforms` toggle with a pluggable strategy: an object with a `type`, an optional `className` and a `getStyle(position)` function returning the item's inline style. `transformStrategy` and `topLeftStrategy` are exported as built-ins. Keep `width`/`height` as `'NNpx'` strings. `null` keeps `useCssTransforms` behavior. See [Pluggable positioning](/vue/examples/pluggable-positioning/). |
 | `undoHistoryLimit` | `number` | `50` | Caps how many snapshots `undo()` can step back through when `enableUndoRedo` is on. See [Undo/redo](/vue/examples/undo-redo/). |
 
 ## Breakpoint object shapes

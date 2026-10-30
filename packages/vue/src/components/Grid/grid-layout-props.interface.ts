@@ -1,6 +1,8 @@
 ﻿import { TLayout } from '@/components/Grid/layout-definition';
 import { IGridAriaLabels } from '@/core/common/interfaces/aria-labels.interface';
 import { ICompactor } from '@/core/gridlayout/helpers/compactor';
+import { IPositionStrategy } from '@/core/gridlayout/helpers/position-strategy';
+import { TCollisionMode } from '@/core/gridlayout/helpers/swap-helper';
 import { ECompactType } from '@/core/gridlayout/enums/ECompactType';
 import { TResizeHandle } from '@/core/helpers/native-interaction';
 import type { IBreakpoints, IColumns } from 'keystone-dashboard-layout-core';
@@ -228,6 +230,16 @@ export interface IGridLayoutProps {
   /** Positions items with CSS `transform: translate3d(...)` instead of `top`/`left`. Default `true` (faster, GPU-accelerated). */
   useCssTransforms?: boolean;
   /**
+   * Replaces how items are placed inside the grid — see
+   * `IPositionStrategy`. `null`/`undefined` (the default) keeps the
+   * built-in choice between CSS transforms and `top`/`left` that
+   * `useCssTransforms` makes, exactly as before this prop existed. When
+   * set, it wins over `useCssTransforms`. `transformStrategy`/
+   * `topLeftStrategy` (exported from this package) are the two
+   * built-ins, reusable as a starting point. Default `null`.
+   */
+  positionStrategy?: IPositionStrategy | null;
+  /**
    * Replaces the built-in compaction algorithm entirely — see
    * `ICompactor`. `null`/`undefined` (the default) means "use the
    * built-in logic exactly as before this prop existed"; this is a
@@ -278,4 +290,16 @@ export interface IGridLayoutProps {
    * existing consumer.
    */
   compactType?: ECompactType | `${ECompactType}`;
+  /**
+   * What happens when a dragged item is dropped onto another one.
+   * `'push'` (the default) moves the item underneath out of the way,
+   * as before. `'swap'` puts the two items in each other's places
+   * instead, as long as the other item fits in the dragged item's
+   * starting cell without touching anything else; in every other case
+   * (several items hit, a static item, a drag that has not yet cleared
+   * the other item) it falls back to `'push'`. Ignored while
+   * `preventCollision` is on. Only affects dragging, not resizing.
+   * Default `'push'`.
+   */
+  collisionMode?: TCollisionMode;
 }

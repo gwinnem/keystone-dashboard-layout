@@ -15,13 +15,6 @@ but that was one specific instance checked, not the exhaustive sweep a
 real audit would need before shipping a dedicated Nuxt wrapper around
 the rest of the codebase.
 
-## Swap-on-drag collision mode
-
-Dragging item A onto item B swaps their positions, as an alternative to
-the current push-aside compaction. Common in consumer tile-dashboard
-products (see [Comparison: alternatives](/vue/guide/project/comparison-alternatives/)
-for how `gridstack.js` handles this today).
-
 ## Maximize/restore an item
 
 Temporarily expand a single item to fill the grid's entire visible
@@ -42,20 +35,6 @@ and remote-HTTP-backed persistence, alongside (not replacing) the
 existing synchronous storage helper. `sessionStorage` already works
 today via the existing helper's own storage option — not a gap needing
 new code.
-
-## An open, pluggable CSS positioning strategy
-
-An interface (mirroring the existing pluggable-compaction precedent)
-replacing the current on/off toggle between CSS transforms and
-`top`/`left` positioning, with both current behaviors preserved as
-built-ins.
-
-## A worker-based layout engine
-
-An opt-in Web Worker executor for compaction/responsive-generation on
-very large layouts. The largest lift of anything on this list —
-deliberately deferred until `verticalFastCompactor` alone is proven
-insufficient on its own, not built speculatively alongside it.
 
 ## Have a request?
 

@@ -31,12 +31,9 @@ import {
   createNativeAutoScroll,
   createNativeDraggable,
   createNativeResizable,
+  getPositionStrategy,
   offsetXYFromParentOf,
   resolveAriaLabels,
-  setTopLeft,
-  setTopRight,
-  setTransform,
-  setTransformRtl,
 } from 'keystone-dashboard-layout-core';
 import type {
   IGridAriaLabels,
@@ -44,6 +41,7 @@ import type {
   INativeDragEvent,
   INativeResizeEvent,
   IInteractEdges,
+  IPositionStrategy,
   ITopLeftStyle,
   ITopRightStyle,
   ITransformStyle,
@@ -152,6 +150,8 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
     '[class.kdl-grid-item--selected]': 'isSelected',
     '[class.kdl-grid-item--static]': 'isStatic',
     '[class.kdl-grid-item--use-radius]': 'resolvedUseBorderRadius',
+    // Only a custom `positionStrategy` contributes a class; the built-in ones add nothing, keeping the markup as it was.
+    '[class]': 'positionStrategyClass',
     '[style]': 'hostStyle',
     class: `kdl-grid-item`,
   },
@@ -366,6 +366,12 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   @Input() margin: [number, number] = [10, 10];
   /** Positions via CSS `transform: translate3d(...)` instead of `top`/`left`. Default `true`, matching Vue/React's own default. Same standalone-usage note as `containerWidth`. */
   @Input() useCssTransforms = true;
+  /** The grid's own `positionStrategy`, cascaded via `GridEventBusService` — wins over `useCssTransforms` when set. Not an `@Input()`: a standalone item has no grid to set it. */
+  positionStrategy: IPositionStrategy | null = null;
+  /** The CSS class a custom `positionStrategy` asks every item to carry, or an empty string. */
+  get positionStrategyClass(): string {
+    return this.positionStrategy?.className ?? ``;
+  }
   /** Maximum number of rows the layout may grow to — only read by `calcXY`/`calcWH`'s own y-capping; not yet a real `@Input()`/eventBus-driven value beyond `Infinity`, matching Vue's own `maxRows` default. */
   @Input() maxRows = Infinity;
 
@@ -625,6 +631,13 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       this.useCssTransforms = useCssTransforms;
       this.transformScale = transformScale;
       this.style = this.computeStyle();
+      this.changeDetectorRef.markForCheck();
+    });
+
+    this.eventBus.positionStrategy$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(strategy => {
+      this.positionStrategy = strategy;
+      this.style = this.computeStyle();
+      // OnPush: a subscription-driven change does not mark the view dirty by itself (see the gridDefaults$ subscription below).
       this.changeDetectorRef.markForCheck();
     });
 
@@ -1733,19 +1746,19 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       }
     }
 
-    if(this.useCssTransforms) {
-      // Stryker disable next-line LogicalOperator: equivalent — right is only ever set when mirrored, so `||` gives the same answer for both directions.
-      return this.resolvedIsMirrored &&
-        // Stryker disable next-line ConditionalExpression: equivalent — under RTL right is always assigned (dragging, resizing and the computed position all set it), so it is never undefined here.
-        right !== undefined
-        ? setTransformRtl(top, right, width, height)
-        : setTransform(top, Number(left), width, height);
-    }
-    // Stryker disable next-line LogicalOperator: equivalent — same reasoning as the transform branch above.
-    return this.resolvedIsMirrored &&
-      // Stryker disable next-line ConditionalExpression: equivalent — same reasoning as the transform branch above.
-      right !== undefined
-      ? setTopRight(top, right, width, height)
-      : setTopLeft(top, Number(left), width, height);
+    // The grid's `positionStrategy` decides how the pixel position becomes
+    // inline style; without one, `useCssTransforms` picks a built-in.
+    const strategy = this.positionStrategy ?? getPositionStrategy(this.useCssTransforms);
+    // Mirrored items anchor to `right`; it is only ever unset when the item is not mirrored.
+    const rtl = this.resolvedIsMirrored && right !== undefined;
+    // The strategy's style always carries the same position/size keys the built-in ones do, so it fits the field's own union.
+    return strategy.getStyle({
+      height,
+      left: rtl ? undefined : Number(left),
+      right: rtl ? right : undefined,
+      rtl,
+      top,
+      width,
+    }) as unknown as ITransformStyle | ITopLeftStyle | ITopRightStyle;
   }
 }

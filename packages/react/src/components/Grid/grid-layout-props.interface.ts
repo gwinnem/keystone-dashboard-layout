@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { ECompactType, IBreakpoints, IColumns, ICompactor, IGridAriaLabels, TBreakpoint, TLayout, TResizeHandle, TResponsiveLayout } from 'keystone-dashboard-layout-core';
+import type { ECompactType, IBreakpoints, IColumns, ICompactor, IGridAriaLabels, IPositionStrategy, TBreakpoint, TCollisionMode, TLayout, TResizeHandle, TResponsiveLayout } from 'keystone-dashboard-layout-core';
 import type { ICrossGridDropRejected, ICrossGridItemDropped } from '@/core/gridlayout/interfaces/cross-grid.interfaces';
 
 /**
@@ -97,6 +97,14 @@ export interface IGridLayoutProps {
   /** When `true`, dragging/resizing an item that would collide with another is blocked instead of pushing the other item out of the way. Default `false`. */
   preventCollision?: boolean;
   /**
+   * What dropping a dragged item onto another one does. `'push'` (default) shoves the item underneath out of the way
+   * and lets compaction settle the rest. `'swap'` trades places instead: when the dragged item lands on exactly one
+   * other non-static item and that item fits into the dragged item's starting cell, the two swap. Anything else (several
+   * items under the pointer, a static item, or the other item not fitting the starting cell) falls back to `'push'`. Only affects dragging,
+   * not resizing, and is ignored while `preventCollision` is on.
+   */
+  collisionMode?: TCollisionMode;
+  /**
    * Grid-wide master interactivity switch — `false` disables dragging,
    * resizing, and the close button across the *whole* grid at once, a
    * "view mode" toggle, without needing to set `isDraggable`/
@@ -134,6 +142,17 @@ export interface IGridLayoutProps {
   heightMode?: `auto` | `fixed` | `scroll` | `fit` | null;
   /** Positions items with CSS `transform: translate3d(...)` instead of `top`/`left`. Default `true` (faster, GPU-accelerated). */
   useCssTransforms?: boolean;
+  /**
+   * Replaces how items are placed inside the grid — see
+   * `IPositionStrategy` (`keystone-dashboard-layout-core`).
+   * `null`/`undefined` (the default) keeps the built-in choice between
+   * CSS transforms and `top`/`left` that `useCssTransforms` makes,
+   * exactly as before this prop existed. When set, it wins over
+   * `useCssTransforms`. `transformStrategy`/`topLeftStrategy` (from
+   * the same package) are the two built-ins, reusable as a starting
+   * point. Default `null`.
+   */
+  positionStrategy?: IPositionStrategy | null;
   /**
    * Compensates drag/resize pixel math for a scaled ancestor (e.g. a
    * zoomed-out canvas view rendering this `GridLayout` inside a

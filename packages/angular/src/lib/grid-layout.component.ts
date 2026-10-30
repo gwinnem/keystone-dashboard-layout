@@ -40,7 +40,9 @@ import {
   getCompactor,
   getLayoutItem,
   layoutValidator,
+  createSwapDragState,
   moveElement,
+  swapElement,
 } from 'keystone-dashboard-layout-core';
 import type {
   IAlignmentGuide,
@@ -50,9 +52,12 @@ import type {
   IExportLayoutAsSvgOptions,
   IGridAriaLabels,
   ILayoutItem,
+  IPositionStrategy,
   ISpacingIndicator,
+  ISwapDragState,
   TAlignEdge,
   TBreakpoint,
+  TCollisionMode,
   TDistributeAxis,
   TLayout,
 } from 'keystone-dashboard-layout-core';
@@ -214,6 +219,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   @Input() margin: [number, number] = [10, 10];
   /** Positions via CSS `transform: translate3d(...)` instead of `top`/`left`. Default `true`, matching Vue/React's own default. */
   @Input() useCssTransforms = true;
+  /** Replaces how items are placed inside the grid — see `IPositionStrategy` (`keystone-dashboard-layout-core`). `null` (the default) keeps the built-in choice `useCssTransforms` makes, exactly as before this input existed; when set it wins over `useCssTransforms`. `transformStrategy`/`topLeftStrategy` are the two built-ins, reusable as a starting point. */
+  @Input() positionStrategy: IPositionStrategy | null = null;
   /** Grows/shrinks the container to fit the layout's content. Default `true`, matching `autoSize`'s own default. */
   @Input() autoSize = true;
   /**
@@ -234,6 +241,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   @Input() heightMode: THeightMode | null = null;
   /** Whether a drag/resize that would collide with another item is blocked entirely rather than pushing the colliding item out of the way. Default `false`, matching Vue/React's own default. */
   @Input() preventCollision = false;
+  /** What dropping a dragged item onto another one does. `'push'` (default) shoves the item underneath out of the way; `'swap'` trades places with it when the drop lands on exactly one other non-static item that fits into the dragged item's starting cell. Anything else (several items, a static item, or the other item not fitting the starting cell) falls back to `'push'`. Only affects dragging, and is ignored while `preventCollision` is on. */
+  @Input() collisionMode: TCollisionMode = 'push';
   /** Grid-wide default `isDraggable` for items that don't set their own (`null`) — Phase 14, cascaded to every descendant `GridItemComponent` via `GridEventBusService.gridDefaults$`, matching Vue's own `GridLayout`-level `isDraggable` prop (`GridItem.vue`'s own `thisLayout?.isDraggable` read). Default `true`, matching Vue/React's own default. */
   @Input() isDraggable = true;
   /** Grid-wide default `isResizable` for items that don't set their own (`null`) — same cascade as `isDraggable` above. Default `true`, matching Vue/React's own default. */
@@ -516,6 +525,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   private lastAnchorId: string | number | null = null;
   /** Set while `allowCrossGridDrag` is on and a drag is genuinely in progress (from `dragstart` to `dragend`) — `null` otherwise. Mirrors React's own `draggedIdRef`. */
   private draggedCrossGridId: string | number | null = null;
+
+  /** `collisionMode: 'swap'` bookkeeping for the drag in progress; created at `dragstart`, cleared at `dragend`. */
+  private swapDragState: ISwapDragState | undefined;
   /** Deregisters this grid's own cross-grid zone — called from `ngOnDestroy`/whenever `allowCrossGridDrag` toggles off. `null` whenever no zone is currently registered. */
   private deregisterCrossGridZone: (() => void) | null = null;
   /** `dragenter`/`dragleave` bubble from every descendant, firing far more often than "entered/left the grid as a whole" — a net-entry count (Vue's own approach, ported directly) avoids flickering the placeholder on/off as the pointer moves around inside the grid at any depth. */
@@ -704,6 +716,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     }
     if(changes[`useCssTransforms`]) {
       this.eventBus.setUseCssTransforms(this.useCssTransforms);
+    }
+    if(changes[`positionStrategy`]) {
+      this.eventBus.setPositionStrategy(this.positionStrategy);
     }
     if(changes[`transformScale`]) {
       this.eventBus.setTransformScale(this.transformScale);
@@ -1251,6 +1266,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       this.dragStart.emit(event.i);
       this.captureGestureStart(this.workingLayout);
       this.groupMoveStartPositions = this.snapshotGroupMovePositions(event.i);
+      this.swapDragState = this.collisionMode === 'swap' ? createSwapDragState(item) : undefined;
       if(this.allowCrossGridDrag) {
         this.draggedCrossGridId = event.i;
       }
@@ -1320,7 +1336,11 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
     const preMoveX = item.x;
     const preMoveY = item.y;
-    moveElement(next, item, targetX, targetY, true, this.horizontalShift, this.preventCollision);
+    // `collisionMode: 'swap'`: trade places with the single item under the pointer first; anything it declines falls back to the push.
+    const swapped = this.swapDragState !== undefined && !this.preventCollision && swapElement(next, item, targetX, targetY, this.effectiveColNum, this.swapDragState);
+    if(!swapped) {
+      moveElement(next, item, targetX, targetY, true, this.horizontalShift, this.preventCollision);
+    }
 
     // MOVE_BLOCKED_BY_COLLISION — a direct port of Vue's own condition,
     // confirmed via a direct source read, not assumed: moveElement()
@@ -1375,6 +1395,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       this.isDragging = false;
       this.placeholder = null;
       this.positionsBeforeDrag = undefined;
+      this.swapDragState = undefined;
       this.commitGestureEnd();
     }
     this.changeDetectorRef.markForCheck();

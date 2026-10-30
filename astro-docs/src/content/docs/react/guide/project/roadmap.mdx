@@ -11,11 +11,6 @@ shared with the Vue and Angular ports rather than being separate,
 per-framework efforts — see the Vue port's own
 [Roadmap](/vue/guide/project/roadmap/) for the fuller writeup of each.
 
-## Swap-on-drag collision mode
-
-Dragging item A onto item B swaps their positions, as an alternative to
-the current push-aside compaction.
-
 ## Maximize/restore an item
 
 Temporarily expand a single item to fill the grid's entire visible
@@ -27,17 +22,6 @@ pass before starting.
 A new hook with its own adapter interface for IndexedDB and
 remote-HTTP-backed persistence, alongside (not replacing) the existing
 synchronous `useLayoutStorage`.
-
-## An open, pluggable CSS positioning strategy
-
-An interface (mirroring the existing pluggable-compaction precedent)
-replacing the current on/off toggle between CSS transforms and
-`top`/`left` positioning.
-
-## A worker-based layout engine
-
-An opt-in Web Worker executor for compaction/responsive-generation on
-very large layouts.
 
 ## Have a request?
 

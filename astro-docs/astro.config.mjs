@@ -40,7 +40,7 @@ const noindexRoutes = fs.existsSync(noindexRoutesPath)
 // undefined in Astro's MDX renderer, even after fixing a genuine
 // Angular-version mismatch and a genuine tsconfig scoping gap). Nor are
 // they iframed — also tried, and reverted in favor of the simplest
-// option: each of the 53 examples in this sidebar's own Angular
+// option: each of the 55 examples in this sidebar's own Angular
 // "Examples" section links directly out to the real, deployed app at
 // https://kdla.winnem.tech (angular-examples-app's own main.ts uses
 // plain HTML5 path-based routing, NOT withHashLocation() — confirmed
@@ -244,7 +244,7 @@ export default defineConfig({
               label: 'Examples',
               items: [
                 { label: 'Gallery', slug: 'vue/examples' },
-                // The original 45 examples are ported (46–53 follow below) — see PLAN.md's own
+                // The original 45 examples are ported (46–55 follow below) — see PLAN.md's own
                 // §4.4 table for the full title/slug list.
                 { label: '01 — Basic drag & resize', slug: 'vue/examples/basic-drag-resize' },
                 { label: '02 — Bounded drag to container', slug: 'vue/examples/bounded-drag' },
@@ -303,6 +303,8 @@ export default defineConfig({
                 { label: '51 — Drag activation distance', slug: 'vue/examples/drag-activation-distance' },
                 { label: '52 — Restricting resize handles to specific edges', slug: 'vue/examples/restrict-resize-handles' },
                 { label: '53 — Resize direction toggles', slug: 'vue/examples/resize-direction-toggles' },
+                { label: '54 — Pluggable positioning', slug: 'vue/examples/pluggable-positioning' },
+                { label: '55 — Swap on drag', slug: 'vue/examples/swap-on-drag' },
               ],
             },
           ],
@@ -424,6 +426,8 @@ export default defineConfig({
                 { label: '51 — Drag activation distance', slug: 'react/examples/drag-activation-distance' },
                 { label: '52 — Restricting resize handles to specific edges', slug: 'react/examples/restrict-resize-handles' },
                 { label: '53 — Resize direction toggles', slug: 'react/examples/resize-direction-toggles' },
+                { label: '54 — Pluggable positioning', slug: 'react/examples/pluggable-positioning' },
+                { label: '55 — Swap on drag', slug: 'react/examples/swap-on-drag' },
               ],
             },
           ],
@@ -491,7 +495,7 @@ export default defineConfig({
               ],
             },
             {
-              // All 53 examples live in a real, separate, standalone
+              // All 55 examples live in a real, separate, standalone
               // Angular app (angular-examples-app), not as astro-docs
               // pages — every link below is external, using the same
               // dev-vs-prod ANGULAR_EXAMPLES_APP_URL this file's own top
@@ -554,6 +558,8 @@ export default defineConfig({
                 { label: '51 — Drag activation distance', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/51-drag-activation-distance` },
                 { label: '52 — Restricting resize handles to specific edges', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/52-restrict-resize-handles` },
                 { label: '53 — Resize direction toggles', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/53-resize-direction-toggles` },
+                { label: '54 — Pluggable positioning', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/54-pluggable-positioning` },
+                { label: '55 — Swap on drag', link: `${ANGULAR_EXAMPLES_APP_URL}/examples/55-swap-on-drag` },
               ],
             },
           ],

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import type { IGridAriaLabels } from 'keystone-dashboard-layout-core';
+import type { IGridAriaLabels, IPositionStrategy } from 'keystone-dashboard-layout-core';
 
 /** Phase 3's own bottom-up channel — the Angular equivalent of Vue's `dragEvent` eventBus message, reported by a `GridItemComponent` on every drag tick and consumed by its parent `GridLayoutComponent` to resolve collisions and commit the new layout. */
 export interface IItemDragEvent {
@@ -162,6 +162,7 @@ export class GridEventBusService {
   private readonly rowHeightSubject = new BehaviorSubject<number>(150);
   private readonly marginSubject = new BehaviorSubject<[number, number]>([10, 10]);
   private readonly useCssTransformsSubject = new BehaviorSubject<boolean>(true);
+  private readonly positionStrategySubject = new BehaviorSubject<IPositionStrategy | null>(null);
   private readonly transformScaleSubject = new BehaviorSubject<number>(1);
   private readonly selectedItemIdsSubject = new BehaviorSubject<Set<string | number>>(new Set());
   private readonly gridDefaultsSubject = new BehaviorSubject<IGridDefaults>({
@@ -190,6 +191,8 @@ export class GridEventBusService {
   readonly margin$ = this.marginSubject.asObservable();
   /** Whether items position via CSS `transform` rather than `top`/`left` — the Angular equivalent of Vue's own `setUseCssTransforms` eventBus message. */
   readonly useCssTransforms$ = this.useCssTransformsSubject.asObservable();
+  /** The grid's custom `positionStrategy`, or `null` for the built-in choice `useCssTransforms` makes — the Angular equivalent of Vue's own `setPositionStrategy` eventBus message. */
+  readonly positionStrategy$ = this.positionStrategySubject.asObservable();
   /** CSS transform scale factor to compensate for in pixel math (Phase 7) — the Angular equivalent of Vue's own `setTransformScale` eventBus message. */
   readonly transformScale$ = this.transformScaleSubject.asObservable();
   /** Currently-selected item ids (`multiSelect`, Phase 7) — lets each `GridItemComponent` reflect its own selected state without needing a direct reference to `GridLayoutComponent`. */
@@ -221,6 +224,10 @@ export class GridEventBusService {
 
   setUseCssTransforms(value: boolean): void {
     this.useCssTransformsSubject.next(value);
+  }
+
+  setPositionStrategy(value: IPositionStrategy | null): void {
+    this.positionStrategySubject.next(value);
   }
 
   setTransformScale(value: number): void {

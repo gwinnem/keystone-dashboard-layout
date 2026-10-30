@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { IGridAriaLabels, TLayout, TResizeHandle } from 'keystone-dashboard-layout-core';
+import type { IGridAriaLabels, IPositionStrategy, TLayout, TResizeHandle } from 'keystone-dashboard-layout-core';
 
 /** The two drag/resize gesture phases `GridLayout` needs to react to — matches the native engine's own event `type` values, narrowed to the three that matter for reporting up to `GridLayout` (mid-gesture updates and the final commit are handled identically here — see `handleItemGesture` in `GridLayout.tsx`). */
 export type TGridGestureEventType = `dragstart` | `dragmove` | `dragend` | `resizestart` | `resizemove` | `resizeend`;
@@ -32,6 +32,8 @@ export interface IGridContextValue {
   isResizable: boolean;
   isBounded: boolean;
   useCssTransforms: boolean;
+  /** Grid-wide custom positioning strategy — wins over `useCssTransforms` when set. `null` means the built-in choice `useCssTransforms` makes. */
+  positionStrategy?: IPositionStrategy | null;
   preventCollision: boolean;
   resizeHandles: TResizeHandle[];
   showCloseButton: boolean;

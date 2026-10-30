@@ -21,10 +21,12 @@ import {
   getCompactor,
   getLayoutItem,
   layoutValidator,
+  createSwapDragState,
   moveElement,
   resolveAriaLabels,
+  swapElement,
 } from 'keystone-dashboard-layout-core';
-import type { IBreakpoints, IColumns, IExportLayoutAsSvgOptions, ILayoutItem, TAlignEdge, TBreakpoint, TDistributeAxis, TLayout, TResizeHandle, TResponsiveLayout } from 'keystone-dashboard-layout-core';
+import type { IBreakpoints, IColumns, IExportLayoutAsSvgOptions, ILayoutItem, ISwapDragState, TAlignEdge, TBreakpoint, TDistributeAxis, TLayout, TResizeHandle, TResponsiveLayout } from 'keystone-dashboard-layout-core';
 import type { IGridLayoutProps } from './grid-layout-props.interface';
 import type { IGridLayoutHandle } from './grid-layout-handle.interface';
 import { GridContext } from './grid-context';
@@ -141,10 +143,12 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   isResizable = true,
   isBounded = false,
   preventCollision = false,
+  collisionMode = 'push',
   enableEditMode = true,
   autoSize = true,
   heightMode = null,
   useCssTransforms = true,
+  positionStrategy = null,
   transformScale = 1,
   transitionDurationMs = 200,
   transitionTimingFunction = `ease`,
@@ -435,6 +439,8 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * itself rendered.
    */
   const dragMinPositionsRef = useRef<Record<string | number, { x?: number; y?: number }> | undefined>(undefined);
+  /** `collisionMode: 'swap'` bookkeeping for the drag in progress (origin cell + the item swapped aside); cleared at dragend. */
+  const swapDragStateRef = useRef<ISwapDragState | undefined>(undefined);
 
   /**
    * Snapshots `before` onto the undo stack and clears the redo stack —
@@ -1383,6 +1389,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       } else {
         dragMinPositionsRef.current = undefined;
       }
+      swapDragStateRef.current = collisionMode === `swap` ? createSwapDragState(item) : undefined;
     }
     if(eventType === `dragmove`) {
       onDragMove?.(id);
@@ -1457,7 +1464,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     const preMoveX = item.x;
     const preMoveY = item.y;
 
-    const moved = moveElement(next, item, resolvedX, resolvedY, true, horizontalShift, preventCollision);
+    // `collisionMode: 'swap'`: try to trade places with the single item under the pointer first; anything it declines
+    // (no hit, several hits, statics, partial overlaps, no room) falls back to the ordinary push below.
+    const swapState = swapDragStateRef.current;
+    const swapped = swapState !== undefined && !preventCollision && swapElement(next, item, resolvedX, resolvedY, colNum, swapState);
+    const moved = swapped ? next : moveElement(next, item, resolvedX, resolvedY, true, horizontalShift, preventCollision);
     // `onMoveBlockedByCollision`: fires only when the move was
     // genuinely *attempted* (the target actually differs from where
     // the item already was) but `preventCollision` blocked it entirely
@@ -1477,13 +1488,14 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     commitLayout(moved, minPositionsForThisCommit);
     if(eventType === `dragend`) {
       dragMinPositionsRef.current = undefined;
+      swapDragStateRef.current = undefined;
       setIsAnyItemDragging(false);
       setItemGesturePlaceholder(null);
     }
   }, [
     commitUndoPoint, crossGridDrag, onDragStart, onDragMove, onDragEnd, onMoveBlockedByCollision,
     restoreOnDrag, compactType, clearGuidesAndIndicators, commitLayout, snapToGrid, snapThreshold,
-    applyGroupMove, horizontalShift, preventCollision, updateGuidesAndIndicators,
+    applyGroupMove, horizontalShift, preventCollision, collisionMode, colNum, updateGuidesAndIndicators,
   ]);
 
   const handleItemResize = useCallback((id: string | number, eventType: TGridGestureEventType, x: number, y: number, w: number, h: number): void => {
@@ -1566,6 +1578,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     onItemClose,
     onItemDrag: handleItemDrag,
     onItemResize: handleItemResize,
+    positionStrategy,
     preserveAspectRatio,
     preventCollision,
     resizeHandleColor,
@@ -1580,7 +1593,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   }), [
     resolvedAriaLabels, autoScroll, borderRadiusPx, colNum, effectiveContainerWidth, enableEditMode,
     isBounded, isDraggable, isMirrored, isResizable, workingLayout, margin, maxRows, multiSelect,
-    handleItemClick, onItemClose, handleItemDrag, handleItemResize, preserveAspectRatio, preventCollision,
+    handleItemClick, onItemClose, handleItemDrag, handleItemResize, positionStrategy, preserveAspectRatio, preventCollision,
     resizeHandleColor, resizeHandles, rowHeight, selectedItemIds, showCloseButton, showResizeHandles,
     transformScale, useBorderRadius, useCssTransforms,
   ]);

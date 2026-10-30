@@ -1,13 +1,13 @@
 ﻿import { useMemo, useRef, useState } from 'react';
 import { GridLayout, GridItem, type IGridLayoutHandle } from 'keystone-dashboard-layout-react';
 import 'keystone-dashboard-layout-react/style.css';
-import { ECompactType } from 'keystone-dashboard-layout-core';
+import { ECompactType, verticalFastCompactor } from 'keystone-dashboard-layout-core';
 import type { ICompactor, TLayout } from 'keystone-dashboard-layout-core';
 import LayoutJsonViewer from '../harness-react/LayoutJsonViewer';
 import '../examples-react/shared-example-item.css';
 import './42-pluggable-compaction.css';
 
-type TMode = 'vertical' | 'horizontal' | 'none' | 'vertical-overlap' | 'custom';
+type TMode = 'vertical' | 'horizontal' | 'none' | 'vertical-overlap' | 'fast' | 'custom';
 
 // A custom ICompactor — stacks every non-static item into a single
 // left-hand column, one after another, ignoring x/width entirely.
@@ -46,7 +46,10 @@ export default function PluggableCompaction() {
     }
   }, [mode]);
 
-  const compactor = mode === 'custom' ? singleColumnCompactor : null;
+  // `verticalFastCompactor` gives the same result as the default vertical
+  // compactor, in roughly O(n log n) instead of O(n²) — it only matters
+  // for very large layouts, but it plugs in the same way as any compactor.
+  const compactor = mode === 'custom' ? singleColumnCompactor : mode === 'fast' ? verticalFastCompactor : null;
 
   function scatter(): void {
     setLayout((current) =>
@@ -66,6 +69,7 @@ export default function PluggableCompaction() {
           <option value="horizontal">compactType: horizontal</option>
           <option value="none">compactType: none</option>
           <option value="vertical-overlap">compactType: vertical-overlap</option>
+          <option value="fast">compactor: verticalFastCompactor</option>
           <option value="custom">custom compactor: single column</option>
         </select>
         <button className="demo-btn" onClick={scatter} type="button">Scatter</button>

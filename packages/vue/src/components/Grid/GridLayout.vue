@@ -92,6 +92,7 @@
   import { getBottomYCoordinate } from '@/core/gridlayout/helpers/grid-layout-helper';
   import { getAllStaticGridItems } from '@/core/common/helpers/grid-item-type-helpers';
   import { moveElement } from '@/core/gridlayout/helpers/move-helper';
+  import { createSwapDragState, ISwapDragState, swapElement } from '@/core/gridlayout/helpers/swap-helper';
   import { findAlignmentGuides, findSnapAdjustment, findSpacingIndicators, IAlignmentGuide, ISpacingIndicator } from '@/core/gridlayout/helpers/alignment-helper';
   import { computeAlignAdjustments, computeDistributeAdjustments, TAlignEdge, TDistributeAxis } from '@/core/gridlayout/helpers/align-distribute-helper';
   import { calcColWidth } from '@/core/griditem/helpers/grid-item-calculate-helper';
@@ -121,6 +122,7 @@
       xs: 480,
       xxs: 0,
     }),
+    collisionMode: 'push',
     colNum: 12,
     cols: (): IColumns => ({
       xxl: 12,
@@ -168,6 +170,7 @@
     transitionTimingFunction: `ease`,
     useBorderRadius: false,
     useCssTransforms: true,
+    positionStrategy: null,
     compactor: null,
     enableUndoRedo: false,
     undoHistoryLimit: 50,
@@ -1111,6 +1114,10 @@
     }
   };
 
+  // Where the dragged item started and what it has swapped aside, for `collisionMode: 'swap'` — one drag at a time, so plain
+  // (non-reactive) state is enough. Created at dragstart, dropped at dragend.
+  let swapDragState: ISwapDragState | undefined;
+
   const dragEvent = (
     eventName?: EventType,
     id?: string | number,
@@ -1139,6 +1146,10 @@
       x: 0,
       y: 0,
     } as ILayoutItem);
+
+    if(eventName === `dragstart`) {
+      swapDragState = props.collisionMode === `swap` ? createSwapDragState(l) : undefined;
+    }
 
     const { x: snappedX, y: snappedY } = applySnapToGridAdjustment(eventName, id, x, y, w, h);
 
@@ -1244,7 +1255,11 @@
     // Move the element to the dragged location.
     const preMoveX = l.x;
     const preMoveY = l.y;
-    const layout = moveElement(
+    // `collisionMode: 'swap'` tries to trade places with the one item it landed on first; anything it can't resolve that way
+    // (and every drag with the default mode) goes through the usual push below.
+    const swapped = swapDragState !== undefined && !props.preventCollision &&
+      swapElement(props.layout, l, snappedX as number, snappedY as number, props.colNum as number, swapDragState);
+    const layout = swapped ? props.layout : moveElement(
       props.layout,
       l,
       snappedX as number,
@@ -1281,6 +1296,7 @@
     eventBus.emit(`compact`);
     updateHeight();
     if(eventName !== undefined && eventName === EGridLayoutEvent.DRAG_END) {
+      swapDragState = undefined;
       commitDragEnd();
       positionsBeforeDrag.value = undefined;
       originalLayout.value = layout;
@@ -1979,6 +1995,15 @@
     () => props.useCssTransforms,
     val => {
       eventBus.emit(`setUseCssTransforms`, val);
+    },
+  );
+
+  // Same reason as the `useCssTransforms` watcher above: items read the
+  // strategy once at mount, so a change afterwards has to be pushed.
+  watch(
+    () => props.positionStrategy,
+    val => {
+      eventBus.emit(`setPositionStrategy`, val);
     },
   );
 

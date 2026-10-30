@@ -19,7 +19,7 @@ import { RouterLink } from '@angular/router';
     <h1>Examples</h1>
     <p class="gallery-intro">
       Every example below renders the real, published component — not a
-      screenshot. All 53 are ported; grouped here the same way the
+      screenshot. All 55 are ported; grouped here the same way the
       <a href="https://kdl.winnem.tech/angular/features/" target="_blank" rel="noopener">Features</a>
       guide groups its own categories, so a bullet there and an example
       here always mean the same thing.
@@ -44,6 +44,7 @@ import { RouterLink } from '@angular/router';
     <h2>Layout &amp; collision</h2>
     <ul class="gallery-list">
       <li><a routerLink="/examples/08-prevent-collision"><strong>Prevent collision</strong></a> — block a drag/resize instead of pushing other items.</li>
+      <li><a routerLink="/examples/55-swap-on-drag"><strong>Swap on drag</strong></a> — drop an item onto another and trade places instead of pushing.</li>
       <li><a routerLink="/examples/10-add-remove-items"><strong>Add or remove items</strong></a> — the grid re-compacts automatically, no manual position math.</li>
       <li><a routerLink="/examples/15-horizontal-shift"><strong>Horizontal shift</strong></a> — push colliding items left/right instead of down.</li>
       <li><a routerLink="/examples/19-save-load-layout"><strong>Save/load layout</strong></a> — layout is a plain, JSON-serializable array.</li>
@@ -105,6 +106,7 @@ import { RouterLink } from '@angular/router';
       <li><a routerLink="/examples/33-resize-hint-appearance"><strong>Configurable resize-hint appearance</strong></a> — a visible resize handle instead of only a cursor change.</li>
       <li><a routerLink="/examples/44-grid-dimensions"><strong>Grid dimensions</strong></a> — rowHeight, colNum, margin, live-reactive.</li>
       <li><a routerLink="/examples/48-custom-header-slot"><strong>Custom header</strong></a> — a separate region above an item's own main content.</li>
+      <li><a routerLink="/examples/54-pluggable-positioning"><strong>Pluggable positioning</strong></a> — transforms, top/left, or your own positioning strategy.</li>
     </ul>
 
     <h2>Developer experience</h2>

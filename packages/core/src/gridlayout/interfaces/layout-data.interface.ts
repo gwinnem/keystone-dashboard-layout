@@ -3,6 +3,7 @@ import { TLayout } from '../../layout-definition';
 import { IEventsData } from '@/core/common/interfaces/event-bus.interfaces';
 import { IItemClickedData } from '@/core/griditem/interfaces/grid-item.interfaces';
 import { TResizeHandle } from '@/core/helpers/native-interaction';
+import type { IPositionStrategy } from '@/core/gridlayout/helpers/position-strategy';
 
 /** Grid-unit position/size of `GridLayout`'s internal drag placeholder item — the hidden `GridItem` shown while a drag is in progress. */
 export interface IPlaceholder {
@@ -101,4 +102,5 @@ export type TGridLayoutEventBus = IEventEmitter<{
   updateWidth: number | null;
   setTransformScale: number;
   setUseCssTransforms: boolean;
+  setPositionStrategy: IPositionStrategy | null;
 }>;

@@ -44,6 +44,13 @@ import {
   horizontalOverlapCompactor,
   getCompactor,
 } from '@/core/gridlayout/helpers/compactor';
+import {
+  IPositionStrategy,
+  IPositionStyleInput,
+  transformStrategy,
+  topLeftStrategy,
+} from '@/core/gridlayout/helpers/position-strategy';
+import { TCollisionMode } from '@/core/gridlayout/helpers/swap-helper';
 import { IUseLayoutStorage, IUseLayoutStorageOptions, useLayoutStorage } from '@/composables/useLayoutStorage';
 import { IUseLayoutPresets, IUseLayoutPresetsOptions, useLayoutPresets } from '@/composables/useLayoutPresets';
 import { IOutsideItemDropped } from '@/core/gridlayout/interfaces/outside-drop.interfaces';
@@ -104,6 +111,11 @@ export {
   verticalOverlapCompactor,
   horizontalOverlapCompactor,
   getCompactor,
+  // Pluggable CSS positioning — the two built-in strategies behind
+  // `useCssTransforms`, reusable as a starting point for a custom
+  // `positionStrategy`.
+  transformStrategy,
+  topLeftStrategy,
   // Localizable UI/ARIA strings — the current English text, exported so
   // a consumer overriding one key can spread the rest from this rather
   // than retyping every default.
@@ -138,6 +150,11 @@ export type {
   // Pluggable compaction — see the `compactor` prop on `IGridLayoutProps`.
   ICompactor,
   ICompactorContext,
+  // Pluggable CSS positioning — see the `positionStrategy` prop on `IGridLayoutProps`.
+  IPositionStrategy,
+  IPositionStyleInput,
+  // Swap-on-drag — see the `collisionMode` prop on `IGridLayoutProps`.
+  TCollisionMode,
   // Localizable UI/ARIA strings.
   IGridAriaLabels,
   // Event payload types — for typing a consumer's own event handlers

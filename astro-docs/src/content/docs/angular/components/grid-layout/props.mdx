@@ -29,7 +29,8 @@ cascade). See each row's own note.
 | `maxRows` | `number` | `Infinity` | Maximum number of rows the layout may grow to — cascaded, unconditionally overriding a standalone `GridItemComponent`'s own `maxRows` `@Input()` (this one field has no per-item override in Angular either, matching Vue). |
 | `autoSize` | `boolean` | `true` | Grows/shrinks the container's height to fit the layout's content. Ignored once `heightMode` is set to anything other than `null`. |
 | `heightMode` | `'auto' \| 'fixed' \| 'scroll' \| 'fit' \| null` | `null` | How the container's height is determined. `null` defers to `autoSize`. `'auto'`: today's `autoSize: true` behavior. `'fixed'`: no explicit height. `'scroll'`: same as `'fixed'`, plus `overflow-y: auto`. `'fit'`: height locked to `100%` of the parent, with the same `overflow-y: auto` as `'scroll'`. |
-| `useCssTransforms` | `boolean` | `true` | Positions items via CSS `transform: translate3d(...)` instead of `top`/`left`. |
+| `useCssTransforms` | `boolean` | `true` | Positions items via CSS `transform: translate3d(...)` instead of `top`/`left`. Ignored when `positionStrategy` is set. |
+| `positionStrategy` | `IPositionStrategy \| null` | `null` | Replaces the `useCssTransforms` toggle with a pluggable strategy: an object with a `type`, an optional `className` and a `getStyle(position)` function returning the item's inline style. Cascaded to every descendant `GridItemComponent`. `transformStrategy` and `topLeftStrategy` are exported from `keystone-dashboard-layout-core`. Keep `width`/`height` as `'NNpx'` strings. `null` keeps `useCssTransforms` behavior. See [example 54](https://kdla.winnem.tech/examples/54-pluggable-positioning). |
 | `transformScale` | `number` | `1` | Compensates drag/resize pixel math for a scaled ancestor (e.g. a zoomed-out canvas view) — cascaded to every descendant `GridItemComponent`. |
 
 ## Drag & resize defaults
@@ -47,6 +48,7 @@ cascade). See each row's own note.
 
 | Input/Output | Type | Default | Description |
 |---|---|---|---|
+| `collisionMode` | `'push' \| 'swap'` | `'push'` | What dropping a dragged item onto another one does. `'push'` shoves the item underneath out of the way. `'swap'` trades places with it, when the drop lands on exactly one other non-static item that fits into the dragged item's starting cell; anything else (several items, a static item, or the other item not fitting the starting cell) falls back to `'push'`. Only affects dragging, and is ignored while `preventCollision` is on. See [Swap on drag](https://kdla.winnem.tech/examples/55-swap-on-drag). |
 | `preventCollision` | `boolean` | `false` | Blocks a drag/resize that would collide, instead of pushing the other item. |
 | `compactType` | `ECompactType` | `ECompactType.VERTICAL` | Selects one of five built-in compaction strategies. Ignored when `compactor` is set. |
 | `compactor` | `ICompactor \| null` | `null` | Overrides the built-in compaction algorithm entirely. Purely additive — `compactType` keeps working normally when this isn't set. |

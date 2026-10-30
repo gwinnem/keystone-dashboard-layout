@@ -54,6 +54,10 @@ export { findFirstFitSlot } from '@/core/gridlayout/helpers/bin-pack-helper';
 // grid bounds.
 export { moveToCorrectPlace, moveElement, moveElementAwayFromCollision } from '@/core/gridlayout/helpers/move-helper';
 
+// Swap-on-drag collision mode — the `collisionMode: 'swap'` drag step.
+export type { TCollisionMode, ISwapDragState } from '@/core/gridlayout/helpers/swap-helper';
+export { createSwapDragState, swapElement } from '@/core/gridlayout/helpers/swap-helper';
+
 // Compaction, cloning, and pixel-position style generation.
 export {
   cloneLayoutItem,
@@ -89,6 +93,12 @@ export {
 } from '@/core/gridlayout/helpers/compactor';
 export { compactLayoutFast } from '@/core/gridlayout/helpers/fast-compact-helper';
 export { ECompactType } from '@/core/gridlayout/enums/ECompactType';
+
+// Pluggable CSS positioning — the interface `GridLayout`'s own
+// `positionStrategy` prop takes, the two built-in strategies behind
+// `useCssTransforms`, and a lookup by that flag.
+export type { IPositionStrategy, IPositionStyleInput } from '@/core/gridlayout/helpers/position-strategy';
+export { transformStrategy, topLeftStrategy, getPositionStrategy } from '@/core/gridlayout/helpers/position-strategy';
 
 // Grid-unit <-> pixel math.
 export { calcXY } from '@/core/helpers/calculate-utils';

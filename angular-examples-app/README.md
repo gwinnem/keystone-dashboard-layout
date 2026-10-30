@@ -86,7 +86,7 @@ described above is required for those deep links to work.
 
 ## Current status
 
-All 53 examples exist under `src/app/examples/`, matching the full
+All 55 examples exist under `src/app/examples/`, matching the full
 example set the Vue and React packages already have, each with its own
 route in `app.routes.ts` and its own sidebar link in `app.component.ts`
 (navigation lives there, not in `home.component.ts`, which is the full
@@ -100,7 +100,7 @@ fixing several real bugs along the way — most significantly,
 length changes, fixed directly in `GridLayoutComponent` (see that
 file's own `commitUndoPoint`/`lastSnapshot` doc comments for the full
 account). Examples 1–32 were verified in an earlier session. Examples
-46–53 exist as files but weren't part of either verification pass —
+46–55 exist as files but weren't part of either verification pass —
 treat them with the same caution 33–45 were treated with before that
 pass.
 

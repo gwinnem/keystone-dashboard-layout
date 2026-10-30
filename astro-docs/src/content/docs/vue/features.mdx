@@ -3,12 +3,12 @@ title: Features
 description: Everything Keystone Dashboard Layout for Vue does, grouped by category, with a live example linked from every bullet.
 ---
 
-:::note[All 53 examples are live, each with an editable StackBlitz playground]
+:::note[All 55 examples are live, each with an editable StackBlitz playground]
 Every link below now resolves to a real, ported page — confirmed against
 the full `astro.config.mjs` sidebar list, not just written and assumed
-correct. Every one of the 53 examples also has an "Open in StackBlitz"
+correct. Every one of the 55 examples also has an "Open in StackBlitz"
 button seeding a real, editable, running project from that exact
-example's own source. See [Examples](/vue/examples/) for the same 53,
+example's own source. See [Examples](/vue/examples/) for the same 55,
 organized the same way this page is.
 :::
 
@@ -27,6 +27,9 @@ organized the same way this page is.
 
 - **Automatic compaction.** Items fill gaps vertically by default; other items automatically move out of the way of a drag/resize.
 - **Pluggable compaction strategy** (`compactType`) — five built-in strategies (vertical, horizontal, none, and overlap variants of each), or replace the algorithm entirely with a custom `ICompactor`. See [Pluggable compaction](/vue/examples/pluggable-compaction/).
+- **A faster vertical compactor** (`verticalFastCompactor`) — the same result as the default vertical compactor in roughly O(n log n) instead of O(n²), for very large layouts. Opt in through the `compactor` prop. See [Pluggable compaction](/vue/api/interfaces/compactor/).
+- **Swap-on-drag collision mode** (`collisionMode: 'swap'`) — drop an item onto exactly one other item and the two trade places, instead of the default push-aside. Anything that isn't a clean swap falls back to the push. See [Swap on drag](/vue/examples/swap-on-drag/).
+- **Pluggable positioning** (`positionStrategy`) — choose how items are placed on the page: CSS transforms (`transformStrategy`, the default), `top`/`left` (`topLeftStrategy`), or your own `IPositionStrategy`. See [Pluggable positioning](/vue/examples/pluggable-positioning/).
 - **Horizontal shift mode** — push colliding items left/right instead of down. See [Horizontal shift](/vue/examples/horizontal-shift/).
 - **Prevent collision mode** — block a drag/resize instead of pushing other items, with a `MOVE_BLOCKED_BY_COLLISION` event so a consumer can give feedback the moment that happens. See [Prevent collision](/vue/examples/prevent-collision/) and [Blocked-move feedback](/vue/examples/blocked-move-feedback/).
 - **Magnetic snap-to-grid** (`snapToGrid`/`snapThreshold`) — actually adjusts an item's landing position to align with a neighbor, not just a visual guide. See [Snap to grid](/vue/examples/snap-to-grid/).

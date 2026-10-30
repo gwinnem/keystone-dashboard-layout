@@ -136,7 +136,7 @@
 </script>
 <script lang="ts" setup>
   import { computed, getCurrentInstance, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-  import { setTopLeft, setTopRight, setTransform, setTransformRtl } from '@/core/helpers/utils';
+  import { getPositionStrategy, IPositionStrategy } from '@/core/gridlayout/helpers/position-strategy';
   import { resolveAriaLabels } from '@/core/common/interfaces/aria-labels.interface';
   import useCurrentInstance from '@/hooks/useInstance';
   import { IColumns, IGridLayoutProps } from './grid-layout-props.interface';
@@ -268,6 +268,10 @@
   const transformScale = ref<number>(1);
   /** Whether to position via CSS transforms (fast path) or `top`/`left` (slow path) — see `createStyle`. */
   const useCssTransforms = ref<boolean>(true);
+  /** The grid's own `positionStrategy` prop, when set — wins over `useCssTransforms`. */
+  const positionStrategy = ref<IPositionStrategy | null>(null);
+  /** The strategy actually in effect: the grid's `positionStrategy`, else the built-in one matching `useCssTransforms`. */
+  const resolvedPositionStrategy = computed<IPositionStrategy>(() => positionStrategy.value ?? getPositionStrategy(useCssTransforms.value));
   /** The computed inline style applied to the item's root element. */
   const styleObj = ref({} as Record<string, string | number>);
   /** Whether this item renders right-to-left, pushed down from the parent layout's `isMirrored` prop via the `changeDirection` eventBus message. */
@@ -573,8 +577,7 @@
   });
 
   const classObj = computed(() => {
-    return {
-      'css-transforms': useCssTransforms.value,
+    const classes: Record<string, boolean | null> = {
       'disable-userselect': isDragging.value,
       'no-touch': isAndroid.value && draggableOrResizableAndNotStatic.value,
       'render-rtl': renderRtl.value,
@@ -586,6 +589,11 @@
       'vue-static': props.isStatic,
       'vue-use-radius': useBorderRadiusResolved.value,
     };
+    const strategyClass = resolvedPositionStrategy.value.className;
+    if(strategyClass) {
+      classes[strategyClass] = true;
+    }
+    return classes;
   });
 
   /**
@@ -656,27 +664,17 @@
       }
     }
 
-    let sty;
-    // CSS Transforms support (default)
-    if(useCssTransforms.value) {
-      // Add rtl support
-      if(renderRtl.value) {
-        sty = setTransformRtl(pos.top, pos.right as number, pos.width, pos.height);
-      } else {
-        sty = setTransform(pos.top, pos.left as number, pos.width, pos.height);
-      }
-    }
-
-    if(!useCssTransforms.value) {
-      // top,left (slow)
-      // Add rtl support
-      if(renderRtl.value) {
-        sty = setTopRight(pos.top, pos.right as number, pos.width, pos.height);
-      } else {
-        sty = setTopLeft(pos.top, pos.left as number, pos.width, pos.height);
-      }
-    }
-    styleObj.value = sty as unknown as Record<string, string | number>;
+    // The strategy decides how the pixel position becomes inline style:
+    // CSS transforms by default, `top`/`left` when `useCssTransforms` is
+    // off, or whatever the grid's `positionStrategy` prop supplies.
+    styleObj.value = resolvedPositionStrategy.value.getStyle({
+      height: pos.height,
+      left: pos.left,
+      right: pos.right,
+      rtl: renderRtl.value,
+      top: pos.top,
+      width: pos.width,
+    });
   };
 
   /**
@@ -1018,6 +1016,12 @@
     createStyle();
   };
 
+  /** Applies a changed `positionStrategy` and re-styles the item — see `setUseCssTransformsHandler` above for why the style must be recomputed, not just the class. */
+  const setPositionStrategyHandler = (val: IPositionStrategy | null): void => {
+    positionStrategy.value = val;
+    createStyle();
+  };
+
   const setRowHeightHandler = (rHeight: number): void => {
     rowHeight.value = rHeight;
   };
@@ -1063,6 +1067,7 @@
   eventBus.on(`setMargin`, setMarginHandler);
   eventBus.on(`setTransformScale`, setTransformScaleHandler);
   eventBus.on(`setUseCssTransforms`, setUseCssTransformsHandler);
+  eventBus.on(`setPositionStrategy`, setPositionStrategyHandler);
   eventBus.on(`updateWidth`, updateWidthHandler);
 
   onBeforeUnmount(() => {
@@ -1084,6 +1089,7 @@
     eventBus.off(`setMargin`, setMarginHandler);
     eventBus.off(`setTransformScale`, setTransformScaleHandler);
     eventBus.off(`setUseCssTransforms`, setUseCssTransformsHandler);
+    eventBus.off(`setPositionStrategy`, setPositionStrategyHandler);
     eventBus.off(`updateWidth`, updateWidthHandler);
     teardownDraggable();
     teardownResizable();
@@ -1178,6 +1184,7 @@
 
     transformScale.value = thisLayout?.transformScale as number;
     useCssTransforms.value = thisLayout?.useCssTransforms as boolean;
+    positionStrategy.value = thisLayout?.positionStrategy ?? null;
     createStyle();
 
     // Explicit, guaranteed calls — not just relying on the watchers above

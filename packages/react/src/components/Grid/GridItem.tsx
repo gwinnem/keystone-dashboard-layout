@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, KeyboardEvent, MouseEvent } from 'react';
-import { resolveAriaLabels, setTopLeft, setTopRight, setTransform, setTransformRtl } from 'keystone-dashboard-layout-core';
-import type { ITopLeftStyle, ITopRightStyle, ITransformStyle } from 'keystone-dashboard-layout-core';
+import { getPositionStrategy, resolveAriaLabels } from 'keystone-dashboard-layout-core';
 import type { IGridItemProps } from './grid-item-props.interface';
 import { useGridContext } from './grid-context';
 import { useGridItemDrag } from './hooks/useGridItemDrag';
@@ -343,18 +342,18 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       }
     }
 
-    let styleFn: (top: number, leftOrRight: number, width: number, height: number) => ITransformStyle | ITopLeftStyle | ITopRightStyle;
-    if(resolvedIsMirrored && context.useCssTransforms) {
-      styleFn = setTransformRtl;
-    } else if(resolvedIsMirrored) {
-      styleFn = setTopRight;
-    } else if(context.useCssTransforms) {
-      styleFn = setTransform;
-    } else {
-      styleFn = setTopLeft;
-    }
+    // The grid's `positionStrategy` decides how the pixel position becomes
+    // inline style; without one, `useCssTransforms` picks a built-in.
+    const strategy = context.positionStrategy ?? getPositionStrategy(context.useCssTransforms);
     const anchor = resolvedIsMirrored ? Number(pos.right) : Number(pos.left);
-    const baseStyle = styleFn(pos.top, anchor, pos.width, pos.height) as unknown as CSSProperties;
+    const baseStyle = strategy.getStyle({
+      height: pos.height,
+      left: resolvedIsMirrored ? undefined : anchor,
+      right: resolvedIsMirrored ? anchor : undefined,
+      rtl: resolvedIsMirrored,
+      top: pos.top,
+      width: pos.width,
+    }) as CSSProperties;
     // An explicit per-item zIndex always wins over the CSS-class-based
     // static/dragging/resizing defaults — same override rule as the
     // Vue package's own `zIndex` prop.
@@ -380,7 +379,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   }, [
     calcPosition, item.x, item.y, item.w, item.h, item.zIndex,
     isResizing, resizing, isDragging, dragging,
-    context.useCssTransforms, context.containerWidth, context.margin, context.colNum, context.rowHeight,
+    context.useCssTransforms, context.positionStrategy, context.containerWidth, context.margin, context.colNum, context.rowHeight,
     resolvedIsMirrored, resolvedUseBorderRadius, resolvedBorderRadiusPx, resolvedShowResizeHandles, resolvedResizeHandleColor,
   ]);
 
@@ -394,6 +393,8 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     isSelected && `kdl-grid-item--selected`,
     resolvedIsMirrored && `kdl-grid-item--rtl`,
     resolvedShowResizeHandles && `kdl-grid-item--show-resize-handles`,
+    // Only a custom strategy contributes a class: the built-in ones keep the markup exactly as it was.
+    context.positionStrategy?.className,
     className,
   ].filter(Boolean).join(` `);
 

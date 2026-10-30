@@ -3,15 +3,15 @@ title: Features
 description: Everything Keystone Dashboard Layout for Angular does, grouped by category, with a live example linked from every bullet.
 ---
 
-:::note[All 53 examples are live in a real, separate Angular app]
-Angular has reached full feature parity with Vue and React, and all 53
+:::note[All 55 examples are live in a real, separate Angular app]
+Angular has reached full feature parity with Vue and React, and all 55
 of this package's own interactive examples have been ported and
 verified — but they live in a real, separate, standalone Angular CLI
 app rather than as embedded Astro islands on this site (the community
 `@analogjs/astro-angular` integration this site's Vue/React examples
 rely on proved too fragile for Angular specifically; see that app's own
 README for the full account). Every link below opens that app directly
-— see the sidebar's own **Examples** section for the same 53, or
+— see the sidebar's own **Examples** section for the same 55, or
 [Vue's own Examples](/vue/examples/)/[React's own Examples](/react/examples/)
 if you'd rather stay on this site; the underlying behavior across all
 three is identical. Every example in that app also has its own "Open in
@@ -35,6 +35,9 @@ exact example's own source.
 
 - **Automatic compaction.** Items fill gaps vertically by default; other items automatically move out of the way of a drag/resize.
 - **Pluggable compaction strategy** (`compactType`) — five built-in strategies (vertical, horizontal, none, and overlap variants of each), or replace the algorithm entirely with a custom `compactor` `@Input()`. See [Pluggable compaction](https://kdla.winnem.tech/examples/42-pluggable-compaction).
+- **A faster vertical compactor** (`verticalFastCompactor`, imported from `keystone-dashboard-layout-core`) — the same result as the default vertical compactor in roughly O(n log n) instead of O(n²), for very large layouts. Opt in through the `compactor` `@Input()`. See [Pluggable compaction](/angular/api/interfaces/compactor/).
+- **Swap-on-drag collision mode** (`collisionMode: 'swap'`) — drop an item onto exactly one other item and the two trade places, instead of the default push-aside. Anything that isn't a clean swap falls back to the push. See [Swap on drag](https://kdla.winnem.tech/examples/55-swap-on-drag).
+- **Pluggable positioning** (`positionStrategy`) — choose how items are placed on the page: CSS transforms (`transformStrategy`, the default), `top`/`left` (`topLeftStrategy`), or your own `IPositionStrategy`. See [Pluggable positioning](https://kdla.winnem.tech/examples/54-pluggable-positioning).
 - **Horizontal shift mode** (`horizontalShift`) — push colliding items left/right instead of down. See [Horizontal shift](https://kdla.winnem.tech/examples/15-horizontal-shift).
 - **Prevent collision mode** (`preventCollision`) — block a drag/resize instead of pushing other items, with a `moveBlockedByCollision` `@Output()` so a consumer can give feedback the moment that happens. See [Prevent collision](https://kdla.winnem.tech/examples/08-prevent-collision) and [Blocked-move feedback](https://kdla.winnem.tech/examples/30-blocked-move-feedback).
 - **Magnetic snap-to-grid** (`snapToGrid`/`snapThreshold`) — actually adjusts an item's landing position to align with a neighbor, not just a visual guide. See [Snap to grid](https://kdla.winnem.tech/examples/32-snap-to-grid).
