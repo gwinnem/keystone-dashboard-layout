@@ -1,4 +1,4 @@
-﻿# Keystone Dashboard Layout — Angular Examples (standalone app)
+# Keystone Dashboard Layout — Angular Examples (standalone app)
 
 A real, standalone Angular CLI application — **not** part of the pnpm
 workspace (same deliberate choice as `astro-docs`; see its own
@@ -26,17 +26,17 @@ pipeline at all.
 
 ## Why it reaches into `packages/angular/src` directly
 
-`packages/angular` has no working build output yet (`ng-packagr` was
-never actually run — see that package's own `package.json`/
-`ng-package.json` history). Rather than wait on that, `tsconfig.json`'s
-own `paths` field aliases `keystone-dashboard-layout-angular` straight
-to `../packages/angular/src/index.ts`, and `tsconfig.app.json`'s own
+`packages/angular` now has a working build (`ng-packagr`, via
+`pnpm --filter keystone-dashboard-layout-angular build`), but this app
+doesn't consume it: `tsconfig.json`'s own `paths` field aliases
+`keystone-dashboard-layout-angular` straight to
+`../packages/angular/src/index.ts`, and `tsconfig.app.json`'s own
 `include` explicitly covers `../packages/angular/src/**/*.ts` too — a
 real, confirmed requirement (Angular's own compiler needs a file inside
 its *program*, not just resolvable by module resolution, to process its
-decorators/templates at all). Once `packages/angular` has a real build,
-switch this to a normal `link:../packages/angular` dependency instead
-and drop the `paths` alias.
+decorators/templates at all). To run the examples against the built
+package instead, switch this to a normal `link:../packages/angular`
+dependency and drop the `paths` alias.
 
 `keystone-dashboard-layout-core` *does* have a real build already, so
 it's a normal `link:../packages/core` dependency here, no alias needed.
@@ -75,37 +75,34 @@ catch-all/SPA-fallback rule redirecting all paths to `index.html` — the
 specific mechanism (`_redirects`, `vercel.json`, a 404.html trick, etc.)
 depends on which host you choose.
 
-## Once deployed
+## Deployment
 
-Let me know the deployed URL and I'll update `astro-docs`'s Angular
-Examples pages to link to (or `<iframe>`) the real, live pages here,
-replacing the current single, non-functional
-`/angular/examples/basic-drag-resize/` island attempt.
+The Angular "Examples" sidebar in `astro-docs` links straight out to
+this app's production host, `https://kdla.winnem.tech` (see
+`ANGULAR_EXAMPLES_APP_URL` in `astro-docs/astro.config.mjs`; in
+development it points at `http://localhost:4200` instead). Routing is
+plain HTML5 path-based, not hash-based, so the host's SPA-fallback rule
+described above is required for those deep links to work.
 
 ## Current status
 
-All 53 examples now exist under `src/app/examples/`, matching the
-full example set the Vue and React packages already have (52 from
-the original set, plus a 53rd, resize direction toggles, added to
-all three frameworks together afterward), each with its own route in
-`app.routes.ts` and its own sidebar link in `app.component.ts`
-(navigation lives there now, not in `home.component.ts`, which is now
-the full examples gallery, not a plain welcome message). Not yet
-deployed publicly (see “Once deployed” above) — currently only
-verified via `pnpm dev` (`http://localhost:4200/`).
+All 53 examples exist under `src/app/examples/`, matching the full
+example set the Vue and React packages already have, each with its own
+route in `app.routes.ts` and its own sidebar link in `app.component.ts`
+(navigation lives there, not in `home.component.ts`, which is the full
+examples gallery).
 
 Verification depth varies by example: 33–45 were individually
-live-verified against real browser interaction this session (drag/
-resize dispatched via `PointerEvent`s, DOM state inspected directly),
-surfacing and fixing several real bugs along the way — most
-significantly, `enableUndoRedo` silently not tracking externally-
-driven `layout` length changes, fixed directly in
-`GridLayoutComponent` (see that file's own `commitUndoPoint`/
-`lastSnapshot` doc comments for the full account). Examples 1–32 were
-verified in an earlier session. Examples 46–52 exist as files but
-weren’t part of either verification pass — treat them with the same
-caution 33–45 were treated with before this session’s own pass
-through them.
+live-verified against real browser interaction (drag/resize dispatched
+via `PointerEvent`s, DOM state inspected directly), surfacing and
+fixing several real bugs along the way — most significantly,
+`enableUndoRedo` silently not tracking externally-driven `layout`
+length changes, fixed directly in `GridLayoutComponent` (see that
+file's own `commitUndoPoint`/`lastSnapshot` doc comments for the full
+account). Examples 1–32 were verified in an earlier session. Examples
+46–53 exist as files but weren't part of either verification pass —
+treat them with the same caution 33–45 were treated with before that
+pass.
 
 ## Donate
 

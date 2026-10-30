@@ -244,7 +244,7 @@ export default defineConfig({
               label: 'Examples',
               items: [
                 { label: 'Gallery', slug: 'vue/examples' },
-                // All 45 examples are now ported — see PLAN.md's own
+                // The original 45 examples are ported (46–53 follow below) — see PLAN.md's own
                 // §4.4 table for the full title/slug list.
                 { label: '01 — Basic drag & resize', slug: 'vue/examples/basic-drag-resize' },
                 { label: '02 — Bounded drag to container', slug: 'vue/examples/bounded-drag' },

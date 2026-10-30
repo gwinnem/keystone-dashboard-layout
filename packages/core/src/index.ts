@@ -80,12 +80,14 @@ export { getBottomYCoordinate } from '@/core/gridlayout/helpers/grid-layout-help
 export type { ICompactor, ICompactorContext } from '@/core/gridlayout/helpers/compactor';
 export {
   verticalCompactor,
+  verticalFastCompactor,
   horizontalCompactor,
   noCompactor,
   verticalOverlapCompactor,
   horizontalOverlapCompactor,
   getCompactor,
 } from '@/core/gridlayout/helpers/compactor';
+export { compactLayoutFast } from '@/core/gridlayout/helpers/fast-compact-helper';
 export { ECompactType } from '@/core/gridlayout/enums/ECompactType';
 
 // Grid-unit <-> pixel math.

@@ -30,6 +30,11 @@
   "main": "dist/keystone-dashboard-layout-core.cjs.js",
   "module": "dist/keystone-dashboard-layout-core.es.js",
   "types": "./dist/types/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "types/*": ["dist/types/*"]
+    }
+  },
   "files": ["dist/*", "LICENSE", "NOTICE.md", "SUPPORT.md", "CHANGELOG.md"],
   "exports": {
     ".": {
@@ -46,6 +51,9 @@
       "types": "./dist/types/gridlayout/interfaces/cross-grid.interfaces.d.ts",
       "import": "./dist/cross-grid-interfaces.es.js",
       "require": "./dist/cross-grid-interfaces.cjs.js"
+    },
+    "./types/*": {
+      "types": "./dist/types/*.d.ts"
     }
   },
   "homepage": "https://kdl.winnem.tech/core/",
@@ -64,6 +72,7 @@
     "lint:fix": "eslint --fix --color",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
+    "bench": "vitest bench --run",
     "test:mutation": "stryker run",
     "changeset": "node ../../scripts/changeset.mjs"
   },

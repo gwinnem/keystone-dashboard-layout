@@ -50,19 +50,12 @@ replacing the current on/off toggle between CSS transforms and
 `top`/`left` positioning, with both current behaviors preserved as
 built-ins.
 
-## A fast, large-layout compaction algorithm
-
-An additional compaction strategy, implementing the same pluggable
-interface as the built-in ones, aimed at very large layouts. Needs a
-real performance benchmark proving the complexity claim before shipping
-— not to be added as an unverified swap.
-
 ## A worker-based layout engine
 
 An opt-in Web Worker executor for compaction/responsive-generation on
 very large layouts. The largest lift of anything on this list —
-deliberately deferred until the fast-compaction item above alone is
-proven insufficient on its own, not built speculatively alongside it.
+deliberately deferred until `verticalFastCompactor` alone is proven
+insufficient on its own, not built speculatively alongside it.
 
 ## Have a request?
 

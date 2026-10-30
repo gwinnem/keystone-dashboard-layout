@@ -37,6 +37,7 @@ import {
   ICompactor,
   ICompactorContext,
   verticalCompactor,
+  verticalFastCompactor,
   horizontalCompactor,
   noCompactor,
   verticalOverlapCompactor,
@@ -95,6 +96,9 @@ export {
   // looks one of these up by `ECompactType` directly, the same mapping
   // `GridLayout` itself uses internally.
   verticalCompactor,
+  // Same result as verticalCompactor, much faster on large layouts
+  // (opt in via the `compactor` prop; not a `compactType` value).
+  verticalFastCompactor,
   horizontalCompactor,
   noCompactor,
   verticalOverlapCompactor,

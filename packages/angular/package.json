@@ -43,11 +43,17 @@
     "a11y",
     "aria"
   ],
-  "main": "dist/keystone-dashboard-layout-angular/index.js",
+  "main": "dist/keystone-dashboard-layout-angular/fesm2022/keystone-dashboard-layout-angular.mjs",
+  "module": "dist/keystone-dashboard-layout-angular/fesm2022/keystone-dashboard-layout-angular.mjs",
   "types": "./dist/keystone-dashboard-layout-angular/index.d.ts",
   "files": ["dist/keystone-dashboard-layout-angular/*", "LICENSE", "NOTICE.md", "SUPPORT.md", "CHANGELOG.md"],
   "exports": {
-    "./style.css": "./dist/keystone-dashboard-layout-angular/styles/index.css"
+    ".": {
+      "types": "./dist/keystone-dashboard-layout-angular/index.d.ts",
+      "default": "./dist/keystone-dashboard-layout-angular/fesm2022/keystone-dashboard-layout-angular.mjs"
+    },
+    "./style.css": "./dist/keystone-dashboard-layout-angular/src/styles/index.css",
+    "./package.json": "./package.json"
   },
   "sideEffects": false,
   "repository": {

@@ -21,6 +21,7 @@ import { existsSync, mkdtempSync, rmSync, readFileSync, copyFileSync } from 'fs'
 import { tmpdir } from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { checkDeclarations, packLocalCore } from '../../../scripts/check-declarations.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -58,7 +59,7 @@ try {
   // Deliberately `pnpm pack`, not `npm pack` — a real, confirmed bug
   // found via a live run of this exact script, not a stylistic
   // preference: this package's own `dependencies` includes
-  // `"@keystone-dashboard-layout/core": "workspace:*"`, a pnpm-specific
+  // `"keystone-dashboard-layout-core": "workspace:*"`, a pnpm-specific
   // protocol plain `npm` has no concept of at all. `npm pack` copies
   // that literal string into the tarball's own package.json unchanged;
   // installing that tarball then fails outright with
@@ -71,7 +72,7 @@ try {
   // deliberately stays plain `npm`, not `pnpm` — simulating what an
   // actual downstream consumer using npm (not pnpm) would experience.
   execSync('pnpm pack', { cwd: ROOT });
-  // Known, expected limitation until @keystone-dashboard-layout/core's
+  // Known, expected limitation until keystone-dashboard-layout-core's
   // own first real npm release: the `npm install` below now correctly
   // resolves the rewritten "workspace:*" -> a real version number (e.g.
   // "0.1.0"), confirmed via a live run — but npm then tries to fetch
@@ -90,10 +91,12 @@ try {
 
   const scratchTarball = path.join(scratchDir, tarballName);
   copyFileSync(tarballPath, scratchTarball);
+  // Install this repo's own core next to the package (see packLocalCore).
+  const scratchCoreTarball = packLocalCore({ packageRoot: ROOT, scratchDir, log });
 
   execSync('npm init -y', { cwd: scratchDir, stdio: 'ignore' });
   try {
-    execSync(`npm install ${JSON.stringify(scratchTarball)} react@^19 react-dom@^19`, {
+    execSync(`npm install ${JSON.stringify(scratchCoreTarball)} ${JSON.stringify(scratchTarball)} react@^19 react-dom@^19`, {
       cwd: scratchDir,
       encoding: 'utf-8',
     });
@@ -151,6 +154,14 @@ try {
     encoding: 'utf-8',
     stdio: 'inherit',
   });
+
+  // Declarations: every relative specifier must stay inside the package and every
+  // keystone-dashboard-layout-core/... specifier must resolve against the installed core.
+  const dtsProblems = checkDeclarations({ installedRoot, scratchDir, log });
+  if (dtsProblems.length > 0) {
+    fail(`Published .d.ts files are broken (${dtsProblems.length}):\n  - ${dtsProblems.join('\n  - ')}`);
+  }
+  log('  OK: all .d.ts specifiers resolve');
 
   log('All checks passed — the published package resolves and imports correctly.');
 } catch (err) {

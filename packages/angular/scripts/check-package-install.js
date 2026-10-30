@@ -36,6 +36,7 @@ import { existsSync, mkdtempSync, rmSync, readFileSync, copyFileSync } from 'fs'
 import { tmpdir } from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { checkDeclarations, packLocalCore } from '../../../scripts/check-declarations.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -106,11 +107,13 @@ try {
 
   const scratchTarball = path.join(scratchDir, tarballName);
   copyFileSync(tarballPath, scratchTarball);
+  // Install this repo's own core next to the package (see packLocalCore).
+  const scratchCoreTarball = packLocalCore({ packageRoot: ROOT, scratchDir, log });
 
   execSync('npm init -y', { cwd: scratchDir, stdio: 'ignore' });
   try {
     execSync(
-      `npm install ${JSON.stringify(scratchTarball)} @angular/core@^19 @angular/common@^19 rxjs@^7 zone.js@^0.15`,
+      `npm install ${JSON.stringify(scratchCoreTarball)} ${JSON.stringify(scratchTarball)} @angular/core@^19 @angular/common@^19 @angular/compiler@^19 rxjs@^7 zone.js@^0.15`,
       { cwd: scratchDir, encoding: 'utf-8' },
     );
   } catch (err) {
@@ -139,9 +142,16 @@ try {
     }
   }
 
+  // Angular libraries (this one, and @angular/common itself) ship partially
+  // compiled and are normally finished by the Angular linker during an app
+  // build. A plain Node import has no linker, so Angular falls back to JIT,
+  // which needs `@angular/compiler` loaded BEFORE anything else is imported
+  // (otherwise: "JIT compilation failed for injectable [class PlatformLocation]").
+  // It is not a dependency or peer of @angular/core/common, so it is installed
+  // explicitly above and imported first below.
   log('Checking named exports on the main entry...');
   const checkScript = `
-    import(${JSON.stringify(pkg.name)}).then((mod) => {
+    import('@angular/compiler').then(() => import(${JSON.stringify(pkg.name)})).then((mod) => {
       const expected = ${JSON.stringify(EXPECTED_NAMED_EXPORTS)};
       const missing = expected.filter((name) => !(name in mod));
       if (missing.length > 0) {
@@ -159,6 +169,14 @@ try {
     encoding: 'utf-8',
     stdio: 'inherit',
   });
+
+  // Declarations: every relative specifier must stay inside the package and every
+  // keystone-dashboard-layout-core/... specifier must resolve against the installed core.
+  const dtsProblems = checkDeclarations({ installedRoot, scratchDir, log });
+  if (dtsProblems.length > 0) {
+    fail(`Published .d.ts files are broken (${dtsProblems.length}):\n  - ${dtsProblems.join('\n  - ')}`);
+  }
+  log('  OK: all .d.ts specifiers resolve');
 
   log('All checks passed — the published package resolves and imports correctly.');
 } catch (err) {
