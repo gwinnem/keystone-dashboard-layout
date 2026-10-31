@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, KeyboardEvent, MouseEvent } from 'react';
-import { getPositionStrategy, resolveAriaLabels } from 'keystone-dashboard-layout-core';
+import { calcMaximizedPosition, getPositionStrategy, resolveAriaLabels } from 'keystone-dashboard-layout-core';
 import type { IGridItemProps } from './grid-item-props.interface';
 import { useGridContext } from './grid-context';
 import { useGridItemDrag } from './hooks/useGridItemDrag';
@@ -83,12 +83,19 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   }
 
   const isStatic = Boolean(item.isStatic);
+  // Maximize/restore: while some item fills the grid, every other one is hidden (still mounted, so its state is kept), and the
+  // maximized one is neither draggable nor resizable — there is nowhere to move it to. `context.maximizedId` is already checked
+  // against the layout, so it is never an id that has no item.
+  const isMaximized = context.maximizedId === i;
+  const isHiddenByMaximize = context.maximizedId !== null && !isMaximized;
   const resolvedEnableEditMode = item.enableEditMode ?? context.enableEditMode;
-  const resolvedDraggable = (item.isDraggable ?? context.isDraggable) && resolvedEnableEditMode && !isStatic;
-  const resolvedResizable = (item.isResizable ?? context.isResizable) && resolvedEnableEditMode && !isStatic;
+  const resolvedDraggable = (item.isDraggable ?? context.isDraggable) && resolvedEnableEditMode && !isStatic && !isMaximized;
+  const resolvedResizable = (item.isResizable ?? context.isResizable) && resolvedEnableEditMode && !isStatic && !isMaximized;
   // A static item never shows a close button, whatever is configured (the Vue package's own rule, and the same reason it
   // has no role, tab stop or handles): there is nothing to operate on a static item.
   const resolvedShowCloseButton = (item.showCloseButton ?? context.showCloseButton) && resolvedEnableEditMode && !isStatic;
+  // Not tied to edit mode or `isStatic`: maximizing only changes how an item is drawn, so any item can be maximized.
+  const resolvedShowMaximizeButton = item.showMaximizeButton ?? context.showMaximizeButton;
   const resolvedAutoScroll = item.autoScroll ?? context.autoScroll;
   const resolvedPreserveAspectRatio = item.preserveAspectRatio ?? context.preserveAspectRatio;
   const resolvedIsBounded = item.isBounded ?? context.isBounded;
@@ -346,14 +353,20 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     // inline style; without one, `useCssTransforms` picks a built-in.
     const strategy = context.positionStrategy ?? getPositionStrategy(context.useCssTransforms);
     const anchor = resolvedIsMirrored ? Number(pos.right) : Number(pos.left);
-    const baseStyle = strategy.getStyle({
-      height: pos.height,
-      left: resolvedIsMirrored ? undefined : anchor,
-      right: resolvedIsMirrored ? anchor : undefined,
-      rtl: resolvedIsMirrored,
-      top: pos.top,
-      width: pos.width,
-    }) as CSSProperties;
+    // The maximized item ignores its own cell and fills the grid instead (minus one margin on each side), through the same
+    // strategy as every other item, so a custom `positionStrategy` and RTL apply to it too.
+    const placement = isMaximized
+      ? calcMaximizedPosition({ containerHeight: context.maximizedHeight, containerWidth: context.containerWidth, margin: context.margin, rtl: resolvedIsMirrored })
+      : {
+        height: pos.height,
+        left: resolvedIsMirrored ? undefined : anchor,
+        right: resolvedIsMirrored ? anchor : undefined,
+        rtl: resolvedIsMirrored,
+        top: pos.top,
+        width: pos.width,
+      };
+    const positionedStyle = strategy.getStyle(placement) as CSSProperties;
+    const baseStyle = isHiddenByMaximize ? { ...positionedStyle, display: `none` } : positionedStyle;
     // An explicit per-item zIndex always wins over the CSS-class-based
     // static/dragging/resizing defaults — same override rule as the
     // Vue package's own `zIndex` prop.
@@ -378,7 +391,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   // eslint-disable-next-line react-hooks/exhaustive-deps -- context.containerWidth/margin/colNum/rowHeight are deliberately included despite not being read directly in this function's own body; see this useMemo's own doc comment above for the full, confirmed-bug rationale (calcPosition's own stable reference reads them internally via a ref, so omitting them here silently stops this from recomputing when they change).
   }, [
     calcPosition, item.x, item.y, item.w, item.h, item.zIndex,
-    isResizing, resizing, isDragging, dragging,
+    isResizing, resizing, isDragging, dragging, isMaximized, isHiddenByMaximize, context.maximizedHeight,
     context.useCssTransforms, context.positionStrategy, context.containerWidth, context.margin, context.colNum, context.rowHeight,
     resolvedIsMirrored, resolvedUseBorderRadius, resolvedBorderRadiusPx, resolvedShowResizeHandles, resolvedResizeHandleColor,
   ]);
@@ -391,6 +404,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     isDragging && `kdl-grid-item--dragging`,
     isResizing && `kdl-grid-item--resizing`,
     isSelected && `kdl-grid-item--selected`,
+    isMaximized && `kdl-grid-item--maximized`,
     resolvedIsMirrored && `kdl-grid-item--rtl`,
     resolvedShowResizeHandles && `kdl-grid-item--show-resize-handles`,
     // Only a custom strategy contributes a class: the built-in ones keep the markup exactly as it was.
@@ -529,6 +543,19 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
           type="button"
         >
           ×
+        </button>
+      )}
+      {resolvedShowMaximizeButton && (
+        <button
+          className={isMaximized ? `btn-maximize btn-maximize--active` : `btn-maximize`}
+          onClick={event => {
+            // Not a click on the item itself (which would select it with `multiSelect` on).
+            event.stopPropagation();
+            context.onItemToggleMaximize(i);
+          }}
+          type="button"
+        >
+          <span className="kdl-visually-hidden">{isMaximized ? resolvedAriaLabels.restoreButton : resolvedAriaLabels.maximizeButton}</span>
         </button>
       )}
       {resolvedResizable && resolvedResizeHandleEdges.map(edge => (

@@ -2908,8 +2908,10 @@ describe(`GridItemComponent`, () => {
       expect(component.resolvedAriaLabels).toEqual({
         closeButton: `Close`,
         itemRoleDescription: `Draggable, resizable item`,
+        maximizeButton: `Maximize`,
         moveInstruction: `Press arrow keys to move.`,
         resizeInstruction: `Press shift plus arrow keys to resize.`,
+        restoreButton: `Restore`,
       });
     });
 

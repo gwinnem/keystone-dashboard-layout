@@ -26,6 +26,7 @@ import { combineLatest } from 'rxjs';
 import {
   calcColWidth,
   calcGridItemWH,
+  calcMaximizedPosition,
   clamp,
   createCoreData,
   createNativeAutoScroll,
@@ -41,6 +42,7 @@ import type {
   INativeDragEvent,
   INativeResizeEvent,
   IInteractEdges,
+  IMaximizedState,
   IPositionStrategy,
   ITopLeftStyle,
   ITopRightStyle,
@@ -143,8 +145,9 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
     '[attr.role]': 'isDraggableOrResizableAndNotStatic ? "group" : null',
     '[attr.tabindex]': 'tabindexValue',
     '[class.kdl-grid-item--dragging]': 'isDragging',
-    '[class.kdl-grid-item--draggable]': 'resolvedIsDraggable && !isStatic',
+    '[class.kdl-grid-item--draggable]': 'resolvedIsDraggable && !isStatic && !isMaximized',
     '[class.kdl-grid-item--has-header]': 'hasHeaderContent',
+    '[class.kdl-grid-item--maximized]': 'isMaximized',
     '[class.kdl-grid-item--resizing]': 'isResizing',
     '[class.kdl-grid-item--rtl]': 'resolvedIsMirrored',
     '[class.kdl-grid-item--selected]': 'isSelected',
@@ -164,6 +167,12 @@ const ALL_RESIZE_HANDLES: TResizeHandle[] = [`n`, `s`, `e`, `w`, `ne`, `nw`, `se
         <button class="kdl-grid-item-close-button" type="button" (click)="handleCloseButtonClick($event)">
           <span aria-hidden="true" class="kdl-grid-item-close-button-icon"></span>
           <span class="kdl-visually-hidden">{{ resolvedAriaLabels.closeButton }}</span>
+        </button>
+      }
+      @if (resolvedShowMaximizeButton) {
+        <button class="btn-maximize" [class.btn-maximize--active]="isMaximized" type="button" (click)="handleMaximizeButtonClick($event)">
+          <span aria-hidden="true" class="btn-maximize-icon"></span>
+          <span class="kdl-visually-hidden">{{ isMaximized ? resolvedAriaLabels.restoreButton : resolvedAriaLabels.maximizeButton }}</span>
         </button>
       }
       @if (isDraggableOrResizableAndNotStatic) {
@@ -267,6 +276,8 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * 16, is now closed).
    */
   @Input() showCloseButton: boolean | null = null;
+  /** Whether the built-in maximize/restore button renders. `null` (the default) inherits the grid's `showMaximizeButton`; `true`/`false` decide for this item alone. Works on a static item and with edit mode off. */
+  @Input() showMaximizeButton: boolean | null = null;
   /**
    * Master interactivity switch. `null` (the default) inherits the
    * grid-wide default cascaded via `GridEventBusService.gridDefaults$`
@@ -324,7 +335,8 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * `{i, h, w}`-only shape an earlier version of this port's own
    * implementation plan assumed before that direct read). See
    * `itemMoved`'s own doc comment for the same pre-compaction-value
-   * timing note.
+   * timing note. Also emitted with the new pixel size when the item is maximized, restored, or (while maximized) the grid's
+   * height changes — `h`/`w` stay the item's own grid units then.
    */
   @Output() readonly itemResized = new EventEmitter<{ i: string | number; h: number; w: number; height: number; width: number }>();
   /** Explicit stacking-order override, applied as an inline `z-index` style, winning over the implicit static/dragging/resizing z-index rules a consumer's own stylesheet may define. `null` (the default) applies no override. */
@@ -440,6 +452,11 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    */
   // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
   resolvedEnableEditMode = true;
+  /** `showMaximizeButton` resolved against the grid's own default. */
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
+  resolvedShowMaximizeButton = false;
+  /** What the grid last published about maximizing: which item fills it (`id`, `null` for none) and the grid height in pixels it fills. */
+  private maximizedState: IMaximizedState = { height: 0, id: null };
   /**
    * Whether header content was actually projected (Phase 22) — kept
    * current every content-check cycle (see `ngAfterContentChecked`
@@ -607,7 +624,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       () => ({
         activationDistance: this.dragActivationDistance,
         allowFrom: this.dragAllowFrom,
-        enabled: this.resolvedIsDraggable && !this.isStatic,
+        enabled: this.resolvedIsDraggable && !this.isStatic && !this.isMaximized,
         ignoreFrom: this.dragIgnoreFrom,
       }),
       event => this.handleDrag(event),
@@ -659,6 +676,19 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       // tests' own history in grid-item.component.spec.ts before ever
       // considering this line removable.
       this.changeDetectorRef.markForCheck();
+    });
+
+    // Fill the grid when maximized, return to the layout position when restored, and follow the grid's height while maximized.
+    this.eventBus.maximizedState$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(state => {
+      const involved = state.id === this.i || this.maximizedState.id === this.i;
+      this.maximizedState = state;
+      // The resize handles come and go with maximizing, so the native resize engine has to follow them.
+      this.checkResizableToggle();
+      this.style = this.computeStyle();
+      this.changeDetectorRef.markForCheck();
+      if(involved) {
+        this.emitContainerResized();
+      }
     });
   }
 
@@ -741,6 +771,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     this.resolvedUseBorderRadius = this.useBorderRadius ?? this.latestGridDefaults.useBorderRadius;
     this.resolvedBorderRadiusPx = this.borderRadiusPx ?? this.latestGridDefaults.borderRadiusPx;
     this.resolvedShowCloseButton = this.showCloseButton ?? this.latestGridDefaults.showCloseButton;
+    this.resolvedShowMaximizeButton = this.showMaximizeButton ?? this.latestGridDefaults.showMaximizeButton ?? false;
     this.resolvedEnableEditMode = this.enableEditMode ?? this.latestGridDefaults.enableEditMode;
     // Grid-only, no per-item override — see IGridDefaults's own doc
     // comment on why this one field resolves differently from the
@@ -919,6 +950,23 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     this.removeItem.emit(this.i);
   }
 
+  /** The maximize button: asks the grid to maximize this item, or to restore it when it already is. Stopped here so it does not count as a click on the item (a `multiSelect` selection). */
+  handleMaximizeButtonClick(event: MouseEvent): void {
+    event.stopPropagation();
+    this.eventBus?.emitToggleMaximize(this.i);
+  }
+
+  /** Reports this item's pixel size through `itemResized` — once the container has been measured, which the pixel maths needs. */
+  private emitContainerResized(): void {
+    if(!Number.isFinite(this.containerWidth) || this.containerWidth < 1) {
+      return;
+    }
+    const size = this.isMaximized
+      ? calcMaximizedPosition({ containerHeight: this.maximizedState.height, containerWidth: this.containerWidth, margin: this.margin, rtl: this.resolvedIsMirrored })
+      : this.calcResizePosition(this.x, this.y, this.w, this.h);
+    this.itemResized.emit({ h: this.h, height: size.height, i: this.i, w: this.w, width: size.width });
+  }
+
   /**
    * `0` when this item is genuinely operable via keyboard at all
    * (draggable or resizable, not static, and edit mode is on) —
@@ -943,22 +991,40 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
    * tolerate.
    */
   get tabindexValue(): number | null {
-    return (this.resolvedIsDraggable || this.resolvedIsResizable) && !this.isStatic && this.resolvedEnableEditMode ? 0 : null;
+    return (this.resolvedIsDraggable || this.resolvedIsResizable) && !this.isStatic && this.isInteractive ? 0 : null;
   }
 
   /** `true` when this item is draggable or resizable (or both), not static, and edit mode is on — a direct port of Vue's own `draggableOrResizableAndNotStatic` computed, now including its own `editModeEnabled.value` factor (the TODO `tabindexValue`'s own doc comment used to flag is closed). Drives whether `role="group"`/`aria-roledescription`/`aria-describedby` apply to the host, and whether the keyboard-instructions span renders at all. */
   get isDraggableOrResizableAndNotStatic(): boolean {
-    return (this.resolvedIsDraggable || this.resolvedIsResizable) && !this.isStatic && this.resolvedEnableEditMode;
+    return (this.resolvedIsDraggable || this.resolvedIsResizable) && !this.isStatic && this.isInteractive;
   }
 
   /** `true` when this item is draggable, not static, and edit mode is on — gates whether `resolvedAriaLabels.moveInstruction` is included in the keyboard-instructions span, matching Vue's own `draggableAndNotStatic`. */
   get isDraggableAndNotStatic(): boolean {
-    return this.resolvedIsDraggable && !this.isStatic && this.resolvedEnableEditMode;
+    return this.resolvedIsDraggable && !this.isStatic && this.isInteractive;
   }
 
   /** `true` when this item is resizable, not static, and edit mode is on — gates whether `resolvedAriaLabels.resizeInstruction` is included in the keyboard-instructions span, matching Vue's own `resizableAndNotStatic`. */
   get isResizableAndNotStatic(): boolean {
-    return this.resolvedIsResizable && !this.isStatic && this.resolvedEnableEditMode;
+    return this.resolvedIsResizable && !this.isStatic && this.isInteractive;
+  }
+
+  /** This item is the maximized one: it fills the grid and is neither draggable nor resizable meanwhile. */
+  get isMaximized(): boolean {
+    return this.maximizedState.id === this.i;
+  }
+
+  /** Another item is maximized: this one stays mounted (its component state survives) but is not displayed. */
+  get isHiddenByMaximize(): boolean {
+    return this.maximizedState.id !== null && !this.isMaximized;
+  }
+
+  /**
+   * Edit mode, except while maximized. What the drag, resize and keyboard code (and the resize handles) gate on, so a
+   * maximized item cannot be moved out of its place; the close button keeps the plain `resolvedEnableEditMode`.
+   */
+  get isInteractive(): boolean {
+    return this.resolvedEnableEditMode && !this.isMaximized;
   }
 
   /**
@@ -1014,7 +1080,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   handleKeydown(event: KeyboardEvent): void {
     // View mode (enableEditMode off) locks the keyboard too, as in Vue's own handleKeydown: an item that has no tab stop and
     // no instructions must not still move when something else gives it focus (focusItem, a click, a script).
-    if(this.isStatic || !this.resolvedEnableEditMode) {
+    if(this.isStatic || !this.isInteractive) {
       return;
     }
     if(event.ctrlKey || event.altKey || event.metaKey) {
@@ -1162,6 +1228,9 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
       merged[`--kdl-close-button-inset`] = `${Math.min(4 + Math.round(this.resolvedBorderRadiusPx * 0.293), 24)}px`;
     } else {
       merged[`--kdl-close-button-inset`] = `4px`;
+    }
+    if(this.isHiddenByMaximize) {
+      merged[`display`] = `none`;
     }
     return merged;
   }
@@ -1332,7 +1401,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   private handleDrag(event: INativeDragEvent): void {
     // The engine itself stays attached whatever the mode (its `enabled` flag only reads the raw draggable state), so the
     // handler is where view mode takes effect: Vue's handleDrag opens with the same check.
-    if(this.isStatic || !this.resolvedEnableEditMode || this.isResizing) {
+    if(this.isStatic || !this.isInteractive || this.isResizing) {
       return;
     }
 
@@ -1478,7 +1547,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     // Defensive, as in Vue: the resize handles are not rendered in view mode (they are gated on `isResizableAndNotStatic`), so
     // the native engine has nothing to listen to and this cannot be reached through a real gesture.
     // Stryker disable next-line ConditionalExpression,LogicalOperator: unreachable, see the comment above.
-    if(this.isStatic || !this.resolvedEnableEditMode) {
+    if(this.isStatic || !this.isInteractive) {
       return;
     }
 
@@ -1716,8 +1785,17 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     let width: number;
     let height: number;
 
-    // Stryker disable next-line LogicalOperator: equivalent — resizing is set exactly when isResizing is, so `||` gives the same answer.
-    if(this.isResizing && this.resizing) {
+    if(this.isMaximized) {
+      // Fill the grid, whatever the layout says. Nothing is dragging or resizing in that state.
+      ({ height, left, right, top, width } = calcMaximizedPosition({
+        containerHeight: this.maximizedState.height,
+        containerWidth: this.containerWidth,
+        margin: this.margin,
+        rtl: this.resolvedIsMirrored,
+      }));
+    } else if(
+      // Stryker disable next-line LogicalOperator: equivalent — resizing is set exactly when isResizing is, so `||` gives the same answer.
+      this.isResizing && this.resizing) {
       // While actively resizing, `resizing`'s own accumulated pixel
       // position+size overrides the grid-unit-derived ones entirely —
       // the item tracks the pointer smoothly, rather than snapping to

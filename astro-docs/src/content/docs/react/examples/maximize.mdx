@@ -1,0 +1,33 @@
+---
+title: Maximize and restore
+description: Expand one item to fill the whole grid and put everything back exactly, without ever touching layout.
+---
+import Maximize from '../../../../components/examples-react/57-maximize.tsx';
+import MaximizeSource from '../../../../components/examples-react/57-maximize.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={MaximizeSource} filename="maximize.tsx" lang="tsx" playground>
+  <Maximize client:visible />
+</ExampleTryIt>
+
+Pass `maximizedItem` with the id of the item that should fill the grid, and
+`onMaximizedItemChange` to hear when the grid changes it (the maximize button,
+Escape, or `maximize()` / `restore()` on the handle). Set `showMaximizeButton` to
+give every item a button that toggles it; an item can override that with its own
+`showMaximizeButton`. The other items are hidden but stay mounted, so a chart or
+a form inside them keeps its state. `layout` is never written, so restoring puts
+everything back exactly where it was.
+
+- **Compaction is suspended** while an item is maximized. Items added meanwhile
+  are placed once, when you restore.
+- **Drag and resize are off** for the maximized item. Its header and close button
+  keep working.
+- **Escape restores.** A widget inside the item that handles Escape itself (and
+  calls `preventDefault()`) keeps it.
+- **The grid's height is what the item fills.** Give the grid a real height, for
+  example `heightMode="scroll"` inside a sized parent, as this demo does.
+- **`onMaximizedItemChange` is for the grid's own changes.** Setting
+  `maximizedItem` from your own state does not call it.
+
+The same can be done from code with `maximize(id)`, `restore()` and
+`toggleMaximize(id)` on the grid's ref.

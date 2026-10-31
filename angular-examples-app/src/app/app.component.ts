@@ -133,6 +133,7 @@ const SITE_ROOT_URL = isDevMode() ? `http://localhost:4321/` : `https://kdl.winn
           <li><a routerLink="/examples/54-pluggable-positioning" routerLinkActive="is-active">54 — Pluggable positioning</a></li>
           <li><a routerLink="/examples/55-swap-on-drag" routerLinkActive="is-active">55 — Swap on drag</a></li>
           <li><a routerLink="/examples/56-async-persistence" routerLinkActive="is-active">56 — Async persistence</a></li>
+          <li><a routerLink="/examples/57-maximize" routerLinkActive="is-active">57 — Maximize &amp; restore</a></li>
         </ul>
       </aside>
       <main class="app-main">

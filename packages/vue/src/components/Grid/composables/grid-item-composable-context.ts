@@ -20,7 +20,7 @@ export interface IGridItemComposableContext {
   /** Restricts dragging to within the container's bounds; only read by `useGridItemDrag`. */
   bounded: Ref<boolean | null>;
   /** Resolved master interactivity switch — `useGridItemDrag`/`useGridItemResize`/`useGridItemKeyboard` all gate on this rather than the raw `enableEditMode` prop directly, since that prop is `null` by default (meaning "inherit from GridLayout") and reading it directly as a boolean would incorrectly block every interaction by default. See ROADMAP.md's "layout-level read-only/edit-mode toggle" item. */
-  editModeEnabled: Ref<boolean | null>;
+  editModeEnabled: Readonly<Ref<boolean | null>>;
   /** Current column count, resolved from the parent layout's `colNum`/responsive breakpoint. */
   cols: Ref<number>;
   /** The container's last known-good measured pixel width (see the `updateWidth` guard in `GridItem.vue` — never set to a non-positive value). */

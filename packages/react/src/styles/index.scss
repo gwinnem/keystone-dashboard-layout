@@ -253,6 +253,52 @@
 }
 
 /*
+ * showMaximizeButton — sits beside the close button (28px further in from the same corner, so both fit), the same circle shape and
+ * stacking. The icon is a white-bordered square drawn by `::before`; while the item is maximized (`--active`) its top border
+ * thickens into a title bar, the usual "restore" look. The label inside is visually hidden, for assistive technology. The
+ * `--close-button-inset` custom property is optional: without it the button keeps the close button's default 4px inset.
+ */
+.btn-maximize {
+  background: #1481b4;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  height: 24px;
+  padding: 0;
+  position: absolute;
+  right: calc(var(--close-button-inset, 4px) + 28px);
+  top: var(--close-button-inset, 4px);
+  width: 24px;
+  z-index: 20;
+}
+
+.btn-maximize:hover {
+  background: #0e5f85;
+}
+
+.btn-maximize::before {
+  border: 2px solid #fff;
+  box-sizing: border-box;
+  content: '';
+  height: 12px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+}
+
+.btn-maximize--active::before {
+  border-top-width: 4px;
+}
+
+/* isMirrored (RTL) — the button follows the close button to the other corner. */
+.kdl-grid-item--rtl .btn-maximize {
+  left: calc(var(--close-button-inset, 4px) + 28px);
+  right: auto;
+}
+
+/*
  * isMirrored (RTL) — confirmed gap via a fresh e2e run: `setTransformRtl`
  * (`@keystone-dashboard-layout/core`) computes `translate3d(-right, ...)`,
  * which is only correct if the item's own *pre-transform* static

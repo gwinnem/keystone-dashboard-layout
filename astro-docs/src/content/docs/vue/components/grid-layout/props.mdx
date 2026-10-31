@@ -32,6 +32,8 @@ that can override it per-item; see each prop's note.
 | `isDraggable` | `boolean` | `true` | Default `isDraggable` for items that don't set their own. |
 | `isMirrored` | `boolean` | `false` | Enables RTL layout mirroring. See [Mirrored (RTL)](/vue/examples/mirrored-rtl/). |
 | `isResizable` | `boolean` | `true` | Default `isResizable` for items that don't set their own. |
+| `maximizedItem` | `string \| number \| null` | `null` | The `i` of the item currently maximized, or `null` for none. Supports `v-model:maximized-item`. The maximized item fills the grid (minus one `margin` on each side); every other item is hidden but stays mounted, and `layout` is never changed. Compaction is suspended while an item is maximized and runs once on restore. An id that isn't in `layout` is ignored. Escape restores. See [Maximize and restore](/vue/examples/maximize/). |
+| `showMaximizeButton` | `boolean` | `false` | Default `showMaximizeButton` for items that don't set their own — renders a built-in maximize/restore button in each item's header. See [Maximize and restore](/vue/examples/maximize/). |
 | `margin` | `number[]` | `[10, 10]` | `[horizontal, vertical]` spacing between items, in pixels. |
 | `maxRows` | `number` | `Infinity` | Maximum number of rows the layout may grow to. See [Layout bounds & rendering options](/vue/examples/layout-bounds-rendering-options/). |
 | `multiSelect` | `boolean` | `false` | Opt-in multi-select and group move/resize. See [Multi-select & group move/resize](/vue/examples/multi-select-group-move-resize/). |
@@ -84,3 +86,5 @@ breakpoint/column configuration objects.
 ```
 
 See [v-model & save/load layout](/vue/examples/save-load-layout/) for a full example.
+
+`maximizedItem` supports `v-model:maximized-item` the same way, backed by the `update:maximizedItem` event.

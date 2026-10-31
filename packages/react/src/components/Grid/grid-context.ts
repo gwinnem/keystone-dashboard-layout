@@ -37,6 +37,12 @@ export interface IGridContextValue {
   preventCollision: boolean;
   resizeHandles: TResizeHandle[];
   showCloseButton: boolean;
+  /** Grid-wide default for whether each item renders its own maximize/restore button — a per-item `ILayoutItem.showMaximizeButton` overrides this for just that item. */
+  showMaximizeButton: boolean;
+  /** The id of the item that is currently maximized, or `null` when none is. Already checked against the layout, so it is never an id that has no item. */
+  maximizedId: string | number | null;
+  /** The grid container's own measured height in pixels — what the maximized item fills (minus one margin on each side). */
+  maximizedHeight: number;
   multiSelect: boolean;
   selectedItemIds: Set<string | number>;
   isMirrored: boolean;
@@ -62,6 +68,8 @@ export interface IGridContextValue {
   onItemResize: (id: string | number, eventType: TGridGestureEventType, x: number, y: number, w: number, h: number) => void;
   /** Reports a close-button click for the item with the given id. `undefined` when the consumer didn't provide `onItemClose` — `GridItem` simply doesn't call it in that case. */
   onItemClose?: (id: string | number) => void;
+  /** Maximizes the item with the given id, or restores the grid when it is the one already maximized — what an item's own maximize button calls. */
+  onItemToggleMaximize: (id: string | number) => void;
   /**
    * Reports a click on the item's own root (`multiSelect`) — the raw
    * modifier keys, not collapsed into a single boolean (a real change

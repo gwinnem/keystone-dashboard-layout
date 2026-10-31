@@ -163,6 +163,16 @@ export interface IGridLayoutProps {
   isResizable?: boolean;
   /** The layout array — one entry per `GridItem` rendered in the default slot, matched by `i`. Required; see `TLayout`/`ILayoutItem`. */
   layout: TLayout;
+  /**
+   * The id of the item that fills the whole grid, or `null` for none — use as `v-model:maximized-item`. The other items are
+   * hidden but stay mounted (so their component state survives), compaction is suspended meanwhile, and `layout` is never
+   * changed, so restoring puts everything back exactly. Drag and resize are off for the maximized item; its header and close
+   * button keep working. Escape restores. An id the layout does not have is treated as `null`. `maximize(id)`, `restore()`
+   * and `toggleMaximize(id)` on the exposed instance do the same imperatively. Default `null`.
+   */
+  maximizedItem?: string | number | null;
+  /** Default `showMaximizeButton` for items that don't set their own. Default `false`. */
+  showMaximizeButton?: boolean;
   /** `[horizontal, vertical]` spacing between items, in pixels. Default `[10, 10]`. */
   margin?: number[];
   /** Maximum number of rows the layout may grow to. Default `Infinity`. */

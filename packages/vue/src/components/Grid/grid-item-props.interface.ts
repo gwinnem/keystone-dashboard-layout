@@ -108,6 +108,8 @@ export interface IGridItemProps {
   showResizeHandles?: boolean | null;
   /** Shows the built-in close button (emits `EGridItemEvent.REMOVE_ITEM` on click). Ignored when `isStatic` is true. `null` (default) defers to `GridLayout`'s `showCloseButton` prop (itself `false` by default) — see docs/REFACTORING.md #31 for why this needed fixing rather than already working like `isBounded`. */
   showCloseButton?: boolean | null;
+  /** Shows a button that maximizes this item to fill the whole grid, and restores it while maximized (see `GridLayout`'s `maximizedItem`). Also shown for static items and with `enableEditMode` off — maximizing never changes the layout. `null` (default) defers to `GridLayout`'s `showMaximizeButton` (itself `false` by default). */
+  showMaximizeButton?: boolean | null;
   /** Applies `borderRadiusPx` as a border radius. `null` defers to `GridLayout`'s own `useBorderRadius` (itself `false` by default) — same inherit pattern as `isDraggable`/`isResizable`/`isBounded`/`showCloseButton`. */
   useBorderRadius?: boolean | null;
   /** Width, in grid column units. Required. */

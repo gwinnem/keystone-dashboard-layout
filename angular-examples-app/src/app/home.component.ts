@@ -19,7 +19,7 @@ import { RouterLink } from '@angular/router';
     <h1>Examples</h1>
     <p class="gallery-intro">
       Every example below renders the real, published component — not a
-      screenshot. All 56 are ported; grouped here the same way the
+      screenshot. All 57 are ported; grouped here the same way the
       <a href="https://kdl.winnem.tech/angular/features/" target="_blank" rel="noopener">Features</a>
       guide groups its own categories, so a bullet there and an example
       here always mean the same thing.
@@ -59,6 +59,7 @@ import { RouterLink } from '@angular/router';
       <li><a routerLink="/examples/41-layout-bounds-rendering-options"><strong>Layout bounds &amp; rendering options</strong></a> — maxRows, distributeEvenly, useCssTransforms.</li>
       <li><a routerLink="/examples/42-pluggable-compaction"><strong>Pluggable compaction</strong></a> — five built-in strategies, or a genuinely custom ICompactor.</li>
       <li><a routerLink="/examples/43-undo-redo"><strong>Undo/redo</strong></a> — opt-in history at committed-change granularity.</li>
+      <li><a routerLink="/examples/57-maximize"><strong>Maximize &amp; restore</strong></a> — one item fills the grid, the rest stay mounted; restoring puts everything back.</li>
       <li><a routerLink="/examples/47-spacing-indicators"><strong>Spacing indicators</strong></a> — a labeled distance badge in the gap to the nearest neighbor.</li>
       <li><a routerLink="/examples/50-height-modes"><strong>Height modes (heightMode)</strong></a> — the modern replacement for autoSize, including 'scroll'/'fit' modes.</li>
     </ul>

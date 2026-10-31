@@ -61,6 +61,14 @@ cascade). See each row's own note.
 | `showSpacingGuides` | `boolean` | `false` | Shows a labeled distance badge between the active item and its nearest neighbor. |
 | `moveBlockedByCollision` | `EventEmitter<string \| number>` | — | Emits this item's own id when `preventCollision` actually constrained a drag (blocked entirely) or a resize (clamped, can still partially grow). |
 
+## Maximize
+
+| Input/Output | Type | Default | Description |
+|---|---|---|---|
+| `maximizedItem` | `string \| number \| null` | `null` | The `i` of the item currently maximized, or `null` for none. Two-way bindable with `[(maximizedItem)]`. The maximized item fills the grid (minus one `margin` on each side); every other item is hidden but stays in the DOM, and `layout` is never changed. Compaction is suspended while maximized and runs once on restore (emitting `layoutChange`). An id that isn't in `layout` is ignored. Escape restores. See [Maximize and restore](https://kdla.winnem.tech/examples/57-maximize). |
+| `maximizedItemChange` | `EventEmitter<string \| number \| null>` | — | Emits the id when an item is maximized from inside the grid, and `null` when it is restored — the built-in button, Escape, or `maximize()`/`restore()`. Not emitted when your own `[maximizedItem]` binding changes. |
+| `showMaximizeButton` | `boolean` | `false` | Cascaded default for rendering the built-in maximize/restore button on each item. A per-item `showMaximizeButton` overrides this. |
+
 ## Multi-select & undo/redo
 
 | Input/Output | Type | Default | Description |

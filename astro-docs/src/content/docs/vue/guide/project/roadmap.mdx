@@ -15,19 +15,6 @@ but that was one specific instance checked, not the exhaustive sweep a
 real audit would need before shipping a dedicated Nuxt wrapper around
 the rest of the codebase.
 
-## Maximize/restore an item
-
-Temporarily expand a single item to fill the grid's entire visible
-area (its own header/close button still reachable, everything else
-hidden without being removed from `layout`), then restore it to its
-prior position/size. Needs its own design pass before starting,
-particularly around what happens to *other* items' compaction while one
-is maximized, and whether this lives as a per-item prop/method or a
-grid-level "which item is currently maximized" state. See
-[Comparison: commercial](/vue/guide/project/comparison-commercial/) for
-where this idea came from (DevExtreme's Dashboard Designer has it;
-Kendo TileLayout doesn't).
-
 ## Have a request?
 
 Open an issue on [GitHub](https://github.com/gwinnem/keystone-dashboard-layout/issues).

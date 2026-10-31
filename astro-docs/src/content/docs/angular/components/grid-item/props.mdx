@@ -49,6 +49,7 @@ explicitly per item in your own template's `@for` loop.
 | `useBorderRadius` | `boolean \| null` | `null` | Same cascade as `isDraggable`. |
 | `borderRadiusPx` | `number \| null` | `null` | Applied only when `useBorderRadius` resolves `true`. Same cascade as `isDraggable`. |
 | `showCloseButton` | `boolean \| null` | `null` | Same cascade as `isDraggable`. Ignored entirely while `isStatic` is `true`. |
+| `showMaximizeButton` | `boolean \| null` | `null` | Same cascade as `isDraggable` — shows the built-in maximize/restore button. See [Maximize and restore](https://kdla.winnem.tech/examples/57-maximize). |
 | `enableEditMode` | `boolean \| null` | `null` | Same cascade as `isDraggable` — see `GridLayoutComponent`'s own `enableEditMode` row for exactly what this gates. |
 | `ariaLabels` | `IGridAriaLabels` | `{}` | Merged over the grid-wide `ariaLabels` `@Input()` (and that, in turn, over the built-in English defaults). Not `null`-cascaded like the others — an empty object already means "nothing to override here." |
 

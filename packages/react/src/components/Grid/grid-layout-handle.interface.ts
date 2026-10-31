@@ -108,4 +108,17 @@ export interface IGridLayoutHandle {
    * now trying to focus.
    */
   focusItem: (id: string | number) => Promise<void>;
+  /**
+   * Maximizes the item with the given id: it fills the whole grid (minus one margin on each side) and every other item is
+   * hidden but stays mounted, so its state is kept. `layout` is never changed by maximizing, and compaction is suspended
+   * until the grid is restored. Switching straight from one maximized item to another is allowed. A no-op for an id that is
+   * not in `layout`, or that is already maximized. Calls `onMaximizedItemChange` with the id when it changes anything.
+   */
+  maximize: (id: string | number) => void;
+  /** The id of the item that is currently maximized, or `null` when none is. Read live, like `canUndo`. */
+  readonly maximizedItem: string | number | null;
+  /** Puts every item back where `layout` has it and runs the one compaction that was held back. A no-op when nothing is maximized. Calls `onMaximizedItemChange(null)` when it changes anything. */
+  restore: () => void;
+  /** Maximizes the item, or restores the grid when that item is the one already maximized. */
+  toggleMaximize: (id: string | number) => void;
 }

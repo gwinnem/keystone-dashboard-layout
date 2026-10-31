@@ -263,6 +263,29 @@ export interface IGridLayoutProps {
   showGridLines?: boolean;
   /** Grid-wide default for whether each item renders its own close button — a per-item `ILayoutItem.showCloseButton` overrides this for just that item. Default `false`. Clicking it calls `onItemClose`, if provided; this prop alone renders nothing without also handling that callback. */
   showCloseButton?: boolean;
+  /**
+   * Grid-wide default for whether each item renders a maximize/restore button — a per-item `ILayoutItem.showMaximizeButton`
+   * overrides this for just that item. Unlike the close button it is not tied to edit mode or `isStatic`: any item can be
+   * maximized. The button is the same one the `maximize()`/`restore()` handle methods drive. Default `false`.
+   */
+  showMaximizeButton?: boolean;
+  /**
+   * The id of the item that is maximized, or `null` (the default) for none. The maximized item fills the whole grid (minus one
+   * margin on each side) and every other item is hidden but stays mounted. `layout` is never changed by maximizing, and
+   * compaction is suspended until the grid is restored, then runs once. The maximized item cannot be dragged or resized, but its
+   * header and close button keep working, and Escape restores the grid.
+   *
+   * Follows this prop whenever it changes, and also changes on its own when the user acts (the item's maximize button, Escape,
+   * `maximize()`/`restore()` on the `ref`) — pair it with `onMaximizedItemChange` to keep your own state in sync. An id that is
+   * not in `layout` is ignored.
+   */
+  maximizedItem?: string | number | null;
+  /**
+   * Called with the new id (or `null` for none) whenever the maximized item changes because of something the grid did: a
+   * maximize button, Escape, `maximize()`/`restore()`/`toggleMaximize()` on the `ref`, or the maximized item being removed from
+   * `layout`. Not called when the change came from the `maximizedItem` prop itself.
+   */
+  onMaximizedItemChange?: (id: string | number | null) => void;
   /** Magnetically snaps a dragged item's edge to another item's edge once within `snapThreshold` grid units of it — changes where the item actually lands, unlike `showAlignmentGuides` (visual-only). Default `false`. */
   snapToGrid?: boolean;
   /** How close (in grid units) an edge needs to be to another item's edge to snap to it, when `snapToGrid` is on. `0` disables snapping entirely. Default `1`. */

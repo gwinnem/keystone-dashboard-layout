@@ -86,4 +86,5 @@ export type TGridItemEventBus = IEventEmitter<{
   setUseCssTransforms: boolean;
   setPositionStrategy: IPositionStrategy | null;
   setMaxRows: number;
+  toggleMaximize: string | number;
 }>;

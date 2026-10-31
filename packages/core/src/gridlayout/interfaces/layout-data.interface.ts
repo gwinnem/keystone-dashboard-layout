@@ -29,6 +29,8 @@ export interface ILayoutData {
   layouts: { [key: string]: TLayout };
   /** The currently active responsive breakpoint name, or `null` before responsive mode has resolved one. */
   lastBreakpoint: string | null;
+  /** Which item is maximized and how tall the grid is — read reactively by every `GridItem` to size itself or hide. */
+  maximizedState: IMaximizedState;
   lastLayoutLength: number;
   /** Inline style applied to the grid container — currently just `height`, for `autoSize`. */
   mergeStyle: { [key: string]: string };
@@ -72,6 +74,17 @@ export interface IItemOverridesData {
 }
 
 /**
+ * What the grid exposes to its items about maximize/restore: which item is maximized, and how tall the grid container
+ * currently is — the maximized item fills that height. `id` is `null` when nothing is maximized.
+ */
+export interface IMaximizedState {
+  /** The grid container's current height in pixels; only read while `id` is set. */
+  height: number;
+  /** The maximized item's id, or `null`. */
+  id: string | number | null;
+}
+
+/**
  * The eventBus contract GridLayout creates and provides to its GridItem
  * children. Shared with GridLayout's composables so both sides of every
  * eventBus.on/emit pair stay in sync with a single type definition.
@@ -103,4 +116,6 @@ export type TGridLayoutEventBus = IEventEmitter<{
   setTransformScale: number;
   setUseCssTransforms: boolean;
   setPositionStrategy: IPositionStrategy | null;
+  /** An item's maximize/restore button was clicked: the grid maximizes that item, or restores it if it already is. Payload: the item's id. */
+  toggleMaximize: string | number;
 }>;

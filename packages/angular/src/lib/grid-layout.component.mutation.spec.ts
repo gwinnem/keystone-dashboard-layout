@@ -72,6 +72,7 @@ describe(`GridLayoutComponent — mutation-testing gap coverage`, () => {
       | `setGridDefaults`
       | `setMargin`
       | `setOutsideDropEnabled`
+      | `setPositionStrategy`
       | `setRowHeight`
       | `setTransformScale`
       | `setUseCssTransforms`
@@ -91,6 +92,7 @@ describe(`GridLayoutComponent — mutation-testing gap coverage`, () => {
       [`rowHeight`, false, [`setRowHeight`, `updateContainerHeight`]],
       [`margin`, false, [`setMargin`, `updateContainerHeight`]],
       [`useCssTransforms`, false, [`setUseCssTransforms`]],
+      [`positionStrategy`, false, [`setPositionStrategy`]],
       [`transformScale`, false, [`setTransformScale`]],
       ...gridDefaultKeys.map((key): [string, boolean, TSpyName[]] => [key, false, [`setGridDefaults`]]),
       ...containerHeightKeys.map((key): [string, boolean, TSpyName[]] => [key, false, [`updateContainerHeight`]]),
@@ -115,6 +117,7 @@ describe(`GridLayoutComponent — mutation-testing gap coverage`, () => {
         setGridDefaults: jest.spyOn(bus, `setGridDefaults`),
         setMargin: jest.spyOn(bus, `setMargin`),
         setOutsideDropEnabled: jest.spyOn(internals, `setOutsideDropEnabled`),
+        setPositionStrategy: jest.spyOn(bus, `setPositionStrategy`),
         setRowHeight: jest.spyOn(bus, `setRowHeight`),
         setTransformScale: jest.spyOn(bus, `setTransformScale`),
         setUseCssTransforms: jest.spyOn(bus, `setUseCssTransforms`),

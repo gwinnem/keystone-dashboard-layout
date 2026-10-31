@@ -42,6 +42,7 @@ import {
   layoutValidator,
   createSwapDragState,
   moveElement,
+  resolveMaximizedItem,
   swapElement,
 } from 'keystone-dashboard-layout-core';
 import type {
@@ -176,6 +177,7 @@ interface ISpacingIndicatorStyle {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(click)': 'handleBackgroundClick($event)',
+    '(keydown)': 'handleKeydown($event)',
     '[class.kdl-grid-layout--active-drag]': 'isDragging',
     class: `kdl-grid-layout`,
   },
@@ -269,6 +271,21 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   @Input() borderRadiusPx = 10;
   /** Grid-wide default `showCloseButton` for items that don't set their own (`null`) — same cascade as `isDraggable` above. Default `false`, matching Vue/React's own default. */
   @Input() showCloseButton = false;
+  /** Whether every item renders the built-in maximize/restore button. An item's own `showMaximizeButton` wins either way. Default `false`. */
+  @Input() showMaximizeButton = false;
+  /**
+   * The item that fills the whole grid while every other item is hidden (kept mounted); `null` for none. Bind it two-way
+   * (`[(maximizedItem)]`) to follow the user's own maximize/restore too. The grid never writes `layout` for it: restoring puts
+   * every item back exactly where `layout` has it, after one compaction. Reading it gives the item that is maximized right now:
+   * `null` when the id set is not in `layout`.
+   */
+  @Input()
+  set maximizedItem(id: string | number | null) {
+    this.maximizedId = id ?? null;
+  }
+  get maximizedItem(): string | number | null {
+    return resolveMaximizedItem(this.layout, this.maximizedId);
+  }
   /**
    * Grid-wide default master interactivity switch for items that don't
    * set their own (`null`) — same cascade as `isDraggable` above.
@@ -357,6 +374,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   @Output() moveBlockedByCollision = new EventEmitter<string | number>();
   /** Emits the new `colNum` whenever that `@Input()` itself changes — a direct port of Vue's own `COLUMNS_CHANGED`, confirmed via a direct source read to watch only the raw `colNum` prop, not the responsive-resolved `effectiveColNum` (a breakpoint-driven column change is already covered separately by `breakpointChanged`). */
   @Output() columnsChanged = new EventEmitter<number>();
+  /** The maximized item changed through the grid itself (`maximize()`, `restore()`, `toggleMaximize()`, Escape, an item's button, or the maximized item leaving `layout`) — the id, or `null` once restored. Not emitted for a change that came in through the `maximizedItem` input. */
+  @Output() maximizedItemChange = new EventEmitter<string | number | null>();
   /**
    * Emits once, the first time the container's own width is measured
    * (i.e. mount has settled and every descendant `GridItemComponent`
@@ -447,6 +466,12 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   resolvedLayoutId = ``;
 
   private resizeObserver: ResizeObserver | undefined;
+  /** The id the grid was last asked to maximize (`maximizedItem` input, `maximize()` or an item's button), before checking `layout` still has it. */
+  private maximizedId: string | number | null = null;
+  /** The grid container's height in pixels as last measured — the maximized item fills it. */
+  private maximizedHeight = 0;
+  /** The maximized id the items were last told about (resolved against `layout`), to tell a restore from a layout change that touches nothing. */
+  private publishedMaximizedId: string | number | null = null;
   /** The internal, mutable working copy `moveElement`/the compactor actually operate on — cloned from `layout` whenever that `@Input()` reference changes. */
   private workingLayout: TLayout = [];
   /** Resolved, effective column count — `colNum` normally, or the `responsive`-resolved value once a real measurement has landed. */
@@ -570,6 +595,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     this.eventBus.itemDrag$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => this.handleItemDrag(event));
     this.eventBus.itemResize$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => this.handleItemResize(event));
     this.eventBus.itemClicked$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => this.handleItemClicked(event));
+    this.eventBus.toggleMaximize$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => this.toggleMaximize(id));
   }
 
   ngAfterViewInit(): void {
@@ -604,6 +630,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
           });
         }
       }
+      // After the width, so a maximized item has the container width when the height reaches it.
+      this.refreshMaximizedHeight();
     };
     measure();
     this.resizeObserver = new ResizeObserver(measure);
@@ -723,7 +751,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     if(changes[`transformScale`]) {
       this.eventBus.setTransformScale(this.transformScale);
     }
-    if(changes[`isDraggable`] || changes[`isResizable`] || changes[`isBounded`] || changes[`isMirrored`] || changes[`maxRows`] || changes[`useBorderRadius`] || changes[`borderRadiusPx`] || changes[`showCloseButton`] || changes[`ariaLabels`] || changes[`enableEditMode`]) {
+    if(changes[`isDraggable`] || changes[`isResizable`] || changes[`isBounded`] || changes[`isMirrored`] || changes[`maxRows`] || changes[`useBorderRadius`] || changes[`borderRadiusPx`] || changes[`showCloseButton`] || changes[`ariaLabels`] || changes[`enableEditMode`] || changes[`showMaximizeButton`]) {
       this.pushGridDefaults();
     }
     if((changes[`breakpoints`] || changes[`cols`] || changes[`responsive`]) && !changes[`responsive`]?.firstChange) {
@@ -740,6 +768,13 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     }
     if(changes[`allowOutsideDrop`] && !changes[`allowOutsideDrop`].firstChange) {
       this.setOutsideDropEnabled(this.allowOutsideDrop);
+    }
+    if(changes[`maximizedItem`]) {
+      this.measureMaximizedHeight();
+    }
+    // A layout change too: it can take the maximized item away.
+    if(changes[`maximizedItem`] || changes[`layout`]) {
+      this.syncMaximized();
     }
     if(changes[`layout`] || changes[`rowHeight`] || changes[`margin`] || changes[`autoSize`] || changes[`heightMode`]
       || changes[`transitionDurationMs`] || changes[`transitionTimingFunction`]
@@ -766,9 +801,94 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       isResizable: this.isResizable,
       maxRows: this.maxRows,
       showCloseButton: this.showCloseButton,
+      showMaximizeButton: this.showMaximizeButton,
       useBorderRadius: this.useBorderRadius,
     };
     this.eventBus.setGridDefaults(defaults);
+  }
+
+  /**
+   * Makes `id` fill the whole grid and hides every other item (they stay mounted, so their component state survives).
+   * `layout` is not touched and compaction is suspended until `restore()`. An id the layout does not have restores instead.
+   */
+  maximize(id: string | number | null): void {
+    const next = resolveMaximizedItem(this.layout, id);
+    if(next === this.maximizedItem) {
+      return;
+    }
+    this.measureMaximizedHeight();
+    this.maximizedId = next;
+    this.maximizedItemChange.emit(next);
+    this.syncMaximized();
+  }
+
+  /** Brings every item back exactly where `layout` has it. Does nothing when nothing is maximized. */
+  restore(): void {
+    this.maximize(null);
+  }
+
+  /** Maximizes `id`, or restores when it already is the maximized item. */
+  toggleMaximize(id: string | number): void {
+    this.maximize(this.maximizedItem === id ? null : id);
+  }
+
+  /** Escape restores the maximized item, unless something inside it (a dropdown, a dialog) already used the key. */
+  handleKeydown(event: KeyboardEvent): void {
+    if(event.key === `Escape` && this.maximizedItem !== null && !event.defaultPrevented) {
+      this.restore();
+    }
+  }
+
+  private measureMaximizedHeight(): void {
+    this.maximizedHeight = this.containerRef.nativeElement.clientHeight;
+  }
+
+  /** Follows the grid's own height while an item is maximized, so it keeps filling the grid. */
+  private refreshMaximizedHeight(): void {
+    const before = this.maximizedHeight;
+    this.measureMaximizedHeight();
+    if(this.maximizedHeight !== before && this.publishedMaximizedId !== null) {
+      this.publishMaximizedState();
+    }
+  }
+
+  private publishMaximizedState(): void {
+    this.eventBus.setMaximizedState({ height: this.maximizedHeight, id: this.maximizedItem });
+  }
+
+  /**
+   * Tells the items which one is maximized now, once that has changed. When nothing is any more (restored, or the maximized
+   * item left `layout`), does the compaction that was skipped meanwhile — an item added while maximized sits at `y: Infinity`
+   * until then — and lets a bound `[(maximizedItem)]` forget an id that is gone.
+   */
+  private syncMaximized(): void {
+    const before = this.publishedMaximizedId;
+    const now = this.maximizedItem;
+    if(now === before) {
+      return;
+    }
+    this.publishedMaximizedId = now;
+    const restored = now === null;
+    if(restored && this.maximizedId !== null) {
+      this.maximizedId = null;
+      this.maximizedItemChange.emit(null);
+    }
+    this.publishMaximizedState();
+    if(restored) {
+      this.compactAfterRestore();
+    }
+  }
+
+  /** The one compaction pass that was suspended while an item was maximized. Reports a layout change only when something moved. */
+  private compactAfterRestore(): void {
+    const before = cloneLayout(this.workingLayout);
+    const compacted = this.resolveCompactor().compact(this.workingLayout, this.effectiveColNum, { compactType: this.compactType });
+    if(layoutPositionsMatch(compacted, before)) {
+      return;
+    }
+    this.workingLayout = compacted;
+    this.layoutChange.emit(compacted);
+    this.changeDetectorRef.markForCheck();
   }
 
   /**
@@ -1680,6 +1800,10 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   }
 
   private resolveCompactor(compactTypeOverride?: ECompactType): ICompactor {
+    // While an item is maximized nothing is laid out, so there is nothing to compact; restoring compacts once.
+    if(this.maximizedItem !== null) {
+      return getCompactor(ECompactType.NONE);
+    }
     return this.compactor ?? getCompactor(compactTypeOverride ?? this.compactType);
   }
 

@@ -3235,6 +3235,7 @@ describe(`GridLayoutComponent`, () => {
         isResizable: false,
         maxRows: 5,
         showCloseButton: false,
+        showMaximizeButton: false,
         useBorderRadius: false,
       });
     });
@@ -3258,6 +3259,7 @@ describe(`GridLayoutComponent`, () => {
         isResizable: true,
         maxRows: Infinity,
         showCloseButton: false,
+        showMaximizeButton: false,
         useBorderRadius: false,
       });
     });
@@ -3302,6 +3304,7 @@ describe(`GridLayoutComponent`, () => {
         isResizable: true,
         maxRows: Infinity,
         showCloseButton: false,
+        showMaximizeButton: false,
         useBorderRadius: false,
       });
     });

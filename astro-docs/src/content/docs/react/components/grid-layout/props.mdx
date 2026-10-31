@@ -66,6 +66,14 @@ it per-item; see each prop's note.
 | `showSpacingGuides` | `boolean` | `false` | Shows a labeled distance badge between the active item and its nearest neighbor. |
 | `onMoveBlockedByCollision` | `(id: string \| number) => void` | — | Called when `preventCollision` actually constrained a drag or resize. |
 
+## Maximize
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `maximizedItem` | `string \| number \| null` | `undefined` | The `i` of the item to maximize, or `null` for none. Controlled: when you pass it, the grid follows it; leave it out and the grid keeps its own state (driven by the button, Escape or the imperative handle). The maximized item fills the grid (minus one `margin` on each side); every other item is hidden but stays mounted, and `layout` is never changed. Compaction is suspended while maximized and runs once on restore. An id that isn't in `layout` is ignored. See [Maximize and restore](/react/examples/maximize/). |
+| `onMaximizedItemChange` | `(id: string \| number \| null) => void` | — | Called with the id when an item is maximized from inside the grid, and with `null` when it is restored — the built-in button, Escape, or `maximize()`/`restore()`. Not called when your own `maximizedItem` prop changes (an unknown id is reported once as `null`). |
+| `showMaximizeButton` | `boolean` | `false` | Grid-wide default for rendering the built-in maximize/restore button on each item. A per-item `showMaximizeButton` on the layout entry overrides this. |
+
 ## Multi-select & undo/redo
 
 | Prop | Type | Default | Description |

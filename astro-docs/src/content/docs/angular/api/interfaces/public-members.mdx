@@ -48,6 +48,17 @@ class instead via `@ViewChild('grid')`, as shown.
 | `scrollToItem` | `(id: string \| number): void` | Scrolls the item into view, if currently rendered. A no-op (not a throw) on a missing id. |
 | `focusItem` | `(id: string \| number): void` | Moves keyboard focus to the item, if currently rendered and focusable. |
 
+## Maximize
+
+| Member | Type | Description |
+|---|---|---|
+| `maximizedItem` | `string \| number \| null` | The id of the item currently maximized, or `null`. Also an `@Input()` — see [GridLayoutComponent props](/angular/components/grid-layout/props/). |
+| `maximize` | `(id: string \| number): void` | Maximizes the item. An id that isn't in `layout` is ignored. |
+| `restore` | `(): void` | Restores the grid, then compacts once. A no-op when nothing is maximized. |
+| `toggleMaximize` | `(id: string \| number): void` | Maximizes the item, or restores when it is already the maximized one. |
+
+See [Maximize and restore](https://kdla.winnem.tech/examples/57-maximize).
+
 ## Selection (`multiSelect`)
 
 | Member | Type | Description |

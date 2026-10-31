@@ -58,6 +58,12 @@ export { moveToCorrectPlace, moveElement, moveElementAwayFromCollision } from '@
 export type { TCollisionMode, ISwapDragState } from '@/core/gridlayout/helpers/swap-helper';
 export { createSwapDragState, swapElement } from '@/core/gridlayout/helpers/swap-helper';
 
+// Maximize/restore — which id a grid may maximize, and the pixel rectangle that item fills. The grid keeps the id as its own
+// state and never touches `layout`.
+export type { IMaximizedPositionInput } from '@/core/gridlayout/helpers/maximize-helper';
+export type { IMaximizedState } from '@/core/gridlayout/interfaces/layout-data.interface';
+export { calcMaximizedPosition, resolveMaximizedItem } from '@/core/gridlayout/helpers/maximize-helper';
+
 // Compaction, cloning, and pixel-position style generation.
 export {
   cloneLayoutItem,

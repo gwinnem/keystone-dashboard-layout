@@ -64,6 +64,15 @@ export interface ILayoutItem<TMeta = unknown> extends ILayoutItemRequired {
    */
   showCloseButton?: boolean;
   /**
+   * Per-item override for whether a maximize/restore toggle button
+   * renders — `undefined` defers to the grid-wide `showMaximizeButton`
+   * default. Unlike the close button, it is not tied to edit mode or
+   * `isStatic`: any item can be maximized. Same "Vue has an equivalent
+   * prop, not a layout-item field" note as `zIndex` above applies here
+   * too.
+   */
+  showMaximizeButton?: boolean;
+  /**
    * Per-item override for whether native auto-scroll runs near a
    * container edge during this item's own drag/resize — `undefined`
    * defers to the grid-wide `autoScroll` default. Same "Vue has an
@@ -253,6 +262,7 @@ export type TLayoutItem<TMeta = unknown> = ILayoutItemRequired & {
   minW?: number;
   zIndex?: number | null;
   showCloseButton?: boolean;
+  showMaximizeButton?: boolean;
   autoScroll?: boolean;
   preserveAspectRatio?: boolean;
   ariaLabels?: IGridAriaLabels;

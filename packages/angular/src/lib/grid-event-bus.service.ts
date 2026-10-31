@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import type { IGridAriaLabels, IPositionStrategy } from 'keystone-dashboard-layout-core';
+import type { IGridAriaLabels, IMaximizedState, IPositionStrategy } from 'keystone-dashboard-layout-core';
 
 /** Phase 3's own bottom-up channel — the Angular equivalent of Vue's `dragEvent` eventBus message, reported by a `GridItemComponent` on every drag tick and consumed by its parent `GridLayoutComponent` to resolve collisions and commit the new layout. */
 export interface IItemDragEvent {
@@ -123,6 +123,8 @@ export interface IGridDefaults {
   maxRows: number;
   /** Default `showCloseButton` for items that don't set their own (`null`). */
   showCloseButton: boolean;
+  /** Default `showMaximizeButton` for items that don't set their own (`null`). Optional: absent means `false`. */
+  showMaximizeButton?: boolean;
   /** Default `useBorderRadius` for items that don't set their own (`null`). */
   useBorderRadius: boolean;
 }
@@ -180,6 +182,8 @@ export class GridEventBusService {
   private readonly itemDragSubject = new Subject<IItemDragEvent>();
   private readonly itemResizeSubject = new Subject<IItemResizeEvent>();
   private readonly itemClickedSubject = new Subject<IItemClickedEvent>();
+  private readonly maximizedStateSubject = new BehaviorSubject<IMaximizedState>({ height: 0, id: null });
+  private readonly toggleMaximizeSubject = new Subject<string | number>();
 
   /** The container's last known-good measured pixel width — the Angular equivalent of Vue's own `updateWidth` eventBus message. */
   readonly containerWidth$ = this.containerWidthSubject.asObservable();
@@ -205,6 +209,10 @@ export class GridEventBusService {
   readonly itemResize$ = this.itemResizeSubject.asObservable();
   /** A `GridItemComponent`'s own reported click, for `multiSelect` — the Angular equivalent of Vue's own `itemClicked` eventBus message. */
   readonly itemClicked$ = this.itemClickedSubject.asObservable();
+  /** Which item is maximized (`id`, `null` for none) and the grid height in pixels it fills — read by every `GridItemComponent` to fill the grid or hide. */
+  readonly maximizedState$ = this.maximizedStateSubject.asObservable();
+  /** A `GridItemComponent`'s maximize button was clicked — the grid maximizes that item, or restores it when it already is the maximized one. */
+  readonly toggleMaximize$ = this.toggleMaximizeSubject.asObservable();
 
   setContainerWidth(value: number): void {
     this.containerWidthSubject.next(value);
@@ -252,5 +260,13 @@ export class GridEventBusService {
 
   emitItemClicked(event: IItemClickedEvent): void {
     this.itemClickedSubject.next(event);
+  }
+
+  setMaximizedState(value: IMaximizedState): void {
+    this.maximizedStateSubject.next(value);
+  }
+
+  emitToggleMaximize(id: string | number): void {
+    this.toggleMaximizeSubject.next(id);
   }
 }
