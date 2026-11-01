@@ -36,8 +36,22 @@ width your actual grid renders at for a matching result.
 
 The returned string is a complete `<svg>...</svg>` document — usable
 directly, downloaded as a `.svg` file via a `Blob`, or drawn onto a
-`<canvas>` first if a raster PNG/JPEG is specifically needed. See
-[Export layout as SVG](/vue/examples/svg-export/) for a full example.
+`<canvas>` first if a raster PNG/JPEG is specifically needed.
+
+### On a mounted grid
+
+```ts
+gridRef.value.exportLayoutAsSvg(options?: IExportLayoutAsSvgOptions): string;
+```
+
+The same function is also exposed on the `GridLayout` instance. It reads
+`layout`, `colNum`, `rowHeight`, `margin` and the measured container width from
+the live grid, so you do not pass them again; any option you do pass still
+overrides the grid's value. Before the first width measurement it falls back
+to `containerWidth: 1200`. React exposes it on the imperative handle and
+Angular as a component method.
+
+See [Export layout as SVG](/vue/examples/svg-export/) for a full example.
 
 ## `readOutsideDropPayload`
 

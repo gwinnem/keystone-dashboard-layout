@@ -30,7 +30,7 @@ explicitly per item in your own template's `@for` loop.
 | `minW` / `maxW` / `minH` / `maxH` | `number` | `1` / `Infinity` / `1` / `Infinity` | Size constraints, in grid units. |
 | `isMirrored` | `boolean \| null` | `null` | Same cascade as `isDraggable` — whether this item renders right-to-left. The resize-specific edge-swap math for RTL is a direct analogy to the LTR case, not exhaustively verified against a real browser. |
 | `zIndex` | `number \| null` | `null` | CSS `z-index` override, always winning over the static/dragging/resizing CSS-class-based defaults when set. |
-| `autoScroll` | `boolean` | `false` | Scrolls the nearest scrollable ancestor while dragging/resizing near its edge. |
+| `autoScroll` | `boolean \| null` | `null` (inherits `GridLayoutComponent`'s own `autoScroll`, itself `false` by default) | Scrolls the nearest scrollable ancestor while dragging or resizing near its edge. |
 | `dragAllowFrom` | `string \| null` | `null` | CSS selector restricting which descendant can start a drag. `null` means anywhere on the item. |
 | `dragIgnoreFrom` | `string` | `'a, button'` | CSS selector excluding descendants that should *not* start a drag. |
 | `resizeIgnoreFrom` | `string \| null` | `null` | CSS selector excluding descendants of a resize handle that shouldn't themselves start a resize. |
@@ -38,7 +38,7 @@ explicitly per item in your own template's `@for` loop.
 | `showResizeHandles` | `boolean \| null` | `null` | `null` inherits whatever the surrounding stylesheet already applies; explicit `true`/`false` sets `--kdl-resize-handle-color` directly on this item. |
 | `resizeHandleColor` | `string \| null` | `null` | Falls back to the same default color Vue/React both use, when `showResizeHandles` resolves on. |
 | `resizeHandles` | `TResizeHandle[] \| null` | `null` (all 8) | Restricts which of the 8 resize-hint spans actually render/activate. An empty array is a deliberate "no handle-driven resize for this item" value, distinct from `isResizable: false`. |
-| `preserveAspectRatio` | `boolean` | `false` | Derives whichever resize dimension isn't directly driven by the active edge(s) from the one that is, using the ratio captured at resize-start. |
+| `preserveAspectRatio` | `boolean \| null` | `null` (inherits `GridLayoutComponent`'s own `preserveAspectRatio`, itself `false` by default) | Derives whichever resize dimension isn't directly driven by the active edge(s) from the one that is, using the ratio captured at resize-start. |
 | `autoHeight` | `boolean` | `false` | Automatically re-measures this item's own height/width whenever its own projected content changes size, via a `ResizeObserver` on a dedicated wrapper element. |
 | `removeItem` | `EventEmitter<string \| number>` | — | Emits this item's own `i` when the built-in close button is clicked. A plain, local `@Output()` — `GridLayoutComponent` does nothing with it on its own; you handle removal yourself, typically by filtering your own `layout` array. |
 

@@ -3238,6 +3238,7 @@ describe(`GridLayoutComponent`, () => {
 
       expect(received[received.length - 1]).toEqual({
         ariaLabels: {},
+        autoScroll: false,
         borderRadiusPx: 10,
         enableEditMode: true,
         isBounded: true,
@@ -3245,6 +3246,7 @@ describe(`GridLayoutComponent`, () => {
         isMirrored: true,
         isResizable: false,
         maxRows: 5,
+        preserveAspectRatio: false,
         showCloseButton: false,
         showMaximizeButton: false,
         useBorderRadius: false,
@@ -3262,6 +3264,7 @@ describe(`GridLayoutComponent`, () => {
 
       expect(received[received.length - 1]).toEqual({
         ariaLabels: {},
+        autoScroll: false,
         borderRadiusPx: 10,
         enableEditMode: true,
         isBounded: true,
@@ -3269,6 +3272,7 @@ describe(`GridLayoutComponent`, () => {
         isMirrored: false,
         isResizable: true,
         maxRows: Infinity,
+        preserveAspectRatio: false,
         showCloseButton: false,
         showMaximizeButton: false,
         useBorderRadius: false,
@@ -3307,6 +3311,7 @@ describe(`GridLayoutComponent`, () => {
 
       expect(received[received.length - 1]).toEqual({
         ariaLabels: {},
+        autoScroll: false,
         borderRadiusPx: 10,
         enableEditMode: true,
         isBounded: false,
@@ -3314,6 +3319,7 @@ describe(`GridLayoutComponent`, () => {
         isMirrored: false,
         isResizable: true,
         maxRows: Infinity,
+        preserveAspectRatio: false,
         showCloseButton: false,
         showMaximizeButton: false,
         useBorderRadius: false,

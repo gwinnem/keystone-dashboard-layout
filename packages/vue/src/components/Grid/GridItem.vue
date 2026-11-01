@@ -202,7 +202,7 @@
 
   // Props Data
   const props = withDefaults(defineProps<IGridItemProps>(), {
-    autoScroll: false,
+    autoScroll: null,
     ariaLabels: () => ({}),
     autoHeight: false,
     borderRadiusPx: null,
@@ -220,7 +220,7 @@
     maxW: Infinity,
     minH: 1,
     minW: 1,
-    preserveAspectRatio: false,
+    preserveAspectRatio: null,
     resizeIgnoreFrom: null,
     resizeHandleColor: null,
     resizeHandles: null,
@@ -293,6 +293,10 @@
   const bounded = ref<boolean | null>(null);
   /** Whether the close button renders; resolved from this item's `showCloseButton` prop or the parent layout's default — same `null`-means-inherit pattern as `bounded`/`draggable`/`resizable` (see docs/REFACTORING.md #31 for why this needed fixing rather than already working). */
   const closeButtonEnabled = ref<boolean | null>(null);
+  /** Whether drag/resize auto-scrolls the nearest scrollable ancestor; resolved from this item's `autoScroll` prop or the parent layout's default (`null` means inherit). */
+  const autoScrollEnabled = ref<boolean>(false);
+  /** Whether resizing keeps the width/height ratio; resolved from this item's `preserveAspectRatio` prop or the parent layout's default (`null` means inherit). */
+  const preserveAspectRatioEnabled = ref<boolean>(false);
   /** Master interactivity switch; resolved from this item's `enableEditMode` prop or the parent layout's default — same inherit pattern as `closeButtonEnabled` above. See ROADMAP.md's "layout-level read-only/edit-mode toggle" item. */
   const editModeEnabled = ref<boolean | null>(null);
   /** Whether `borderRadiusPx` is actually applied; resolved from this item's `useBorderRadius` prop or the parent layout's default — same inherit pattern as `closeButtonEnabled` above (see docs/REFACTORING.md #47). */
@@ -373,7 +377,9 @@
   // needs to know when a resize is in progress (see IGridItemDragContext).
   const sharedContext = {
     autoHeightWrapper,
+    autoScroll: autoScrollEnabled,
     bounded,
+    preserveAspectRatio: preserveAspectRatioEnabled,
     cols,
     editModeEnabled: interactive,
     containerWidth,
@@ -834,6 +840,20 @@
   );
 
   watch(
+    () => props.autoScroll,
+    val => {
+      autoScrollEnabled.value = val ?? thisLayout?.autoScroll === true;
+    },
+  );
+
+  watch(
+    () => props.preserveAspectRatio,
+    val => {
+      preserveAspectRatioEnabled.value = val ?? thisLayout?.preserveAspectRatio === true;
+    },
+  );
+
+  watch(
     () => props.enableEditMode,
     val => {
       editModeEnabled.value = val;
@@ -1021,6 +1041,18 @@
     }
   };
 
+  const setAutoScrollHandler = (val: boolean): void => {
+    if(props.autoScroll === null) {
+      autoScrollEnabled.value = val;
+    }
+  };
+
+  const setPreserveAspectRatioHandler = (val: boolean): void => {
+    if(props.preserveAspectRatio === null) {
+      preserveAspectRatioEnabled.value = val;
+    }
+  };
+
   const setShowCloseButtonHandler = (val: boolean): void => {
     if(props.showCloseButton === null) {
       closeButtonEnabled.value = val;
@@ -1109,6 +1141,8 @@
   eventBus.on(`compact`, compactHandler);
   eventBus.on(`setBounded`, setBoundedHandler);
   eventBus.on(`setShowCloseButton`, setShowCloseButtonHandler);
+  eventBus.on(`setAutoScroll`, setAutoScrollHandler);
+  eventBus.on(`setPreserveAspectRatio`, setPreserveAspectRatioHandler);
   eventBus.on(`setEnableEditMode`, setEnableEditModeHandler);
   eventBus.on(`setUseBorderRadius`, setUseBorderRadiusHandler);
   eventBus.on(`setBorderRadiusPx`, setBorderRadiusPxHandler);
@@ -1131,6 +1165,8 @@
     eventBus.off(`compact`, compactHandler);
     eventBus.off(`setBounded`, setBoundedHandler);
     eventBus.off(`setShowCloseButton`, setShowCloseButtonHandler);
+    eventBus.off(`setAutoScroll`, setAutoScrollHandler);
+    eventBus.off(`setPreserveAspectRatio`, setPreserveAspectRatioHandler);
     eventBus.off(`setEnableEditMode`, setEnableEditModeHandler);
     eventBus.off(`setUseBorderRadius`, setUseBorderRadiusHandler);
     eventBus.off(`setBorderRadiusPx`, setBorderRadiusPxHandler);
@@ -1205,6 +1241,9 @@
     } else {
       bounded.value = props.isBounded;
     }
+
+    autoScrollEnabled.value = props.autoScroll ?? thisLayout?.autoScroll === true;
+    preserveAspectRatioEnabled.value = props.preserveAspectRatio ?? thisLayout?.preserveAspectRatio === true;
 
     if(props.showCloseButton === null) {
       closeButtonEnabled.value = thisLayout?.showCloseButton as boolean;

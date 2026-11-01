@@ -10,7 +10,10 @@ import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
   <AutoScroll client:visible />
 </ExampleTryIt>
 
-Per-item, not a `GridLayout`-wide prop — scrolls the item's nearest
-scrollable ancestor, not necessarily the whole page. Off by default,
-since a plain page-level grid usually has nothing to scroll; turn it on
-for items living inside a fixed-height, overflow-scrolling container.
+Available both as a `GridLayout`-wide default and as a per-item `GridItem`
+prop — an item inherits the grid's `autoScroll` unless it sets its own
+(the same grid-wide default exists on the React and Angular packages).
+Scrolls the item's nearest scrollable ancestor, not necessarily the whole
+page. Off by default, since a plain page-level grid usually has nothing
+to scroll; turn it on for items living inside a fixed-height,
+overflow-scrolling container.

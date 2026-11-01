@@ -35,9 +35,16 @@ import { defineConfig, devices } from '@playwright/test';
  * Run with:
  *   pnpm exec playwright install        (first time only, downloads browsers)
  *   pnpm run test:e2e
+ *
+ * `visual-regression.spec.ts` is excluded from the default run — it has no
+ * baseline screenshots committed yet, so running it as-is would just fail
+ * every time rather than provide signal. Run it explicitly with
+ * `pnpm run test:e2e:visual` (generate baselines first with
+ * `pnpm run test:e2e:visual:update`).
  */
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: process.env.RUN_VISUAL_REGRESSION ? undefined : '**/visual-regression.spec.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

@@ -10,6 +10,10 @@ import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
   <SvgExport client:visible />
 </ExampleTryIt>
 
+On a mounted grid you can skip all of that: `gridRef.value.exportLayoutAsSvg()` uses the grid's own
+`layout`, `colNum`, `rowHeight`, `margin` and measured width. The standalone function is for
+when you have no grid instance, for example server-side or for a saved layout.
+
 Every option is optional, defaulting to the same values `GridLayout`'s
 own matching props default to (`colNum: 12`, `rowHeight: 150`,
 `margin: [10, 10]`) — with one exception worth knowing: `containerWidth`

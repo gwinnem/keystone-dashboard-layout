@@ -56,6 +56,10 @@ export interface IItemClickedEvent {
  * calcXY/calcWH bounds), which CSS inheritance can't express at all.
  */
 export interface IGridDefaults {
+  /** Default `autoScroll` for items that don't set their own (`null`). Optional: absent means `false`. */
+  autoScroll?: boolean;
+  /** Default `preserveAspectRatio` for items that don't set their own (`null`). Optional: absent means `false`. */
+  preserveAspectRatio?: boolean;
   /**
    * Grid-wide `ariaLabels` override (Phase 18) — unlike the other seven
    * fields on this interface, this one isn't itself "resolved" against

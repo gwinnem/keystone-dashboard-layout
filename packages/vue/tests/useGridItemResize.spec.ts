@@ -423,6 +423,112 @@ describe(`useGridItemResize`, () => {
     });
   });
 
+  describe(`handleResize — resolved autoScroll/preserveAspectRatio from the context`, () => {
+    const right = { bottom: false, left: false, right: true, top: false };
+
+    const heightAfterRightDrag = (ctx: ReturnType<typeof createContext>) => {
+      ctx.dispatch({ edges: right, type: `resizestart` });
+      const heightAtStart = ctx.helper.resizing.value!.height;
+      ctx.dispatch({ clientX: 90, edges: right, type: `resizemove` });
+      return { heightAtStart, heightNow: ctx.helper.resizing.value!.height };
+    };
+
+    it(`Should start autoScroll when ctx.autoScroll is true, even though the raw prop is false`, () => {
+      const created = createContext({ autoScroll: false });
+      created.ctx.autoScroll = ref(true);
+      const raf = vi.spyOn(globalThis, `requestAnimationFrame`).mockReturnValue(1 as unknown as number);
+
+      created.dispatch({ edges: right, type: `resizestart` });
+
+      expect(raf).toHaveBeenCalled();
+      raf.mockRestore();
+    });
+
+    it(`Should NOT start autoScroll when ctx.autoScroll is false, even though the raw prop is true`, () => {
+      const created = createContext({ autoScroll: true });
+      created.ctx.autoScroll = ref(false);
+      const raf = vi.spyOn(globalThis, `requestAnimationFrame`).mockReturnValue(1 as unknown as number);
+
+      created.dispatch({ edges: right, type: `resizestart` });
+
+      expect(raf).not.toHaveBeenCalled();
+      raf.mockRestore();
+    });
+
+    it(`Should NOT start autoScroll when the context has no ref and the raw prop is null`, () => {
+      const created = createContext({ autoScroll: null });
+      const raf = vi.spyOn(globalThis, `requestAnimationFrame`).mockReturnValue(1 as unknown as number);
+
+      expect(created.ctx.autoScroll).toBeUndefined();
+      created.dispatch({ edges: right, type: `resizestart` });
+
+      expect(raf).not.toHaveBeenCalled();
+      raf.mockRestore();
+    });
+
+    it(`Should fall back to the raw autoScroll prop being true when the context has no ref`, () => {
+      const created = createContext({ autoScroll: true });
+      const raf = vi.spyOn(globalThis, `requestAnimationFrame`).mockReturnValue(1 as unknown as number);
+
+      expect(created.ctx.autoScroll).toBeUndefined();
+      created.dispatch({ edges: right, type: `resizestart` });
+
+      expect(raf).toHaveBeenCalled();
+      raf.mockRestore();
+    });
+
+    it(`Should derive height from width when ctx.preserveAspectRatio is true, even though the raw prop is false`, () => {
+      const created = createContext({ preserveAspectRatio: false });
+      created.ctx.preserveAspectRatio = ref(true);
+
+      const { heightAtStart, heightNow } = heightAfterRightDrag(created);
+
+      expect(heightNow).not.toBe(heightAtStart);
+    });
+
+    it(`Should NOT derive any dimension when ctx.preserveAspectRatio is false, even though the raw prop is true`, () => {
+      const created = createContext({ preserveAspectRatio: true });
+      created.ctx.preserveAspectRatio = ref(false);
+
+      const { heightAtStart, heightNow } = heightAfterRightDrag(created);
+
+      expect(heightNow).toBe(heightAtStart);
+    });
+
+    it(`Should NOT derive any dimension when the context has no ref and the raw prop is null`, () => {
+      const created = createContext({ preserveAspectRatio: null });
+
+      expect(created.ctx.preserveAspectRatio).toBeUndefined();
+      const { heightAtStart, heightNow } = heightAfterRightDrag(created);
+
+      expect(heightNow).toBe(heightAtStart);
+    });
+
+    it(`Should fall back to the raw preserveAspectRatio prop being true when the context has no ref`, () => {
+      const created = createContext({ preserveAspectRatio: true });
+
+      expect(created.ctx.preserveAspectRatio).toBeUndefined();
+      const { heightAtStart, heightNow } = heightAfterRightDrag(created);
+
+      expect(heightNow).not.toBe(heightAtStart);
+    });
+
+    it(`Should read the resolved preserveAspectRatio ref live at each resize, not capture it once`, () => {
+      const created = createContext({ preserveAspectRatio: null });
+      const resolved = ref(false);
+      created.ctx.preserveAspectRatio = resolved;
+
+      const first = heightAfterRightDrag(created);
+      created.dispatch({ edges: right, type: `resizeend` });
+      expect(first.heightNow).toBe(first.heightAtStart);
+
+      resolved.value = true;
+      const second = heightAfterRightDrag(created);
+
+      expect(second.heightNow).not.toBe(second.heightAtStart);
+    });
+  });
+
   describe(`handleResize — resizeend`, () => {
     it(`Should emit RESIZED when innerW/innerH already reflect a value different from what resizestart captured`, () => {
       // RESIZED's own gate (previousW.value !== innerW.value ||

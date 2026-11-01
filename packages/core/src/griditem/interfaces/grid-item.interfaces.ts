@@ -68,7 +68,9 @@ export type TGridItemEventBus = IEventEmitter<{
   dragEvent?: IEventsData;
   itemOverrides?: IItemOverridesData;
   resizeEvent?: IEventsData;
+  setAutoScroll: boolean;
   setBounded: boolean;
+  setPreserveAspectRatio: boolean;
   setShowCloseButton: boolean;
   setEnableEditMode: boolean;
   setUseBorderRadius: boolean;

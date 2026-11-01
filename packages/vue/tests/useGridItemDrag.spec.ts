@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { computed, ref } from 'vue';
 import { useGridItemDrag } from '../src/components/Grid/composables/useGridItemDrag';
 import { EGridItemEvent } from '@/core/griditem/enums/EGridItemEvents';
@@ -228,6 +228,77 @@ describe(`useGridItemDrag`, () => {
 
       expect(raf).not.toHaveBeenCalled();
       raf.mockRestore();
+    });
+  });
+
+  describe(`handleDrag — resolved autoScroll from the context (ctx.autoScroll)`, () => {
+    let scrollingElementDescriptor: PropertyDescriptor | undefined;
+    let raf: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      scrollingElementDescriptor = Object.getOwnPropertyDescriptor(document, `scrollingElement`);
+      Object.defineProperty(document, `scrollingElement`, { configurable: true, get: () => document.body });
+      raf = vi.spyOn(globalThis, `requestAnimationFrame`).mockReturnValue(1 as unknown as number);
+    });
+
+    afterEach(() => {
+      raf.mockRestore();
+      if(scrollingElementDescriptor) {
+        Object.defineProperty(document, `scrollingElement`, scrollingElementDescriptor);
+      } else {
+        delete (document as { scrollingElement?: Element | null }).scrollingElement;
+      }
+    });
+
+    it(`Should start autoScroll when the context's resolved ref is true, even though the raw prop is false`, () => {
+      const { ctx, dispatch } = createContext({ autoScroll: false });
+      ctx.autoScroll = ref(true);
+
+      dispatch({ type: `dragstart` });
+
+      expect(raf).toHaveBeenCalled();
+    });
+
+    it(`Should NOT start autoScroll when the context's resolved ref is false, even though the raw prop is true`, () => {
+      const { ctx, dispatch } = createContext({ autoScroll: true });
+      ctx.autoScroll = ref(false);
+
+      dispatch({ type: `dragstart` });
+
+      expect(raf).not.toHaveBeenCalled();
+    });
+
+    it(`Should NOT start autoScroll when the context has no ref and the raw prop is null (inherit with nothing to inherit from)`, () => {
+      const { ctx, dispatch } = createContext({ autoScroll: null });
+
+      expect(ctx.autoScroll).toBeUndefined();
+      dispatch({ type: `dragstart` });
+
+      expect(raf).not.toHaveBeenCalled();
+    });
+
+    it(`Should fall back to the raw prop being true when the context has no ref`, () => {
+      const { ctx, dispatch } = createContext({ autoScroll: true });
+
+      expect(ctx.autoScroll).toBeUndefined();
+      dispatch({ type: `dragstart` });
+
+      expect(raf).toHaveBeenCalled();
+    });
+
+    it(`Should read the resolved ref live at each drag, not capture it once`, () => {
+      const { ctx, dispatch } = createContext({ autoScroll: null });
+      const resolved = ref(false);
+      ctx.autoScroll = resolved;
+
+      dispatch({ type: `dragstart` });
+      dispatch({ type: `dragend` });
+      expect(raf).not.toHaveBeenCalled();
+
+      resolved.value = true;
+      dispatch({ type: `dragstart` });
+
+      expect(raf).toHaveBeenCalled();
     });
   });
 

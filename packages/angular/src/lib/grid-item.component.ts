@@ -341,8 +341,8 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   @Output() readonly itemResized = new EventEmitter<{ i: string | number; h: number; w: number; height: number; width: number }>();
   /** Explicit stacking-order override, applied as an inline `z-index` style, winning over the implicit static/dragging/resizing z-index rules a consumer's own stylesheet may define. `null` (the default) applies no override. */
   @Input() zIndex: number | null = null;
-  /** Scrolls the nearest scrollable ancestor while dragging/resizing near its edge. Default `false`, matching Vue/React's own default. */
-  @Input() autoScroll = false;
+  /** Scrolls the nearest scrollable ancestor while dragging or resizing near its edge. `null` (the default) defers to the grid's own `autoScroll` (itself `false` by default), matching Vue/React. */
+  @Input() autoScroll: boolean | null = null;
   /** CSS selector restricting which descendant a drag gesture may start from — `null` (the default) means anywhere on the item (subject to `dragIgnoreFrom` below still excluding matches). */
   @Input() dragAllowFrom: string | null = null;
   /** CSS selector excluding descendants a drag gesture may *not* start from. Default `'a, button'`, matching Vue/React's own default — so an interactive child inside the item's own projected content doesn't accidentally start a drag. */
@@ -358,7 +358,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   /** Restricts which of the 8 resize-hint spans actually render/activate. `null` (the default) renders all 8. An empty array is a deliberate "no handle-driven resize for this item" value, distinct from `isResizable: false` (this item may still be resized some other way, e.g. programmatically). */
   @Input() resizeHandles: TResizeHandle[] | null = null;
   /** Derives whichever dimension isn't directly driven by the active resize edge(s) from the one that is, using the pixel width/height ratio captured at `resizestart` (Phase 11). Default `false`, matching Vue/React's own default. */
-  @Input() preserveAspectRatio = false;
+  @Input() preserveAspectRatio: boolean | null = null;
   /** Automatically re-measures this item's own height/width whenever its own projected content changes size (a `ResizeObserver` on a dedicated wrapper element, only rendered when this is on — Phase 11). Default `false`, matching Vue/React's own default (no grid-wide default exists for this in Vue/React either). */
   @Input() autoHeight = false;
 
@@ -455,6 +455,12 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
   /** `showMaximizeButton` resolved against the grid's own default. */
   // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
   resolvedShowMaximizeButton = false;
+  /** `autoScroll` resolved against the grid's own default. */
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
+  resolvedAutoScroll = false;
+  /** `preserveAspectRatio` resolved against the grid's own default. */
+  // Stryker disable next-line BooleanLiteral: equivalent — overwritten by resolveGridDefaults() in ngOnInit before anything renders from it.
+  resolvedPreserveAspectRatio = false;
   /** What the grid last published about maximizing: which item fills it (`id`, `null` for none) and the grid height in pixels it fills. */
   private maximizedState: IMaximizedState = { height: 0, id: null };
   /**
@@ -772,6 +778,8 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     this.resolvedBorderRadiusPx = this.borderRadiusPx ?? this.latestGridDefaults.borderRadiusPx;
     this.resolvedShowCloseButton = this.showCloseButton ?? this.latestGridDefaults.showCloseButton;
     this.resolvedShowMaximizeButton = this.showMaximizeButton ?? this.latestGridDefaults.showMaximizeButton ?? false;
+    this.resolvedAutoScroll = this.autoScroll ?? this.latestGridDefaults.autoScroll ?? false;
+    this.resolvedPreserveAspectRatio = this.preserveAspectRatio ?? this.latestGridDefaults.preserveAspectRatio ?? false;
     this.resolvedEnableEditMode = this.enableEditMode ?? this.latestGridDefaults.enableEditMode;
     // Grid-only, no per-item override — see IGridDefaults's own doc
     // comment on why this one field resolves differently from the
@@ -1427,7 +1435,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         this.dragging = newPosition;
         this.isDragging = true;
         this.dragStartCell = { x: this.x, y: this.y };
-        if(this.autoScroll) {
+        if(this.resolvedAutoScroll) {
           this.autoScrollEngine.start(target);
         }
         break;
@@ -1486,7 +1494,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
           }
         }
         this.dragging = newPosition;
-        if(this.autoScroll) {
+        if(this.resolvedAutoScroll) {
           this.autoScrollEngine.update(event.clientX, event.clientY);
         }
         break;
@@ -1539,10 +1547,9 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
 
   /**
    * The native resize engine's `resizestart`/`resizemove`/`resizeend`
-   * handler — a direct (non-`preserveAspectRatio`, non-`autoScroll`-
-   * during-resize — see this class's own doc comment) port of Vue's
-   * own `useGridItemResize.ts` `handleResize`, RTL-aware since Phase 7
-   * for the left/right anchor specifically.
+   * handler — a direct port of Vue's own `useGridItemResize.ts`
+   * `handleResize` (including `preserveAspectRatio` and `autoScroll`),
+   * RTL-aware since Phase 7 for the left/right anchor specifically.
    */
   private handleResize(event: INativeResizeEvent): void {
     // Defensive, as in Vue: the resize handles are not rendered in view mode (they are gated on `isResizableAndNotStatic`), so
@@ -1580,6 +1587,9 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         /* istanbul ignore next -- see the comment above: pos.height can never be <=0 for a valid (h >= 1) item, since calcGridItemWH itself already rejects h<=0 before this could run with such a value. */
         // Stryker disable next-line ConditionalExpression,EqualityOperator: unreachable — see the comment above; a valid item never has a non-positive pixel height here.
         this.aspectRatio = pos.height > 0 ? pos.width / pos.height : undefined;
+        if(this.resolvedAutoScroll) {
+          this.autoScrollEngine.start(event.target);
+        }
         this.lastW = x;
         this.lastH = y;
         this.style = this.computeStyle();
@@ -1651,7 +1661,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         // delta — the same anchor-compensation `activeEdges.top`
         // already does for a direct height change above, just applied
         // to the derived one instead.
-        if(this.preserveAspectRatio && this.aspectRatio) {
+        if(this.resolvedPreserveAspectRatio && this.aspectRatio) {
           const drivingWidth = this.activeEdges.left || this.activeEdges.right;
           // Stryker disable next-line ConditionalExpression: equivalent — with a horizontal edge only, the corner branch below derives the same height; with a vertical edge only, the second branch is still the one that runs; and a gesture always has at least one edge.
           const drivingHeight = this.activeEdges.top || this.activeEdges.bottom;
@@ -1668,6 +1678,10 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
             }
             newSize.height = derivedHeight;
           }
+        }
+
+        if(this.resolvedAutoScroll) {
+          this.autoScrollEngine.update(event.clientX, event.clientY);
         }
 
         this.resizing = this.resolvedIsMirrored
@@ -1688,6 +1702,7 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
         this.resizing = undefined;
         this.isResizing = false;
         this.aspectRatio = undefined;
+        this.autoScrollEngine.stop();
         this.armClickSuppression();
         break;
       }

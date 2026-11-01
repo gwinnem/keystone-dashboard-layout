@@ -100,7 +100,9 @@ export type TGridLayoutEventBus = IEventEmitter<{
   itemOverrides: IItemOverridesData;
   resizeEvent?: IEventsData;
   setColNum: number;
+  setAutoScroll: boolean;
   setBounded: boolean;
+  setPreserveAspectRatio: boolean;
   setShowCloseButton: boolean;
   setEnableEditMode: boolean;
   setUseBorderRadius: boolean;

@@ -29,6 +29,16 @@ export type { IBreakpoints, IColumns } from 'keystone-dashboard-layout-core';
  */
 export interface IGridLayoutProps {
   /**
+   * Grid-wide default for whether dragging or resizing an item auto-scrolls its nearest scrollable ancestor
+   * when the pointer nears the edge. An item that sets its own `autoScroll` keeps it. Default `false`.
+   */
+  autoScroll?: boolean;
+  /**
+   * Grid-wide default for whether resizing keeps an item's width/height ratio. An item that sets its own
+   * `preserveAspectRatio` keeps it. Default `false`.
+   */
+  preserveAspectRatio?: boolean;
+  /**
    * Deprecated — prefer `heightMode`. Kept, unchanged, as a non-breaking
    * alias: still works exactly as before for anyone not using
    * `heightMode`, and is simply ignored once `heightMode` is set

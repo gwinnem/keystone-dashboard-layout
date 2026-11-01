@@ -43,6 +43,8 @@ cascade). See each row's own note.
 | `enableEditMode` | `boolean` | `true` | Cascaded, grid-wide master interactivity switch — `false` disables `tabindex`/`role`/the keyboard-instructions span/the close button across the whole grid at once. Does **not** gate the native drag/resize engine itself, nor the keyboard handler's own guard — both read the raw resolved `isDraggable`/`isResizable` directly, matching Vue's own identical asymmetry. |
 | `showResizeHandles` | `boolean` | `false` | Grid-wide default for whether the 8 resize-hint spans are visibly styled, applied via `--kdl-resize-handle-color` — inherited naturally through the DOM, not via the eventBus. A per-item override exists. |
 | `resizeHandleColor` | `string` | `'rgb(94 94 94 / 45%)'` | CSS color for the visible resize-handle affordance, when `showResizeHandles` is on. |
+| `preserveAspectRatio` | `boolean` | `false` | Grid-wide default for whether resizing preserves an item's current width/height ratio. An item that doesn't set its own `preserveAspectRatio` inherits this; an item's own value overrides it. |
+| `autoScroll` | `boolean` | `false` | Grid-wide default for whether the nearest scrollable ancestor scrolls automatically while an item is being dragged or resized near its edge. An item that doesn't set its own `autoScroll` inherits this; an item's own value overrides it. |
 
 ## Collision & compaction
 

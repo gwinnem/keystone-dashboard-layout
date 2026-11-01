@@ -10,10 +10,10 @@ import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
   <AutoScroll client:visible />
 </ExampleTryIt>
 
-Unlike the Vue package (whose own docs describe this as per-item only),
-this package's `autoScroll` is both a `GridLayout`-wide default *and* a
-per-item override field on the layout item — the same inherit pattern
-`isDraggable`/`isResizable` use. Scrolls the item's nearest scrollable
+`autoScroll` is both a `GridLayout`-wide default *and* a per-item
+override field on the layout item — the same inherit pattern
+`isDraggable`/`isResizable` use. The Vue and Angular packages offer the
+same grid-wide default. Scrolls the item's nearest scrollable
 ancestor, not necessarily the whole page. Off by default, since a
 plain page-level grid usually has nothing to scroll; turn it on for
 items living inside a fixed-height, overflow-scrolling container.

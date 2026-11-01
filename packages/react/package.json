@@ -87,6 +87,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
+    "test:e2e:visual": "cross-env RUN_VISUAL_REGRESSION=1 playwright test visual-regression",
+    "test:e2e:visual:update": "cross-env RUN_VISUAL_REGRESSION=1 playwright test visual-regression --update-snapshots",
     "check:bundle-size": "node scripts/check-bundle-size.js",
     "check:package-install": "node scripts/check-package-install.js",
     "changeset": "node ../../scripts/changeset.mjs"

@@ -84,7 +84,7 @@ export default function ExternalDrop(): React.JSX.Element {
       </label>
       <button data-testid="reset-grids" onClick={reset} type="button">Reset</button>
 
-      <div style={{ display: `flex`, gap: `16px` }}>
+      <div data-testid="external-drop-view-wrap" style={{ display: `flex`, gap: `16px` }}>
         <div data-testid="drop-grid-left" style={{ border: `1px solid #ccc`, minHeight: `200px`, width: `50%` }}>
           <GridLayout
             allowCrossGridDrag

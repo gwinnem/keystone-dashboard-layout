@@ -15,6 +15,10 @@ import { TGridItemEventBus } from '@/core/griditem/interfaces/grid-item.interfac
  * docs/ARCHITECTURE.md for the full rationale.
  */
 export interface IGridItemComposableContext {
+  /** Resolved `autoScroll`: this item's own prop, else the parent layout's default. Optional so a context built without it falls back to the raw prop. */
+  autoScroll?: Ref<boolean>;
+  /** Resolved `preserveAspectRatio`: this item's own prop, else the parent layout's default. Optional so a context built without it falls back to the raw prop. */
+  preserveAspectRatio?: Ref<boolean>;
   /** Only populated when the `autoHeight` prop is true — the wrapper element `useGridItemResize`'s `setupAutoHeight()` observes for size changes, distinct from `gridItem` (the item's own root) since observing the root itself would also fire on drag/resize-driven size changes, not just the slot content's own. */
   autoHeightWrapper: Ref<HTMLElement | null>;
   /** Restricts dragging to within the container's bounds; only read by `useGridItemDrag`. */

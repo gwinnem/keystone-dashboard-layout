@@ -22,10 +22,11 @@ export interface IGridItemProps {
    * `requestAnimationFrame`-driven implementation (see
    * `@/core/helpers/native-interaction.ts`'s `createNativeAutoScroll`),
    * not configurable beyond on/off — margin/speed are fixed constants
-   * tuned for the common case, not exposed as their own props. Default
-   * `false`.
+   * tuned for the common case, not exposed as their own props. `null`
+   * (default) defers to `GridLayout`'s own `autoScroll` (itself `false`
+   * by default).
    */
-  autoScroll?: boolean;
+  autoScroll?: boolean | null;
   /**
    * Automatically re-runs `autoSize()`'s measurement whenever the
    * default slot's content actually changes size — a chart that renders
@@ -85,8 +86,8 @@ export interface IGridItemProps {
   minH?: number;
   /** Minimum width, in grid column units. Default `1`. */
   minW?: number;
-  /** Locks the width/height ratio while resizing, via interact.js's `aspectRatio` modifier. Default `false`. */
-  preserveAspectRatio?: boolean;
+  /** Locks the width/height ratio while resizing. `null` (default) defers to `GridLayout`'s own `preserveAspectRatio` (itself `false` by default). */
+  preserveAspectRatio?: boolean | null;
   /** CSS selector for elements that should *not* start a resize. `null` (default) means no restriction. */
   resizeIgnoreFrom?: string | null;
   /** CSS color for the visible resize handle, when `showResizeHandles` is true. Applied via a `--resize-handle-color` CSS custom property; has no effect while `showResizeHandles` is false, since there's nothing visible to color. Default `null` (inherits `GridLayout`'s own `resizeHandleColor` — itself a semi-transparent gray by default), same inherit pattern as `isDraggable`/`isResizable`/`isBounded`/`showCloseButton`. */

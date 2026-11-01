@@ -15,7 +15,7 @@ Props that can defer to a `GridLayout` default (`isDraggable`,
 | `x` | `number` (required) | — | Starting horizontal position, in grid column units. |
 | `y` | `number` (required) | — | Starting vertical position, in grid row units. |
 | `ariaLabels` | `IGridAriaLabels` | `{}` | Per-item overrides for localizable UI/ARIA strings. See [Localizable ARIA strings](/vue/examples/aria-labels/). |
-| `autoScroll` | `boolean` | `false` | Scrolls the item's nearest scrollable ancestor automatically when a drag or resize approaches its edge. See [autoScroll](/vue/examples/auto-scroll/). |
+| `autoScroll` | `boolean \| null` | `null` (inherits `GridLayout`'s own `autoScroll`, itself `false` by default) | Scrolls the item's nearest scrollable ancestor automatically when a drag or resize approaches its edge. See [autoScroll](/vue/examples/auto-scroll/). |
 | `autoHeight` | `boolean` | `false` | Automatically re-runs `autoSize()`'s measurement whenever the default slot's content actually changes size. See [Per-item autoHeight](/vue/examples/per-item-auto-height/). |
 | `borderRadiusPx` | `number \| null` | `null` (inherits `GridLayout`'s own `borderRadiusPx`, itself `10` by default) | Border radius, in pixels, applied when `useBorderRadius` is true. See [Border radius](/vue/examples/border-radius/). |
 | `dragAllowFrom` | `string \| null` | `null` | CSS selector restricting which descendant elements can start a drag. See [Drag allow/ignore elements](/vue/examples/drag-allow-ignore-elements/). |
@@ -31,7 +31,7 @@ Props that can defer to a `GridLayout` default (`isDraggable`,
 | `maxW` | `number` | `Infinity` | Maximum width, in grid column units. |
 | `minH` | `number` | `1` | Minimum height, in grid row units. |
 | `minW` | `number` | `1` | Minimum width, in grid column units. |
-| `preserveAspectRatio` | `boolean` | `false` | Locks the width/height ratio while resizing. |
+| `preserveAspectRatio` | `boolean \| null` | `null` (inherits `GridLayout`'s own `preserveAspectRatio`, itself `false` by default) | Locks the width/height ratio while resizing. |
 | `resizeIgnoreFrom` | `string \| null` | `null` | CSS selector for elements that should *not* start a resize. |
 | `resizeHandles` | `TResizeHandle[] \| null` | `null` (inherits `GridLayout`'s own `resizeHandles`, itself all 8 by default) | Which of the 8 resize-hint spans actually render/activate for this item — restricts resizing to specific edges/corners instead of the all-or-nothing `showResizeHandles` toggle. An empty array (`[]`) is a deliberate, valid "no handle-driven resize for this item" value, distinct from `isResizable: false` (keyboard arrow-key resize still works with `[]`; it doesn't with `isResizable: false`). |
 | `resizeHandleColor` | `string \| null` | `null` (inherits `GridLayout`'s own `resizeHandleColor`) | CSS color for the visible resize handle, when `showResizeHandles` is true. |

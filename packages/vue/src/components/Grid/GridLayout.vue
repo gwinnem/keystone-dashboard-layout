@@ -98,6 +98,7 @@
   import { createSwapDragState, ISwapDragState, swapElement } from '@/core/gridlayout/helpers/swap-helper';
   import { findAlignmentGuides, findSnapAdjustment, findSpacingIndicators, IAlignmentGuide, ISpacingIndicator } from '@/core/gridlayout/helpers/alignment-helper';
   import { computeAlignAdjustments, computeDistributeAdjustments, TAlignEdge, TDistributeAxis } from '@/core/gridlayout/helpers/align-distribute-helper';
+  import { exportLayoutAsSvg as coreExportLayoutAsSvg, IExportLayoutAsSvgOptions } from '@/core/gridlayout/helpers/export-svg';
   import { calcColWidth } from '@/core/griditem/helpers/grid-item-calculate-helper';
   import { layoutValidator } from '@/core/validators/layout-validator';
   import { EErrorMessage } from '@/core/common/enums/ErrorMessages';
@@ -111,6 +112,8 @@
   const props = withDefaults(defineProps<IGridLayoutProps>(), {
     allowCrossGridDrag: false,
     ariaLabels: () => ({}),
+    autoScroll: false,
+    preserveAspectRatio: false,
     autoSize: true,
     heightMode: null,
     borderRadiusPx: 10,
@@ -591,6 +594,21 @@
   /** Alias for `compactNow()` — same operation, offered under the name `docs/FEATURE_RECOMMENDATIONS.md` originally suggested it under. */
   const rearrange = (): void => {
     compactNow();
+  };
+
+  /**
+   * Renders the current layout as a standalone SVG string. A thin wrapper around the standalone `exportLayoutAsSvg`,
+   * defaulting `colNum`, `rowHeight`, `margin` and `containerWidth` to this grid's live values (1200 before the first
+   * width measurement). Every option can still be overridden. Matches React's handle and Angular's component method.
+   */
+  const exportLayoutAsSvg = (options: IExportLayoutAsSvgOptions = {}): string => {
+    return coreExportLayoutAsSvg(props.layout, {
+      colNum: props.colNum as number,
+      containerWidth: width.value || 1200,
+      margin: props.margin as [number, number],
+      rowHeight: props.rowHeight as number,
+      ...options,
+    });
   };
 
   /**
@@ -2059,6 +2077,20 @@
   );
 
   watch(
+    () => props.autoScroll,
+    val => {
+      eventBus.emit(`setAutoScroll`, val);
+    },
+  );
+
+  watch(
+    () => props.preserveAspectRatio,
+    val => {
+      eventBus.emit(`setPreserveAspectRatio`, val);
+    },
+  );
+
+  watch(
     () => props.enableEditMode,
     val => {
       // Same inherit pattern as showCloseButton above — a layout-level
@@ -2234,6 +2266,7 @@
     duplicateItem,
     alignSelected,
     distributeSelected,
+    exportLayoutAsSvg,
     undo,
     redo,
     canUndo,

@@ -272,6 +272,10 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   @Input() borderRadiusPx = 10;
   /** Grid-wide default `showCloseButton` for items that don't set their own (`null`) — same cascade as `isDraggable` above. Default `false`, matching Vue/React's own default. */
   @Input() showCloseButton = false;
+  /** Grid-wide default `autoScroll` for items that don't set their own (`null`) — same cascade as `isDraggable` above. Default `false`, matching React. */
+  @Input() autoScroll = false;
+  /** Grid-wide default `preserveAspectRatio` for items that don't set their own (`null`) — same cascade as `isDraggable` above. Default `false`, matching React. */
+  @Input() preserveAspectRatio = false;
   /** Whether every item renders the built-in maximize/restore button. An item's own `showMaximizeButton` wins either way. Default `false`. */
   @Input() showMaximizeButton = false;
   /**
@@ -766,7 +770,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     if(changes[`transformScale`]) {
       this.eventBus.setTransformScale(this.transformScale);
     }
-    if(changes[`isDraggable`] || changes[`isResizable`] || changes[`isBounded`] || changes[`isMirrored`] || changes[`maxRows`] || changes[`useBorderRadius`] || changes[`borderRadiusPx`] || changes[`showCloseButton`] || changes[`ariaLabels`] || changes[`enableEditMode`] || changes[`showMaximizeButton`]) {
+    if(changes[`isDraggable`] || changes[`isResizable`] || changes[`isBounded`] || changes[`isMirrored`] || changes[`maxRows`] || changes[`useBorderRadius`] || changes[`borderRadiusPx`] || changes[`showCloseButton`] || changes[`ariaLabels`] || changes[`enableEditMode`] || changes[`showMaximizeButton`] || changes[`autoScroll`] || changes[`preserveAspectRatio`]) {
       this.pushGridDefaults();
     }
     if((changes[`breakpoints`] || changes[`cols`] || changes[`responsive`]) && !changes[`responsive`]?.firstChange) {
@@ -808,6 +812,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   private pushGridDefaults(): void {
     const defaults: IGridDefaults = {
       ariaLabels: this.ariaLabels,
+      autoScroll: this.autoScroll,
+      preserveAspectRatio: this.preserveAspectRatio,
       borderRadiusPx: this.borderRadiusPx,
       enableEditMode: this.enableEditMode,
       isBounded: this.isBounded,

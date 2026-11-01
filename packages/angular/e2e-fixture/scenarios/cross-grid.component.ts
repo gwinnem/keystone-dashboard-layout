@@ -21,7 +21,7 @@ import type { TLayout } from 'keystone-dashboard-layout-core';
   selector: `app-cross-grid`,
   standalone: true,
   template: `
-    <div style="display: flex; gap: 16px">
+    <div data-testid="cross-grid-view-wrap" style="display: flex; gap: 16px">
       <div data-testid="cross-grid-a" style="border: 1px solid #ccc; min-height: 200px; width: 50%">
         <kdl-grid-layout style="display: block; width: 100%" [allowCrossGridDrag]="true" [colNum]="6" [layout]="layoutA" layoutId="grid-a" [rowHeight]="80" (layoutChange)="layoutA = $event">
           @for (item of layoutA; track item.i) {
