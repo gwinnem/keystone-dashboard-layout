@@ -31,6 +31,17 @@ describe(`GridLayout exportLayoutAsSvg`, () => {
     );
   });
 
+  it(`Should fall back to a 1200px container width while the grid has not been measured yet`, async () => {
+    // No stubOffsetWidth: jsdom reports 0, so the grid never gets a real width.
+    const layout = items();
+    const wrapper = mountGrid(layout, { layoutProps: { colNum: 6, rowHeight: 40, margin: [4, 8] } });
+    await flushPromises();
+
+    expect(wrapper.vm.exportLayoutAsSvg()).toBe(
+      exportLayoutAsSvg(layout, { colNum: 6, rowHeight: 40, margin: [4, 8], containerWidth: 1200 }),
+    );
+  });
+
   it(`Should return a complete svg document`, async () => {
     const { wrapper } = await mountSettled();
 
