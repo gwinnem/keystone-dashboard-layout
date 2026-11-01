@@ -25,6 +25,7 @@ import {
   computeAlignAdjustments,
   computeDistributeAdjustments,
   computeRangeSelection,
+  correctBounds,
   ECompactType,
   EErrorMessage,
   exportLayoutAsSvg as coreExportLayoutAsSvg,
@@ -727,13 +728,18 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       }
     }
     if(changes[`colNum`]) {
-      this.effectiveColNum = this.colNum;
+      // With `responsive` on and a width measured, `colNum` is only the ceiling over the breakpoint's own column count (as in
+      // `resolveResponsiveColNum`); taking it outright here used to put a responsive grid on more columns than its breakpoint has.
+      this.effectiveColNum = this.responsive && this.containerWidth > 0
+        ? Math.min(this.colNum, getColsFromBreakpoint(getBreakpointFromWidth(this.breakpoints, this.containerWidth), this.cols))
+        : this.colNum;
       this.eventBus.setColNum(this.effectiveColNum);
       // Only on a genuine, post-mount change — matching Vue's own
       // plain (non-immediate) watch(() => props.colNum, ...), which
       // likewise never fires for the prop's own initial value.
       if(!changes[`colNum`].firstChange) {
         this.columnsChanged.emit(this.colNum);
+        this.refitLayoutToColNum();
       }
     }
     if(changes[`rowHeight`]) {
@@ -877,6 +883,25 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     if(restored) {
       this.compactAfterRestore();
     }
+  }
+
+  /**
+   * Re-fits the layout to the column count it is now drawn in, as Vue does (its `colNum` watcher always runs the responsive-layout
+   * pass, `responsive` or not): items past the last column are pulled back inside and the result is compacted. Without this a grid
+   * going from 12 to 6 columns kept its items at x: 6 and x: 8 and drew them off the right edge, with nothing reported through
+   * `layoutChange`. Reports a layout change only when something moved. While an item is maximized the bounds are still corrected
+   * (they have to be) but `resolveCompactor` holds the compaction back until the restore.
+   */
+  private refitLayoutToColNum(): void {
+    const rendered = this.workingLayout;
+    const bounded = correctBounds(cloneLayout(rendered), { cols: this.effectiveColNum }, this.distributeEvenly);
+    const fitted = this.resolveCompactor().compact(bounded, this.effectiveColNum, { compactType: this.compactType });
+    if(layoutPositionsMatch(fitted, rendered)) {
+      return;
+    }
+    this.workingLayout = fitted;
+    this.layoutChange.emit(fitted);
+    this.changeDetectorRef.markForCheck();
   }
 
   /** The one compaction pass that was suspended while an item was maximized. Reports a layout change only when something moved. */
