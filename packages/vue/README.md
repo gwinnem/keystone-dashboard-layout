@@ -125,7 +125,10 @@ different UI on the same algorithms.
   drags, a typed-payload helper for the drop event).
 * **Editing and lifecycle** — a close button, edit-mode toggle,
   add/remove items without rebuilding the grid, opt-in undo/redo
-  (`enableUndoRedo`) at committed-change granularity.
+  (`enableUndoRedo`) at committed-change granularity, and
+  maximize/restore — one item fills the whole grid without changing
+  `layout` (`v-model:maximized-item`, `show-maximize-button`,
+  `maximize(id)`/`restore()`/`toggleMaximize(id)`; Escape restores).
 * **Styling and customization** — border radius, configurable
   transition duration/easing, a slot for custom drag-placeholder
   content, automatic RTL support (including resize from every edge,

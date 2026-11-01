@@ -139,7 +139,10 @@ import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-
   + a `removeItem` `@Output()`), an edit-mode toggle (`enableEditMode`),
   add/remove items without manual position math, opt-in undo/redo
   (`enableUndoRedo`/`undoHistoryLimit`) at committed-change granularity
-  — including externally-driven `layout` changes, not just drag/resize.
+  — including externally-driven `layout` changes, not just drag/resize,
+  and maximize/restore — one item fills the whole grid without
+  changing `layout` (`[(maximizedItem)]`, `showMaximizeButton`; Escape
+  restores).
 - **Styling and customization** — configurable border radius,
   transition duration/easing, a `[kdlGridItemHeader]` marker directive
   for a dedicated header region, standalone `GridItemCloseButtonComponent`/
@@ -183,7 +186,8 @@ export class DashboardComponent {
 `canUndo`/`canRedo`, `selectItem()`/`deselectItem()`/
 `toggleItemSelection()`/`clearSelection()`/`selectedItemIds`,
 `alignSelected(edge)`/`distributeSelected(axis)`,
-`exportLayoutAsSvg(options?)`, `scrollToItem(id)`/`focusItem(id)`.
+`exportLayoutAsSvg(options?)`, `scrollToItem(id)`/`focusItem(id)`,
+`maximize(id)`/`restore()`/`toggleMaximize(id)`.
 
 ## What this package exports
 

@@ -66,6 +66,10 @@ state attached.
 - **Collision & movement** — `collides`, `getAllCollisions`,
   `getFirstCollision`, `findFirstFitSlot` (bin-packing), `moveElement`,
   `moveToCorrectPlace`, `moveElementAwayFromCollision`
+- **Maximize / restore** — `resolveMaximizedItem` (validates the
+  maximized id against the current layout) and `calcMaximizedPosition`
+  (the grid position a maximized item fills), with the
+  `IMaximizedPositionInput`/`IMaximizedState` types
 - **Compaction** — `compactLayout` (and its horizontal/overlap
   variants), plus the pluggable `ICompactor` interface and
   `getCompactor()` factory the framework packages' own `compactor`

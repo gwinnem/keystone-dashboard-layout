@@ -128,7 +128,10 @@ import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-
 - **Editing and lifecycle** — a close button, an edit-mode toggle
   (`enableEditMode`), add/remove items without manual position math,
   opt-in undo/redo (`enableUndoRedo`/`undoHistoryLimit`) at
-  committed-change granularity.
+  committed-change granularity, and maximize/restore — one item fills
+  the whole grid without changing `layout` (`maximizedItem`/
+  `onMaximizedItemChange`, `showMaximizeButton`; Escape restores, and
+  `onItemResized` reports the new pixel size on maximize and restore).
 - **Styling and customization** — configurable border radius, transition
   duration/easing, a `renderPlaceholder` render prop for custom
   drag-placeholder content, a `header` render prop, automatic RTL
@@ -165,7 +168,8 @@ gridRef.current?.compactNow();
 `canUndo`/`canRedo`, `selectItem()`/`deselectItem()`/
 `toggleItemSelection()`/`clearSelection()`/`selectedItems`,
 `alignSelected(edge)`/`distributeSelected(axis)`,
-`exportLayoutAsSvg(options?)`, `scrollToItem(id)`/`focusItem(id)`.
+`exportLayoutAsSvg(options?)`, `scrollToItem(id)`/`focusItem(id)`,
+`maximize(id)`/`restore()`/`toggleMaximize(id)`/`maximizedItem`.
 
 > `canUndo`/`canRedo` are a snapshot read off the handle, not reactive
 > state — reading `gridRef.current?.canUndo` directly in JSX won't
