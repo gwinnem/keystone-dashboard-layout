@@ -1806,6 +1806,17 @@ describe(`GridLayoutComponent`, () => {
     it(`Should apply transitionDurationMs/transitionTimingFunction as CSS custom properties on containerStyle`, () => {
       setInputsAndDetectChanges({ layout, transitionDurationMs: 350, transitionTimingFunction: `ease-in-out` });
 
+      // The duration applies once the grid has settled (two animation frames after its first measurement) — see
+      // grid-layout.component.settle.spec.ts for the settling itself.
+      const frames: FrameRequestCallback[] = [];
+      const spy = jest.spyOn(window, `requestAnimationFrame`).mockImplementation(callback => frames.push(callback));
+      const containerDiv = fixture.nativeElement.querySelector(`div`) as HTMLDivElement;
+      Object.defineProperty(containerDiv, `offsetWidth`, { configurable: true, value: 800 });
+      component.ngAfterViewInit();
+      frames.splice(0).forEach(callback => callback(0));
+      frames.splice(0).forEach(callback => callback(0));
+      spy.mockRestore();
+
       expect(component.containerStyle[`--grid-transition-duration`]).toBe(`350ms`);
       expect(component.containerStyle[`--grid-transition-timing`]).toBe(`ease-in-out`);
     });

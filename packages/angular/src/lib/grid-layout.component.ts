@@ -410,6 +410,14 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   /** The measured container pixel width. Public for a consumer who wants to read it directly. */
   containerWidth = 0;
   /**
+   * Whether the grid has been painted at its real measured width. Until then the items sit at provisional positions, and
+   * moving them to the measured ones would run their transition, so every item animated into place on load. While `false`
+   * the container's `--grid-transition-duration` is `0ms` (see `updateContainerHeight`); it flips two animation frames after
+   * the first measurement, once the measured layout has actually been painted.
+   */
+  private hasSettled = false;
+  private readonly settleFrames: number[] = [];
+  /**
    * Bug fix, found via a live e2e run (not assumed): without
    * `isolation: isolate` here, a static item's own negative `z-index`
    * (`.kdl-grid-item--static { z-index: -1; }`) can escape *this*
@@ -616,6 +624,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
         this.updatePlaceholderStyle();
         this.changeDetectorRef.markForCheck();
         if(isFirstMeasurement) {
+          this.scheduleSettle();
           // Doubly-deferred, matching Vue's own nextTick-then-nextTick
           // exactly (see layoutReady's own doc comment for why): the
           // first microtask lets the containerWidth$ eventBus emission
@@ -789,6 +798,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   }
 
   ngOnDestroy(): void {
+    this.settleFrames.forEach(frame => cancelAnimationFrame(frame));
     this.resizeObserver?.disconnect();
     this.deregisterCrossGridZone?.();
     this.setOutsideDropEnabled(false);
@@ -2060,10 +2070,21 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     return this.autoSize ? `auto` : `fixed`;
   }
 
+  /** Turns item transitions on two animation frames from now (see `hasSettled`). Called once, on the first measurement. */
+  private scheduleSettle(): void {
+    this.settleFrames.push(requestAnimationFrame(() => {
+      this.settleFrames.push(requestAnimationFrame(() => {
+        this.hasSettled = true;
+        this.updateContainerHeight();
+        this.changeDetectorRef.markForCheck();
+      }));
+    }));
+  }
+
   private updateContainerHeight(): void {
     const [marginH, marginV] = this.margin;
     const cssVars: Record<string, string | number> = {
-      '--grid-transition-duration': `${this.transitionDurationMs}ms`,
+      '--grid-transition-duration': `${this.hasSettled ? this.transitionDurationMs : 0}ms`,
       '--grid-transition-timing': this.transitionTimingFunction,
     };
     if(this.showResizeHandles) {

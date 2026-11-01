@@ -49,6 +49,13 @@ test.describe('Geometry: colNum, rowHeight, margin, maxRows', () => {
     await expectAllItemsPlaced(page, LAB_GEOMETRY);
   });
 
+  test('item transitions are switched on shortly after load, so items animate normally from then on', async ({ page }) => {
+    // The lab itself binds a 0ms transition (so its position assertions never wait on an animation), so ask for the
+    // library's own default instead: 200ms only appears once the grid has settled, 0ms is what it starts with.
+    await openLab(page, { libraryDefaults: true });
+    await expect.poll(() => inlineStyle(page, '--grid-transition-duration')).toBe('200ms');
+  });
+
   test('colNum changes the column width of every item', async ({ page }) => {
     await setGrid(page, 'colNum', 24);
     await expectAllItemsPlaced(page, { ...LAB_GEOMETRY, colNum: 24 });
