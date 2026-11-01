@@ -52,8 +52,7 @@
       "types": "./dist/keystone-dashboard-layout-angular/index.d.ts",
       "default": "./dist/keystone-dashboard-layout-angular/fesm2022/keystone-dashboard-layout-angular.mjs"
     },
-    "./style.css": "./dist/keystone-dashboard-layout-angular/src/styles/index.css",
-    "./package.json": "./package.json"
+    "./style.css": "./dist/keystone-dashboard-layout-angular/src/styles/index.css"
   },
   "sideEffects": false,
   "repository": {
