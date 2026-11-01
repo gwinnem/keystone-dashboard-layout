@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import type { DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import type { IGridAriaLabels, ILayoutItem, TLayout } from 'keystone-dashboard-layout-core';
+import { ECompactType, type ICompactor, type IGridAriaLabels, type ILayoutItem, type TLayout } from 'keystone-dashboard-layout-core';
 import { GridEventBusService } from './grid-event-bus.service';
 import { GridItemComponent } from './grid-item.component';
 import { GridLayoutComponent } from './grid-layout.component';
@@ -28,6 +28,8 @@ const trio = (): TLayout => [
     <kdl-grid-layout
       [ariaLabels]="ariaLabels"
       [colNum]="12"
+      [compactor]="compactor"
+      [compactType]="compactType"
       [enableEditMode]="enableEditMode"
       [isMirrored]="isMirrored"
       [layout]="layout"
@@ -56,6 +58,8 @@ const trio = (): TLayout => [
 })
 class HostComponent {
   ariaLabels: IGridAriaLabels = {};
+  compactor: ICompactor | null = null;
+  compactType: ECompactType = ECompactType.VERTICAL;
   enableEditMode = true;
   isMirrored = false;
   itemShowMaximizeButton: boolean | null = null;
@@ -593,6 +597,137 @@ describe(`GridLayoutComponent maximize / restore`, () => {
     });
   });
 
+  describe(`measuring and publishing`, () => {
+    const bus = (): GridEventBusService => fixture.debugElement.query(By.directive(GridLayoutComponent)).injector.get(GridEventBusService);
+    /** How many times the items have been told the maximized state, counted from now. */
+    const countPublished = (): (() => number) => {
+      let count = -1;
+      bus().maximizedState$.subscribe(() => {
+        count += 1;
+      });
+      return () => count;
+    };
+
+    it(`Should measure the grid height when the input maximizes an item`, () => {
+      mount();
+      gridHeight = 300;
+
+      host.maximizedItem = `1`;
+      fixture.detectChanges();
+
+      expect(itemStyle(`1`)[`height`]).toBe(`280px`);
+    });
+
+    it(`Should tell the items again when the grid's height changes while an item is maximized`, () => {
+      mount(instance => {
+        instance.maximizedItem = `1`;
+      });
+      const published = countPublished();
+
+      gridHeight = 400;
+      grid.ngAfterViewInit();
+
+      expect(published()).toBe(1);
+    });
+
+    it(`Should not tell the items again when the grid's height stays the same`, () => {
+      mount(instance => {
+        instance.maximizedItem = `1`;
+      });
+      const published = countPublished();
+
+      grid.ngAfterViewInit();
+
+      expect(published()).toBe(0);
+    });
+
+    it(`Should not tell the items anything about the height while nothing is maximized`, () => {
+      mount();
+      const published = countPublished();
+
+      gridHeight = 400;
+      grid.ngAfterViewInit();
+
+      expect(published()).toBe(0);
+    });
+  });
+
+  describe(`measuring only when asked to`, () => {
+    it(`Should leave the measured height alone when some other input changes`, () => {
+      mount(instance => {
+        instance.maximizedItem = `1`;
+      });
+      gridHeight = 400;
+      host.multiSelect = true;
+      fixture.detectChanges();
+      const published = fixture.debugElement.query(By.directive(GridLayoutComponent)).injector.get(GridEventBusService);
+      let count = 0;
+      published.maximizedState$.subscribe(() => {
+        count += 1;
+      });
+      count = 0;
+
+      grid.ngAfterViewInit();
+
+      expect(count).toBe(1);
+    });
+  });
+
+  describe(`compaction held back`, () => {
+    it(`Should leave an overlap in the layout alone when the maximized item is switched, and settle it once none is left`, () => {
+      // Overlapping on purpose: a grid that mounts this way is not compacted, and the compaction that runs while something is
+      // maximized would push one of the two down. Only restoring may do that.
+      mount(instance => {
+        instance.layout = [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }, { h: 2, i: `1`, w: 2, x: 0, y: 0 }];
+        instance.maximizedItem = `0`;
+      });
+      const before = host.layoutChanges.length;
+
+      grid.maximize(`1`);
+      expect(host.layoutChanges).toHaveLength(before);
+
+      grid.restore();
+      expect(host.layoutChanges).toHaveLength(before + 1);
+    });
+
+    it(`Should hand a custom compactor the grid's compactType on restore`, () => {
+      const seen: ECompactType[] = [];
+      mount(instance => {
+        instance.compactor = { compact: (layout, _cols, context) => { seen.push(context.compactType); return layout; }, type: `spy` };
+        instance.compactType = ECompactType.HORIZONTAL;
+        instance.maximizedItem = `0`;
+      });
+      seen.length = 0;
+
+      grid.restore();
+
+      expect(seen).toEqual([ECompactType.HORIZONTAL]);
+    });
+
+    it(`Should not compact, or report a layout change, just because an item gets maximized`, () => {
+      mount(instance => {
+        instance.layout = [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }, { h: 2, i: `1`, w: 2, x: 0, y: 6 }];
+      });
+      const before = host.layoutChanges.length;
+
+      grid.maximize(`0`);
+
+      expect(host.layoutChanges).toHaveLength(before);
+    });
+
+    it(`Should compact along the grid's compactType on restore`, () => {
+      mount(instance => {
+        instance.compactType = ECompactType.HORIZONTAL;
+        instance.layout = [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }, { h: 2, i: `1`, w: 2, x: 6, y: 0 }];
+        instance.maximizedItem = `0`;
+      });
+
+      grid.restore();
+
+      expect(entryOf(lastLayout(), `1`).x).toBe(2);
+    });
+  });
+
   describe(`item events`, () => {
     const lastResized = (id: string): IResizedEvent => host.resized.filter(event => event.i === id).pop()!;
 
@@ -635,6 +770,83 @@ describe(`GridLayoutComponent maximize / restore`, () => {
 
       expect(itemStyle(`1`)[`height`]).toBe(`380px`);
       expect(lastResized(`1`).height).toBe(380);
+    });
+  });
+});
+
+describe(`GridItemComponent maximize on its own`, () => {
+  const baseInputs: Partial<GridItemComponent> = { colNum: 12, containerWidth: 1220, h: 2, i: `0`, margin: [10, 10], rowHeight: 100, w: 2, x: 0, y: 0 };
+
+  const create = (providers: unknown[] = []): { component: GridItemComponent; fixture: ComponentFixture<GridItemComponent> } => {
+    TestBed.configureTestingModule({ imports: [GridItemComponent], providers: providers as never[] });
+    const fixture = TestBed.createComponent(GridItemComponent);
+    return { component: fixture.componentInstance, fixture };
+  };
+
+  const apply = (fixture: ComponentFixture<GridItemComponent>, inputs: Partial<GridItemComponent>): void => {
+    Object.assign(fixture.componentInstance, inputs);
+    fixture.componentInstance.ngOnChanges({});
+    fixture.detectChanges();
+  };
+
+  describe(`without a grid around it`, () => {
+    it(`Should neither hide itself nor show the maximize button`, () => {
+      const { component, fixture } = create();
+
+      apply(fixture, baseInputs);
+
+      expect(component.hostStyle[`display`]).toBeUndefined();
+      expect(component.resolvedShowMaximizeButton).toBe(false);
+      expect((fixture.nativeElement as HTMLElement).querySelector(`.btn-maximize`)).toBeNull();
+    });
+
+    it(`Should survive a click on its maximize button`, () => {
+      const { component, fixture } = create();
+      apply(fixture, { ...baseInputs, showMaximizeButton: true });
+
+      // Called directly: an error thrown inside a DOM event handler never reaches the caller of `click()`.
+      expect(() => component.handleMaximizeButtonClick(new MouseEvent(`click`))).not.toThrow();
+    });
+  });
+
+  describe(`reporting its size`, () => {
+    const reportedFor = (containerWidth: number): number => {
+      const { component, fixture } = create([GridEventBusService]);
+      const bus = TestBed.inject(GridEventBusService);
+      // No margin, so even a one pixel wide container leaves a positive column width. The width goes in through the bus: the item takes it from there as soon as it initialises.
+      bus.setMargin([0, 0]);
+      apply(fixture, baseInputs);
+      bus.setContainerWidth(containerWidth);
+      let reported = 0;
+      component.itemResized.subscribe(() => {
+        reported += 1;
+      });
+
+      bus.setMaximizedState({ height: 500, id: `0` });
+
+      return reported;
+    };
+
+    afterEach(() => TestBed.resetTestingModule());
+
+    it(`Should report once the container has been measured`, () => {
+      expect(reportedFor(1220)).toBe(1);
+    });
+
+    it(`Should report for a container exactly one pixel wide`, () => {
+      expect(reportedFor(1)).toBe(1);
+    });
+
+    it(`Should not report for a container narrower than a pixel`, () => {
+      expect(reportedFor(0)).toBe(0);
+      TestBed.resetTestingModule();
+      expect(reportedFor(0.5)).toBe(0);
+    });
+
+    it(`Should not report for a container width that is not a finite number`, () => {
+      expect(reportedFor(NaN)).toBe(0);
+      TestBed.resetTestingModule();
+      expect(reportedFor(Infinity)).toBe(0);
     });
   });
 });

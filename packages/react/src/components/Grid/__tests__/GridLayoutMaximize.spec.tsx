@@ -384,6 +384,18 @@ describe(`GridLayout maximize / restore`, () => {
     });
   });
 
+  describe(`restoring without a layout listener`, () => {
+    it(`Should compact on restore without throwing when no onLayoutChange was given`, () => {
+      const { container, ref } = renderGrid(gap(), { maximizedItem: `0` });
+
+      expect(() => callInAct(() => ref.current!.restore())).not.toThrow();
+
+      // Compaction ran: item `1` ends up at row 2, exactly where a layout that already had it there draws it.
+      const reference = renderGrid([{ h: 2, i: `0`, w: 2, x: 0, y: 0 }, { h: 2, i: `1`, w: 2, x: 0, y: 2 }]);
+      expect(styleOf(container, `1`)).toBe(styleOf(reference.container, `1`));
+    });
+  });
+
   describe(`interaction while maximized`, () => {
     it(`Should not be draggable or resizable, and be again once restored`, () => {
       const { container, ref } = renderGrid(trio());

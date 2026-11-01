@@ -772,10 +772,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     if(changes[`maximizedItem`]) {
       this.measureMaximizedHeight();
     }
-    // A layout change too: it can take the maximized item away.
-    if(changes[`maximizedItem`] || changes[`layout`]) {
-      this.syncMaximized();
-    }
+    // Every change, not just `maximizedItem` and `layout`: it can be either of them that takes the maximized item away, and
+    // syncing does nothing when the maximized item is the one the items were last told about.
+    this.syncMaximized();
     if(changes[`layout`] || changes[`rowHeight`] || changes[`margin`] || changes[`autoSize`] || changes[`heightMode`]
       || changes[`transitionDurationMs`] || changes[`transitionTimingFunction`]
       || changes[`showResizeHandles`] || changes[`resizeHandleColor`]) {
@@ -834,7 +833,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
   /** Escape restores the maximized item, unless something inside it (a dropdown, a dialog) already used the key. */
   handleKeydown(event: KeyboardEvent): void {
-    if(event.key === `Escape` && this.maximizedItem !== null && !event.defaultPrevented) {
+    // `restore()` does nothing while nothing is maximized, so no check of its own is needed here.
+    if(event.key === `Escape` && !event.defaultPrevented) {
       this.restore();
     }
   }
