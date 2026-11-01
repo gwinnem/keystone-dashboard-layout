@@ -60,6 +60,30 @@ pnpm dev
 Serves at `http://localhost:4200/` by default (Angular CLI's own
 default port, distinct from `astro-docs`'s `4321`).
 
+### After pulling changes to `packages/core`
+
+This app consumes the **built** `keystone-dashboard-layout-core`
+(`link:../packages/core`), not its source, and Vite keeps its own
+prebundled copy of it under `.angular/cache`. After core gains new
+exports (or you pull changes that do), the app fails to load with
+`The requested module ... does not provide an export named '...'`
+until both are refreshed. From the repo root:
+
+```sh
+pnpm --filter keystone-dashboard-layout-core build
+```
+
+Then stop the dev server and, from this directory, delete the cache
+and start again:
+
+```sh
+rm -rf .angular && pnpm dev
+```
+
+(PowerShell: `Remove-Item -Recurse -Force .angular; pnpm dev`.)
+The `.angular` folder is generated and gitignored, so deleting it
+loses nothing.
+
 ## Building for deployment
 
 ```sh
