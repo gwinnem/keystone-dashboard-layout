@@ -51,6 +51,15 @@
   position: relative;
 }
 
+/**
+ * `data-kdl-settling` is on the root from the first render until the grid has been painted once at its measured width
+ * (`GridLayout.tsx`, `hasSettled`). A page that was server-rendered has its items in the DOM at the seed width, so without this
+ * the first measured layout would show them growing to their real size over the transition's duration.
+ */
+.kdl-grid-layout[data-kdl-settling] .kdl-grid-item {
+  transition: none;
+}
+
 /*
  * allowCrossGridDrag — confirmed gap via a fresh e2e run: the dragged
  * item stays a DOM child of its own *source* grid the entire time it's

@@ -230,6 +230,12 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * 480px wide too.
    */
   const [hasMeasuredWidth, setHasMeasuredWidth] = useState(false);
+  /**
+   * Whether the grid has been painted at its measured width. Until it has, the root carries `data-kdl-settling`, which turns the
+   * items' transitions off (see `styles/index.scss`): on a page that was server-rendered, the items are in the DOM at the seed
+   * width, and the first measured layout would otherwise show them growing to their real size over the transition's duration.
+   */
+  const [hasSettled, setHasSettled] = useState(false);
   const [workingLayout, setWorkingLayout] = useState<TLayout>(() => cloneLayout(layout));
   const [alignmentGuideStyles, setAlignmentGuideStyles] = useState<IAlignmentGuideStyle[]>([]);
   const [spacingIndicatorStyles, setSpacingIndicatorStyles] = useState<ISpacingIndicatorStyle[]>([]);
@@ -779,6 +785,22 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   },
   // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
   []);
+
+  // Two frames after the first measurement, so the measured layout has been painted once with transitions off. A single frame
+  // is not enough: the commit that reveals the grid and the first paint of it can be the same frame.
+  useEffect(() => {
+    if(!hasMeasuredWidth) {
+      return undefined;
+    }
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => setHasSettled(true));
+    });
+    return (): void => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+    };
+  }, [hasMeasuredWidth]);
 
   /**
    * Mount-time layout validation — matches the Vue package's own
@@ -1992,6 +2014,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     <div
       ref={containerRef}
       className={classNames}
+      data-kdl-settling={hasSettled ? undefined : ``}
       onClick={handleBackgroundClick}
       onDragEnter={handleOutsideDragEnter}
       onDragLeave={handleOutsideDragLeave}

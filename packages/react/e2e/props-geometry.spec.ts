@@ -50,6 +50,11 @@ test.describe('Geometry: colNum, rowHeight, margin, maxRows', () => {
     await expect(grid(page)).toBeVisible();
   });
 
+  test('the grid stops settling shortly after load, so its items animate normally from then on', async ({ page }) => {
+    // `data-kdl-settling` turns the items' transitions off until the grid has been painted once at its measured width.
+    await expect(grid(page)).not.toHaveAttribute('data-kdl-settling');
+  });
+
   test('colNum changes the column width of every item', async ({ page }) => {
     await setGrid(page, 'colNum', 24);
     await expectAllItemsPlaced(page, { ...LAB_GEOMETRY, colNum: 24 });
