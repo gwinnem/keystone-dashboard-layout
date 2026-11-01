@@ -26,6 +26,11 @@ everything back exactly where it was.
   calls `preventDefault()`) keeps it.
 - **The grid's height is what the item fills.** Give the grid a real height, for
   example `heightMode="scroll"` inside a sized parent, as this demo does.
+- **`onItemResized` reports the new pixel size.** An item's own `onItemResized`
+  fires when it becomes maximized (the size it now fills the grid with), when it
+  is restored (the size of its own cell again), and while it is maximized and
+  the grid's height or width changes. The payload is the one a resize gesture
+  reports: `{ i, h, w, height, width }`. Items that stay hidden report nothing.
 - **`onMaximizedItemChange` is for the grid's own changes.** Setting
   `maximizedItem` from your own state does not call it.
 

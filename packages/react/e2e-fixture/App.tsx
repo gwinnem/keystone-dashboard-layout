@@ -11,6 +11,7 @@ import ItemOverrides from './scenarios/ItemOverrides';
 import ExternalDrop from './scenarios/ExternalDrop';
 import AdvancedFeatures from './scenarios/AdvancedFeatures';
 import PropsLab from './scenarios/PropsLab';
+import Maximize from './scenarios/Maximize';
 
 const scenarios = [
   { id: `basic`, component: BasicGrid },
@@ -25,6 +26,7 @@ const scenarios = [
   { id: `external-drop`, component: ExternalDrop },
   { id: `advanced-features`, component: AdvancedFeatures },
   { id: `props-lab`, component: PropsLab },
+  { id: `maximize`, component: Maximize },
 ] as const;
 
 /**

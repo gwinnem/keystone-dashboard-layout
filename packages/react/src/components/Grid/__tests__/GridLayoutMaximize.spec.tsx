@@ -58,6 +58,32 @@ const renderGrid = (layout: TLayout, props: TGridProps = {}) => {
   };
 };
 
+type TResizedPayload = { h: number; height: number; i: string | number; w: number; width: number };
+
+/** Like `renderGrid`, but every `GridItem` reports its pixel size through one shared `onItemResized` spy. */
+const renderReporting = (layout: TLayout, props: TGridProps = {}) => {
+  stubOffsetWidth(1200);
+  stubClientHeight(500);
+  const ref = createRef<IGridLayoutHandle>();
+  const onItemResized = vi.fn();
+  const element = (nextLayout: TLayout, nextProps: TGridProps): JSX.Element => (
+    <GridLayout layout={nextLayout} ref={ref} {...nextProps}>
+      {nextLayout.map(entry => <GridItem key={entry.i} i={entry.i} onItemResized={onItemResized}>{`Item ${String(entry.i)}`}</GridItem>)}
+    </GridLayout>
+  );
+  const view = render(element(layout, props));
+  return {
+    ...view,
+    onItemResized,
+    ref,
+    rerenderGrid: (nextLayout: TLayout, nextProps: TGridProps = {}): void => view.rerender(element(nextLayout, nextProps)),
+  };
+};
+
+/** What one item reported through `onItemResized`, oldest first. */
+const reportsFor = (spy: ReturnType<typeof vi.fn>, id: string): TResizedPayload[] =>
+  (spy.mock.calls.map(call => call[0]) as TResizedPayload[]).filter(payload => payload.i === id);
+
 const item = (container: HTMLElement, id: string): HTMLElement => container.querySelector(`[data-grid-item-id="${id}"]`) as HTMLElement;
 
 const styleOf = (container: HTMLElement, id: string): string => item(container, id).getAttribute(`style`) ?? ``;
@@ -393,6 +419,116 @@ describe(`GridLayout maximize / restore`, () => {
       // Compaction ran: item `1` ends up at row 2, exactly where a layout that already had it there draws it.
       const reference = renderGrid([{ h: 2, i: `0`, w: 2, x: 0, y: 0 }, { h: 2, i: `1`, w: 2, x: 0, y: 2 }]);
       expect(styleOf(container, `1`)).toBe(styleOf(reference.container, `1`));
+    });
+  });
+
+  describe(`reporting the pixel size`, () => {
+    /** The pixel width/height an item's inline style gives it right now. */
+    const drawnSize = (container: HTMLElement, id: string): { height: number; width: number } => {
+      const style = styleOf(container, id);
+      return {
+        height: Number.parseFloat(/(?:^|\s)height: ([\d.]+)px/.exec(style)![1]),
+        width: Number.parseFloat(/(?:^|\s)width: ([\d.]+)px/.exec(style)![1]),
+      };
+    };
+
+    it(`Should report the size the item now fills the grid with when it is maximized`, () => {
+      const { onItemResized, ref } = renderReporting(trio());
+      onItemResized.mockClear();
+
+      callInAct(() => ref.current!.maximize(`1`));
+
+      expect(reportsFor(onItemResized, `1`).at(-1)).toStrictEqual({ h: 2, height: 480, i: `1`, w: 2, width: 1180 });
+    });
+
+    it(`Should report the size of its own cell again when it is restored`, () => {
+      const { container, onItemResized, ref } = renderReporting(trio());
+      callInAct(() => ref.current!.maximize(`1`));
+      onItemResized.mockClear();
+
+      callInAct(() => ref.current!.restore());
+
+      const reports = reportsFor(onItemResized, `1`);
+      expect(reports).toHaveLength(1);
+      expect(reports[0]).toStrictEqual({ h: 2, i: `1`, w: 2, ...drawnSize(container, `1`) });
+      expect(reports[0].width).not.toBe(1180);
+    });
+
+    it(`Should report the size of an item that is maximized when it mounts`, () => {
+      const { onItemResized } = renderReporting(trio(), { maximizedItem: `1` });
+
+      expect(reportsFor(onItemResized, `1`).at(-1)).toStrictEqual({ h: 2, height: 480, i: `1`, w: 2, width: 1180 });
+    });
+
+    it(`Should say nothing for the items that stay hidden`, () => {
+      const { onItemResized, ref } = renderReporting(trio());
+      onItemResized.mockClear();
+
+      callInAct(() => ref.current!.maximize(`1`));
+      stubClientHeight(300);
+      triggerResize(1000);
+      callInAct(() => ref.current!.restore());
+
+      expect(reportsFor(onItemResized, `0`)).toStrictEqual([]);
+      expect(reportsFor(onItemResized, `2`)).toStrictEqual([]);
+    });
+
+    it(`Should say nothing for an item that was never maximized`, () => {
+      const { onItemResized } = renderReporting(trio());
+      onItemResized.mockClear();
+
+      stubClientHeight(300);
+      triggerResize(1000);
+
+      expect(onItemResized).not.toHaveBeenCalled();
+    });
+
+    it(`Should follow the grid while the item is maximized`, () => {
+      const { onItemResized } = renderReporting(trio(), { maximizedItem: `0` });
+      onItemResized.mockClear();
+      stubClientHeight(300);
+
+      triggerResize(1000);
+
+      expect(reportsFor(onItemResized, `0`).at(-1)).toStrictEqual({ h: 2, height: 280, i: `0`, w: 2, width: 980 });
+    });
+
+    it(`Should not report again when only the item's own layout cell changes while it is maximized`, () => {
+      const { onItemResized, rerenderGrid } = renderReporting(trio(), { maximizedItem: `0` });
+      onItemResized.mockClear();
+
+      rerenderGrid(trio().map(entry => (entry.i === `0` ? { ...entry, w: 3 } : entry)), { maximizedItem: `0` });
+
+      expect(onItemResized).not.toHaveBeenCalled();
+    });
+
+    it(`Should report the size of the item the grid switches to, and of the one it leaves`, () => {
+      const { container, onItemResized, ref } = renderReporting(trio(), { maximizedItem: `0` });
+      onItemResized.mockClear();
+
+      callInAct(() => ref.current!.maximize(`1`));
+
+      expect(reportsFor(onItemResized, `1`).at(-1)).toStrictEqual({ h: 2, height: 480, i: `1`, w: 2, width: 1180 });
+      expect(reportsFor(onItemResized, `0`)).toHaveLength(1);
+      expect(reportsFor(onItemResized, `0`)[0]).toStrictEqual({ h: 2, i: `0`, w: 2, ...drawnSize(container, `0`) });
+    });
+
+    it(`Should report through the maximize button too`, () => {
+      const { container, onItemResized } = renderReporting(trio(), { showMaximizeButton: true });
+      onItemResized.mockClear();
+
+      fireEvent.click(item(container, `2`).querySelector(`.btn-maximize`) as HTMLElement);
+
+      expect(reportsFor(onItemResized, `2`).at(-1)).toStrictEqual({ h: 2, height: 480, i: `2`, w: 2, width: 1180 });
+    });
+
+    it(`Should maximize and restore without throwing when no onItemResized was given`, () => {
+      const { ref } = renderGrid(trio());
+
+      expect(() => {
+        callInAct(() => ref.current!.maximize(`1`));
+        callInAct(() => ref.current!.restore());
+      }).not.toThrow();
     });
   });
 

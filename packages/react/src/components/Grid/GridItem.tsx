@@ -396,6 +396,29 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     resolvedIsMirrored, resolvedUseBorderRadius, resolvedBorderRadiusPx, resolvedShowResizeHandles, resolvedResizeHandleColor,
   ]);
 
+  /**
+   * Maximizing or restoring changes the pixel size this item is drawn at without any resize gesture, so it is reported through
+   * `onItemResized` as well — the way the Vue and Angular packages do. Reported when this item becomes maximized, stops being
+   * maximized, and while it is maximized and the grid's height or width changes (it keeps filling the grid). The items that stay
+   * hidden have no new size to report and stay quiet. Read through a ref so a callback that is a new function on every render
+   * does not re-run the effect.
+   */
+  const onItemResizedRef = useRef(onItemResized);
+  onItemResizedRef.current = onItemResized;
+  const wasMaximizedRef = useRef(isMaximized);
+  useEffect(() => {
+    const changed = wasMaximizedRef.current !== isMaximized;
+    wasMaximizedRef.current = isMaximized;
+    if(!changed && !isMaximized) {
+      return;
+    }
+    const size = isMaximized
+      ? calcMaximizedPosition({ containerHeight: context.maximizedHeight, containerWidth: context.containerWidth, margin: context.margin, rtl: resolvedIsMirrored })
+      : calcPosition(item.x, item.y, item.w, item.h);
+    onItemResizedRef.current?.({ h: item.h, height: Number(size.height), i, w: item.w, width: Number(size.width) });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately only these three: they are exactly the events worth reporting. The layout cell (`item.x`/`y`/`w`/`h`), `margin` and `calcPosition` are read when one of them fires, but a change of their own is not a size change of a maximized item and must not report again.
+  }, [isMaximized, context.maximizedHeight, context.containerWidth]);
+
   const classNames = [
     `kdl-grid-item`,
     header != null && `kdl-grid-item--has-header`,
