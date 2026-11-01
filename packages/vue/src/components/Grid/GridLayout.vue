@@ -12,7 +12,7 @@
     class="vue-grid-layout"
     :class="{ grid: props.showGridLines, 'vue-grid-layout--active-drag': isDragging }"
     :dir="props.isMirrored ? 'rtl' : 'ltr'"
-    :style="[mergeStyle, transitionStyle, gridLinesStyle, resizeHandleStyle, overflowXStyle]"
+    :style="[mergeStyle, transitionStyle, gridLinesStyle, resizeHandleStyle, overflowXStyle, unmeasuredStyle]"
     @click="backgroundClickHandler"
     @keydown="keydownHandler">
     <div :style="contentWrapperStyle">
@@ -183,6 +183,8 @@
   });
 
   const width = ref<number | null>(null);
+  /** See the doc comment on `unmeasuredStyle` below. */
+  const hasSettled = ref(false);
   /**
    * This grid's own actually-used width for every colWidth-derived
    * calculation (item positioning, guides, grid lines, outside-drop
@@ -837,9 +839,32 @@
    * takes precedence over the inherited value.
    */
   const transitionStyle = computed(() => ({
-    '--grid-transition-duration': `${props.transitionDurationMs}ms`,
+    // 0ms until the grid has settled (see `hasSettled` below) — the custom
+    // property inherits to every item, so this alone keeps their first
+    // placement from animating.
+    '--grid-transition-duration': `${hasSettled.value ? props.transitionDurationMs : 0}ms`,
     '--grid-transition-timing': props.transitionTimingFunction,
   }));
+
+  /**
+   * Whether the grid has been painted at its real measured width. Until
+   * then every item sits at a provisional 100px-container position, and
+   * the server-rendered markup has no size or position at all (plain
+   * full-width blocks) — so the grid is hidden (`unmeasuredStyle`) and
+   * item transitions are off (`transitionStyle`), instead of showing
+   * those blocks and then animating them into place. Flips two animation
+   * frames after the first measurement, so the item positions computed
+   * from it are already painted before transitions switch on.
+   */
+  let settleFrames: number[] = [];
+
+  /** `visibility: hidden` until the first real width measurement (hidden, not `display: none`, so the container can still be measured). */
+  const unmeasuredStyle = computed(() => (width.value === null ? { visibility: `hidden` } as const : {}));
+
+  const cancelSettleFrames = (): void => {
+    settleFrames.forEach(frame => cancelAnimationFrame(frame));
+    settleFrames = [];
+  };
 
   /**
    * `--resize-handle-color`, inherited naturally by every `GridItem`
@@ -1797,6 +1822,7 @@
     eventBus.off(`itemOverrides`, itemOverridesHandler);
     eventBus.off(`toggleMaximize`, toggleMaximize);
     removeWindowEventListener(`resize`, onWindowResize);
+    cancelSettleFrames();
     if(erd.value) {
       erd.value.disconnect();
     }
@@ -1865,6 +1891,13 @@
    * width and stabilize its own size.
    */
   watch(width, (newVal, oldVal) => {
+    if(oldVal === null && !hasSettled.value) {
+      settleFrames.push(requestAnimationFrame(() => {
+        settleFrames.push(requestAnimationFrame(() => {
+          hasSettled.value = true;
+        }));
+      }));
+    }
     nextTick(() => {
       // Emits the effective (min/maxW-adjusted) width, not the raw
       // `newVal` this watcher itself observed — `effectiveWidth` is a

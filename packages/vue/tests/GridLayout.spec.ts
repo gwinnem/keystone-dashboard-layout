@@ -8,7 +8,7 @@ import GridItem from '../src/components/Grid/GridItem.vue';
 import { EGridLayoutEvent } from '@/core/gridlayout/enums/EGridLayoutEvents';
 import { ECompactType } from '@/core/gridlayout/enums/ECompactType';
 import { EErrorMessage } from '@/core/common/enums/ErrorMessages';
-import { mountGrid, restoreOffsetWidth, stubOffsetWidth } from './helpers/mountGrid';
+import { mountGrid, restoreOffsetWidth, settleGrid, stubOffsetWidth } from './helpers/mountGrid';
 
 const basicLayout = () => [
   { i: `0`, x: 0, y: 0, w: 2, h: 2 },
@@ -2604,18 +2604,22 @@ describe(`GridLayout`, () => {
   });
 
   describe(`transitionDurationMs / transitionTimingFunction`, () => {
-    it(`Should apply the default duration/timing as CSS custom properties`, () => {
+    it(`Should apply the default duration/timing as CSS custom properties`, async () => {
+      stubOffsetWidth(800);
       const wrapper = mountGrid(basicLayout());
+      await settleGrid();
 
       const style = wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``;
       expect(style).toContain(`--grid-transition-duration: 200ms`);
       expect(style).toContain(`--grid-transition-timing: ease`);
     });
 
-    it(`Should apply custom duration/timing as CSS custom properties`, () => {
+    it(`Should apply custom duration/timing as CSS custom properties`, async () => {
+      stubOffsetWidth(800);
       const wrapper = mountGrid(basicLayout(), {
         layoutProps: { transitionDurationMs: 500, transitionTimingFunction: `ease-out` },
       });
+      await settleGrid();
 
       const style = wrapper.find(`.vue-grid-layout`).attributes(`style`) ?? ``;
       expect(style).toContain(`--grid-transition-duration: 500ms`);
@@ -2623,8 +2627,9 @@ describe(`GridLayout`, () => {
     });
 
     it(`Should react when transitionDurationMs/transitionTimingFunction change after mount`, async () => {
+      stubOffsetWidth(800);
       const wrapper = mountGrid(basicLayout());
-      await nextTick();
+      await settleGrid();
 
       await wrapper.setProps({ transitionDurationMs: 750, transitionTimingFunction: `linear` });
       await nextTick();

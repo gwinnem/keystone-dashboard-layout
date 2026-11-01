@@ -1,5 +1,5 @@
 import { h, reactive } from 'vue';
-import { mount, MountingOptions } from '@vue/test-utils';
+import { flushPromises, mount, MountingOptions } from '@vue/test-utils';
 import { GridItem, GridLayout, ILayoutItem, TLayout } from '../../src/components';
 
 /**
@@ -14,6 +14,24 @@ export function stubOffsetWidth(width: number): void {
     configurable: true,
     value: width,
   });
+}
+
+const nextFrame = (): Promise<void> => new Promise(resolve => {
+  requestAnimationFrame(() => resolve());
+});
+
+/**
+ * Waits until a mounted grid has measured its width AND finished its
+ * "settling" phase (hidden / transitions off until two animation frames
+ * after the first measurement). Call after `stubOffsetWidth(...)` +
+ * mounting; a grid that was never given a width never settles.
+ */
+export async function settleGrid(): Promise<void> {
+  await flushPromises();
+  await nextFrame();
+  await nextFrame();
+  await nextFrame();
+  await flushPromises();
 }
 
 export function restoreOffsetWidth(): void {
