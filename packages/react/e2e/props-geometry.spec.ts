@@ -52,6 +52,44 @@ test.describe('Geometry: colNum, rowHeight, margin, maxRows', () => {
     await expectAllItemsPlaced(page, { ...LAB_GEOMETRY, colNum: 16 });
   });
 
+  test('shrinking colNum pulls every item back inside the grid and reports the new layout', async ({ page }) => {
+    // The lab's items span more than 4 columns in total, so some start past column 4 and have to move.
+    expect((await readLayout(page)).some(cell => cell.x + cell.w > 4)).toBe(true);
+
+    await setGrid(page, 'colNum', 4);
+
+    await expect.poll(async () => (await readLayout(page)).every(cell => cell.x >= 0 && cell.x + cell.w <= 4)).toBe(true);
+    await expectAllItemsPlaced(page, { ...LAB_GEOMETRY, colNum: 4 });
+
+    // And nothing is drawn past the grid's own right edge.
+    const box = await gridBox(page);
+    for(const cell of await readLayout(page)) {
+      const itemBox = await settledBox(item(page, String(cell.i)));
+      expect(itemBox.x + itemBox.width).toBeLessThanOrEqual(box.x + box.width + 1);
+    }
+  });
+
+  test('shrinking colNum and growing it again leaves every item inside the grid, where the shrink put it', async ({ page }) => {
+    await setGrid(page, 'colNum', 4);
+    await expect.poll(async () => (await readLayout(page)).every(cell => cell.x + cell.w <= 4)).toBe(true);
+    const shrunk = await readLayout(page);
+
+    await setGrid(page, 'colNum', 12);
+
+    // Growing never moves anything: the lab's compaction is off, so there is nothing to pull back toward the old positions.
+    await expectAllItemsPlaced(page, LAB_GEOMETRY);
+    expect(await readLayout(page)).toStrictEqual(shrunk);
+  });
+
+  test('an item already inside the new, smaller column count is not moved by the shrink', async ({ page }) => {
+    const before = await layoutItem(page, '0');
+    expect(before!.x + before!.w).toBeLessThanOrEqual(4);
+
+    await setGrid(page, 'colNum', 4);
+
+    await expectCell(page, '0', { h: before!.h, w: before!.w, x: before!.x, y: before!.y });
+  });
+
   test('rowHeight changes every item\'s height and vertical position, and the container with it', async ({ page }) => {
     await setGrid(page, 'rowHeight', 100);
     await expectAllItemsPlaced(page, { ...LAB_GEOMETRY, rowHeight: 100 });

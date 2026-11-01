@@ -10,6 +10,7 @@ import {
   EErrorMessage,
   exportLayoutAsSvg as coreExportLayoutAsSvg,
   findAlignmentGuides,
+  correctBounds,
   findFirstFitSlot,
   findOrGenerateResponsiveLayout,
   findSnapAdjustment,
@@ -580,6 +581,25 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     }
     workingLayoutRef.current = compacted;
     setWorkingLayout(compacted);
+  }
+
+  // `colNum` changing re-fits the layout to the new column count, as in Vue (its `colNum` watcher always runs the responsive-layout
+  // pass, `responsive` or not): items past the last column are pulled back inside and the result is compacted. Without this a grid
+  // going from 12 to 6 columns kept its items at x: 6 and x: 8 and drew them off the right edge, with nothing reported to the
+  // consumer. Keyed on the prop, not on the breakpoint-derived count: a breakpoint change is the responsive effect's job below,
+  // including a layout supplied for that breakpoint, which must not be compacted again here. Done during render, like the `layout`
+  // sync above, so the items render with positions that fit the columns they are drawn in. While an item is maximized the bounds are
+  // still corrected (they have to be) but `compactLayout` holds the compaction back until the restore.
+  const [prevColNumProp, setPrevColNumProp] = useState(colNumProp);
+  if(colNumProp !== prevColNumProp) {
+    setPrevColNumProp(colNumProp);
+    const rendered = workingLayoutRef.current;
+    const fitted = compactLayout(correctBounds(cloneLayout(rendered), { cols: colNum }, distributeEvenly), compactType);
+    if(!layoutPositionsEqual(fitted, rendered)) {
+      pendingCompactionNotifyRef.current = fitted;
+      workingLayoutRef.current = fitted;
+      setWorkingLayout(fitted);
+    }
   }
 
   // Actually commits whatever `pendingUndoSnapshotRef` above queued —
