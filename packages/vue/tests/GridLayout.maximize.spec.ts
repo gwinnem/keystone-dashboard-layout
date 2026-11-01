@@ -467,6 +467,76 @@ describe(`GridLayout maximize / restore`, () => {
 
       expect(wrapper.vm.selectedItemIds.size).toBe(0);
     });
+
+    describe(`focus (Safari does not focus a button on click)`, () => {
+      const attached = [];
+
+      afterEach(() => {
+        attached.splice(0).forEach(wrapper => wrapper.unmount());
+      });
+
+      /** Mounted into the document: `focus()` does nothing on an element that is not in it. */
+      const mountAttached = async () => {
+        stubOffsetWidth(1200);
+        stubClientHeight(500);
+        const layout = trio();
+        const wrapper = mount(GridLayout, {
+          attachTo: document.body,
+          props: { layout, showMaximizeButton: true },
+          slots: { default: () => layout.map(entry => h(GridItem, { ...entry, key: entry.i }, () => `Item ${entry.i}`)) },
+        });
+        attached.push(wrapper);
+        await flushPromises();
+        return wrapper;
+      };
+
+      const button = (wrapper, id) => item(wrapper, id).find(`.btn-maximize`);
+
+      it(`Should take focus when clicked, so the grid hears the next key`, async () => {
+        const wrapper = await mountAttached();
+        expect(document.activeElement).not.toBe(button(wrapper, `1`).element);
+
+        await button(wrapper, `1`).trigger(`click`);
+
+        expect(document.activeElement).toBe(button(wrapper, `1`).element);
+      });
+
+      it(`Should restore on Escape right after a click maximized the item`, async () => {
+        const wrapper = await mountAttached();
+        await button(wrapper, `1`).trigger(`click`);
+        expect(wrapper.vm.maximizedItem).toBe(`1`);
+
+        document.activeElement.dispatchEvent(new KeyboardEvent(`keydown`, { bubbles: true, cancelable: true, key: `Escape` }));
+        await flushPromises();
+
+        expect(wrapper.vm.maximizedItem).toBeNull();
+      });
+
+      it(`Should keep focus on the same button when a click restores the item`, async () => {
+        const wrapper = await mountAttached();
+        await button(wrapper, `1`).trigger(`click`);
+        const focused = document.activeElement;
+
+        await button(wrapper, `1`).trigger(`click`);
+
+        expect(wrapper.vm.maximizedItem).toBeNull();
+        expect(document.activeElement).toBe(focused);
+        expect(focused).toBe(button(wrapper, `1`).element);
+      });
+
+      it(`Should leave focus alone when the item is maximized through the exposed method`, async () => {
+        const wrapper = await mountAttached();
+        const input = document.createElement(`input`);
+        document.body.appendChild(input);
+        input.focus();
+
+        wrapper.vm.maximize(`1`);
+        await flushPromises();
+
+        expect(document.activeElement).toBe(input);
+        input.remove();
+      });
+    });
   });
 
   describe(`which items react`, () => {

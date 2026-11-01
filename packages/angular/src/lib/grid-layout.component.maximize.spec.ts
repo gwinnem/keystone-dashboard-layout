@@ -595,6 +595,59 @@ describe(`GridLayoutComponent maximize / restore`, () => {
 
       expect(grid.selectedItemIds.size).toBe(0);
     });
+
+    describe(`focus (Safari does not focus a button on click)`, () => {
+      beforeEach(() => {
+        mount(instance => {
+          instance.showMaximizeButton = true;
+        });
+      });
+
+      it(`Should take focus when clicked, so the grid hears the next key`, () => {
+        expect(document.activeElement).not.toBe(maximizeButton(`1`));
+
+        maximizeButton(`1`)!.click();
+        fixture.detectChanges();
+
+        expect(document.activeElement).toBe(maximizeButton(`1`));
+      });
+
+      it(`Should restore on Escape right after a click maximized the item`, () => {
+        maximizeButton(`1`)!.click();
+        fixture.detectChanges();
+        expect(grid.maximizedItem).toBe(`1`);
+
+        (document.activeElement as HTMLElement).dispatchEvent(new KeyboardEvent(`keydown`, { bubbles: true, cancelable: true, key: `Escape` }));
+        fixture.detectChanges();
+
+        expect(grid.maximizedItem).toBeNull();
+      });
+
+      it(`Should keep focus on the same button when a click restores the item`, () => {
+        maximizeButton(`1`)!.click();
+        fixture.detectChanges();
+        const focused = document.activeElement;
+
+        maximizeButton(`1`)!.click();
+        fixture.detectChanges();
+
+        expect(grid.maximizedItem).toBeNull();
+        expect(document.activeElement).toBe(focused);
+        expect(focused).toBe(maximizeButton(`1`));
+      });
+
+      it(`Should leave focus alone when the item is maximized through the public method`, () => {
+        const input = document.createElement(`input`);
+        document.body.appendChild(input);
+        input.focus();
+
+        grid.maximize(`1`);
+        fixture.detectChanges();
+
+        expect(document.activeElement).toBe(input);
+        input.remove();
+      });
+    });
   });
 
   describe(`measuring and publishing`, () => {
@@ -804,8 +857,21 @@ describe(`GridItemComponent maximize on its own`, () => {
       const { component, fixture } = create();
       apply(fixture, { ...baseInputs, showMaximizeButton: true });
 
-      // Called directly: an error thrown inside a DOM event handler never reaches the caller of `click()`.
-      expect(() => component.handleMaximizeButtonClick(new MouseEvent(`click`))).not.toThrow();
+      // Called from inside a click listener of its own, which is the only place the event has a `currentTarget`; and caught
+      // there, because an error thrown inside a DOM event handler never reaches the caller of `click()`.
+      const button = (fixture.nativeElement as HTMLElement).querySelector(`.btn-maximize`) as HTMLButtonElement;
+      const errors: unknown[] = [];
+      button.addEventListener(`click`, event => {
+        try {
+          component.handleMaximizeButtonClick(event);
+        } catch(error) {
+          errors.push(error);
+        }
+      });
+
+      button.click();
+
+      expect(errors).toEqual([]);
     });
   });
 

@@ -574,6 +574,8 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
           onClick={event => {
             // Not a click on the item itself (which would select it with `multiSelect` on).
             event.stopPropagation();
+            // Safari does not focus a button on click, and without focus inside the grid the Escape key never reaches it.
+            event.currentTarget.focus();
             context.onItemToggleMaximize(i);
           }}
           type="button"

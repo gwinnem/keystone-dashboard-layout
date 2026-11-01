@@ -66,11 +66,38 @@ an oversight: restricting keyboard users *further* than mouse users, just
 because a mouse-specific UI affordance (a drag handle) exists, would be
 the wrong direction for an accessibility feature to take.
 
+### Maximize and restore
+
+The built-in maximize button (`show-maximize-button`) is a real
+`<button type="button">`, so it is reachable with Tab and operable with
+Enter or Space. Its text is a visually-hidden label that reads
+"Maximize" and, while its item is the maximized one, "Restore" — both
+overridable through `ariaLabels` (`maximizeButton`/`restoreButton`).
+
+**Escape restores.** With focus anywhere inside the grid, Escape puts
+every item back — unless something inside the item (a dropdown or a
+dialog closing, say) already handled that key press, in which case it is
+left alone. Escape does nothing when no item is maximized, and a focus
+outside the grid does not trigger it.
+
+**Clicking the button moves focus onto it.** Safari does not focus a
+button when it is clicked, so without this a mouse user there would
+maximize an item and find Escape dead until they tabbed into the grid.
+The button keeps focus when the same click restores the item. Maximizing
+through `maximize()` or the `maximized-item` prop leaves focus where it
+was: the grid does not take it from something else on the page.
+
+While an item is maximized it is neither draggable nor resizable, and the
+other items are hidden (`display: none`), so they are skipped by Tab and
+by screen readers until you restore. See
+[Maximize and restore](/vue/examples/maximize/).
+
 ### Localizable ARIA strings
 
 The close button's label, `aria-roledescription`, and the keyboard
 move/resize instructions are all overridable rather than hardcoded
 English literals — see [Localizable ARIA strings](/vue/examples/aria-labels/).
+The maximize button's two labels are overridable the same way.
 
 ## What's not covered (tracked, not silently ignored)
 

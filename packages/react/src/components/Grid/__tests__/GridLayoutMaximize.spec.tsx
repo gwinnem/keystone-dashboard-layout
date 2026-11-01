@@ -643,6 +643,53 @@ describe(`GridLayout maximize / restore`, () => {
 
       expect(ref.current!.selectedItems).toHaveLength(0);
     });
+
+    describe(`focus (Safari does not focus a button on click)`, () => {
+      const button = (container: HTMLElement, id: string): HTMLElement => item(container, id).querySelector(`.btn-maximize`) as HTMLElement;
+
+      it(`Should take focus when clicked, so the grid hears the next key`, () => {
+        const { container } = renderGrid(trio(), { showMaximizeButton: true });
+        expect(document.activeElement).not.toBe(button(container, `1`));
+
+        fireEvent.click(button(container, `1`));
+
+        expect(document.activeElement).toBe(button(container, `1`));
+      });
+
+      it(`Should restore on Escape right after a click maximized the item`, () => {
+        const { container, ref } = renderGrid(trio(), { showMaximizeButton: true });
+        fireEvent.click(button(container, `1`));
+        expect(ref.current!.maximizedItem).toBe(`1`);
+
+        fireEvent.keyDown(document.activeElement as Element, { key: `Escape` });
+
+        expect(ref.current!.maximizedItem).toBeNull();
+      });
+
+      it(`Should keep focus on the same button when a click restores the item`, () => {
+        const { container, ref } = renderGrid(trio(), { showMaximizeButton: true });
+        fireEvent.click(button(container, `1`));
+        const focused = document.activeElement;
+
+        fireEvent.click(button(container, `1`));
+
+        expect(ref.current!.maximizedItem).toBeNull();
+        expect(document.activeElement).toBe(focused);
+        expect(focused).toBe(button(container, `1`));
+      });
+
+      it(`Should leave focus alone when the item is maximized through the handle`, () => {
+        const { ref } = renderGrid(trio(), { showMaximizeButton: true });
+        const input = document.createElement(`input`);
+        document.body.appendChild(input);
+        input.focus();
+
+        callInAct(() => ref.current!.maximize(`1`));
+
+        expect(document.activeElement).toBe(input);
+        input.remove();
+      });
+    });
   });
 
   describe(`as a controlled prop`, () => {

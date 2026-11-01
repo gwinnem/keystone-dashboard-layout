@@ -779,8 +779,9 @@
     }
   });
 
-  /** The maximize button: asks the grid to maximize this item, or to restore it when it already is. */
-  const toggleMaximize = (): void => {
+  /** The maximize button: asks the grid to maximize this item, or to restore it when it already is. Takes focus itself: Safari does not focus a button on click, and without focus inside the grid the Escape key never reaches it. */
+  const toggleMaximize = (event: MouseEvent): void => {
+    (event.currentTarget as HTMLElement).focus();
     eventBus.emit(`toggleMaximize`, props.i);
   };
 

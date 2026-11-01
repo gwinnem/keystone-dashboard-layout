@@ -950,9 +950,10 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     this.removeItem.emit(this.i);
   }
 
-  /** The maximize button: asks the grid to maximize this item, or to restore it when it already is. Stopped here so it does not count as a click on the item (a `multiSelect` selection). */
+  /** The maximize button: asks the grid to maximize this item, or to restore it when it already is. Stopped here so it does not count as a click on the item (a `multiSelect` selection). Takes focus itself: Safari does not focus a button on click, and without focus inside the grid the Escape key never reaches it. */
   handleMaximizeButtonClick(event: MouseEvent): void {
     event.stopPropagation();
+    (event.currentTarget as HTMLElement).focus();
     this.eventBus?.emitToggleMaximize(this.i);
   }
 

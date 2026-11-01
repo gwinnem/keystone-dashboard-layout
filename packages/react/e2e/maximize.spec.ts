@@ -70,9 +70,7 @@ test.describe('Maximize: reporting the pixel size', () => {
     await expectReportToMatchDrawnSize(page, '2');
     const maximized = await reportedSize(page, '2');
 
-    // Escape is handled by the grid, so it only hears keys from inside it. Safari/WebKit does not focus a
-    // button on click, so put focus where a keyboard user would have it.
-    await item.locator('.btn-maximize--active').focus();
+    // No focus() here on purpose: WebKit does not focus a button on click, so this only passes if the button focuses itself.
     await page.keyboard.press('Escape');
 
     await expect(item).not.toHaveClass(/kdl-grid-item--maximized/);
