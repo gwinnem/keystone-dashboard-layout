@@ -34,6 +34,7 @@ import type { IGridLayoutHandle } from './grid-layout-handle.interface';
 import { GridContext } from './grid-context';
 import type { TGridGestureEventType } from './grid-context';
 import { useCrossGridDrag } from './hooks/useCrossGridDrag';
+import { useIsomorphicLayoutEffect } from './hooks/useIsomorphicLayoutEffect';
 
 /** Module-level, not per-render — a fresh `[10, 10]` array literal as an inline default parameter value would be a *new* reference on every render, making anything depending on `margin` in a `useEffect`/`useCallback`/`useMemo` dependency array think it changed every single render even when the consumer never touched it. */
 const DEFAULT_MARGIN: [number, number] = [10, 10];
@@ -749,11 +750,13 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
 
   // Re-reads the container height whenever the maximized item changes, so the item fills the grid as it is *now*, not as it was at
   // the last resize. Declared before the container effect below on purpose: on mount it still sees the default no-op there.
-  useEffect(() => {
+  // Both are layout effects, so the grid is measured before the first paint (see `useIsomorphicLayoutEffect`); they run in
+  // declaration order, as the passive ones did.
+  useIsomorphicLayoutEffect(() => {
     measureContainerRef.current();
   }, [activeMaximizedId]);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const el = containerRef.current;
     // Stryker disable ConditionalExpression,BlockStatement: unreachable — see the v8 ignore comment below; containerRef is attached to this component's own root element.
     /* v8 ignore next 3 -- `containerRef` is attached directly to this component's own root element with no conditional rendering in between; by the time an effect with an empty dependency array runs (after the initial commit), the ref is already populated. Not reachable through any normal render path, only by directly manipulating the internal ref (which isn't exposed) — kept as a defensive guard matching the same `!(ref instanceof HTMLElement)` pattern the Vue package's own composables use for the identical reason. */
@@ -1995,7 +1998,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       onDragOver={handleOutsideDragOver}
       onDrop={handleOutsideDrop}
       onKeyDown={handleKeyDown}
-      style={{ height: containerHeight, overflowX: needsHorizontalScroll ? `auto` : undefined, overflowY: containerOverflow, position: `relative`, ...gridLinesStyle, ...transitionStyle }}
+      style={{ height: containerHeight, overflowX: needsHorizontalScroll ? `auto` : undefined, overflowY: containerOverflow, position: `relative`, visibility: hasMeasuredWidth ? undefined : `hidden`, ...gridLinesStyle, ...transitionStyle }}
     >
       {needsWidthWrapper ? (
         // height matches whatever the outer root resolved to (a real px

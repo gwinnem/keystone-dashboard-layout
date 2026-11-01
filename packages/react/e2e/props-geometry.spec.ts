@@ -44,6 +44,12 @@ test.describe('Geometry: colNum, rowHeight, margin, maxRows', () => {
     await expectAllItemsPlaced(page, LAB_GEOMETRY);
   });
 
+  test('the grid is shown once loaded, not left hidden while it waits for a measurement', async ({ page }) => {
+    // The grid is `visibility: hidden` only until its container has been measured, which happens before the first paint.
+    expect(await inlineStyle(page, 'visibility')).toBe('');
+    await expect(grid(page)).toBeVisible();
+  });
+
   test('colNum changes the column width of every item', async ({ page }) => {
     await setGrid(page, 'colNum', 24);
     await expectAllItemsPlaced(page, { ...LAB_GEOMETRY, colNum: 24 });
