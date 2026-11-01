@@ -75,7 +75,10 @@ test.describe('isMirrored (RTL)', () => {
   });
 
   test('a drag towards the right wall stops at x:0 instead of leaving the grid', async ({ page }) => {
-    await dragItem(page, item(page, '0'), 3 * COL, 0);
+    // Item 0 sits against the right wall, grabbed 20% in from its left edge, so the pointer starts about 1608px across a
+    // 1900px viewport. A 3-column push would end past the viewport's right edge, where Firefox never delivers the mouseup
+    // (the drag stays open). 2 columns still overshoots the wall by ~200px and keeps the pointer inside the viewport.
+    await dragItem(page, item(page, '0'), 2 * COL, 0);
     await page.waitForTimeout(250);
 
     await expectCell(page, '0', { x: 0 });
