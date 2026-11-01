@@ -8,7 +8,7 @@
 // own real source via a `?raw` Vite import — this script resolves
 // that import to the actual component file rather than guessing a
 // naming convention, so it can never drift out of sync with what the
-// docs site itself actually renders. Angular's 53 examples are NOT
+// docs site itself actually renders. Angular's 57 examples are NOT
 // astro-docs pages at all (they live in the separate, standalone
 // angular-examples-app — see astro-docs/astro.config.mjs's own
 // comment for why), so they're indexed directly from that app's own

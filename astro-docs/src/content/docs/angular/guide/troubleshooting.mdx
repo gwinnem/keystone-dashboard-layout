@@ -63,6 +63,18 @@ above has a second symptom: if the container never gets a real
 measured width, breakpoint switching doesn't run either, since it's
 derived from the same stuck value.
 
+## `transitionDurationMs` seems ignored when the grid first loads
+
+Until the container is measured, items sit at provisional positions, and
+moving them to the measured ones would run their transition, so every
+item would slide into place on load. To prevent that, the grid's
+`--grid-transition-duration` stays `0ms` until it has been painted once
+at its measured width (two animation frames after the first
+measurement). After that, `transitionDurationMs` applies as configured.
+This is intended. If you read the property from a test or a script right
+after the grid initializes, wait two animation frames first, or listen
+for `layoutReady`.
+
 ## Server-side rendering (Angular Universal)
 
 `GridLayoutComponent` itself has no explicit platform guard, but it

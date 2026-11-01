@@ -60,7 +60,7 @@ different products.
 | Magnetic snap-to-grid / alignment guides | Yes (both) | No | No |
 | Keyboard move/resize | Yes | Comparable, via Ctrl+arrow (resize) / Shift+arrow (reorder) | Not documented as a distinct mode |
 | Per-item lock against rearrangement | Yes (`isStatic`) | Yes | Closer to a dashboard-level view mode than a per-item flag |
-| **Maximize/restore an item to fill the surface** | **No — a real, confirmed gap** | No | **Yes** |
+| **Maximize/restore an item to fill the surface** | **Yes** (`maximizedItem`, `showMaximizeButton`, `maximize()`/`restore()`) | No | **Yes** |
 | Save/restore layout state | Yes | Yes — comparable | Yes — comparable |
 | Export layout as image/SVG | Yes, dependency-free | No | Yes, but exports the dashboard's data visualizations, not a plain layout-shell export |
 | Data source binding, drill-down, BI charting | **Out of scope entirely — a deliberate boundary** | No (presentation-only, same category as this library) | **Yes — its entire reason to exist** |
@@ -82,9 +82,9 @@ most consumers — Dashboard Designer is a BI-authoring product where
 drag/resize layout is one supporting piece of a much larger
 data-analytics platform, not something you'd choose *for* its layout
 engine alone. The one genuine, worth-tracking gap even at the pure
-layout-mechanics level is **maximize/restore** — a common, useful
-dashboard pattern this library doesn't have. It's tracked on the
-[Roadmap](/vue/guide/project/roadmap/), not yet designed.
+layout-mechanics level was **maximize/restore** — a common, useful
+dashboard pattern. It is now built in (`maximizedItem` with
+`showMaximizeButton`; see [Maximize and restore](/vue/examples/maximize/)), so that gap is closed.
 
 ## What's not worth chasing from either
 

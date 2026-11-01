@@ -116,17 +116,15 @@ route in `app.routes.ts` and its own sidebar link in `app.component.ts`
 (navigation lives there, not in `home.component.ts`, which is the full
 examples gallery).
 
-Verification depth varies by example: 33–45 were individually
-live-verified against real browser interaction (drag/resize dispatched
-via `PointerEvent`s, DOM state inspected directly), surfacing and
-fixing several real bugs along the way — most significantly,
-`enableUndoRedo` silently not tracking externally-driven `layout`
-length changes, fixed directly in `GridLayoutComponent` (see that
-file's own `commitUndoPoint`/`lastSnapshot` doc comments for the full
-account). Examples 1–32 were verified in an earlier session. Examples
-46–57 exist as files but weren't part of either verification pass —
-treat them with the same caution 33–45 were treated with before that
-pass.
+The set covers every feature of the Angular package, including the
+newer ones: pluggable positioning (54), swap on drag (55), async
+persistence (56) and maximize and restore (57). Example 42 also
+demonstrates `verticalFastCompactor`. Each example has an "Open in
+StackBlitz" button seeding an editable project from its own source.
+
+The app consumes the **built** `keystone-dashboard-layout-core`, so
+rebuild core after pulling changes there (see "After pulling changes
+to `packages/core`" above).
 
 ## Donate
 

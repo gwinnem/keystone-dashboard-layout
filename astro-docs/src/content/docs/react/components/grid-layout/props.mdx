@@ -24,7 +24,7 @@ it per-item; see each prop's note.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `colNum` | `number` | `12` | Maximum number of columns. |
+| `colNum` | `number` | `12` | Maximum number of columns. Changing it pulls items that no longer fit back inside the new column count and compacts the layout, whether or not `responsive` is on, and reports the result through `onLayoutChange` when anything moved. |
 | `rowHeight` | `number` | `150` | Height of one grid row, in pixels. |
 | `margin` | `[number, number]` | `[10, 10]` | `[horizontal, vertical]` spacing between items, in pixels. |
 | `maxRows` | `number` | `Infinity` | Maximum number of rows the layout may grow to. |
@@ -111,7 +111,7 @@ it per-item; see each prop's note.
 | `onItemClose` | `(id: string \| number) => void` | — | Called when an item's close button is clicked. Does not itself remove anything from `layout` — your own handler decides. |
 | `borderRadiusPx` | `number` | `10` | Grid-wide default border radius, applied when `useBorderRadius` is on. A per-item override exists. |
 | `useBorderRadius` | `boolean` | `false` | Whether `borderRadiusPx` is actually applied. A per-item override exists. |
-| `transitionDurationMs` | `number` | `200` | Duration, in milliseconds, of the CSS transition applied to item position/size changes. |
+| `transitionDurationMs` | `number` | `200` | Duration, in milliseconds, of the CSS transition applied to item position/size changes. Applies once the grid has settled: the root carries `data-kdl-settling` until it has been painted once at its measured width, and item transitions are off while it does, so nothing animates on load. See [Configurable transition duration & easing](/react/examples/transition-duration-easing/). |
 | `transitionTimingFunction` | `string` | `'ease'` | CSS `transition-timing-function` for the same transitions. |
 
 ## Cross-grid & outside drag-and-drop

@@ -35,6 +35,17 @@ Only worth reaching for directly if you're building a new framework
 integration from scratch — the Vue and React packages already wire this
 up internally for their own `allowCrossGridDrag` prop.
 
+## The types-only subpath
+
+The package also exposes a types-only `./types/*` subpath, mapped to the
+declaration files under `dist/types/`. It has no runtime code behind it,
+so it can only be imported with `import type`. The published `.d.ts`
+files of the Vue and React packages refer to core's types through this
+subpath (`keystone-dashboard-layout-core/types/...`), which is what lets
+your editor resolve every type those packages re-expose without a build
+step or a path alias on your side. You rarely need to write one of these
+imports yourself; the main entry point re-exports the same types.
+
 ## Where to go next
 
 - [API reference](/core/api/) — every exported function, type, and validator, grouped by category.

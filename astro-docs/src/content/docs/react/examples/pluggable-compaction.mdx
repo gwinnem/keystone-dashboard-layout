@@ -1,6 +1,6 @@
 ﻿---
 title: Pluggable compaction (compactType & compactor)
-description: Five built-in strategies via compactType, or replace the algorithm entirely with a custom ICompactor.
+description: Five built-in strategies via compactType, a faster vertical compactor for very large layouts, or replace the algorithm entirely with a custom ICompactor.
 ---
 import PluggableCompaction from '../../../../components/examples-react/42-pluggable-compaction.tsx';
 import PluggableCompactionSource from '../../../../components/examples-react/42-pluggable-compaction.tsx?raw';
@@ -21,3 +21,11 @@ change, and `compactNow()`/`rearrange()`.
 Both `ECompactType` and `ICompactor` come from
 `keystone-dashboard-layout-core` — this package doesn't re-export them
 through its own barrel.
+
+The `compactor: verticalFastCompactor` option in the demo plugs in
+`verticalFastCompactor` (also imported from
+`keystone-dashboard-layout-core`): the same result as the default
+vertical compactor in roughly O(n log n) instead of O(n²). With four
+items there is nothing to see, since it only starts to matter from a few
+hundred items. It is opt-in through `compactor`, exactly like a custom
+one, and `compactType` keeps selecting the original algorithm.

@@ -15,3 +15,10 @@ Applies to item position/size changes and the container's own
 Set `transitionDurationMs` to `0` to disable transitions entirely
 (useful while dragging live data-driven layouts where every frame's
 position should snap immediately, not animate).
+
+The configured duration does not apply to the grid's very first layout.
+The grid root is `visibility: hidden` until its first width
+measurement, and its `--grid-transition-duration` stays `0ms` until it
+has been painted once at that width (two animation frames later). Only
+then does `transitionDurationMs` take over. That is what keeps a
+server-rendered grid from sliding into place when it hydrates.

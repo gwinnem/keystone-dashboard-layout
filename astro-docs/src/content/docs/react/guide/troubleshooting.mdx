@@ -68,6 +68,24 @@ symptom: if the container never gets a real measured width, breakpoint
 switching doesn't run either, since it's derived from the same stuck
 value.
 
+## The grid is invisible, or I need to know when it is ready
+
+`GridLayout` measures its container in a layout effect, before the
+first paint, and is `visibility: hidden` until that first measurement.
+Its root then carries `data-kdl-settling` until it has been painted once
+at the measured width (two animation frames), and the stylesheet keeps
+the items' transitions off while that attribute is present. Together
+they stop a server-rendered grid from showing squashed items and then
+growing into place when it hydrates.
+
+The side effect is that the zero-width failure mode above now looks like
+an invisible grid rather than a collapsed one. If the root is still
+`visibility: hidden` after mount, the grid never got a measurable width:
+work through the causes in the first section. To run code once the grid
+is measured and laid out, use `onLayoutReady` instead of checking
+styles. Tests that assert on transitions should wait for
+`data-kdl-settling` to disappear.
+
 ## Server-side rendering (Next.js / SSR)
 
 The `GridLayout` component itself has no explicit SSR guard, but it

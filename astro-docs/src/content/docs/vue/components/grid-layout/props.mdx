@@ -55,7 +55,7 @@ that can override it per-item; see each prop's note.
 | `snapToGrid` | `boolean` | `false` | Magnetic snapping during drag — distinct from `showAlignmentGuides`, which never changes where an item lands. See [Snap to grid](/vue/examples/snap-to-grid/). |
 | `snapThreshold` | `number` | `1` | How close, in grid units, a dragged item's edge needs to be to another item's edge to snap to it. |
 | `transformScale` | `number` | `1` | CSS transform scale factor to compensate for, when this grid renders inside a scaled ancestor. |
-| `transitionDurationMs` | `number` | `200` | Duration, in milliseconds, of the transition applied to item position/size changes and this grid's own auto-height resizing. |
+| `transitionDurationMs` | `number` | `200` | Duration, in milliseconds, of the transition applied to item position/size changes and this grid's own auto-height resizing. Applies once the grid has settled: `--grid-transition-duration` stays `0ms` until the grid has been painted once at its measured width, so nothing animates on load. See [Configurable transition duration & easing](/vue/examples/transition-duration-easing/). |
 | `transitionTimingFunction` | `string` | `'ease'` | CSS `transition-timing-function` for the same transitions. |
 | `useBorderRadius` | `boolean` | `false` | Applies `borderRadiusPx` as a border radius — cascades to every `GridItem` that doesn't set its own. |
 | `useCssTransforms` | `boolean` | `true` | Position items via CSS `transform` instead of `top`/`left`. Ignored when `positionStrategy` is set. |

@@ -15,3 +15,12 @@ Applies to item position/size changes and the container's own
 Set `transitionDurationMs` to `0` to disable transitions entirely
 (useful while dragging live data-driven layouts where every frame's
 position should snap immediately, not animate).
+
+The configured duration does not apply to the grid's very first layout.
+The grid is `visibility: hidden` until its container has been measured
+(in a layout effect, before the first paint), and its root carries
+`data-kdl-settling` until it has been painted once at that width (two
+animation frames). The stylesheet turns the items' transitions off while
+that attribute is present, so a server-rendered grid does not grow into
+place when it hydrates. After that, `transitionDurationMs` applies as
+usual.

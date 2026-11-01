@@ -48,12 +48,12 @@ community track record the other three options on this page do.
 |---|---|---|---|---|---|
 | Native Angular support | Yes, ground-up | Yes, official wrapper (React and Vue wrappers also shipped as of a recent release) | Yes, Angular-native (Angular 16–19 supported per its own compatibility table) | Yes, Angular-native (standalone components; actively released, v22 as of this writing) | Via a raw web component (`igc-tile-manager`) plus `CUSTOM_ELEMENTS_SCHEMA` — not Angular-specific components/directives the way the other three are |
 | Resize from all 8 edges/corners independently | Yes | Yes | **No — only the bottom-right (`se`) corner.** Confirmed directly in its own README's "TODO features" list: *"Add all other resize options (now is only available 'se-resize')"* — an explicit, maintainer-acknowledged gap, not an oversight on this page's part | Yes — confirmed via its own `resizable.handles: { s, e, n, w, se, ne, sw, nw }` config option | Not established — its own docs describe "resizing them" generally without specifying edge/corner granularity |
-| Maximize/restore an item to fill the surface | **No — a real, confirmed gap for this project** | Not established | Not established | Not established | **Yes** — its own docs describe "managing the placement of tiles in maximized or normal state" as a base behavior |
+| Maximize/restore an item to fill the surface | **Yes** (`maximizedItem`, `showMaximizeButton`, `maximize()`/`restore()`) | Not established | Not established | Not established | **Yes** — its own docs describe "managing the placement of tiles in maximized or normal state" as a base behavior |
 | Static items (locked obstacles) | Yes | Yes | **No — explicitly not yet implemented.** Its own README TODO list: *"Grid support for static grid items"* is still an open checkbox | Not established | Not established |
 | Cross-grid drag/drop (independent instances) | Yes | Via nested sub-grids (`subGridOpts`, `makeSubGrid()`) — a different mechanism | Not established | Not established | Not established |
 | Drag-and-drop from outside the component | Yes | Yes (`acceptWidgets`, confirmed in its own API docs) | Not established | Not established | Not established |
 | RTL layout support | Yes | Not established | Not established | **Yes** — confirmed via its own `dirType: DirTypes.LTR \| RTL` config option, with a real history of dedicated RTL bug fixes in its own release notes (e.g. *"fix issue with moving items when dirType: DirTypes.RTL"*, *"fix in RTL mode the most left column is not aligned with the grid"*) | Not established |
-| Swap-on-drag (dragging one item onto another of the same size swaps them) | No — this library only pushes items aside via compaction | Yes, in its default top-gravity mode | Not established | **Yes** — confirmed via its own `swapWhileDragging` config option | Not established |
+| Swap-on-drag (dragging one item onto another of the same size swaps them) | **Yes** (`collisionMode: 'swap'`) | Yes, in its default top-gravity mode | Not established | **Yes** — confirmed via its own `swapWhileDragging` config option | Not established |
 | Magnetic snap-to-grid | Yes | No | Not established | Not established | Not established |
 | Visual alignment guides | Yes | No | Not established | Not established | Not established |
 | Blocked-move feedback event | Yes | No | Not established | Not established | Not established |
@@ -90,7 +90,7 @@ None of these are exotic — they're real-world friction points
 English-only screen reader text) this library's own roadmap process
 exists specifically to find and close one at a time.
 
-Three gaps worth naming with real specificity, not just generic
+Two gaps worth naming with real specificity, not just generic
 "ahead": **keyboard accessibility** — `gridstack.js` maintainers
 explicitly closed a 2017 accessibility request as `wontfix`, and
 neither Katoid, `angular-gridster2`, nor Tile Manager's own
@@ -98,27 +98,16 @@ documentation establishes keyboard move/resize at all — where this
 library treats it as a baseline, always-available interaction.
 **Resize granularity** — Katoid's own README lists full 8-edge resize
 as an open TODO item, currently supporting only the bottom-right
-corner. And **maximize/restore**, addressed below.
+corner.
 
 ## Where this project is genuinely behind, or simply unconfirmed
 
-- **Maximize/restore an item to fill the surface.** Tile Manager's own
-  docs describe this as base, built-in behavior. This library doesn't
-  have it yet — the same real, confirmed gap noted against DevExpress
-  Dashboard on [Comparison: commercial](/angular/guide/project/comparison-commercial/),
-  now also true against a genuinely free, open-source option. Tracked
-  on the [Roadmap](/angular/guide/project/roadmap/).
 - **RTL support, specifically against `angular-gridster2`.** Its own
   `dirType` config option and a real history of dedicated RTL bug
   fixes confirm this is a mature, exercised feature there — this
   library's own RTL support is real too (see
   [Features](/angular/features/)), but the two haven't been compared
   side by side for parity.
-- **Swap-on-drag**, present in both `gridstack.js` (default top-gravity
-  mode) and `angular-gridster2` (`swapWhileDragging`). This library only
-  pushes items aside via compaction — an item landing on another never
-  swaps with it. Not currently tracked on this library's own
-  [Roadmap](/angular/guide/project/roadmap/).
 - **Ecosystem size and battle-testing.** `angular-gridster2` in
   particular has a multi-year history, hundreds of thousands of weekly
   downloads, and roughly 1,300 GitHub stars — meaningfully more
@@ -152,11 +141,10 @@ direct verification rather than assumption — including two real,
 maintainer-acknowledged gaps in Katoid specifically (resize
 granularity, static items) found by reading its own README's TODO
 list. `angular-gridster2` brings meaningfully more production maturity
-and ecosystem size to the table, plus two genuine features this
-project doesn't have (swap-on-drag, and RTL support that's been
-battle-tested through several real bug fixes). Ignite UI Tile Manager
-is the newest and least battle-tested of the four, but already has a
-real feature this project lacks — maximize/restore — and is worth
+and ecosystem size to the table, plus RTL support that's been
+battle-tested through several real bug fixes. Ignite UI Tile Manager
+is the newest and least battle-tested of the four; its maximize/restore
+base behavior is matched here too (`maximizedItem`), and it is worth
 watching given Infragistics' own resources behind it, even though its
 Angular support today is a raw web component rather than a first-class
 Angular API. `gridstack.js` remains the closest architectural peer (a

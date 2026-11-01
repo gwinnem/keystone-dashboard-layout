@@ -77,23 +77,22 @@ find and close one at a time.
   companies — not a feature gap this library can close by writing code,
   just a newer project.
 - **Framework breadth.** `gridstack.js` covers Vue, React, and Angular
-  from one core engine. This library is Vue-only by design today — a
-  reasonable scope choice, but a real limitation for a team needing the
-  same layout logic across multiple frameworks (see the
-  [landing page](/)'s own React/Angular framework picker for where that's headed).
+  from one core engine. This project covers the same three through
+  separate Vue, React, and Angular packages on one shared
+  `keystone-dashboard-layout-core` — a different tradeoff rather than
+  a gap, though the React and Angular packages are newer than this one
+  (see the [landing page](/)'s own framework picker).
 - **Sub-grids / nesting.** `gridstack.js` supports grids-within-grids as
   first-class nested structures. This library's cross-grid feature is
   sibling-to-sibling dragging between independent grid instances — a
   different capability, not a nesting system.
-- **Swap-on-drag.** In `gridstack.js`'s default top-gravity mode,
-  dragging one item onto another of the same size swaps their
-  positions. This library only pushes items aside via compaction — an
-  item landing on another never swaps with it.
 - **A specific, unusually feature-rich fork** (`@marsio/vue-grid-layout`,
   minimal current adoption but technically ambitious) offers multiple
   persistence backends and a worker-based layout engine for very large
-  layouts, neither of which this project has yet (both are on the
-  [Roadmap](/vue/guide/project/roadmap/)). It does **not**, however,
+  layouts. This project now has async HTTP, IndexedDB and in-memory
+  stores (`useAsyncLayoutStorage`) and an `O(n log n)` compactor for
+  very large layouts (`verticalFastCompactor`), but no worker-based
+  engine. The fork does **not**, however,
   have an equivalent to several things this project already checked and
   confirmed it does have, contrary to an earlier version of this
   comparison: align/distribute commands over a multi-selection

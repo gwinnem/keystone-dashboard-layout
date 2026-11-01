@@ -59,3 +59,7 @@ yarn-error.log*
 dist/
 node_modules/
 packages/core/.npmrc
+
+# files waiting to be deleted by hand
+**/_cleanup/
+**/_to_delete/

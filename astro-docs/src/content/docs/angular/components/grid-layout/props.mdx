@@ -23,7 +23,7 @@ cascade). See each row's own note.
 
 | Input/Output | Type | Default | Description |
 |---|---|---|---|
-| `colNum` | `number` | `12` | Maximum number of columns. Ignored while `responsive` is on. |
+| `colNum` | `number` | `12` | Maximum number of columns. Ignored while `responsive` is on. Changing it pulls items that no longer fit back inside the new column count and compacts the layout, and emits `layoutChange` when anything moved. |
 | `rowHeight` | `number` | `150` | Height of one grid row, in pixels. |
 | `margin` | `[number, number]` | `[10, 10]` | `[horizontal, vertical]` spacing between items, in pixels. |
 | `maxRows` | `number` | `Infinity` | Maximum number of rows the layout may grow to — cascaded, unconditionally overriding a standalone `GridItemComponent`'s own `maxRows` `@Input()` (this one field has no per-item override in Angular either, matching Vue). |
@@ -104,7 +104,7 @@ cascade). See each row's own note.
 | `showCloseButton` | `boolean` | `false` | Cascaded default for whether each item renders a close button. A per-item override exists. |
 | `borderRadiusPx` | `number` | `10` | Cascaded default border radius, applied when `useBorderRadius` is on. A per-item override exists. |
 | `useBorderRadius` | `boolean` | `false` | Cascaded default for whether `borderRadiusPx` is actually applied. A per-item override exists. |
-| `transitionDurationMs` | `number` | `200` | `--grid-transition-duration` CSS custom property, inherited naturally by every descendant item. |
+| `transitionDurationMs` | `number` | `200` | `--grid-transition-duration` CSS custom property, inherited naturally by every descendant item. Applies once the grid has settled: the property stays `0ms` until the grid has been painted once at its measured width (two animation frames after the first measurement), so items do not slide into place on load. |
 | `transitionTimingFunction` | `string` | `'ease'` | `--grid-transition-timing` CSS custom property, same inheritance as `transitionDurationMs`. |
 
 ## Cross-grid & outside drag-and-drop
