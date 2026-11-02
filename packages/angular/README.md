@@ -106,7 +106,8 @@ import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-
   moves the item), CSS transform positioning (replaceable through
   `positionStrategy`).
 - **A grid-wide behavioral cascade** — `isDraggable`/`isResizable`/
-  `isBounded`/`isMirrored`/`maxRows`/`showCloseButton`/`enableEditMode`/
+  `isBounded`/`isMirrored`/`autoScroll`/`preserveAspectRatio`/`maxRows`/
+  `showCloseButton`/`enableEditMode`/
   `useBorderRadius`/`borderRadiusPx`/`ariaLabels` can each be set once
   on `GridLayoutComponent` and inherited by every `GridItemComponent`,
   or overridden per-item when needed.

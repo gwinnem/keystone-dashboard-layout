@@ -104,8 +104,10 @@ different UI on the same algorithms.
 * **Drag and resize** — drag from anywhere on an item by default;
   resize from all eight edges/corners with cursor affordance and
   optional visible handles (`showResizeHandles`/`resizeHandleColor`);
-  drag-handle/ignore selectors; bounded dragging; aspect-ratio locking;
-  per-item size constraints; keyboard move/resize (arrow keys / shift+
+  drag-handle/ignore selectors; bounded dragging; edge auto-scroll while
+  dragging or resizing (`autoScroll`); aspect-ratio locking
+  (`preserveAspectRatio`) — both can be set once on the grid and
+  overridden per item; per-item size constraints; keyboard move/resize (arrow keys / shift+
   arrow); a blocked-move feedback event
   (`MOVE_BLOCKED_BY_COLLISION`) for shake/flash/toast UI without
   reimplementing collision detection yourself.
