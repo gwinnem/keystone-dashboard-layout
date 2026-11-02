@@ -1,6 +1,6 @@
 {
   "name": "keystone-dashboard-layout-angular",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Angular port of the responsive & dynamic grid / dashboard layout with drag, drop and resizable actions.",
   "author": "Geirr Winnem <geirr@winnem.tech>",
   "license": "MIT",

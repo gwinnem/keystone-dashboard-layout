@@ -1,5 +1,29 @@
 # keystone-dashboard-layout-angular
 
+## 1.1.0
+
+### Minor Changes
+
+- 22c97cd: Add asynchronous layout persistence, alongside (not replacing) the existing synchronous storage helpers. Core exports the `IAsyncLayoutStorage` interface, ready-made `createHttpStorage`, `createIndexedDbStorage` and `createMemoryAsyncStorage` stores, and `createAsyncLayoutPersistence`, which queues writes so a slow earlier save can never overwrite a later one and never rejects (failures go to a callback and the method resolves `false`/`null`). Each framework gets a thin wrapper: `useAsyncLayoutStorage` for Vue (ref-bound, with `autoLoad`/`autoSave`) and React (plain values in and out, with `autoSave`), both exposing `isLoading`, `isSaving` and `error`, and `GridLayoutAsyncStorageService` for Angular, which reports failures on `errors$`.
+- d416937: `GridLayout` now accepts grid-wide `autoScroll` and `preserveAspectRatio` defaults (as the React package already did). Items inherit them unless they set their own, and an item's own `autoScroll`/`preserveAspectRatio` now defaults to `null` instead of `false`. Angular items now also auto-scroll while resizing, as Vue and React do.
+- 8a20d14: Add maximize/restore. One item can be expanded to fill the whole grid and restored exactly, without ever changing `layout`. The grid holds the maximized item's id (Vue `v-model:maximized-item`, React `maximizedItem` with `onMaximizedItemChange`, Angular `[(maximizedItem)]`), and `maximize(id)`, `restore()` and `toggleMaximize(id)` are available on the component instance (Vue, Angular) or the imperative handle (React). `showMaximizeButton`, grid-wide with a per-item override, renders a built-in maximize/restore button labelled by the new `maximizeButton` and `restoreButton` ARIA strings. The other items are hidden but stay mounted, compaction is suspended while an item is maximized and runs once on restore, the maximized item cannot be dragged, resized or moved by keyboard (its header and close button keep working), and Escape restores. Core exports `resolveMaximizedItem`, `calcMaximizedPosition`, `IMaximizedPositionInput` and `IMaximizedState`, and `ILayoutItem` gains an optional `showMaximizeButton`.
+- 0ed73ed: Add pluggable CSS positioning. `GridLayout` accepts a new `positionStrategy` (`IPositionStrategy`) that replaces the `useCssTransforms` on/off toggle. `transformStrategy` and `topLeftStrategy` are exported as built-ins; a strategy set here takes precedence over `useCssTransforms`. Default behavior is unchanged.
+- 0ed73ed: Add `collisionMode: 'push' | 'swap'` to the grid. With `'swap'`, dropping a dragged item onto exactly one other non-static item that fits into its starting cell trades the two places; anything else (several items, a static item, or the other item not fitting the starting cell) falls back to the usual push. Only affects dragging, and is ignored while `preventCollision` is on. Core exports `swapElement`, `createSwapDragState`, `TCollisionMode` and `ISwapDragState`.
+
+### Patch Changes
+
+- 8315947: Fix `colNum` changes leaving items outside the grid. Going from 12 to 6 columns kept items at their old `x` (for example x: 8) and drew them off the right edge, with nothing reported through `layoutChange`. A changed `colNum` now pulls items back inside the new column count and compacts the layout, whether or not `responsive` is on, and reports the result through `layoutChange` when anything moved. This is what the Vue package already did.
+- 7a1d09f: Stop items sliding into place when the grid first loads. Until the container is measured the items sit at provisional positions, and moving them to the measured ones ran their transition, so every item animated on load. The grid's `--grid-transition-duration` is now `0ms` until it has been painted once at its measured width (two animation frames after the first measurement), after which `transitionDurationMs` applies as before.
+- 641ec9f: The built-in maximize button now takes focus when it is clicked. Safari does not focus a button on click, so after maximizing an item with the mouse the Escape key never reached the grid and did not restore it. Maximizing through `maximize()` or the `maximizedItem` prop still leaves focus where it was.
+- Updated dependencies [22c97cd]
+- Updated dependencies [a357fa3]
+- Updated dependencies [0ed73ed]
+- Updated dependencies [d416937]
+- Updated dependencies [8a20d14]
+- Updated dependencies [0ed73ed]
+- Updated dependencies [0ed73ed]
+  - keystone-dashboard-layout-core@1.2.0
+
 ## 1.0.1
 
 ### Patch Changes
