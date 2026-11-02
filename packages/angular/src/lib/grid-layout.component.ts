@@ -1497,11 +1497,13 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
     const preMoveX = item.x;
     const preMoveY = item.y;
-    // `collisionMode: 'swap'`: trade places with the single item under the pointer first; anything it declines falls back to the push.
-    const swapped = this.swapDragState !== undefined && !this.preventCollision && swapElement(next, item, targetX, targetY, this.effectiveColNum, this.swapDragState);
-    if(!swapped) {
-      moveElement(next, item, targetX, targetY, true, this.horizontalShift, this.preventCollision);
+    // `collisionMode: 'swap'`: trade places with the single item under the pointer first. A swap leaves the item exactly on
+    // (targetX, targetY) with nothing colliding, so the push below then changes nothing; a declined swap leaves the item where it was
+    // and the push resolves the move as usual.
+    if(this.swapDragState !== undefined && !this.preventCollision) {
+      swapElement(next, item, targetX, targetY, this.effectiveColNum, this.swapDragState);
     }
+    moveElement(next, item, targetX, targetY, true, this.horizontalShift, this.preventCollision);
 
     // MOVE_BLOCKED_BY_COLLISION — a direct port of Vue's own condition,
     // confirmed via a direct source read, not assumed: moveElement()

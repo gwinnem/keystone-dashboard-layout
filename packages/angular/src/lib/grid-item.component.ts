@@ -1843,8 +1843,8 @@ export class GridItemComponent implements AfterContentChecked, AfterContentInit,
     // The grid's `positionStrategy` decides how the pixel position becomes
     // inline style; without one, `useCssTransforms` picks a built-in.
     const strategy = this.positionStrategy ?? getPositionStrategy(this.useCssTransforms);
-    // Mirrored items anchor to `right`; it is only ever unset when the item is not mirrored.
-    const rtl = this.resolvedIsMirrored && right !== undefined;
+    // Mirrored items anchor to `right`, which every branch above sets only for them, so the anchor in hand decides the side.
+    const rtl = right !== undefined;
     // The strategy's style always carries the same position/size keys the built-in ones do, so it fits the field's own union.
     return strategy.getStyle({
       height,
