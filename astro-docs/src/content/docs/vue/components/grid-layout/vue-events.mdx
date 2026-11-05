@@ -20,6 +20,7 @@ Emitted directly on the `<GridLayout>` component — listen with `@event-name`.
 | `move-blocked-by-collision` | `(id: string \| number)` | Fired when `preventCollision` blocks a drag or resize. See [Blocked-move feedback](/vue/examples/blocked-move-feedback/). |
 | `selection-changed` | `(selectedItems: (string \| number)[])` | Fired whenever the current `multiSelect` selection changes. See [Multi-select & group move/resize](/vue/examples/multi-select-group-move-resize/). |
 | `update:layout` | `(layout: TLayout)` | The `v-model:layout` update event — wired automatically if you're using `v-model:layout`. |
+| `update:maximizedItem` | `(id: string \| number \| null)` | An item was maximized (its id) or restored (`null`) from inside the grid — the built-in button, Escape, or `maximize()`/`restore()`. Wired automatically with `v-model:maximized-item`. Not emitted when the parent changes the `maximizedItem` prop itself. See [Maximize and restore](/vue/examples/maximize/). |
 
 See [Events](/vue/examples/events/) for a live demo, and
 [`EGridLayoutEvent`](/vue/api/enums/grid-layout-events/) for the enum

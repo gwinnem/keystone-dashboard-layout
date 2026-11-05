@@ -18,6 +18,7 @@
   },
   "coverageAnalysis": "perTest",
   "timeoutMS": 15000,
+  "concurrency": 8,
   "mutate": [
     "src/lib/**/*.ts",
     "!src/lib/**/*.spec.ts"

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { ECompactType, IBreakpoints, IColumns, ICompactor, IGridAriaLabels, TBreakpoint, TLayout, TResizeHandle, TResponsiveLayout } from 'keystone-dashboard-layout-core';
+import type { ECompactType, IBreakpoints, IColumns, ICompactor, IGridAriaLabels, IPositionStrategy, TBreakpoint, TCollisionMode, TLayout, TResizeHandle, TResponsiveLayout } from 'keystone-dashboard-layout-core';
 import type { ICrossGridDropRejected, ICrossGridItemDropped } from '@/core/gridlayout/interfaces/cross-grid.interfaces';
 
 /**
@@ -75,7 +75,12 @@ export interface IGridLayoutProps {
    * the Vue package's own `EGridLayoutEvent.COLUMNS_CHANGED`.
    */
   onColumnsChanged?: (colNum: number) => void;
-  /** Maximum number of columns. Default `12`. */
+  /**
+   * Maximum number of columns. Default `12`. With `responsive` on it is a hard ceiling on whatever the current breakpoint's
+   * `cols` entry says (`min(colNum, breakpoint columns)`, the same rule as the Vue and Angular packages): a breakpoint with
+   * more columns than `colNum` is capped to it, and one with fewer is not raised to it. So with `responsive` on and the
+   * default `colNum` of `12`, a `cols` entry above 12 needs `colNum` raised to match.
+   */
   colNum?: number;
   /** Height of one grid row, in pixels. Default `150`. */
   rowHeight?: number;
@@ -91,6 +96,14 @@ export interface IGridLayoutProps {
   isBounded?: boolean;
   /** When `true`, dragging/resizing an item that would collide with another is blocked instead of pushing the other item out of the way. Default `false`. */
   preventCollision?: boolean;
+  /**
+   * What dropping a dragged item onto another one does. `'push'` (default) shoves the item underneath out of the way
+   * and lets compaction settle the rest. `'swap'` trades places instead: when the dragged item lands on exactly one
+   * other non-static item and that item fits into the dragged item's starting cell, the two swap. Anything else (several
+   * items under the pointer, a static item, or the other item not fitting the starting cell) falls back to `'push'`. Only affects dragging,
+   * not resizing, and is ignored while `preventCollision` is on.
+   */
+  collisionMode?: TCollisionMode;
   /**
    * Grid-wide master interactivity switch — `false` disables dragging,
    * resizing, and the close button across the *whole* grid at once, a
@@ -129,6 +142,17 @@ export interface IGridLayoutProps {
   heightMode?: `auto` | `fixed` | `scroll` | `fit` | null;
   /** Positions items with CSS `transform: translate3d(...)` instead of `top`/`left`. Default `true` (faster, GPU-accelerated). */
   useCssTransforms?: boolean;
+  /**
+   * Replaces how items are placed inside the grid — see
+   * `IPositionStrategy` (`keystone-dashboard-layout-core`).
+   * `null`/`undefined` (the default) keeps the built-in choice between
+   * CSS transforms and `top`/`left` that `useCssTransforms` makes,
+   * exactly as before this prop existed. When set, it wins over
+   * `useCssTransforms`. `transformStrategy`/`topLeftStrategy` (from
+   * the same package) are the two built-ins, reusable as a starting
+   * point. Default `null`.
+   */
+  positionStrategy?: IPositionStrategy | null;
   /**
    * Compensates drag/resize pixel math for a scaled ancestor (e.g. a
    * zoomed-out canvas view rendering this `GridLayout` inside a
@@ -239,6 +263,29 @@ export interface IGridLayoutProps {
   showGridLines?: boolean;
   /** Grid-wide default for whether each item renders its own close button — a per-item `ILayoutItem.showCloseButton` overrides this for just that item. Default `false`. Clicking it calls `onItemClose`, if provided; this prop alone renders nothing without also handling that callback. */
   showCloseButton?: boolean;
+  /**
+   * Grid-wide default for whether each item renders a maximize/restore button — a per-item `ILayoutItem.showMaximizeButton`
+   * overrides this for just that item. Unlike the close button it is not tied to edit mode or `isStatic`: any item can be
+   * maximized. The button is the same one the `maximize()`/`restore()` handle methods drive. Default `false`.
+   */
+  showMaximizeButton?: boolean;
+  /**
+   * The id of the item that is maximized, or `null` (the default) for none. The maximized item fills the whole grid (minus one
+   * margin on each side) and every other item is hidden but stays mounted. `layout` is never changed by maximizing, and
+   * compaction is suspended until the grid is restored, then runs once. The maximized item cannot be dragged or resized, but its
+   * header and close button keep working, and Escape restores the grid.
+   *
+   * Follows this prop whenever it changes, and also changes on its own when the user acts (the item's maximize button, Escape,
+   * `maximize()`/`restore()` on the `ref`) — pair it with `onMaximizedItemChange` to keep your own state in sync. An id that is
+   * not in `layout` is ignored.
+   */
+  maximizedItem?: string | number | null;
+  /**
+   * Called with the new id (or `null` for none) whenever the maximized item changes because of something the grid did: a
+   * maximize button, Escape, `maximize()`/`restore()`/`toggleMaximize()` on the `ref`, or the maximized item being removed from
+   * `layout`. Not called when the change came from the `maximizedItem` prop itself.
+   */
+  onMaximizedItemChange?: (id: string | number | null) => void;
   /** Magnetically snaps a dragged item's edge to another item's edge once within `snapThreshold` grid units of it — changes where the item actually lands, unlike `showAlignmentGuides` (visual-only). Default `false`. */
   snapToGrid?: boolean;
   /** How close (in grid units) an edge needs to be to another item's edge to snap to it, when `snapToGrid` is on. `0` disables snapping entirely. Default `1`. */
@@ -262,9 +309,8 @@ export interface IGridLayoutProps {
   /** Maximum number of snapshots kept for `undo()` — the oldest is dropped once exceeded. Only relevant when `enableUndoRedo` is on. Default `50`. */
   undoHistoryLimit?: number;
   /**
-   * Enables responsive breakpoints: `colNum` becomes derived from
-   * `breakpoints`/`cols` and the measured container width instead of
-   * the plain `colNum` prop. Default `false`.
+   * Enables responsive breakpoints: the column count is derived from `breakpoints`/`cols` and the measured container width,
+   * capped by `colNum` (see that prop), instead of being the plain `colNum` prop. Default `false`.
    */
   responsive?: boolean;
   /**
@@ -283,7 +329,11 @@ export interface IGridLayoutProps {
    * without its own explicit entry gets an auto-generated layout
    * (bounds-corrected and compacted from the nearest already-seen
    * breakpoint) the first time it's entered. Every key is optional.
-   * Only relevant when `responsive` is on.
+   * Only relevant when `responsive` is on. Read at mount and again
+   * whenever its *content* changes (a new object with identical
+   * content, such as an inline literal re-created on every render, is
+   * not a change): a change replaces what the grid has cached for each
+   * breakpoint, including layouts edited there since.
    */
   responsiveLayouts?: TResponsiveLayout;
   /** Called whenever `responsive` causes the active breakpoint to change, with the new breakpoint's own name and column count. */

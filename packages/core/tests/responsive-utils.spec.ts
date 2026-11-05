@@ -123,4 +123,54 @@ describe(`correctBounds`, () => {
 
     expect(result).toStrictEqual([{ i: `a`, x: 0, y: 0, w: 2, h: 1 }]);
   });
+
+  describe(`what distributeEvenly does and does not move`, () => {
+    it(`Should leave an in-bounds item alone even where it overlaps a static item: only overflowing the right edge moves it`, () => {
+      // The in-bounds test above has no static neighbour, so it could not tell "overflows the right edge" from "collides with a static item".
+      const layout = [
+        { i: `s`, x: 0, y: 0, w: 2, h: 2, isStatic: true },
+        { i: `a`, x: 1, y: 0, w: 2, h: 2 },
+      ];
+
+      const result = correctBounds(layout, { cols: 6 }, true);
+
+      expect(result.find(item => item.i === `a`)).toStrictEqual({ i: `a`, x: 1, y: 0, w: 2, h: 2 });
+    });
+
+    it(`Should not treat an item that exactly reaches the last column as overflowing`, () => {
+      // x 2 + w 2 = 4 = cols: touching the edge is not exceeding it, so the item stays even though it overlaps the static item.
+      const layout = [
+        { i: `s`, x: 2, y: 0, w: 2, h: 2, isStatic: true },
+        { i: `a`, x: 2, y: 0, w: 2, h: 2 },
+      ];
+
+      const result = correctBounds(layout, { cols: 4 }, true);
+
+      expect(result.find(item => item.i === `a`)).toMatchObject({ x: 2, y: 0 });
+    });
+
+    it(`Should make a second overflowing item step around the first, which has already been placed`, () => {
+      // Each item that has been processed is added to the set the next one must avoid. Both start at x 3 (overflowing 4 columns): the
+      // first wraps to (0, 1); the second would land on it, so it steps right to (2, 1).
+      const layout = [
+        { i: `a`, x: 3, y: 0, w: 2, h: 1 },
+        { i: `b`, x: 3, y: 0, w: 2, h: 1 },
+      ];
+
+      const result = correctBounds(layout, { cols: 4 }, true);
+
+      expect(result.find(item => item.i === `a`)).toMatchObject({ x: 0, y: 1 });
+      expect(result.find(item => item.i === `b`)).toMatchObject({ x: 2, y: 1 });
+    });
+  });
+
+  it(`Should leave an item already at x 0 alone, rather than resizing it up to its minW`, () => {
+    // The "overflows left" correction (x < 0) also raises w to minW. An item sitting exactly at x 0 is not overflowing left, and the
+    // minW-1 test above cannot see the difference because its width (2) is already above its minW.
+    const layout = [{ i: `a`, x: 0, y: 0, w: 1, h: 1, minW: 3 }];
+
+    const result = correctBounds(layout, { cols: 12 }, false);
+
+    expect(result).toStrictEqual([{ i: `a`, x: 0, y: 0, w: 1, h: 1, minW: 3 }]);
+  });
 });

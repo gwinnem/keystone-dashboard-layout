@@ -3,15 +3,15 @@ title: Features
 description: Everything Keystone Dashboard Layout for Angular does, grouped by category, with a live example linked from every bullet.
 ---
 
-:::note[All 53 examples are live in a real, separate Angular app]
-Angular has reached full feature parity with Vue and React, and all 53
+:::note[All 57 examples are live in a real, separate Angular app]
+Angular has reached full feature parity with Vue and React, and all 57
 of this package's own interactive examples have been ported and
 verified — but they live in a real, separate, standalone Angular CLI
 app rather than as embedded Astro islands on this site (the community
 `@analogjs/astro-angular` integration this site's Vue/React examples
 rely on proved too fragile for Angular specifically; see that app's own
 README for the full account). Every link below opens that app directly
-— see the sidebar's own **Examples** section for the same 53, or
+— see the sidebar's own **Examples** section for the same 57, or
 [Vue's own Examples](/vue/examples/)/[React's own Examples](/react/examples/)
 if you'd rather stay on this site; the underlying behavior across all
 three is identical. Every example in that app also has its own "Open in
@@ -35,6 +35,9 @@ exact example's own source.
 
 - **Automatic compaction.** Items fill gaps vertically by default; other items automatically move out of the way of a drag/resize.
 - **Pluggable compaction strategy** (`compactType`) — five built-in strategies (vertical, horizontal, none, and overlap variants of each), or replace the algorithm entirely with a custom `compactor` `@Input()`. See [Pluggable compaction](https://kdla.winnem.tech/examples/42-pluggable-compaction).
+- **A faster vertical compactor** (`verticalFastCompactor`, imported from `keystone-dashboard-layout-core`) — the same result as the default vertical compactor in roughly O(n log n) instead of O(n²), for very large layouts. Opt in through the `compactor` `@Input()`. See [Pluggable compaction](/angular/api/interfaces/compactor/).
+- **Swap-on-drag collision mode** (`collisionMode: 'swap'`) — drop an item onto exactly one other item and the two trade places, instead of the default push-aside. Anything that isn't a clean swap falls back to the push. See [Swap on drag](https://kdla.winnem.tech/examples/55-swap-on-drag).
+- **Pluggable positioning** (`positionStrategy`) — choose how items are placed on the page: CSS transforms (`transformStrategy`, the default), `top`/`left` (`topLeftStrategy`), or your own `IPositionStrategy`. See [Pluggable positioning](https://kdla.winnem.tech/examples/54-pluggable-positioning).
 - **Horizontal shift mode** (`horizontalShift`) — push colliding items left/right instead of down. See [Horizontal shift](https://kdla.winnem.tech/examples/15-horizontal-shift).
 - **Prevent collision mode** (`preventCollision`) — block a drag/resize instead of pushing other items, with a `moveBlockedByCollision` `@Output()` so a consumer can give feedback the moment that happens. See [Prevent collision](https://kdla.winnem.tech/examples/08-prevent-collision) and [Blocked-move feedback](https://kdla.winnem.tech/examples/30-blocked-move-feedback).
 - **Magnetic snap-to-grid** (`snapToGrid`/`snapThreshold`) — actually adjusts an item's landing position to align with a neighbor, not just a visual guide. See [Snap to grid](https://kdla.winnem.tech/examples/32-snap-to-grid).
@@ -43,6 +46,8 @@ exact example's own source.
 - **Auto-sizing container** — the grid's height grows/shrinks to fit its content by default (`autoSize`, or the newer `heightMode` `@Input()` for finer control including `'scroll'`/`'fit'` modes). See [Auto-size grid on content](https://kdla.winnem.tech/examples/20-auto-size-grid) and [Height modes](https://kdla.winnem.tech/examples/50-height-modes).
 - **Spacing indicators** (`showSpacingGuides`) — a labeled distance badge (e.g. "2 cols") in the gap between the active item and its nearest neighbor on each side, independently toggleable alongside alignment guides. See [Spacing indicators](https://kdla.winnem.tech/examples/47-spacing-indicators).
 - **Serializable layout.** The `layout` array is a plain, JSON-serializable structure you own — persist it anywhere. See [Save/load layout](https://kdla.winnem.tech/examples/19-save-load-layout).
+- **Async persistence** (`GridLayoutAsyncStorageService`) — save and load through a promise-based store: ready-made HTTP and IndexedDB adapters (from `keystone-dashboard-layout-core`), or your own `IAsyncLayoutStorage`. Writes are queued so a slow save never overwrites a newer one, and failures are emitted on `errors$` rather than thrown. Sits alongside the synchronous `GridLayoutStorageService`. See [Async persistence](https://kdla.winnem.tech/examples/56-async-persistence).
+- **Maximize and restore** (`maximizedItem`, `showMaximizeButton`) — expand one item to fill the whole grid and put everything back exactly. `layout` is never changed, the other items stay in the DOM (hidden), compaction pauses until you restore, and Escape restores. Bind it two-way with `[(maximizedItem)]`, or call `maximize(id)` / `restore()` / `toggleMaximize(id)` on `GridLayoutComponent`. See [Maximize and restore](https://kdla.winnem.tech/examples/57-maximize).
 - **Named layout presets** (`GridLayoutPresetsService`) — save and switch between multiple named arrangements, layered on the same serialize/restore primitives `GridLayoutStorageService` uses. See [Named layout presets](https://kdla.winnem.tech/examples/35-named-presets).
 - **Grid-to-SVG export** (`exportLayoutAsSvg()`, a public method on `GridLayoutComponent`) — a dependency-free utility producing a standalone SVG snapshot of the current layout. See [Export layout as SVG](https://kdla.winnem.tech/examples/28-svg-export).
 - **Undo/redo** (`enableUndoRedo`, capped via `undoHistoryLimit`) — opt-in history at committed-change granularity (drag/resize end, add/remove), not per intermediate frame. Reach `undo()`/`redo()` and the `canUndo`/`canRedo` flags via a template reference variable on `GridLayoutComponent`. See [Undo/redo](https://kdla.winnem.tech/examples/43-undo-redo).
@@ -68,7 +73,7 @@ exact example's own source.
 
 ## Accessibility
 
-- **Keyboard move & resize.** Every non-static, editable item is keyboard-focusable — arrow keys move it, Shift+arrow keys resize it — without needing any extra configuration, including RTL-aware key direction and `multiSelect` group-move/resize engagement. See [Accessibility scope](/angular/guide/project/accessibility/) once that page lands, for the full scope, including what's deliberately not (yet) covered.
+- **Keyboard move & resize.** Every non-static, editable item is keyboard-focusable — arrow keys move it, Shift+arrow keys resize it — without needing any extra configuration, including RTL-aware key direction and `multiSelect` group-move/resize engagement. See [Accessibility scope](/angular/guide/project/accessibility/) for the full scope, including what's deliberately not (yet) covered.
 - **Screen reader support** — interactive items are announced with an item-role description and a description of the available keyboard controls; visible focus indicator for keyboard users.
 - **Localizable ARIA strings** (`ariaLabels`) — the close button's label, role description, and the keyboard move/resize instructions are overridable (`GridLayoutComponent` grid-wide default, `GridItemComponent` per-item override), rather than hardcoded English literals. See [Localizable ARIA strings](https://kdla.winnem.tech/examples/36-aria-labels).
 
@@ -88,15 +93,15 @@ exact example's own source.
 - **Configurable resize-hint appearance** (`showResizeHandles`/`resizeHandleColor`, grid-wide default + per-item override), plus a per-item `resizeHandles` `@Input()` restricting which of the 8 edges/corners actually activate. See [Configurable resize-hint appearance](https://kdla.winnem.tech/examples/33-resize-hint-appearance).
 - **Custom drag-placeholder content** — replace the default plain placeholder box with your own rendered content while dragging. See [Custom drag-placeholder content](https://kdla.winnem.tech/examples/25-custom-drag-placeholder).
 - **`scrollToItem`/`focusItem`**, public methods on `GridLayoutComponent` — programmatically scroll an item into view and/or move keyboard focus to it. See [scrollToItem & focusItem](https://kdla.winnem.tech/examples/27-scroll-to-item-focus-item).
-- **`autoScroll`** — scrolls a container automatically near its edge during drag/resize. See [autoScroll](https://kdla.winnem.tech/examples/39-auto-scroll).
+- **`autoScroll`** — scrolls a container automatically near its edge while dragging or resizing; settable grid-wide or per item. See [autoScroll](https://kdla.winnem.tech/examples/39-auto-scroll).
 - **Layout events** — a dedicated example covering the full set of granular drag/lifecycle `@Output()`s together. See [Events](https://kdla.winnem.tech/examples/03-events).
 - **Edit-mode toggle** (`enableEditMode`) — a single grid-wide (or per-item) switch disabling dragging, resizing, and the close button at once. See [Edit mode toggle](https://kdla.winnem.tech/examples/21-edit-mode-toggle).
 
 ## Developer experience
 
-- **Full TypeScript support.** Every component, directive, service, and interface is typed and exported from the package's main entry point — see [API](/angular/api/) once that page lands.
+- **Full TypeScript support.** Every component, directive, service, and interface is typed and exported from the package's main entry point — see [API](/angular/api/).
 - **Minimal runtime dependencies.** The drag/resize engine is built on native Pointer Events, not a third-party library — the same shared engine the Vue and React packages use. Not literally zero beyond Angular/RxJS, though: `package.json`'s own `dependencies` also lists `tslib` (a near-universal, few-KB TypeScript/Angular compiled-output helper), alongside the shared `keystone-dashboard-layout-core`.
 - **The same framework-agnostic core** (`keystone-dashboard-layout-core`) Vue and React use for their own grid-layout math (collision detection, movement, compaction, and more) — all three packages share one implementation of the hard, easy-to-get-subtly-wrong parts.
 - **Idiomatic Angular.** Standalone components (no `NgModule` required), a DI-scoped `GridEventBusService` instead of Vue's `provide`/`inject` or React's Context, `providedIn: 'root'` services instead of ref-bound composables/hooks, and a marker directive queried via `@ContentChild` instead of a named slot or render prop — the same underlying behavior, expressed the way Angular actually works.
-- **Tested end to end, not just at the unit level.** A genuine unit/component test suite (Jest + `jest-preset-angular`) backs every phase, and Stryker mutation testing is configured — see the package's own `docs/IMPLEMENTATION_PLAN.md` for the phase-by-phase history. This package also has a real Playwright e2e suite (11 spec files, 160 tests, all passing across Chromium/Firefox/WebKit), matching Vue and React's own setup — see [Testing philosophy](/angular/guide/project/testing/). The one remaining gap: no dedicated touch-input spec yet, the way the React port has.
+- **Tested end to end, not just at the unit level.** A genuine unit/component test suite (Jest + `jest-preset-angular`) backs every phase, and Stryker mutation testing is configured — see the package's own `docs/IMPLEMENTATION_PLAN.md` for the phase-by-phase history. This package also has a real Playwright e2e suite (run across Chromium/Firefox/WebKit), matching Vue and React's own setup — see [Testing philosophy](/angular/guide/project/testing/). The one remaining gap: no dedicated touch-input spec yet, the way the React port has.
 - **An editable playground on every example.** "Open in StackBlitz" opens a real, running project seeded from that exact example's own source, in a new tab — not a read-only code snippet.

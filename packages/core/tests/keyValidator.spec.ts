@@ -188,4 +188,10 @@ describe('validateLayoutItemRequiredKeys', () => {
     const keys = { i: 1, h: 1, w: 1, y: 1 };
     expect(validateLayoutItemRequiredKeys(keys)).toBe(false);
   });
+
+  it('Should return false when i is neither a number nor a string, even though it has a length (an array)', () => {
+    // The id check has to look at the type, not just `.length`: an array has a length too.
+    const keys = { i: ['a'], h: 1, w: 1, x: 1, y: 1 };
+    expect(validateLayoutItemRequiredKeys(keys)).toBe(false);
+  });
 });

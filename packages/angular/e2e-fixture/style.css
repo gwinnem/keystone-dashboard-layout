@@ -59,3 +59,123 @@ body {
 .cross-grid-empty-target > div {
   min-height: 200px;
 }
+
+/* ---- props lab (scenarios/props-lab.component.ts) — a 380px control column beside a fixed 1200px stage, so pixel maths is deterministic ---- */
+
+.lab-page {
+  align-items: start;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 380px 1200px;
+}
+
+.lab-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.lab-fieldset {
+  font-size: 12px;
+  margin: 0;
+}
+
+.lab-fieldset label {
+  display: block;
+  font-size: 12px;
+}
+
+.lab-fieldset input[type='text'],
+.lab-fieldset textarea,
+.lab-fieldset select {
+  font-size: 12px;
+  max-width: 180px;
+}
+
+.lab-readouts {
+  overflow-wrap: anywhere;
+}
+
+.lab-svg {
+  font-size: 10px;
+  max-height: 60px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.lab-log {
+  list-style: none;
+  margin: 0;
+  max-height: 180px;
+  overflow: auto;
+  padding: 8px 12px;
+}
+
+.lab-stage {
+  align-self: start;
+  position: sticky;
+  top: 8px;
+}
+
+.lab-palette {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.lab-widget {
+  background: #3b6df0;
+  border-radius: 6px;
+  color: #fff;
+  cursor: grab;
+  padding: 6px 12px;
+}
+
+.lab-widget-other {
+  background: #667085;
+}
+
+.lab-grid-wrap {
+  background: #fff;
+}
+
+.lab-grid-b {
+  margin-top: 16px;
+}
+
+.lab-grid-wrap .kdl-grid-layout {
+  min-height: 160px;
+}
+
+.lab-inner-button {
+  font-size: 11px;
+  margin-left: 6px;
+  padding: 2px 6px;
+}
+
+.lab-header {
+  background: #f1f5f9;
+  display: block;
+  font-size: 12px;
+  padding: 2px 6px;
+}
+
+.lab-custom-handle {
+  font-size: 9px;
+  pointer-events: none;
+}
+
+.lab-line {
+  font-size: 10px;
+  margin: 0;
+}
+
+/* The fixture's item body is a flex row; the autoHeight tests add lines of content, which must stack to make it taller. */
+.lab-item {
+  flex-direction: column;
+}
+
+.lab-placeholder {
+  font-size: 11px;
+}

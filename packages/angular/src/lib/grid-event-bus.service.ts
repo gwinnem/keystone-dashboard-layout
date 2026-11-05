@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import type { IGridAriaLabels } from 'keystone-dashboard-layout-core';
+import type { IGridAriaLabels, IMaximizedState, IPositionStrategy } from 'keystone-dashboard-layout-core';
 
 /** Phase 3's own bottom-up channel — the Angular equivalent of Vue's `dragEvent` eventBus message, reported by a `GridItemComponent` on every drag tick and consumed by its parent `GridLayoutComponent` to resolve collisions and commit the new layout. */
 export interface IItemDragEvent {
@@ -56,6 +56,10 @@ export interface IItemClickedEvent {
  * calcXY/calcWH bounds), which CSS inheritance can't express at all.
  */
 export interface IGridDefaults {
+  /** Default `autoScroll` for items that don't set their own (`null`). Optional: absent means `false`. */
+  autoScroll?: boolean;
+  /** Default `preserveAspectRatio` for items that don't set their own (`null`). Optional: absent means `false`. */
+  preserveAspectRatio?: boolean;
   /**
    * Grid-wide `ariaLabels` override (Phase 18) — unlike the other seven
    * fields on this interface, this one isn't itself "resolved" against
@@ -79,20 +83,21 @@ export interface IGridDefaults {
    * Master interactivity switch (revisits the TODOs left on
    * `tabindexValue`/`showCloseButton`'s own doc comments in Phases 15/
    * 16/22, now closed). Default `enableEditMode` for items that don't
-   * set their own (`null`). Confirmed via a direct source read, not
-   * assumed, that this gates: `tabindexValue`/`role`/
-   * `aria-roledescription`/`aria-describedby`/the keyboard-instructions
-   * span (all via `isDraggableOrResizableAndNotStatic` and its two
-   * siblings), and the close button's own render — but *not* the
-   * native drag/resize engine's own `enabled` flag, nor
-   * `handleKeydown`'s own guard, which both read the raw
-   * `resolvedIsDraggable`/`resolvedIsResizable` directly. This
-   * asymmetry is Vue's own actual, confirmed behavior (`GridItem.vue`'s
-   * own `handleKeydown` is wired from `useGridItemKeyboard({...,
-   * draggable, resizable})`, the *un*-gated refs, not the `editModeEnabled`-
-   * gated `draggableAndNotStatic`/`resizableAndNotStatic` computeds) —
-   * ported exactly as Vue actually behaves, not "corrected" into a
-   * fully-symmetric gate Vue itself doesn't have.
+   * set their own (`null`). It is a real view-mode lock, as in Vue: it
+   * gates `tabindexValue`/`role`/`aria-roledescription`/
+   * `aria-describedby`/the keyboard-instructions span (all via
+   * `isDraggableOrResizableAndNotStatic` and its two siblings), the
+   * close button's own render, the resize handles (so the native resize
+   * engine has nothing to attach to), and both the drag handler and
+   * `handleKeydown` (each returns early while it is off). The native
+   * drag engine's own `enabled` flag still reads only the raw
+   * `resolvedIsDraggable`, which is why the *handler*, not the engine,
+   * is where view mode takes effect (Vue's `handleDrag` and
+   * `handleKeydown` both open with `!editModeEnabled.value`). An earlier
+   * version of this comment, and two unit tests, claimed Vue leaves the
+   * drag engine and keyboard un-gated; reading Vue's handlers showed it
+   * does not, and the e2e suite (`props-cascade`) showed an item still
+   * dragging in view mode.
    */
   enableEditMode: boolean;
   /** Default `isBounded` for items that don't set their own (`null`). */
@@ -122,6 +127,8 @@ export interface IGridDefaults {
   maxRows: number;
   /** Default `showCloseButton` for items that don't set their own (`null`). */
   showCloseButton: boolean;
+  /** Default `showMaximizeButton` for items that don't set their own (`null`). Optional: absent means `false`. */
+  showMaximizeButton?: boolean;
   /** Default `useBorderRadius` for items that don't set their own (`null`). */
   useBorderRadius: boolean;
 }
@@ -161,6 +168,7 @@ export class GridEventBusService {
   private readonly rowHeightSubject = new BehaviorSubject<number>(150);
   private readonly marginSubject = new BehaviorSubject<[number, number]>([10, 10]);
   private readonly useCssTransformsSubject = new BehaviorSubject<boolean>(true);
+  private readonly positionStrategySubject = new BehaviorSubject<IPositionStrategy | null>(null);
   private readonly transformScaleSubject = new BehaviorSubject<number>(1);
   private readonly selectedItemIdsSubject = new BehaviorSubject<Set<string | number>>(new Set());
   private readonly gridDefaultsSubject = new BehaviorSubject<IGridDefaults>({
@@ -178,6 +186,8 @@ export class GridEventBusService {
   private readonly itemDragSubject = new Subject<IItemDragEvent>();
   private readonly itemResizeSubject = new Subject<IItemResizeEvent>();
   private readonly itemClickedSubject = new Subject<IItemClickedEvent>();
+  private readonly maximizedStateSubject = new BehaviorSubject<IMaximizedState>({ height: 0, id: null });
+  private readonly toggleMaximizeSubject = new Subject<string | number>();
 
   /** The container's last known-good measured pixel width — the Angular equivalent of Vue's own `updateWidth` eventBus message. */
   readonly containerWidth$ = this.containerWidthSubject.asObservable();
@@ -189,6 +199,8 @@ export class GridEventBusService {
   readonly margin$ = this.marginSubject.asObservable();
   /** Whether items position via CSS `transform` rather than `top`/`left` — the Angular equivalent of Vue's own `setUseCssTransforms` eventBus message. */
   readonly useCssTransforms$ = this.useCssTransformsSubject.asObservable();
+  /** The grid's custom `positionStrategy`, or `null` for the built-in choice `useCssTransforms` makes — the Angular equivalent of Vue's own `setPositionStrategy` eventBus message. */
+  readonly positionStrategy$ = this.positionStrategySubject.asObservable();
   /** CSS transform scale factor to compensate for in pixel math (Phase 7) — the Angular equivalent of Vue's own `setTransformScale` eventBus message. */
   readonly transformScale$ = this.transformScaleSubject.asObservable();
   /** Currently-selected item ids (`multiSelect`, Phase 7) — lets each `GridItemComponent` reflect its own selected state without needing a direct reference to `GridLayoutComponent`. */
@@ -201,6 +213,10 @@ export class GridEventBusService {
   readonly itemResize$ = this.itemResizeSubject.asObservable();
   /** A `GridItemComponent`'s own reported click, for `multiSelect` — the Angular equivalent of Vue's own `itemClicked` eventBus message. */
   readonly itemClicked$ = this.itemClickedSubject.asObservable();
+  /** Which item is maximized (`id`, `null` for none) and the grid height in pixels it fills — read by every `GridItemComponent` to fill the grid or hide. */
+  readonly maximizedState$ = this.maximizedStateSubject.asObservable();
+  /** A `GridItemComponent`'s maximize button was clicked — the grid maximizes that item, or restores it when it already is the maximized one. */
+  readonly toggleMaximize$ = this.toggleMaximizeSubject.asObservable();
 
   setContainerWidth(value: number): void {
     this.containerWidthSubject.next(value);
@@ -220,6 +236,10 @@ export class GridEventBusService {
 
   setUseCssTransforms(value: boolean): void {
     this.useCssTransformsSubject.next(value);
+  }
+
+  setPositionStrategy(value: IPositionStrategy | null): void {
+    this.positionStrategySubject.next(value);
   }
 
   setTransformScale(value: number): void {
@@ -244,5 +264,13 @@ export class GridEventBusService {
 
   emitItemClicked(event: IItemClickedEvent): void {
     this.itemClickedSubject.next(event);
+  }
+
+  setMaximizedState(value: IMaximizedState): void {
+    this.maximizedStateSubject.next(value);
+  }
+
+  emitToggleMaximize(id: string | number): void {
+    this.toggleMaximizeSubject.next(id);
   }
 }

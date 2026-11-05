@@ -29,6 +29,29 @@ interface ICompactorContext {
 | `compactType` | Which built-in strategy currently applies — informational, read from `GridLayout`'s own `compactType` prop at the moment compaction runs. A custom compactor decides for itself whether/how to use this; nothing enforces it. |
 | `minPositions` | Present only during a `restoreOnDrag`-gated compaction (drag end) — the pre-drag position each item shouldn't rise/shift any tighter than. Absent for every other trigger (resize end, add/remove, mount, breakpoint change, `compactNow()`/`rearrange()`), and for the two `*_OVERLAP` types. |
 
+## A faster vertical compactor
+
+`verticalFastCompactor` gives exactly the same result as
+`verticalCompactor`, but finds each item's position with binary
+searches over the occupied rows of each column instead of testing it
+against every other item row by row — roughly `O(n log n)` instead of
+`O(n²)`. It only starts to matter from a few hundred items; for a
+typical dashboard the default is fine.
+
+```tsx
+import { verticalFastCompactor } from 'keystone-dashboard-layout-core';
+
+<GridLayout layout={layout} compactor={verticalFastCompactor} />
+```
+
+It is opt-in through the `compactor` prop and is not an
+`ECompactType` value, so `compactType` keeps selecting the original
+algorithm. Input that is not a plain integer grid (fractional
+positions, zero-sized items and the like) is handed to the original
+algorithm automatically, so the layout you get never depends on which
+compactor you picked. To measure it on your own hardware, run
+`pnpm --filter keystone-dashboard-layout-core bench`.
+
 ## The five built-in strategies
 
 Exported individually, as a starting point for a custom compactor to

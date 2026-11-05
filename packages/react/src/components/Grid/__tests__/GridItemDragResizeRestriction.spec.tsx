@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import type { TLayout } from 'keystone-dashboard-layout-core';
 import { GridLayout } from '../GridLayout';
 import { GridItem } from '../GridItem';
+import { pointerGesture } from './test-helpers';
 
 const basicLayout = (): TLayout => [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }];
 
@@ -33,6 +34,11 @@ function stubItemRootForDrag(itemRoot: HTMLElement): void {
  * `resolveActivationDistance` (in `core`'s own `native-interaction.ts`)
  * run. `dragAllowFrom`/`dragIgnoreFrom`/`resizeIgnoreFrom`/
  * `dragActivationDistance` are only exercisable through that real path.
+ *
+ * Every event goes through `pointerGesture` (in `test-helpers.ts`), which
+ * wraps each dispatch in `act()`: the native engine's listeners call React
+ * state setters from outside React's own event system, so a bare
+ * `dispatchEvent` makes React warn about an update not wrapped in `act(...)`.
  */
 describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationDistance`, () => {
   it(`Should not start a drag when clicking a <button> inside the item's own children (the default dragIgnoreFrom)`, () => {
@@ -46,10 +52,7 @@ describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationD
     );
     stubItemRootForDrag(container.querySelector(`.kdl-grid-item`) as HTMLElement);
 
-    const button = container.querySelector(`button`) as HTMLElement;
-    button.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
-    button.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
-    button.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
+    pointerGesture(container.querySelector(`button`) as HTMLElement, 100);
 
     expect(handleChange).not.toHaveBeenCalled();
   });
@@ -65,10 +68,7 @@ describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationD
     );
     stubItemRootForDrag(container.querySelector(`.kdl-grid-item`) as HTMLElement);
 
-    const link = container.querySelector(`a`) as HTMLElement;
-    link.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
-    link.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
-    link.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
+    pointerGesture(container.querySelector(`a`) as HTMLElement, 100);
 
     expect(handleChange).not.toHaveBeenCalled();
   });
@@ -86,9 +86,7 @@ describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationD
     const item = container.querySelector(`.kdl-grid-item`) as HTMLElement;
     stubItemRootForDrag(item);
 
-    item.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
-    item.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
-    item.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
+    pointerGesture(item, 100);
 
     expect(handleChange).toHaveBeenCalled();
   });
@@ -105,10 +103,7 @@ describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationD
     );
     stubItemRootForDrag(container.querySelector(`.kdl-grid-item`) as HTMLElement);
 
-    const button = container.querySelector(`button`) as HTMLElement;
-    button.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
-    button.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
-    button.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
+    pointerGesture(container.querySelector(`button`) as HTMLElement, 100);
 
     expect(handleChange).toHaveBeenCalled();
   });
@@ -126,16 +121,10 @@ describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationD
     );
     stubItemRootForDrag(container.querySelector(`.kdl-grid-item`) as HTMLElement);
 
-    const otherContent = container.querySelector(`.other-content`) as HTMLElement;
-    otherContent.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
-    otherContent.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
-    otherContent.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
+    pointerGesture(container.querySelector(`.other-content`) as HTMLElement, 100);
     expect(handleChange).not.toHaveBeenCalled();
 
-    const handle = container.querySelector(`.drag-handle`) as HTMLElement;
-    handle.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 2 }));
-    handle.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 2 }));
-    handle.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 2 }));
+    pointerGesture(container.querySelector(`.drag-handle`) as HTMLElement, 100, { pointerId: 2 });
     expect(handleChange).toHaveBeenCalled();
   });
 
@@ -150,10 +139,7 @@ describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationD
       </GridLayout>,
     );
 
-    const icon = container.querySelector(`.resize-icon`) as HTMLElement;
-    icon.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
-    icon.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
-    icon.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
+    pointerGesture(container.querySelector(`.resize-icon`) as HTMLElement, 100);
 
     expect(handleChange).not.toHaveBeenCalled();
   });
@@ -172,10 +158,7 @@ describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationD
     // Clicking the handle span itself (not its own child icon) should
     // still work — the exclusion only applies to elements actually
     // matching `resizeIgnoreFrom`.
-    const seHandle = container.querySelector(`.kdl-resize-hint--se`) as HTMLElement;
-    seHandle.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
-    seHandle.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
-    seHandle.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 100, clientY: 0, pointerId: 1 }));
+    pointerGesture(container.querySelector(`.kdl-resize-hint--se`) as HTMLElement, 100);
 
     expect(handleChange).toHaveBeenCalled();
   });
@@ -188,13 +171,11 @@ describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationD
         <GridItem i="0">Item 0</GridItem>
       </GridLayout>,
     );
-    stubItemRootForDrag(container.querySelector(`.kdl-grid-item`) as HTMLElement);
-
     const item = container.querySelector(`.kdl-grid-item`) as HTMLElement;
-    item.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
+    stubItemRootForDrag(item);
+
     // Only 10px — below the 20px threshold, shouldn't have started a drag yet.
-    item.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 10, clientY: 0, pointerId: 1 }));
-    item.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 10, clientY: 0, pointerId: 1 }));
+    pointerGesture(item, 10);
 
     expect(handleChange).not.toHaveBeenCalled();
   });
@@ -207,12 +188,10 @@ describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationD
         <GridItem i="0">Item 0</GridItem>
       </GridLayout>,
     );
-    stubItemRootForDrag(container.querySelector(`.kdl-grid-item`) as HTMLElement);
-
     const item = container.querySelector(`.kdl-grid-item`) as HTMLElement;
-    item.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1 }));
-    item.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 30, clientY: 0, pointerId: 1 }));
-    item.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 30, clientY: 0, pointerId: 1 }));
+    stubItemRootForDrag(item);
+
+    pointerGesture(item, 30);
 
     expect(handleChange).toHaveBeenCalled();
   });
@@ -228,15 +207,13 @@ describe(`GridItem dragAllowFrom/dragIgnoreFrom/resizeIgnoreFrom/dragActivationD
         <GridItem i="0">Item 0</GridItem>
       </GridLayout>,
     );
-    stubItemRootForDrag(container.querySelector(`.kdl-grid-item`) as HTMLElement);
-
     const item = container.querySelector(`.kdl-grid-item`) as HTMLElement;
-    item.dispatchEvent(new PointerEvent(`pointerdown`, { bubbles: true, button: 0, clientX: 0, clientY: 0, pointerId: 1, pointerType: `mouse` }));
+    stubItemRootForDrag(item);
+
     // 5px — exceeds the 3px default, but well under touch's own 8px,
     // confirming this movement is judged against the *mouse* default,
     // not silently inheriting touch's own configured value.
-    item.dispatchEvent(new PointerEvent(`pointermove`, { bubbles: true, button: 0, clientX: 5, clientY: 0, pointerId: 1, pointerType: `mouse` }));
-    item.dispatchEvent(new PointerEvent(`pointerup`, { bubbles: true, button: 0, clientX: 5, clientY: 0, pointerId: 1, pointerType: `mouse` }));
+    pointerGesture(item, 5, { pointerType: `mouse` });
 
     expect(handleChange).toHaveBeenCalled();
   });

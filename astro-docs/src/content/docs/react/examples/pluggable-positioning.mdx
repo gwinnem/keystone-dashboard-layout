@@ -1,0 +1,20 @@
+---
+title: Pluggable positioning
+description: Swap how items are placed on the page with the positionStrategy prop.
+---
+import PluggablePositioning from '../../../../components/examples-react/54-pluggable-positioning.tsx';
+import PluggablePositioningSource from '../../../../components/examples-react/54-pluggable-positioning.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={PluggablePositioningSource} filename="pluggable-positioning.tsx" lang="tsx" playground>
+  <PluggablePositioning client:visible />
+</ExampleTryIt>
+
+`positionStrategy` takes an `IPositionStrategy`: a `type`, an optional
+`className` and a `getStyle(position)` function returning the item's
+inline style. The built-ins, `transformStrategy` (the default) and
+`topLeftStrategy`, are imported from `keystone-dashboard-layout-core`;
+the example also wraps `topLeftStrategy` in a custom strategy that adds a
+dashed outline. When set, `positionStrategy` wins over
+`useCssTransforms`. Keep `width` and `height` as `'NNpx'` strings.
+See [`positionStrategy`](/react/components/grid-layout/props/) in the props reference.

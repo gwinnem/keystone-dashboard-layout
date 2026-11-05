@@ -9,8 +9,9 @@ Pure-function tests for the grid math live in
 `keystone-dashboard-layout-core` (shared with the Vue and React
 ports). This package's own tests cover `GridLayoutComponent`,
 `GridItemComponent`, `GridItemDragHandleComponent`,
-`GridItemCloseButtonComponent`, and the two services
-(`GridLayoutStorageService`, `GridLayoutPresetsService`), run against
+`GridItemCloseButtonComponent`, and the three services
+(`GridLayoutStorageService`, `GridLayoutAsyncStorageService`,
+`GridLayoutPresetsService`), run against
 `jsdom`.
 
 ```sh
@@ -100,10 +101,12 @@ that dedicated fixture app instead.
 | RTL mirroring | `rtl.spec.ts` |
 | Per-item overrides | `item-overrides.spec.ts` |
 | Advanced features (blocked-move feedback, `compactNow()`, `duplicateItem`, `snapToGrid`, save/load layout, `showGridLines`) | `advanced-features.spec.ts` |
+| Maximize and restore | `maximize.spec.ts` |
+| Every `GridLayoutComponent`/`GridItemComponent` prop and output, driven through a dedicated lab fixture (accessibility, API, cascade, cross-grid, defaults, events, geometry, interaction, item, multi-select, outside-drop, persistence, responsive) | the `props-*.spec.ts` files |
 
-**Confirmed via a real, complete run**: all 160 tests pass, across all
-three browser engines (5 additional tests are browser-specific and
-correctly skip on engines they don't apply to). This run surfaced and
+**Confirmed via real, complete runs**: the suite passes across all
+three browser engines (some tests are browser-specific and correctly
+skip on engines they don't apply to). The first full run surfaced and
 fixed several genuine bugs in the library itself along the way — not
 just test-harness issues — including a compaction guard that silently
 never fired on an externally-driven layout change, a CSS

@@ -64,5 +64,19 @@ Live pixel position/size for a `GridItem` during an active drag
 (`left`/`top`, or `right`/`top` when rendering RTL) or resize
 (`width`/`height`).
 
+```ts
+interface IMaximizedState {
+  id: string | number | null;
+  height: number;
+}
+```
+
+The grid's maximize state, reachable as `gridRef.value.maximizedState`.
+`id` is the maximized item (or `null`), and `height` the measured grid
+height in pixels that item is stretched to fill. Alongside it,
+`gridRef.value.maximizedItem` is the current id, and
+`maximize(id)` / `restore()` / `toggleMaximize(id)` drive it
+imperatively. See [Maximize and restore](/vue/examples/maximize/).
+
 See [Alignment guides while dragging](/vue/examples/alignment-guides/)
 for a working example using `showAlignmentGuides`.

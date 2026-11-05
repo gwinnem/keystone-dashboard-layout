@@ -118,4 +118,33 @@ describe(`cross-grid-registry`, () => {
       unregister();
     }
   });
+
+  // The (5000, 5000) test above is outside on BOTH axes, which only exercises the right-hand check. Each test below is outside on exactly
+  // one side, with the other coordinate inside the rect, so every one of the four checks has to hold up on its own.
+  it(`Should not match a point just left of the rect, even though it is within the rect's vertical range`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-j` }));
+    try {
+      expect(findCrossGridZoneAt(-1, 50, `some-other-id`)).toBeUndefined();
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should not match a point just above the rect, even though it is within the rect's horizontal range`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-k` }));
+    try {
+      expect(findCrossGridZoneAt(50, -1, `some-other-id`)).toBeUndefined();
+    } finally {
+      unregister();
+    }
+  });
+
+  it(`Should not match a point just below the rect, even though it is within the rect's horizontal range`, () => {
+    const unregister = registerCrossGridZone(makeZone({ layoutId: `zone-l` }));
+    try {
+      expect(findCrossGridZoneAt(50, 101, `some-other-id`)).toBeUndefined();
+    } finally {
+      unregister();
+    }
+  });
 });

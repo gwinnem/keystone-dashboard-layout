@@ -17,7 +17,7 @@
     :class="[classObj, { 'vue-grid-item-has-header': !!$slots.header }]"
     :data-grid-item-id="props.i"
     :role="draggableOrResizableAndNotStatic ? `group` : undefined"
-    :style="[styleObj, borderRadiusStyle, resizeHandleOverrideStyle, zIndexStyle]"
+    :style="[styleObj, borderRadiusStyle, resizeHandleOverrideStyle, zIndexStyle, maximizeHiddenStyle]"
     :tabindex="draggableOrResizableAndNotStatic ? 0 : undefined"
     @click="handleItemClick"
     @keydown="handleKeydown">
@@ -30,6 +30,17 @@
         aria-hidden="true"
         class="icon icon-cross"></i>
       <span class="visually-hidden">{{ resolvedAriaLabels.closeButton }}</span>
+    </button>
+    <button
+      v-if="maximizeButtonEnabled"
+      class="btn-maximize"
+      :class="{ 'btn-maximize--active': isMaximized }"
+      type="button"
+      @click.stop="toggleMaximize">
+      <i
+        aria-hidden="true"
+        class="icon icon-maximize"></i>
+      <span class="visually-hidden">{{ isMaximized ? resolvedAriaLabels.restoreButton : resolvedAriaLabels.maximizeButton }}</span>
     </button>
     <span
       v-if="draggableOrResizableAndNotStatic"
@@ -136,12 +147,13 @@
 </script>
 <script lang="ts" setup>
   import { computed, getCurrentInstance, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-  import { setTopLeft, setTopRight, setTransform, setTransformRtl } from '@/core/helpers/utils';
+  import { getPositionStrategy, IPositionStrategy } from '@/core/gridlayout/helpers/position-strategy';
+  import { calcMaximizedPosition } from '@/core/gridlayout/helpers/maximize-helper';
   import { resolveAriaLabels } from '@/core/common/interfaces/aria-labels.interface';
   import useCurrentInstance from '@/hooks/useInstance';
   import { IColumns, IGridLayoutProps } from './grid-layout-props.interface';
   import { IGridItemProps } from './grid-item-props.interface';
-  import { ILayoutData } from '@/core/gridlayout/interfaces/layout-data.interface';
+  import { ILayoutData, IMaximizedState } from '@/core/gridlayout/interfaces/layout-data.interface';
   import { EGridItemEvent } from '@/core/griditem/enums/EGridItemEvents';
   import { TGridItemEventBus, IGridItemWidthHeight } from '@/core/griditem/interfaces/grid-item.interfaces';
   import { getColsFromBreakpoint } from '@/core/common/helpers/breakpoints-helper';
@@ -190,7 +202,7 @@
 
   // Props Data
   const props = withDefaults(defineProps<IGridItemProps>(), {
-    autoScroll: false,
+    autoScroll: null,
     ariaLabels: () => ({}),
     autoHeight: false,
     borderRadiusPx: null,
@@ -208,12 +220,13 @@
     maxW: Infinity,
     minH: 1,
     minW: 1,
-    preserveAspectRatio: false,
+    preserveAspectRatio: null,
     resizeIgnoreFrom: null,
     resizeHandleColor: null,
     resizeHandles: null,
     showResizeHandles: null,
     showCloseButton: null,
+    showMaximizeButton: null,
     useBorderRadius: null,
     zIndex: null,
   });
@@ -268,6 +281,10 @@
   const transformScale = ref<number>(1);
   /** Whether to position via CSS transforms (fast path) or `top`/`left` (slow path) — see `createStyle`. */
   const useCssTransforms = ref<boolean>(true);
+  /** The grid's own `positionStrategy` prop, when set — wins over `useCssTransforms`. */
+  const positionStrategy = ref<IPositionStrategy | null>(null);
+  /** The strategy actually in effect: the grid's `positionStrategy`, else the built-in one matching `useCssTransforms`. */
+  const resolvedPositionStrategy = computed<IPositionStrategy>(() => positionStrategy.value ?? getPositionStrategy(useCssTransforms.value));
   /** The computed inline style applied to the item's root element. */
   const styleObj = ref({} as Record<string, string | number>);
   /** Whether this item renders right-to-left, pushed down from the parent layout's `isMirrored` prop via the `changeDirection` eventBus message. */
@@ -276,6 +293,10 @@
   const bounded = ref<boolean | null>(null);
   /** Whether the close button renders; resolved from this item's `showCloseButton` prop or the parent layout's default — same `null`-means-inherit pattern as `bounded`/`draggable`/`resizable` (see docs/REFACTORING.md #31 for why this needed fixing rather than already working). */
   const closeButtonEnabled = ref<boolean | null>(null);
+  /** Whether drag/resize auto-scrolls the nearest scrollable ancestor; resolved from this item's `autoScroll` prop or the parent layout's default (`null` means inherit). */
+  const autoScrollEnabled = ref<boolean>(false);
+  /** Whether resizing keeps the width/height ratio; resolved from this item's `preserveAspectRatio` prop or the parent layout's default (`null` means inherit). */
+  const preserveAspectRatioEnabled = ref<boolean>(false);
   /** Master interactivity switch; resolved from this item's `enableEditMode` prop or the parent layout's default — same inherit pattern as `closeButtonEnabled` above. See ROADMAP.md's "layout-level read-only/edit-mode toggle" item. */
   const editModeEnabled = ref<boolean | null>(null);
   /** Whether `borderRadiusPx` is actually applied; resolved from this item's `useBorderRadius` prop or the parent layout's default — same inherit pattern as `closeButtonEnabled` above (see docs/REFACTORING.md #47). */
@@ -334,15 +355,33 @@
     return props.isMirrored ? rtl.value : false;
   });
 
+  // Maximize/restore — the grid owns the state and this item only reads it (reactively, like `selectedItemIds`).
+  const NOT_MAXIMIZED: IMaximizedState = { height: 0, id: null };
+  const maximizedState = computed<IMaximizedState>(() => thisLayout?.maximizedState ?? NOT_MAXIMIZED);
+  /** This item is the maximized one: it fills the grid and is neither draggable nor resizable meanwhile. */
+  const isMaximized = computed(() => maximizedState.value.id === props.i);
+  /** Another item is maximized: this one stays mounted (its component state survives) but is not displayed. */
+  const isHiddenByMaximize = computed(() => maximizedState.value.id !== null && !isMaximized.value);
+  const maximizeHiddenStyle = computed(() => (isHiddenByMaximize.value ? { display: `none` } : {}));
+  /** The maximize button renders: this item's `showMaximizeButton`, else the grid's. */
+  const maximizeButtonEnabled = computed(() => props.showMaximizeButton ?? thisLayout?.showMaximizeButton ?? false);
+  /**
+   * Edit mode, except while maximized. What the drag, resize and keyboard code (and the resize handles) gate on, so a
+   * maximized item cannot be moved out of its place; the close button keeps the plain `editModeEnabled`.
+   */
+  const interactive = computed(() => editModeEnabled.value && !isMaximized.value);
+
   // Dragging and resizing are each encapsulated in their own composable — see
   // docs/ARCHITECTURE.md for why the boundary is drawn where it is, and
   // docs/REFACTORING.md for the history. Resize is created first because drag
   // needs to know when a resize is in progress (see IGridItemDragContext).
   const sharedContext = {
     autoHeightWrapper,
+    autoScroll: autoScrollEnabled,
     bounded,
+    preserveAspectRatio: preserveAspectRatioEnabled,
     cols,
-    editModeEnabled,
+    editModeEnabled: interactive,
     containerWidth,
     emit,
     eventBus,
@@ -450,17 +489,17 @@
   // computed
   /** `true` when the item is resizable, not static, and edit mode is on — drives the `vue-resizable` class. */
   const resizableAndNotStatic = computed(() => {
-    return resizable.value && !props.isStatic && editModeEnabled.value;
+    return resizable.value && !props.isStatic && interactive.value;
   });
 
   /** `true` when the item is draggable, not static, and edit mode is on — drives the `vue-draggable` class. */
   const draggableAndNotStatic = computed(() => {
-    return draggable.value && !props.isStatic && editModeEnabled.value;
+    return draggable.value && !props.isStatic && interactive.value;
   });
 
   /** `true` when the item is either draggable or resizable, not static, and edit mode is on — used for the Android `no-touch` class. */
   const draggableOrResizableAndNotStatic = computed(() => {
-    return (draggable.value || resizable.value) && !props.isStatic && editModeEnabled.value;
+    return (draggable.value || resizable.value) && !props.isStatic && interactive.value;
   });
 
   /** Crude Android detection via user-agent sniffing, used only to apply the `no-touch` class (Android's default touch-action handling needs an explicit override for drag/resize to feel right). Guarded for SSR (see docs/REFACTORING.md #51): `navigator` doesn't exist in a Node.js render, and this is referenced from a template-bound `computed` (`classObj`'s `no-touch` entry), so an unguarded read here throws and takes down the entire server-side render, not just this component. Defaults to `false` server-side — the client re-hydrates and re-evaluates this correctly once real browser JS runs, so nothing is permanently lost by not knowing the answer during SSR. */
@@ -573,19 +612,24 @@
   });
 
   const classObj = computed(() => {
-    return {
-      'css-transforms': useCssTransforms.value,
+    const classes: Record<string, boolean | null> = {
       'disable-userselect': isDragging.value,
       'no-touch': isAndroid.value && draggableOrResizableAndNotStatic.value,
       'render-rtl': renderRtl.value,
       resizing: isResizing.value,
       'vue-draggable': draggableAndNotStatic.value,
       'vue-draggable-dragging': isDragging.value,
+      'vue-grid-item-maximized': isMaximized.value,
       'vue-grid-item-selected': isSelected.value,
       'vue-resizable': resizableAndNotStatic.value,
       'vue-static': props.isStatic,
       'vue-use-radius': useBorderRadiusResolved.value,
     };
+    const strategyClass = resolvedPositionStrategy.value.className;
+    if(strategyClass) {
+      classes[strategyClass] = true;
+    }
+    return classes;
   });
 
   /**
@@ -603,6 +647,16 @@
     } else {
       innerX.value = props.x;
       innerW.value = props.w;
+    }
+    // Maximized: fill the grid, whatever the layout says. Nothing is dragging or resizing in that state.
+    if(isMaximized.value) {
+      styleObj.value = resolvedPositionStrategy.value.getStyle(calcMaximizedPosition({
+        containerHeight: maximizedState.value.height,
+        containerWidth: containerWidth.value,
+        margin: margin.value,
+        rtl: renderRtl.value,
+      }));
+      return;
     }
     const pos = calcPosition(innerX.value, innerY.value, innerW.value, innerH.value);
 
@@ -656,27 +710,17 @@
       }
     }
 
-    let sty;
-    // CSS Transforms support (default)
-    if(useCssTransforms.value) {
-      // Add rtl support
-      if(renderRtl.value) {
-        sty = setTransformRtl(pos.top, pos.right as number, pos.width, pos.height);
-      } else {
-        sty = setTransform(pos.top, pos.left as number, pos.width, pos.height);
-      }
-    }
-
-    if(!useCssTransforms.value) {
-      // top,left (slow)
-      // Add rtl support
-      if(renderRtl.value) {
-        sty = setTopRight(pos.top, pos.right as number, pos.width, pos.height);
-      } else {
-        sty = setTopLeft(pos.top, pos.left as number, pos.width, pos.height);
-      }
-    }
-    styleObj.value = sty as unknown as Record<string, string | number>;
+    // The strategy decides how the pixel position becomes inline style:
+    // CSS transforms by default, `top`/`left` when `useCssTransforms` is
+    // off, or whatever the grid's `positionStrategy` prop supplies.
+    styleObj.value = resolvedPositionStrategy.value.getStyle({
+      height: pos.height,
+      left: pos.left,
+      right: pos.right,
+      rtl: renderRtl.value,
+      top: pos.top,
+      width: pos.width,
+    });
   };
 
   /**
@@ -733,6 +777,20 @@
     createStyle();
   };
 
+  // Fill the grid when maximized, return to the layout position when restored, and follow the grid's height while maximized.
+  watch(maximizedState, (now, before) => {
+    if(now.id === props.i || before.id === props.i) {
+      createStyle();
+      emitContainerResized();
+    }
+  });
+
+  /** The maximize button: asks the grid to maximize this item, or to restore it when it already is. Takes focus itself: Safari does not focus a button on click, and without focus inside the grid the Escape key never reaches it. */
+  const toggleMaximize = (event: MouseEvent): void => {
+    (event.currentTarget as HTMLElement).focus();
+    eventBus.emit(`toggleMaximize`, props.i);
+  };
+
   // watch
   // Most of what follows falls into one of three shapes:
   //  - a prop watcher that just re-syncs a local ref (isDraggable -> draggable, etc.)
@@ -778,6 +836,20 @@
     () => props.showCloseButton,
     val => {
       closeButtonEnabled.value = val;
+    },
+  );
+
+  watch(
+    () => props.autoScroll,
+    val => {
+      autoScrollEnabled.value = val ?? thisLayout?.autoScroll === true;
+    },
+  );
+
+  watch(
+    () => props.preserveAspectRatio,
+    val => {
+      preserveAspectRatioEnabled.value = val ?? thisLayout?.preserveAspectRatio === true;
     },
   );
 
@@ -835,7 +907,7 @@
   // Turning any of those off destroys the spans the native engine was attached to, and turning it back on renders
   // NEW ones. `tryMakeResizable()` alone then no-ops (it never re-attaches once `nativeResizable` is set), leaving the
   // item showing handles that nothing listens to. So, as for `resizeHandles` below, tear down and re-attach.
-  watch([resizable, () => props.isStatic, editModeEnabled], () => {
+  watch([resizable, (): boolean | null => props.isStatic, interactive], () => {
     teardownResizable();
     tryMakeResizable();
   }, { flush: `post` });
@@ -969,6 +1041,18 @@
     }
   };
 
+  const setAutoScrollHandler = (val: boolean): void => {
+    if(props.autoScroll === null) {
+      autoScrollEnabled.value = val;
+    }
+  };
+
+  const setPreserveAspectRatioHandler = (val: boolean): void => {
+    if(props.preserveAspectRatio === null) {
+      preserveAspectRatioEnabled.value = val;
+    }
+  };
+
   const setShowCloseButtonHandler = (val: boolean): void => {
     if(props.showCloseButton === null) {
       closeButtonEnabled.value = val;
@@ -1018,6 +1102,12 @@
     createStyle();
   };
 
+  /** Applies a changed `positionStrategy` and re-styles the item — see `setUseCssTransformsHandler` above for why the style must be recomputed, not just the class. */
+  const setPositionStrategyHandler = (val: IPositionStrategy | null): void => {
+    positionStrategy.value = val;
+    createStyle();
+  };
+
   const setRowHeightHandler = (rHeight: number): void => {
     rowHeight.value = rHeight;
   };
@@ -1051,6 +1141,8 @@
   eventBus.on(`compact`, compactHandler);
   eventBus.on(`setBounded`, setBoundedHandler);
   eventBus.on(`setShowCloseButton`, setShowCloseButtonHandler);
+  eventBus.on(`setAutoScroll`, setAutoScrollHandler);
+  eventBus.on(`setPreserveAspectRatio`, setPreserveAspectRatioHandler);
   eventBus.on(`setEnableEditMode`, setEnableEditModeHandler);
   eventBus.on(`setUseBorderRadius`, setUseBorderRadiusHandler);
   eventBus.on(`setBorderRadiusPx`, setBorderRadiusPxHandler);
@@ -1063,6 +1155,7 @@
   eventBus.on(`setMargin`, setMarginHandler);
   eventBus.on(`setTransformScale`, setTransformScaleHandler);
   eventBus.on(`setUseCssTransforms`, setUseCssTransformsHandler);
+  eventBus.on(`setPositionStrategy`, setPositionStrategyHandler);
   eventBus.on(`updateWidth`, updateWidthHandler);
 
   onBeforeUnmount(() => {
@@ -1072,6 +1165,8 @@
     eventBus.off(`compact`, compactHandler);
     eventBus.off(`setBounded`, setBoundedHandler);
     eventBus.off(`setShowCloseButton`, setShowCloseButtonHandler);
+    eventBus.off(`setAutoScroll`, setAutoScrollHandler);
+    eventBus.off(`setPreserveAspectRatio`, setPreserveAspectRatioHandler);
     eventBus.off(`setEnableEditMode`, setEnableEditModeHandler);
     eventBus.off(`setUseBorderRadius`, setUseBorderRadiusHandler);
     eventBus.off(`setBorderRadiusPx`, setBorderRadiusPxHandler);
@@ -1084,6 +1179,7 @@
     eventBus.off(`setMargin`, setMarginHandler);
     eventBus.off(`setTransformScale`, setTransformScaleHandler);
     eventBus.off(`setUseCssTransforms`, setUseCssTransformsHandler);
+    eventBus.off(`setPositionStrategy`, setPositionStrategyHandler);
     eventBus.off(`updateWidth`, updateWidthHandler);
     teardownDraggable();
     teardownResizable();
@@ -1146,6 +1242,9 @@
       bounded.value = props.isBounded;
     }
 
+    autoScrollEnabled.value = props.autoScroll ?? thisLayout?.autoScroll === true;
+    preserveAspectRatioEnabled.value = props.preserveAspectRatio ?? thisLayout?.preserveAspectRatio === true;
+
     if(props.showCloseButton === null) {
       closeButtonEnabled.value = thisLayout?.showCloseButton as boolean;
     } else {
@@ -1178,6 +1277,7 @@
 
     transformScale.value = thisLayout?.transformScale as number;
     useCssTransforms.value = thisLayout?.useCssTransforms as boolean;
+    positionStrategy.value = thisLayout?.positionStrategy ?? null;
     createStyle();
 
     // Explicit, guaranteed calls — not just relying on the watchers above
@@ -1663,6 +1763,49 @@
       background: #1481b4;
       transform: rotateZ(90deg);
     }
+  }
+
+  // Maximize/restore button, one button width to the inside of the close button.
+  &>.btn-maximize {
+    align-items: center;
+    background: #1481b4;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    height: 24px;
+    justify-content: center;
+    left: auto;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    right: calc(var(--close-button-inset, 4px) + 28px);
+    top: var(--close-button-inset, 4px);
+    transition: background 150ms;
+    width: 24px;
+    z-index: 20;
+
+    &>.icon-maximize {
+      border: 2px solid #fff;
+      box-sizing: border-box;
+      height: 12px;
+      width: 12px;
+    }
+
+    // Maximized: a window-style "restore" mark — the square with a heavy top edge.
+    &.btn-maximize--active>.icon-maximize {
+      border-top-width: 4px;
+    }
+
+    &:hover,
+    &:focus {
+      background: #0e5f85;
+    }
+  }
+
+  &.render-rtl>.btn-maximize {
+    left: calc(var(--close-button-inset, 4px) + 28px);
+    right: auto;
   }
 }
 </style>

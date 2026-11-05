@@ -1,6 +1,6 @@
 import { createRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { ECompactType } from 'keystone-dashboard-layout-core';
 import type { TLayout } from 'keystone-dashboard-layout-core';
 import { GridLayout } from '../GridLayout';
@@ -68,7 +68,10 @@ describe(`GridLayout restoreOnDrag`, () => {
     const afterDragCall = handleChange.mock.calls.at(-1)![0] as TLayout;
     expect(afterDragCall.find(entry => entry.i === `b`)!.y).toBe(2);
 
-    ref.current!.compactNow();
+    // Wrapped in act(): compactNow() updates state from outside React's own event system.
+    act(() => {
+      ref.current!.compactNow();
+    });
 
     const afterCompactNowCall = handleChange.mock.calls.at(-1)![0] as TLayout;
     expect(afterCompactNowCall.find(entry => entry.i === `b`)!.y).toBe(0);
@@ -93,6 +96,29 @@ describe(`GridLayout restoreOnDrag`, () => {
 
     const midDragCall = handleChange.mock.calls.at(-1)![0] as TLayout;
     expect(midDragCall.find(entry => entry.i === `b`)!.y).toBe(0);
+  });
+
+  it(`Should not hold other items at a gap that was already in the layout when the drag begins: the first commit still closes it`, () => {
+    // B starts with a gap above it (A: y0-2, B: y5). The layout a grid is mounted with is not compacted until something
+    // commits, so the dragstart commit is what closes that gap. It has to run without the restoreOnDrag snapshot, which is
+    // taken at that same dragstart: passed in, the snapshot would hold B at its current row and the gap would stay open.
+    const layout: TLayout = [
+      { h: 2, i: `a`, w: 2, x: 0, y: 0 },
+      { h: 2, i: `b`, w: 2, x: 0, y: 5 },
+    ];
+    const handleChange = vi.fn();
+    const { container } = render(
+      <GridLayout layout={layout} margin={[10, 10]} onLayoutChange={handleChange} restoreOnDrag rowHeight={100}>
+        <GridItem i="a">A</GridItem>
+        <GridItem i="b">B</GridItem>
+      </GridLayout>,
+    );
+
+    const target = container.querySelector(`[data-grid-item-id="a"]`) as HTMLElement;
+    dispatchDragEvent(target, `dragstart`);
+
+    const atDragStart = handleChange.mock.calls.at(-1)![0] as TLayout;
+    expect(atDragStart.find(entry => entry.i === `b`)!.y).toBe(2);
   });
 
   it(`Should use the x axis instead of y for ECompactType.HORIZONTAL`, () => {

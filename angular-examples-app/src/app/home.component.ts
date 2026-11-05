@@ -19,7 +19,7 @@ import { RouterLink } from '@angular/router';
     <h1>Examples</h1>
     <p class="gallery-intro">
       Every example below renders the real, published component — not a
-      screenshot. All 53 are ported; grouped here the same way the
+      screenshot. All 57 are ported; grouped here the same way the
       <a href="https://kdl.winnem.tech/angular/features/" target="_blank" rel="noopener">Features</a>
       guide groups its own categories, so a bullet there and an example
       here always mean the same thing.
@@ -44,9 +44,11 @@ import { RouterLink } from '@angular/router';
     <h2>Layout &amp; collision</h2>
     <ul class="gallery-list">
       <li><a routerLink="/examples/08-prevent-collision"><strong>Prevent collision</strong></a> — block a drag/resize instead of pushing other items.</li>
+      <li><a routerLink="/examples/55-swap-on-drag"><strong>Swap on drag</strong></a> — drop an item onto another and trade places instead of pushing.</li>
       <li><a routerLink="/examples/10-add-remove-items"><strong>Add or remove items</strong></a> — the grid re-compacts automatically, no manual position math.</li>
       <li><a routerLink="/examples/15-horizontal-shift"><strong>Horizontal shift</strong></a> — push colliding items left/right instead of down.</li>
       <li><a routerLink="/examples/19-save-load-layout"><strong>Save/load layout</strong></a> — layout is a plain, JSON-serializable array.</li>
+      <li><a routerLink="/examples/56-async-persistence"><strong>Async persistence</strong></a> — save to a server, IndexedDB or any promise-based store; failures reported, never thrown.</li>
       <li><a routerLink="/examples/20-auto-size-grid"><strong>Auto-size grid on content</strong></a> — the container's own height grows/shrinks to fit.</li>
       <li><a routerLink="/examples/26-alignment-guides"><strong>Alignment guides while dragging</strong></a> — Figma-style guide lines, purely visual.</li>
       <li><a routerLink="/examples/28-svg-export"><strong>Export layout as SVG</strong></a> — a dependency-free standalone SVG snapshot.</li>
@@ -57,6 +59,7 @@ import { RouterLink } from '@angular/router';
       <li><a routerLink="/examples/41-layout-bounds-rendering-options"><strong>Layout bounds &amp; rendering options</strong></a> — maxRows, distributeEvenly, useCssTransforms.</li>
       <li><a routerLink="/examples/42-pluggable-compaction"><strong>Pluggable compaction</strong></a> — five built-in strategies, or a genuinely custom ICompactor.</li>
       <li><a routerLink="/examples/43-undo-redo"><strong>Undo/redo</strong></a> — opt-in history at committed-change granularity.</li>
+      <li><a routerLink="/examples/57-maximize"><strong>Maximize &amp; restore</strong></a> — one item fills the grid, the rest stay mounted; restoring puts everything back.</li>
       <li><a routerLink="/examples/47-spacing-indicators"><strong>Spacing indicators</strong></a> — a labeled distance badge in the gap to the nearest neighbor.</li>
       <li><a routerLink="/examples/50-height-modes"><strong>Height modes (heightMode)</strong></a> — the modern replacement for autoSize, including 'scroll'/'fit' modes.</li>
     </ul>
@@ -105,6 +108,7 @@ import { RouterLink } from '@angular/router';
       <li><a routerLink="/examples/33-resize-hint-appearance"><strong>Configurable resize-hint appearance</strong></a> — a visible resize handle instead of only a cursor change.</li>
       <li><a routerLink="/examples/44-grid-dimensions"><strong>Grid dimensions</strong></a> — rowHeight, colNum, margin, live-reactive.</li>
       <li><a routerLink="/examples/48-custom-header-slot"><strong>Custom header</strong></a> — a separate region above an item's own main content.</li>
+      <li><a routerLink="/examples/54-pluggable-positioning"><strong>Pluggable positioning</strong></a> — transforms, top/left, or your own positioning strategy.</li>
     </ul>
 
     <h2>Developer experience</h2>

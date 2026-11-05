@@ -49,7 +49,7 @@ explicit collision/compaction system.
 | Magnetic snap-to-grid / alignment guides | Yes (both) | No | No |
 | Keyboard move/resize | Yes | Comparable, via Ctrl+arrow (resize) / Shift+arrow (reorder) | Not documented as a distinct mode |
 | Per-item lock against rearrangement | Yes (`isStatic`) | Yes | Closer to a dashboard-level view mode than a per-item flag |
-| **Maximize/restore an item to fill the surface** | **No — a real, confirmed gap** | No | **Yes** |
+| **Maximize/restore an item to fill the surface** | **Yes** (`maximizedItem`, `showMaximizeButton`, `maximize()`/`restore()`) | No | **Yes** |
 | Save/restore layout state | Yes | Yes — comparable | Yes — comparable |
 | Export layout as image/SVG | Yes, dependency-free | No | Yes, but exports the dashboard's data visualizations, not a plain layout-shell export |
 | Data source binding, drill-down, BI charting | **Out of scope entirely — a deliberate boundary** | No (presentation-only, same category as this library) | **Yes — its entire reason to exist** |
@@ -71,8 +71,10 @@ Against **DevExtreme Dashboard**: these aren't real competitors for
 most consumers — Dashboard Designer is a BI-authoring product where
 drag/resize layout is one supporting piece of a much larger
 data-analytics platform. The one genuine, worth-tracking gap even at
-the pure layout-mechanics level is **maximize/restore** — tracked on
-the [Roadmap](/react/guide/project/roadmap/), not yet designed.
+the pure layout-mechanics level was **maximize/restore**. It is now
+built in (`maximizedItem` with `showMaximizeButton`; see
+[Maximize and restore](/react/examples/maximize/)), so that gap is
+closed.
 
 ## What's not worth chasing from either
 

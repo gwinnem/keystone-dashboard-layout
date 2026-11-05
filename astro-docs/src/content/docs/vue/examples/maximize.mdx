@@ -1,0 +1,29 @@
+---
+title: Maximize and restore
+description: Expand one item to fill the whole grid and put everything back exactly, without ever touching layout.
+---
+import Maximize from '../../../../components/examples/57-maximize.vue';
+import MaximizeSource from '../../../../components/examples/57-maximize.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={MaximizeSource} filename="maximize.vue" playground>
+  <Maximize client:visible />
+</ExampleTryIt>
+
+Bind `v-model:maximized-item` to the id of the item that should fill the grid, or
+set `show-maximize-button` to give every item a button that toggles it. The other
+items are hidden but stay mounted, so a chart or a form inside them keeps its
+state. `layout` is never written, so restoring puts everything back exactly where
+it was.
+
+- **Compaction is suspended** while an item is maximized. Items added meanwhile
+  are placed once, when you restore.
+- **Drag and resize are off** for the maximized item. Its header and close button
+  keep working.
+- **Escape restores.** A widget inside the item that handles Escape itself (and
+  calls `preventDefault()`) keeps it.
+- **The grid's height is what the item fills.** Give the grid a real height, for
+  example `height-mode="fit"` inside a sized parent, as this demo does.
+
+The same can be done from code with `maximize(id)`, `restore()` and
+`toggleMaximize(id)` on the grid's instance.

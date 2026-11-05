@@ -86,6 +86,60 @@ Every preset for a given `key` is stored together as one object under
 one storage key — one read/write per operation, not one per preset.
 SSR-safe, same guard as `useLayoutStorage`.
 
-See [v-model & save/load layout](/vue/examples/save-load-layout/) and
+## `useAsyncLayoutStorage`
+
+The asynchronous sibling of `useLayoutStorage`, for a layout that lives
+behind a promise: a REST API, IndexedDB, a cloud document.
+
+```ts
+function useAsyncLayoutStorage(
+  key: string,
+  layout: Ref<TLayout>,
+  storage: IAsyncLayoutStorage,
+  options?: IUseAsyncLayoutStorageOptions,
+): IUseAsyncLayoutStorage;
+```
+
+```ts
+interface IAsyncLayoutStorage {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
+}
+
+interface IUseAsyncLayoutStorageOptions {
+  autoLoad?: boolean;   // default: true
+  autoSave?: boolean;   // default: false
+  debounceMs?: number;  // default: 500 — only relevant when autoSave is true
+  onError?: (error: unknown) => void;
+}
+
+interface IUseAsyncLayoutStorage {
+  save: () => Promise<boolean>;     // true when stored
+  load: () => Promise<boolean>;     // true if a valid layout was found and applied
+  clear: () => Promise<boolean>;
+  hasSaved: () => Promise<boolean>; // whether *anything* is stored — not whether it's valid
+  isLoading: Ref<boolean>;
+  isSaving: Ref<boolean>;
+  error: Ref<unknown>;              // the latest store failure, or null
+}
+```
+
+Three ready-made stores are exported: `createHttpStorage({ baseUrl })`
+(`GET`/`PUT`/`DELETE` on `baseUrl/key`, optional `headers`, which may be a
+function for a refreshing token), `createIndexedDbStorage()`, and
+`createMemoryAsyncStorage()` for tests and demos. Or implement the
+three-method `IAsyncLayoutStorage` yourself.
+
+Nothing it returns rejects: a failing store sets `error`, calls `onError`, and
+resolves `false`, so a fire-and-forget `save()` never becomes an unhandled
+rejection. Writes run in call order through one queue, so a slow earlier save
+cannot overwrite a later one, and `load()` waits for saves already started.
+The `autoLoad` result is not auto-saved back.
+
+The synchronous `useLayoutStorage` stays as it is; the two are independent.
+
+See [v-model & save/load layout](/vue/examples/save-load-layout/),
+[Async persistence](/vue/examples/async-persistence/) and
 [Named layout presets](/vue/examples/named-presets/) for full working
 examples of each.

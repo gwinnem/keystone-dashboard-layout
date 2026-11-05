@@ -15,4 +15,7 @@ All four size-constraint fields (set on the layout item, not as
 unconstrained) and apply during both mouse/touch resize and keyboard
 resize. `preserveAspectRatio` locks the width/height ratio at whatever
 it was when the resize started — resizing from any handle keeps that
-ratio, not just the corner handles.
+ratio, not just the corner handles. `preserveAspectRatio` can also be
+set once on `GridLayout` as a grid-wide default that items inherit
+unless they set their own (the Vue and Angular packages offer the same
+default).

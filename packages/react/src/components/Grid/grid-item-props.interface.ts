@@ -64,6 +64,13 @@ export interface IGridItemProps {
    * grid-unit and pixel dimensions together (confirmed via a direct
    * read of that file's own `emit()` call shape). See `onItemMoved`'s
    * own doc comment for the same pre-compaction-value timing note.
+   *
+   * Also fired, with the same payload, when maximizing or restoring
+   * changes the pixel size this item is drawn at: when it becomes
+   * maximized (the size it now fills the grid with), when it stops being
+   * maximized (the size of its own layout cell again), and while it is
+   * maximized and the grid's height or width changes. Items that stay
+   * hidden while another is maximized report nothing.
    */
   onItemResized?: (payload: { i: string | number; h: number; w: number; height: number; width: number }) => void;
   /** Applied to the item's own root element, alongside the library's own positioning/interaction classes. */

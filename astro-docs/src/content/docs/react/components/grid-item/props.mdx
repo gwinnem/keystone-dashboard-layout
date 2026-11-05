@@ -19,7 +19,7 @@ fields on your layout data instead of on this component.
 | `children` | `ReactNode` | — | The item's own content — becomes the scrollable body region when `header` is also provided. |
 | `renderResizeHandle` | `(edge: TResizeHandle) => ReactNode` | — | Customizes a resize-hint span's own content (an icon, typically) — called once per actually-rendered edge/corner, with that edge's identifier. `undefined` renders each span empty. The render-prop equivalent of Vue's own `#resize-handle` slot. |
 | `onItemMoved` | `(payload: { i: string \| number; x: number; y: number }) => void` | — | Fired when this item's own drag gesture ends, with its own final grid-unit `x`/`y` — a direct per-item alternative to reading the same information out of `GridLayout`'s own broader `onLayoutChange`. Matches Vue's own `@item-moved`. Reports this item's own locally-computed, pre-compaction value — `onLayoutChange` remains the source of truth for the fully-compacted result. |
-| `onItemResized` | `(payload: { i: string \| number; h: number; w: number; height: number; width: number }) => void` | — | Fired when this item's own resize gesture ends, with its own final grid-unit `h`/`w` *and* pixel `height`/`width` together. Matches Vue's own `@resized`. Same pre-compaction-value timing note as `onItemMoved`. |
+| `onItemResized` | `(payload: { i: string \| number; h: number; w: number; height: number; width: number }) => void` | — | Fired when this item's own resize gesture ends, with its own final grid-unit `h`/`w` *and* pixel `height`/`width` together. Matches Vue's own `@resized`. Same pre-compaction-value timing note as `onItemMoved`. Also fired with the same payload when maximizing or restoring changes the size the item is drawn at: when it becomes maximized, when it is restored, and while it is maximized and the grid's height or width changes. Items that stay hidden report nothing. See [Maximize and restore](/react/examples/maximize/). |
 | `className` | `string` | — | Applied to the item's own root element, alongside the library's own positioning/interaction classes. |
 
 ## Per-item configuration (`ILayoutItem`)
@@ -38,6 +38,7 @@ override; `undefined`/`null` defers to that grid-wide default.
 | `isBounded` | `boolean \| null` | Overrides the grid-wide `isBounded` default for this item. |
 | `zIndex` | `number \| null` | CSS `z-index` override, always winning over the static/dragging/resizing CSS-class-based defaults when set. |
 | `showCloseButton` | `boolean` | Overrides the grid-wide default for this item. |
+| `showMaximizeButton` | `boolean` | Overrides the grid-wide `showMaximizeButton` default for this item. See [Maximize and restore](/react/examples/maximize/). |
 | `autoScroll` | `boolean` | Overrides the grid-wide default for this item. |
 | `preserveAspectRatio` | `boolean` | Overrides the grid-wide default for this item. |
 | `ariaLabels` | `IGridAriaLabels` | Merged over the grid-wide `ariaLabels` prop (and that, in turn, over the built-in English defaults). |

@@ -88,6 +88,12 @@ describe(`getBreakpointFromWidth`, () => {
   it(`Invalid width should throw error`, () => {
     expect(() => getBreakpointFromWidth(breakpoints, -99)).toThrowError(EErrorMessage.INVALID_WIDTH);
   });
+
+  it(`A width of exactly 0 is valid, and resolves to the smallest breakpoint`, () => {
+    // The check is "less than 0" (the doc says the width must be 0 or more), and -99 above is nowhere near the boundary, so a check that
+    // also rejected 0 went unnoticed. 0 is a real width: a container not yet laid out.
+    expect(getBreakpointFromWidth(breakpoints, 0)).toBe(`xxs`);
+  });
   it(`Empty breakpoints should throw error`, () => {
     expect(() => getBreakpointFromWidth([], 99)).toThrowError(EErrorMessage.INVALID_BREAKPOINT);
   });

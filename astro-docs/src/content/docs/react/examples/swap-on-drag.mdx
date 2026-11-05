@@ -1,0 +1,19 @@
+---
+title: Swap on drag
+description: Drop one item onto another and trade places, with the collisionMode prop.
+---
+import SwapOnDrag from '../../../../components/examples-react/55-swap-on-drag.tsx';
+import SwapOnDragSource from '../../../../components/examples-react/55-swap-on-drag.tsx?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={SwapOnDragSource} filename="swap-on-drag.tsx" lang="tsx" playground>
+  <SwapOnDrag client:visible />
+</ExampleTryIt>
+
+`collisionMode` is `'push'` (the default) or `'swap'`. With `'swap'`,
+dropping an item onto exactly one other non-static item that fits into
+the dragged item's starting cell trades the two places. Anything else
+(several items under the pointer, a static item, or the other item not fitting
+the starting cell) falls back to the usual push. It only affects dragging, and is
+ignored while `preventCollision` is on.
+See [`collisionMode`](/react/components/grid-layout/props/) in the props reference.

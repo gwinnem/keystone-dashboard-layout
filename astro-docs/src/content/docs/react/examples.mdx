@@ -1,10 +1,10 @@
 ---
 title: Examples
-description: All 53 live, interactive examples of Keystone Dashboard Layout for React, grouped by category.
+description: All 57 live, interactive examples of Keystone Dashboard Layout for React, grouped by category.
 ---
 
 Every example below renders the real, published component — not a
-screenshot — via an Astro/React island. All 53 are ported; grouped the
+screenshot — via an Astro/React island. All 57 are ported; grouped the
 same way [Features](/react/features/) groups its own categories, so a
 bullet there and an example here always mean the same thing.
 
@@ -29,12 +29,14 @@ bullet there and an example here always mean the same thing.
 - **[Add or remove items](/react/examples/add-remove-items/)** — the grid re-compacts automatically, no manual position math.
 - **[Horizontal shift](/react/examples/horizontal-shift/)** — push colliding items left/right instead of down.
 - **[Save/load layout](/react/examples/save-load-layout/)** — `layout` is a plain, JSON-serializable array.
+- **[Async persistence](/react/examples/async-persistence/)** — save to a server, IndexedDB or any promise-based store; failures reported, never thrown.
 - **[Auto-size grid on content](/react/examples/auto-size-grid/)** — the container's own height grows/shrinks to fit.
 - **[Alignment guides while dragging](/react/examples/alignment-guides/)** — Figma-style guide lines, purely visual.
 - **[Export layout as SVG](/react/examples/svg-export/)** — a dependency-free standalone SVG snapshot.
 - **[compactNow, rearrange & duplicateItem](/react/examples/compact-now-rearrange-duplicate-item/)** — on-demand tidying and item duplication.
 - **[Blocked-move feedback](/react/examples/blocked-move-feedback/)** — a real callback the moment `preventCollision` blocks a move.
 - **[Snap to grid](/react/examples/snap-to-grid/)** — magnetic snapping that actually adjusts where an item lands.
+- **[Maximize and restore](/react/examples/maximize/)** — expand one item to fill the grid; `layout` is never changed and everything returns exactly on restore.
 - **[Named layout presets](/react/examples/named-presets/)** — save and switch between several named arrangements.
 - **[Layout bounds & rendering options](/react/examples/layout-bounds-rendering-options/)** — `maxRows`, `distributeEvenly`, `useCssTransforms`.
 - **[Pluggable compaction](/react/examples/pluggable-compaction/)** — five built-in strategies, or a genuinely custom `ICompactor`.
@@ -81,6 +83,8 @@ bullet there and an example here always mean the same thing.
 - **[Configurable resize-hint appearance](/react/examples/resize-hint-appearance/)** — a visible resize handle instead of only a cursor change.
 - **[Grid dimensions](/react/examples/grid-dimensions/)** — `rowHeight`, `colNum`, `margin`, live-reactive.
 - **[Custom header](/react/examples/custom-header-slot/)** — a separate region above an item's own main content.
+- **[Swap on drag](/react/examples/swap-on-drag/)** — drop an item onto another and trade places instead of pushing.
+- **[Pluggable positioning](/react/examples/pluggable-positioning/)** — transforms, top/left, or your own `positionStrategy`.
 
 ## Developer experience
 

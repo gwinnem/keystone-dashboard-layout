@@ -1,6 +1,6 @@
 ﻿---
 title: Layout persistence
-description: useLayoutStorage and useLayoutPresets — hooks for saving and loading a layout.
+description: useLayoutStorage, useAsyncLayoutStorage and useLayoutPresets — hooks for saving and loading a layout.
 ---
 
 Unlike the Vue package, this package doesn't re-export
@@ -68,6 +68,78 @@ function Dashboard() {
   // ...
 }
 ```
+
+## `useAsyncLayoutStorage`
+
+The asynchronous sibling of `useLayoutStorage`, for a layout that lives
+behind a promise: a REST API, IndexedDB, a cloud document.
+
+```ts
+function useAsyncLayoutStorage(
+  key: string,
+  storage: IAsyncLayoutStorage,
+  options?: IUseAsyncLayoutStorageOptions,
+): IUseAsyncLayoutStorageReturn;
+```
+
+```ts
+interface IAsyncLayoutStorage {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
+}
+
+interface IUseAsyncLayoutStorageOptions {
+  autoSave?: boolean;   // default: false
+  layout?: TLayout;     // the current layout to auto-save — required for autoSave to do anything
+  debounceMs?: number;  // default: 500 — only relevant when autoSave is true
+  onError?: (error: unknown) => void;
+}
+
+interface IUseAsyncLayoutStorageReturn {
+  load: () => Promise<TLayout | null>;
+  save: (layout: TLayout) => Promise<boolean>;
+  clear: () => Promise<boolean>;
+  hasSaved: () => Promise<boolean>; // whether *anything* is stored — not whether it's valid
+  isLoading: boolean;
+  isSaving: boolean;
+  error: unknown;                   // the latest store failure, or null
+}
+```
+
+`createHttpStorage({ baseUrl })` (`GET`/`PUT`/`DELETE` on `baseUrl/key`,
+optional `headers`, which may be a function for a refreshing token),
+`createIndexedDbStorage()` and `createMemoryAsyncStorage()` come from
+`keystone-dashboard-layout-core`. Or implement the three-method
+`IAsyncLayoutStorage` yourself.
+
+Nothing it returns rejects: a failing store sets `error`, calls `onError`, and
+resolves `false` / `null`, so a fire-and-forget `save()` from `onLayoutChange`
+never becomes an unhandled rejection. Writes run in call order through one
+queue, so a slow earlier save cannot overwrite a later one, and `load()` waits
+for saves already started. Create the store once (module scope or `useMemo`): a
+new store object on every render starts a new queue.
+
+```tsx
+const storage = createHttpStorage({ baseUrl: '/api/layouts' });
+
+function Dashboard() {
+  const [layout, setLayout] = useState<TLayout>(defaultLayout);
+  const { load, save, isLoading } = useAsyncLayoutStorage('my-dashboard-layout', storage);
+
+  useEffect(() => {
+    void load().then((stored) => stored && setLayout(stored));
+  }, [load]);
+
+  return (
+    <GridLayout layout={layout} onLayoutChange={(next) => { setLayout(next); void save(next); }}>
+      {/* ... */}
+    </GridLayout>
+  );
+}
+```
+
+See the [Async persistence](/react/examples/async-persistence/) example.
 
 ## `useLayoutPresets`
 

@@ -1,6 +1,6 @@
 ﻿---
 title: Layout persistence
-description: "GridLayoutStorageService and GridLayoutPresetsService — providedIn: 'root' services for saving and loading a layout."
+description: "GridLayoutStorageService, GridLayoutAsyncStorageService and GridLayoutPresetsService — providedIn: 'root' services for saving and loading a layout."
 ---
 
 Unlike the Vue package, this package doesn't re-export
@@ -58,6 +58,67 @@ export class DashboardComponent {
   }
 }
 ```
+
+## `GridLayoutAsyncStorageService`
+
+The asynchronous sibling of `GridLayoutStorageService`, for a layout that
+lives behind a promise: a REST API, IndexedDB, a cloud document. Pass an
+`IAsyncLayoutStorage` to each call.
+
+```ts
+@Injectable({ providedIn: 'root' })
+export class GridLayoutAsyncStorageService {
+  readonly errors$: Observable<IAsyncLayoutStorageError>; // { key, error }
+  save(key: string, layout: TLayout, storage: IAsyncLayoutStorage): Promise<boolean>;
+  load(key: string, storage: IAsyncLayoutStorage): Promise<TLayout | null>;
+  clear(key: string, storage: IAsyncLayoutStorage): Promise<boolean>;
+  hasSaved(key: string, storage: IAsyncLayoutStorage): Promise<boolean>; // whether *anything* is stored — not whether it's valid
+}
+
+interface IAsyncLayoutStorage {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
+}
+```
+
+`createHttpStorage({ baseUrl })` (`GET`/`PUT`/`DELETE` on `baseUrl/key`,
+optional `headers`, which may be a function for a refreshing token),
+`createIndexedDbStorage()` and `createMemoryAsyncStorage()` come from
+`keystone-dashboard-layout-core`. Or implement the three-method
+`IAsyncLayoutStorage` yourself.
+
+Nothing here rejects: a failing store resolves `false` / `null` and is emitted
+on `errors$`, so a fire-and-forget `save()` from a `(layoutChange)` handler
+never becomes an unhandled rejection. Writes to one store and key run in call
+order through one queue, so a slow earlier save cannot overwrite a later one,
+and `load()` waits for saves already started. Create the store once (a field,
+not a getter): the queue is kept per store object.
+
+```ts
+import { Component, inject } from '@angular/core';
+import { GridLayoutAsyncStorageService } from 'keystone-dashboard-layout-angular';
+import { createHttpStorage } from 'keystone-dashboard-layout-core';
+import type { TLayout } from 'keystone-dashboard-layout-core';
+
+@Component({ /* ... */ })
+export class DashboardComponent {
+  private readonly persistence = inject(GridLayoutAsyncStorageService);
+  private readonly storage = createHttpStorage({ baseUrl: '/api/layouts' });
+  layout: TLayout = defaultLayout;
+
+  async ngOnInit(): Promise<void> {
+    this.layout = (await this.persistence.load('my-dashboard-layout', this.storage)) ?? this.layout;
+  }
+
+  onLayoutChange(next: TLayout): void {
+    this.layout = next;
+    void this.persistence.save('my-dashboard-layout', next, this.storage);
+  }
+}
+```
+
+See the Async persistence example (56) in the examples app.
 
 ## `GridLayoutPresetsService`
 

@@ -15,4 +15,6 @@ All four size-constraint props default to `1`/`Infinity` respectively
 and [keyboard resize](/vue/guide/project/accessibility/). `preserveAspectRatio`
 locks the width/height ratio at whatever it was when the resize
 started — resizing from any handle keeps that ratio, not just the
-corner handles.
+corner handles. `preserveAspectRatio` can also be set once on
+`GridLayout` as a grid-wide default that items inherit unless they set
+their own (the same default exists on the React and Angular packages).

@@ -98,20 +98,27 @@ different UI on the same algorithms.
   per-item `autoHeight`), visible grid lines, visual alignment guides
   *and* magnetic `snapToGrid` (a real distinction — one shows where
   edges line up, the other actually moves the item), CSS transform
-  positioning, a generic `ILayoutItem<TMeta>` for attaching typed
+  positioning (replaceable through `positionStrategy`), a generic
+  `ILayoutItem<TMeta>` for attaching typed
   consumer data to each item.
 * **Drag and resize** — drag from anywhere on an item by default;
   resize from all eight edges/corners with cursor affordance and
   optional visible handles (`showResizeHandles`/`resizeHandleColor`);
-  drag-handle/ignore selectors; bounded dragging; aspect-ratio locking;
-  per-item size constraints; keyboard move/resize (arrow keys / shift+
+  drag-handle/ignore selectors; bounded dragging; edge auto-scroll while
+  dragging or resizing (`autoScroll`); aspect-ratio locking
+  (`preserveAspectRatio`) — both can be set once on the grid and
+  overridden per item; per-item size constraints; keyboard move/resize (arrow keys / shift+
   arrow); a blocked-move feedback event
   (`MOVE_BLOCKED_BY_COLLISION`) for shake/flash/toast UI without
   reimplementing collision detection yourself.
 * **Collision and compaction** — vertical compaction, `preventCollision`,
+  `collisionMode: 'swap'` (drop an item onto another to trade places
+  instead of pushing it),
   horizontal shift, static items excluded from cascades, on-demand
   `compactNow()`/`rearrange()`, collision-safe `duplicateItem(id)`, a
-  pluggable `compactor` prop for replacing the compaction algorithm
+  pluggable `compactor` prop (including `verticalFastCompactor`, a
+  faster drop-in for very large layouts) for replacing the compaction
+  algorithm
   entirely.
 * **Responsive layouts** — predefined layouts per breakpoint, with
   auto-generation for breakpoints without one.
@@ -125,14 +132,20 @@ different UI on the same algorithms.
   drags, a typed-payload helper for the drop event).
 * **Editing and lifecycle** — a close button, edit-mode toggle,
   add/remove items without rebuilding the grid, opt-in undo/redo
-  (`enableUndoRedo`) at committed-change granularity.
+  (`enableUndoRedo`) at committed-change granularity, and
+  maximize/restore — one item fills the whole grid without changing
+  `layout` (`v-model:maximized-item`, `show-maximize-button`,
+  `maximize(id)`/`restore()`/`toggleMaximize(id)`; Escape restores).
 * **Styling and customization** — border radius, configurable
   transition duration/easing, a slot for custom drag-placeholder
   content, automatic RTL support (including resize from every edge,
   verified in both directions).
 * **Persistence** — `useLayoutStorage`/`serializeLayout`/`deserializeLayout`
   for a single saved layout, plus `useLayoutPresets` for saving and
-  switching between several named arrangements of the same items.
+  switching between several named arrangements of the same items, and
+  `useAsyncLayoutStorage` for saving to a server, IndexedDB or any other
+  promise-based store (writes are queued, failures are reported and
+  never thrown).
 * **Export** — `exportLayoutAsSvg()`, a dependency-free grid-to-image
   export for a report, thumbnail, or "share my dashboard" feature.
 * **Accessibility** — keyboard move/resize, `aria-roledescription`/

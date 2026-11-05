@@ -39,6 +39,7 @@ const validateXYParams = (
     throw new Error(EErrorMessage.INVALID_PARAM_MAX_ROWS);
   }
 
+  // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — with this check removed, `calcColWidth` (called right after validation in `calcXY`) rejects the same value with the same INVALID_PARAM_CONTAINER_WIDTH error, so nothing observable changes. Kept so this function's own parameter validation stays complete and self-describing.
   if(containerWidth < 1) {
     throw new Error(EErrorMessage.INVALID_PARAM_CONTAINER_WIDTH);
   }

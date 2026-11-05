@@ -329,6 +329,19 @@ Per-item override for whether a close button renders —
 
 ***
 
+### showMaximizeButton?
+
+> `optional` **showMaximizeButton?**: `boolean`
+
+Per-item override for whether a maximize/restore toggle button
+renders — `undefined` defers to the grid-wide `showMaximizeButton`
+default. Unlike the close button, it is not tied to edit mode or
+`isStatic`: any item can be maximized. Same "Vue has an equivalent
+prop, not a layout-item field" note as `zIndex` above applies here
+too.
+
+***
+
 ### showResizeHandles?
 
 > `optional` **showResizeHandles?**: `boolean`

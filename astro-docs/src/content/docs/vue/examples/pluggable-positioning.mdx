@@ -1,0 +1,19 @@
+---
+title: Pluggable positioning
+description: Swap how items are placed on the page with the positionStrategy prop.
+---
+import PluggablePositioning from '../../../../components/examples/54-pluggable-positioning.vue';
+import PluggablePositioningSource from '../../../../components/examples/54-pluggable-positioning.vue?raw';
+import ExampleTryIt from '../../../../components/harness/ExampleTryIt.astro';
+
+<ExampleTryIt code={PluggablePositioningSource} filename="pluggable-positioning.vue" playground>
+  <PluggablePositioning client:visible />
+</ExampleTryIt>
+
+`positionStrategy` takes an `IPositionStrategy`: a `type`, an optional
+`className` and a `getStyle(position)` function returning the item's
+inline style. The built-ins are `transformStrategy` (the default) and
+`topLeftStrategy`; the example also wraps `topLeftStrategy` in a custom
+strategy that adds a dashed outline. When set, `positionStrategy` wins
+over `useCssTransforms`. Keep `width` and `height` as `'NNpx'` strings.
+See [`positionStrategy`](/vue/components/grid-layout/props/) in the props reference.

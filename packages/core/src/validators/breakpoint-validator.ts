@@ -3,12 +3,10 @@ import { TBreakpoints } from '../layout-definition';
 
 /**
  * The set of breakpoint keys a `breakpoints`/`cols` object must have
- * exactly. Exported (rather than kept private) so `tests/breakpointValidator.spec.ts`
- * can reuse the same key list instead of duplicating it.
+ * exactly. Exported (rather than kept private) so other code can reuse the
+ * same key list instead of duplicating it.
  */
 export const keysValidatorPayload = {
-  invalidKeys1: [`lg`, `md`, `sm`, `xs`, `xxs`],
-  invalidKeys2: [`1`, `2`, `3`, `4`, `5`],
   validKeys: [`xxl`, `xl`, `lg`, `md`, `sm`, `xs`, `xxs`],
 };
 

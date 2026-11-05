@@ -25,10 +25,12 @@ import {
   computeAlignAdjustments,
   computeDistributeAdjustments,
   computeRangeSelection,
+  correctBounds,
   ECompactType,
   EErrorMessage,
   exportLayoutAsSvg as coreExportLayoutAsSvg,
   findAlignmentGuides,
+  findFirstFitSlot,
   findOrGenerateResponsiveLayout,
   findSnapAdjustment,
   findSpacingIndicators,
@@ -39,7 +41,10 @@ import {
   getCompactor,
   getLayoutItem,
   layoutValidator,
+  createSwapDragState,
   moveElement,
+  resolveMaximizedItem,
+  swapElement,
 } from 'keystone-dashboard-layout-core';
 import type {
   IAlignmentGuide,
@@ -49,15 +54,34 @@ import type {
   IExportLayoutAsSvgOptions,
   IGridAriaLabels,
   ILayoutItem,
+  IPositionStrategy,
   ISpacingIndicator,
+  ISwapDragState,
   TAlignEdge,
   TBreakpoint,
+  TCollisionMode,
   TDistributeAxis,
   TLayout,
 } from 'keystone-dashboard-layout-core';
 import { findCrossGridZoneAt, registerCrossGridZone } from './cross-grid-registry';
 import type { ICrossGridDropRejected, ICrossGridItemDropped, ICrossGridZone } from './cross-grid.interfaces';
 import { GridEventBusService, IGridDefaults, IItemClickedEvent, IItemDragEvent, IItemResizeEvent } from './grid-event-bus.service';
+
+/**
+ * Whether `incoming` places every item exactly where `rendered` (the layout the grid is already showing) does — the
+ * signature of a consumer feeding `layoutChange` straight back in through the `layout` input (`(layoutChange)="layout = $event"`).
+ * Such an echo must not be compacted again: the layout it carries is already the grid's own result, and a plain
+ * unconstrained pass over it undoes whatever a constrained one (`restoreOnDrag`'s minimum rows) deliberately held in place.
+ */
+function layoutPositionsMatch(incoming: TLayout, rendered: TLayout): boolean {
+  return incoming.length === rendered.length
+    && incoming.every((entry, index) => {
+      const other = rendered[index];
+      // Stryker disable next-line ConditionalExpression: equivalent — a layout whose ids differ but whose positions all match compacts to itself, so treating it as an echo or not gives the same result and no emit.
+      return entry.i === other.i
+        && entry.x === other.x && entry.y === other.y && entry.w === other.w && entry.h === other.h;
+    });
+}
 
 let layoutIdCounter = 0;
 /** Module-level counter, matching Vue's own `generateLayoutId` — every `GridLayoutComponent` that doesn't set its own `layoutId` still gets a distinct one, needed for cross-grid drag/drop to tell grids apart in emitted event payloads even when nobody bothered to name them. */
@@ -154,6 +178,7 @@ interface ISpacingIndicatorStyle {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(click)': 'handleBackgroundClick($event)',
+    '(keydown)': 'handleKeydown($event)',
     '[class.kdl-grid-layout--active-drag]': 'isDragging',
     class: `kdl-grid-layout`,
   },
@@ -176,7 +201,7 @@ interface ISpacingIndicatorStyle {
       }
       @if (isDragging && placeholderStyle) {
         @if (placeholderTemplate) {
-          <div [ngStyle]="placeholderStyle">
+          <div class="kdl-grid-placeholder-wrapper" [ngStyle]="placeholderStyle">
             <ng-container *ngTemplateOutlet="placeholderTemplate ?? null; context: { $implicit: placeholder, placeholder: placeholder, isDragging: isDragging }"></ng-container>
           </div>
         } @else {
@@ -189,7 +214,7 @@ interface ISpacingIndicatorStyle {
 export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy, OnInit {
   /** The layout array — used here only for `autoSize`'s own container-height calculation and as the basis for collision resolution during a drag/resize; rendering each item is the consumer's own responsibility (see this class's own doc comment). Reassigning this from outside (e.g. adding/removing an item) is automatically compacted — matching Vue's own `GridLayout.vue` behavior — so the standard `y: Infinity` "push it, let compaction find a real position" convention works the same way here as it does there; see `ngOnChanges`'s own doc comment for the full history of this. Required. */
   @Input({ required: true }) layout!: TLayout;
-  /** Maximum number of columns. Ignored while `responsive` (below) is on, in favor of the resolved breakpoint's own column count. Default `12`, matching Vue/React's own default. */
+  /** Number of columns. While `responsive` (below) is on this is a ceiling, not a replacement: the grid uses the lesser of this and the resolved breakpoint's own column count, as the Vue package does. Default `12`, matching Vue/React's own default. */
   @Input() colNum = 12;
   /** Height of one grid row, in pixels. Default `150`, matching Vue/React's own default. */
   @Input() rowHeight = 150;
@@ -197,6 +222,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   @Input() margin: [number, number] = [10, 10];
   /** Positions via CSS `transform: translate3d(...)` instead of `top`/`left`. Default `true`, matching Vue/React's own default. */
   @Input() useCssTransforms = true;
+  /** Replaces how items are placed inside the grid — see `IPositionStrategy` (`keystone-dashboard-layout-core`). `null` (the default) keeps the built-in choice `useCssTransforms` makes, exactly as before this input existed; when set it wins over `useCssTransforms`. `transformStrategy`/`topLeftStrategy` are the two built-ins, reusable as a starting point. */
+  @Input() positionStrategy: IPositionStrategy | null = null;
   /** Grows/shrinks the container to fit the layout's content. Default `true`, matching `autoSize`'s own default. */
   @Input() autoSize = true;
   /**
@@ -217,6 +244,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   @Input() heightMode: THeightMode | null = null;
   /** Whether a drag/resize that would collide with another item is blocked entirely rather than pushing the colliding item out of the way. Default `false`, matching Vue/React's own default. */
   @Input() preventCollision = false;
+  /** What dropping a dragged item onto another one does. `'push'` (default) shoves the item underneath out of the way; `'swap'` trades places with it when the drop lands on exactly one other non-static item that fits into the dragged item's starting cell. Anything else (several items, a static item, or the other item not fitting the starting cell) falls back to `'push'`. Only affects dragging, and is ignored while `preventCollision` is on. */
+  @Input() collisionMode: TCollisionMode = 'push';
   /** Grid-wide default `isDraggable` for items that don't set their own (`null`) — Phase 14, cascaded to every descendant `GridItemComponent` via `GridEventBusService.gridDefaults$`, matching Vue's own `GridLayout`-level `isDraggable` prop (`GridItem.vue`'s own `thisLayout?.isDraggable` read). Default `true`, matching Vue/React's own default. */
   @Input() isDraggable = true;
   /** Grid-wide default `isResizable` for items that don't set their own (`null`) — same cascade as `isDraggable` above. Default `true`, matching Vue/React's own default. */
@@ -243,17 +272,34 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   @Input() borderRadiusPx = 10;
   /** Grid-wide default `showCloseButton` for items that don't set their own (`null`) — same cascade as `isDraggable` above. Default `false`, matching Vue/React's own default. */
   @Input() showCloseButton = false;
+  /** Grid-wide default `autoScroll` for items that don't set their own (`null`) — same cascade as `isDraggable` above. Default `false`, matching React. */
+  @Input() autoScroll = false;
+  /** Grid-wide default `preserveAspectRatio` for items that don't set their own (`null`) — same cascade as `isDraggable` above. Default `false`, matching React. */
+  @Input() preserveAspectRatio = false;
+  /** Whether every item renders the built-in maximize/restore button. An item's own `showMaximizeButton` wins either way. Default `false`. */
+  @Input() showMaximizeButton = false;
+  /**
+   * The item that fills the whole grid while every other item is hidden (kept mounted); `null` for none. Bind it two-way
+   * (`[(maximizedItem)]`) to follow the user's own maximize/restore too. The grid never writes `layout` for it: restoring puts
+   * every item back exactly where `layout` has it, after one compaction. Reading it gives the item that is maximized right now:
+   * `null` when the id set is not in `layout`.
+   */
+  @Input()
+  set maximizedItem(id: string | number | null) {
+    this.maximizedId = id ?? null;
+  }
+  get maximizedItem(): string | number | null {
+    return resolveMaximizedItem(this.layout, this.maximizedId);
+  }
   /**
    * Grid-wide default master interactivity switch for items that don't
    * set their own (`null`) — same cascade as `isDraggable` above.
    * Closes the TODOs left on `GridItemComponent`'s own `tabindexValue`/
    * `showCloseButton` doc comments (Phases 15/16/22): see
-   * `IGridDefaults`'s own doc comment for exactly what this gates (and,
-   * just as importantly, what it deliberately doesn't — the native
-   * drag/resize engine itself, and `handleKeydown`'s own guard, both
-   * confirmed via a direct source read to use the raw, un-gated
-   * `resolvedIsDraggable`/`resolvedIsResizable` in Vue too). Default
-   * `true`, matching Vue/React's own default.
+   * `IGridDefaults`'s own doc comment for exactly what this gates
+   * (everything that makes an item operable: its tab stop, ARIA,
+   * close button, resize handles, and both the drag handler and the
+   * keyboard handler). Default `true`, matching Vue/React's own default.
    */
   @Input() enableEditMode = true;
   /** Grid-wide `ariaLabels` override (Phase 18) — merged with the built-in English defaults and any per-item override via `core`'s own `resolveAriaLabels`, read by each descendant `GridItemComponent`'s own `resolvedAriaLabels` getter. `{}` (the default) applies no grid-wide override at all, deferring entirely to the built-in defaults unless a specific item overrides a key itself. */
@@ -294,7 +340,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   @Input() cols: IColumns = DEFAULT_COLS;
   /** Enforces that an item is moved all the way to the left/right edge when there's available space for it, during `responsive`'s own bounds-correction pass (`core`'s own `correctBounds`) — rather than only correcting an item that's actually overflowing the new column count. Default `false`, matching Vue/React's own default. */
   @Input() distributeEvenly = false;
-  /** Seeds the per-breakpoint layout cache (exposed publicly as `layouts`) with layouts a consumer already has — e.g. persisted from a previous session. `{}` (the default) starts with an empty cache; every breakpoint not present here is generated on first visit instead (`core`'s own `findOrGenerateResponsiveLayout`, bounds-corrected and compacted from whatever layout was active just before entering it). Only read once, at `ngOnInit` — changing this `@Input()` later has no effect on the already-running cache. */
+  /** Seeds the per-breakpoint layout cache (exposed publicly as `layouts`) with layouts a consumer already has — e.g. persisted from a previous session. `{}` (the default) starts with an empty cache; every breakpoint not present here is generated on first visit instead (`core`'s own `findOrGenerateResponsiveLayout`, bounds-corrected and compacted from whatever layout was active just before entering it). Read at `ngOnInit`, and again whenever its content changes afterwards (a layout supplied later, e.g. once persisted data has loaded, replaces the cache; a new reference with identical content does not, so per-breakpoint edits made since are kept). A replaced cache is used the next time a breakpoint is entered, not applied to the one already showing. */
   @Input() responsiveLayouts: Record<string, TLayout> = {};
 
   /** CSS transform scale factor to compensate for in every descendant `GridItemComponent`'s own drag-delta math — cascaded via the eventBus (Phase 7). Default `1`, matching Vue/React's own default. */
@@ -333,6 +379,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   @Output() moveBlockedByCollision = new EventEmitter<string | number>();
   /** Emits the new `colNum` whenever that `@Input()` itself changes — a direct port of Vue's own `COLUMNS_CHANGED`, confirmed via a direct source read to watch only the raw `colNum` prop, not the responsive-resolved `effectiveColNum` (a breakpoint-driven column change is already covered separately by `breakpointChanged`). */
   @Output() columnsChanged = new EventEmitter<number>();
+  /** The maximized item changed through the grid itself (`maximize()`, `restore()`, `toggleMaximize()`, Escape, an item's button, or the maximized item leaving `layout`) — the id, or `null` once restored. Not emitted for a change that came in through the `maximizedItem` input. */
+  @Output() maximizedItemChange = new EventEmitter<string | number | null>();
   /**
    * Emits once, the first time the container's own width is measured
    * (i.e. mount has settled and every descendant `GridItemComponent`
@@ -365,6 +413,14 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
   /** The measured container pixel width. Public for a consumer who wants to read it directly. */
   containerWidth = 0;
+  /**
+   * Whether the grid has been painted at its real measured width. Until then the items sit at provisional positions, and
+   * moving them to the measured ones would run their transition, so every item animated into place on load. While `false`
+   * the container's `--grid-transition-duration` is `0ms` (see `updateContainerHeight`); it flips two animation frames after
+   * the first measurement, once the measured layout has actually been painted.
+   */
+  private hasSettled = false;
+  private readonly settleFrames: number[] = [];
   /**
    * Bug fix, found via a live e2e run (not assumed): without
    * `isolation: isolate` here, a static item's own negative `z-index`
@@ -419,14 +475,23 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
    * `GridItemComponent`'s own `resizeHandleTemplate` uses.
    */
   @ContentChild(`placeholder`, { read: TemplateRef }) placeholderTemplate: TemplateRef<{ $implicit: IPlaceholder | null; placeholder: IPlaceholder | null; isDragging: boolean }> | undefined;
-  /** This grid's own resolved `layoutId` — either the `@Input()` value, or an auto-generated one (`grid-layout-N`) resolved once at `ngOnInit`. */
+  /** This grid's own resolved `layoutId` — either the `@Input()` value, or an auto-generated one (`grid-layout-N`). Resolved at `ngOnInit`, and again whenever the `layoutId` input changes afterwards. */
   resolvedLayoutId = ``;
 
   private resizeObserver: ResizeObserver | undefined;
+  /** The id the grid was last asked to maximize (`maximizedItem` input, `maximize()` or an item's button), before checking `layout` still has it. */
+  private maximizedId: string | number | null = null;
+  /** The grid container's height in pixels as last measured — the maximized item fills it. */
+  private maximizedHeight = 0;
+  /** The maximized id the items were last told about (resolved against `layout`), to tell a restore from a layout change that touches nothing. */
+  private publishedMaximizedId: string | number | null = null;
   /** The internal, mutable working copy `moveElement`/the compactor actually operate on — cloned from `layout` whenever that `@Input()` reference changes. */
   private workingLayout: TLayout = [];
   /** Resolved, effective column count — `colNum` normally, or the `responsive`-resolved value once a real measurement has landed. */
   private effectiveColNum = 12;
+  /** `responsiveLayouts` as last seeded into `layouts` (JSON), so a later change to the input re-seeds only when its content really changed. */
+  // Stryker disable next-line StringLiteral: equivalent — JSON.stringify never yields an empty string, so the initial value is only ever overwritten before it is compared.
+  private seededResponsiveLayoutsKey = ``;
   private undoStack: TLayout[] = [];
   private redoStack: TLayout[] = [];
   /**
@@ -498,6 +563,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   private lastAnchorId: string | number | null = null;
   /** Set while `allowCrossGridDrag` is on and a drag is genuinely in progress (from `dragstart` to `dragend`) — `null` otherwise. Mirrors React's own `draggedIdRef`. */
   private draggedCrossGridId: string | number | null = null;
+
+  /** `collisionMode: 'swap'` bookkeeping for the drag in progress; created at `dragstart`, cleared at `dragend`. */
+  private swapDragState: ISwapDragState | undefined;
   /** Deregisters this grid's own cross-grid zone — called from `ngOnDestroy`/whenever `allowCrossGridDrag` toggles off. `null` whenever no zone is currently registered. */
   private deregisterCrossGridZone: (() => void) | null = null;
   /** `dragenter`/`dragleave` bubble from every descendant, firing far more often than "entered/left the grid as a whole" — a net-entry count (Vue's own approach, ported directly) avoids flickering the placeholder on/off as the pointer moves around inside the grid at any depth. */
@@ -511,6 +579,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly eventBus = inject(GridEventBusService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly hostRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   ngOnInit(): void {
     // Mount-time layout validation — matches the Vue package's own
@@ -535,9 +604,11 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     this.effectiveColNum = this.colNum;
     this.resolvedLayoutId = this.layoutId ?? generateLayoutId();
     this.layouts = Object.fromEntries(Object.entries(this.responsiveLayouts).map(([breakpoint, breakpointLayout]) => [breakpoint, cloneLayout(breakpointLayout)]));
+    this.seededResponsiveLayoutsKey = JSON.stringify(this.responsiveLayouts);
     this.eventBus.itemDrag$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => this.handleItemDrag(event));
     this.eventBus.itemResize$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => this.handleItemResize(event));
     this.eventBus.itemClicked$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => this.handleItemClicked(event));
+    this.eventBus.toggleMaximize$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(id => this.toggleMaximize(id));
   }
 
   ngAfterViewInit(): void {
@@ -557,6 +628,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
         this.updatePlaceholderStyle();
         this.changeDetectorRef.markForCheck();
         if(isFirstMeasurement) {
+          this.scheduleSettle();
           // Doubly-deferred, matching Vue's own nextTick-then-nextTick
           // exactly (see layoutReady's own doc comment for why): the
           // first microtask lets the containerWidth$ eventBus emission
@@ -572,6 +644,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
           });
         }
       }
+      // After the width, so a maximized item has the container width when the height reaches it.
+      this.refreshMaximizedHeight();
     };
     measure();
     this.resizeObserver = new ResizeObserver(measure);
@@ -582,11 +656,24 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    // A layout cache supplied (or replaced) after mount. Re-seeded only when its *content* changed, not on every new object
+    // reference: a template that builds the object inline hands over a fresh reference on every change-detection pass, and
+    // re-seeding each time would wipe the per-breakpoint edits accumulated since.
+    if(changes[`responsiveLayouts`] && !changes[`responsiveLayouts`].firstChange) {
+      const key = JSON.stringify(this.responsiveLayouts);
+      if(key !== this.seededResponsiveLayoutsKey) {
+        this.seededResponsiveLayoutsKey = key;
+        this.layouts = Object.fromEntries(Object.entries(this.responsiveLayouts).map(([breakpoint, breakpointLayout]) => [breakpoint, cloneLayout(breakpointLayout)]));
+      }
+    }
     if(changes[`layout`] && !changes[`layout`].firstChange) {
       // Captured before workingLayout is overwritten below, so a
       // length-change commit (further down) has the correct "how many
       // items were there before this change" comparison to make.
       const previousLength = this.workingLayout.length;
+      // Taken before workingLayout is replaced: compared against what the grid is showing right now, to tell a consumer
+      // echoing our own layoutChange back from a genuinely new layout.
+      const isEchoOfRenderedLayout = layoutPositionsMatch(this.layout, this.workingLayout);
       this.workingLayout = cloneLayout(this.layout);
       this.pruneSelection();
       // The Angular port of Vue's own separate `watch(() =>
@@ -642,21 +729,30 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       // emit this depends on simply never fired. A snapshot taken
       // *before* `compact()` mutates anything is what the comparison
       // actually needs.
-      const beforeCompact = JSON.stringify(this.workingLayout);
-      const compacted = this.resolveCompactor().compact(this.workingLayout, this.effectiveColNum, { compactType: this.compactType });
-      if(JSON.stringify(compacted) !== beforeCompact) {
-        this.workingLayout = compacted;
-        this.layoutChange.emit(compacted);
+      // Skipped for an echo of the layout already rendered (see layoutPositionsMatch): compacting it again, unconstrained,
+      // undid `restoreOnDrag` for every consumer that applies `layoutChange` back to its own `layout` binding.
+      if(!isEchoOfRenderedLayout) {
+        const beforeCompact = JSON.stringify(this.workingLayout);
+        const compacted = this.resolveCompactor().compact(this.workingLayout, this.effectiveColNum, { compactType: this.compactType });
+        if(JSON.stringify(compacted) !== beforeCompact) {
+          this.workingLayout = compacted;
+          this.layoutChange.emit(compacted);
+        }
       }
     }
     if(changes[`colNum`]) {
-      this.effectiveColNum = this.colNum;
+      // With `responsive` on and a width measured, `colNum` is only the ceiling over the breakpoint's own column count (as in
+      // `resolveResponsiveColNum`); taking it outright here used to put a responsive grid on more columns than its breakpoint has.
+      this.effectiveColNum = this.responsive && this.containerWidth > 0
+        ? Math.min(this.colNum, getColsFromBreakpoint(getBreakpointFromWidth(this.breakpoints, this.containerWidth), this.cols))
+        : this.colNum;
       this.eventBus.setColNum(this.effectiveColNum);
       // Only on a genuine, post-mount change — matching Vue's own
       // plain (non-immediate) watch(() => props.colNum, ...), which
       // likewise never fires for the prop's own initial value.
       if(!changes[`colNum`].firstChange) {
         this.columnsChanged.emit(this.colNum);
+        this.refitLayoutToColNum();
       }
     }
     if(changes[`rowHeight`]) {
@@ -668,21 +764,36 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     if(changes[`useCssTransforms`]) {
       this.eventBus.setUseCssTransforms(this.useCssTransforms);
     }
+    if(changes[`positionStrategy`]) {
+      this.eventBus.setPositionStrategy(this.positionStrategy);
+    }
     if(changes[`transformScale`]) {
       this.eventBus.setTransformScale(this.transformScale);
     }
-    if(changes[`isDraggable`] || changes[`isResizable`] || changes[`isBounded`] || changes[`isMirrored`] || changes[`maxRows`] || changes[`useBorderRadius`] || changes[`borderRadiusPx`] || changes[`showCloseButton`] || changes[`ariaLabels`] || changes[`enableEditMode`]) {
+    if(changes[`isDraggable`] || changes[`isResizable`] || changes[`isBounded`] || changes[`isMirrored`] || changes[`maxRows`] || changes[`useBorderRadius`] || changes[`borderRadiusPx`] || changes[`showCloseButton`] || changes[`ariaLabels`] || changes[`enableEditMode`] || changes[`showMaximizeButton`] || changes[`autoScroll`] || changes[`preserveAspectRatio`]) {
       this.pushGridDefaults();
     }
     if((changes[`breakpoints`] || changes[`cols`] || changes[`responsive`]) && !changes[`responsive`]?.firstChange) {
       this.resolveResponsiveColNum();
     }
-    if(changes[`allowCrossGridDrag`] && !changes[`allowCrossGridDrag`].firstChange) {
+    if(changes[`layoutId`] && !changes[`layoutId`].firstChange) {
+      // The cross-grid zone captured the previous id when it was registered, so a changed (or cleared) `layoutId` has to be
+      // resolved again and the zone registered afresh under it, or other grids keep reporting this one by its old id. Covers a
+      // simultaneous `allowCrossGridDrag` change too, since it re-registers against the current value of that input.
+      this.resolvedLayoutId = this.layoutId ?? generateLayoutId();
+      this.setCrossGridDragEnabled(this.allowCrossGridDrag);
+    } else if(changes[`allowCrossGridDrag`] && !changes[`allowCrossGridDrag`].firstChange) {
       this.setCrossGridDragEnabled(this.allowCrossGridDrag);
     }
     if(changes[`allowOutsideDrop`] && !changes[`allowOutsideDrop`].firstChange) {
       this.setOutsideDropEnabled(this.allowOutsideDrop);
     }
+    if(changes[`maximizedItem`]) {
+      this.measureMaximizedHeight();
+    }
+    // Every change, not just `maximizedItem` and `layout`: it can be either of them that takes the maximized item away, and
+    // syncing does nothing when the maximized item is the one the items were last told about.
+    this.syncMaximized();
     if(changes[`layout`] || changes[`rowHeight`] || changes[`margin`] || changes[`autoSize`] || changes[`heightMode`]
       || changes[`transitionDurationMs`] || changes[`transitionTimingFunction`]
       || changes[`showResizeHandles`] || changes[`resizeHandleColor`]) {
@@ -691,6 +802,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   }
 
   ngOnDestroy(): void {
+    this.settleFrames.forEach(frame => cancelAnimationFrame(frame));
     this.resizeObserver?.disconnect();
     this.deregisterCrossGridZone?.();
     this.setOutsideDropEnabled(false);
@@ -700,6 +812,8 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   private pushGridDefaults(): void {
     const defaults: IGridDefaults = {
       ariaLabels: this.ariaLabels,
+      autoScroll: this.autoScroll,
+      preserveAspectRatio: this.preserveAspectRatio,
       borderRadiusPx: this.borderRadiusPx,
       enableEditMode: this.enableEditMode,
       isBounded: this.isBounded,
@@ -708,13 +822,125 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       isResizable: this.isResizable,
       maxRows: this.maxRows,
       showCloseButton: this.showCloseButton,
+      showMaximizeButton: this.showMaximizeButton,
       useBorderRadius: this.useBorderRadius,
     };
     this.eventBus.setGridDefaults(defaults);
   }
 
-  /** `multiSelect` — selects exactly this item, replacing any existing selection (a plain, non-modifier click). */
+  /**
+   * Makes `id` fill the whole grid and hides every other item (they stay mounted, so their component state survives).
+   * `layout` is not touched and compaction is suspended until `restore()`. An id the layout does not have restores instead.
+   */
+  maximize(id: string | number | null): void {
+    const next = resolveMaximizedItem(this.layout, id);
+    if(next === this.maximizedItem) {
+      return;
+    }
+    this.measureMaximizedHeight();
+    this.maximizedId = next;
+    this.maximizedItemChange.emit(next);
+    this.syncMaximized();
+  }
+
+  /** Brings every item back exactly where `layout` has it. Does nothing when nothing is maximized. */
+  restore(): void {
+    this.maximize(null);
+  }
+
+  /** Maximizes `id`, or restores when it already is the maximized item. */
+  toggleMaximize(id: string | number): void {
+    this.maximize(this.maximizedItem === id ? null : id);
+  }
+
+  /** Escape restores the maximized item, unless something inside it (a dropdown, a dialog) already used the key. */
+  handleKeydown(event: KeyboardEvent): void {
+    // `restore()` does nothing while nothing is maximized, so no check of its own is needed here.
+    if(event.key === `Escape` && !event.defaultPrevented) {
+      this.restore();
+    }
+  }
+
+  private measureMaximizedHeight(): void {
+    this.maximizedHeight = this.containerRef.nativeElement.clientHeight;
+  }
+
+  /** Follows the grid's own height while an item is maximized, so it keeps filling the grid. */
+  private refreshMaximizedHeight(): void {
+    const before = this.maximizedHeight;
+    this.measureMaximizedHeight();
+    if(this.maximizedHeight !== before && this.publishedMaximizedId !== null) {
+      this.publishMaximizedState();
+    }
+  }
+
+  private publishMaximizedState(): void {
+    this.eventBus.setMaximizedState({ height: this.maximizedHeight, id: this.maximizedItem });
+  }
+
+  /**
+   * Tells the items which one is maximized now, once that has changed. When nothing is any more (restored, or the maximized
+   * item left `layout`), does the compaction that was skipped meanwhile — an item added while maximized sits at `y: Infinity`
+   * until then — and lets a bound `[(maximizedItem)]` forget an id that is gone.
+   */
+  private syncMaximized(): void {
+    const before = this.publishedMaximizedId;
+    const now = this.maximizedItem;
+    if(now === before) {
+      return;
+    }
+    this.publishedMaximizedId = now;
+    const restored = now === null;
+    if(restored && this.maximizedId !== null) {
+      this.maximizedId = null;
+      this.maximizedItemChange.emit(null);
+    }
+    this.publishMaximizedState();
+    if(restored) {
+      this.compactAfterRestore();
+    }
+  }
+
+  /**
+   * Re-fits the layout to the column count it is now drawn in, as Vue does (its `colNum` watcher always runs the responsive-layout
+   * pass, `responsive` or not): items past the last column are pulled back inside and the result is compacted. Without this a grid
+   * going from 12 to 6 columns kept its items at x: 6 and x: 8 and drew them off the right edge, with nothing reported through
+   * `layoutChange`. Reports a layout change only when something moved. While an item is maximized the bounds are still corrected
+   * (they have to be) but `resolveCompactor` holds the compaction back until the restore.
+   */
+  private refitLayoutToColNum(): void {
+    const rendered = this.workingLayout;
+    const bounded = correctBounds(cloneLayout(rendered), { cols: this.effectiveColNum }, this.distributeEvenly);
+    const fitted = this.resolveCompactor().compact(bounded, this.effectiveColNum, { compactType: this.compactType });
+    if(layoutPositionsMatch(fitted, rendered)) {
+      return;
+    }
+    this.workingLayout = fitted;
+    this.layoutChange.emit(fitted);
+    this.changeDetectorRef.markForCheck();
+  }
+
+  /** The one compaction pass that was suspended while an item was maximized. Reports a layout change only when something moved. */
+  private compactAfterRestore(): void {
+    const before = cloneLayout(this.workingLayout);
+    const compacted = this.resolveCompactor().compact(this.workingLayout, this.effectiveColNum, { compactType: this.compactType });
+    if(layoutPositionsMatch(compacted, before)) {
+      return;
+    }
+    this.workingLayout = compacted;
+    this.layoutChange.emit(compacted);
+    this.changeDetectorRef.markForCheck();
+  }
+
+  /**
+   * `multiSelect` — selects exactly this item, replacing any existing selection (a plain, non-modifier click). Selecting the one
+   * item that already is the whole selection changes nothing and so reports nothing, as `deselectItem` and `clearSelection`
+   * do. (React's `selectItem` adds to the selection instead; this one replaces it, as Vue's does.)
+   */
   selectItem(id: string | number): void {
+    if(this.selectedItemIds.size === 1 && this.selectedItemIds.has(id)) {
+      return;
+    }
     this.setSelection(new Set([id]));
   }
 
@@ -836,7 +1062,16 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
    * comment).
    */
   compactNow(): void {
-    const beforeCompact = cloneLayout(this.workingLayout);
+    this.compactWithSnapshot(cloneLayout(this.workingLayout));
+  }
+
+  /**
+   * The body of `compactNow()`, taking the "before" snapshot as a parameter instead of capturing it itself, so a caller
+   * that has already changed the layout (`duplicateItem()` appends the copy first) can pass the state from *before* that
+   * change. Capturing inside `compactNow()` made the copy part of the "before" state, so one undo left it in place (or
+   * recorded nothing at all when compaction then moved nothing).
+   */
+  private compactWithSnapshot(beforeCompact: TLayout): void {
     const compactTypeOverride = this.compactType === ECompactType.NONE ? ECompactType.VERTICAL : this.compactType;
     // Bug fix: this used to call `this.resolveCompactor()` with no
     // argument — that method's own (then-parameterless) implementation
@@ -898,8 +1133,10 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
     const { i: _unusedId, moved: _unusedMoved, ...rest } = source;
     const duplicated: ILayoutItem = { ...rest, i: newId, y: source.y + source.h };
+    // Taken before the copy is appended, so that one undo removes it again (see compactWithSnapshot).
+    const beforeDuplicate = cloneLayout(this.workingLayout);
     this.workingLayout = [...this.workingLayout, duplicated];
-    this.compactNow();
+    this.compactWithSnapshot(beforeDuplicate);
 
     return newId;
   }
@@ -997,7 +1234,10 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       }
       const candidate = { ...item, ...adjustment };
       if(this.preventCollision) {
-        const collisions = getAllCollisions(next, candidate).filter(layoutItem => layoutItem.i !== item.i && !selectedIdSet.has(layoutItem.i));
+        const collisions = getAllCollisions(next, candidate).filter(layoutItem =>
+        // Stryker disable next-line ConditionalExpression: equivalent — adjustments only exist for selected items, so the item itself is already excluded by the selection test on the next line.
+          layoutItem.i !== item.i
+            && !selectedIdSet.has(layoutItem.i));
         if(collisions.length > 0) {
           return;
         }
@@ -1112,22 +1352,12 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
    * no-op against an already-correct layout, but is not specially
    * skipped.
    *
-   * Bug fix (dead-code removal, not a functional change): an earlier
-   * version of this method also explicitly cached `this.layouts[this.
-   * lastBreakpoint]` before switching away from it, on the theory that
-   * the outgoing breakpoint's own layout needed capturing before it was
-   * lost. Traced carefully and confirmed unreachable: `this.layouts
-   * [breakpoint] = cloneLayout(newLayout)` a few lines below already
-   * runs unconditionally for *every* breakpoint this method ever
-   * resolves to, and `lastBreakpoint` can only ever become some value X
-   * as a direct result of this same method having resolved X as
-   * `breakpoint` in an earlier call — meaning `this.layouts[X]` was
-   * already written back when X was current, before any later call ever
-   * gets a chance to switch away from it. The separate "cache before
-   * leaving" branch could therefore never actually run against a truly
-   * uncached entry. Removed rather than left in as inert insurance,
-   * since dead code that looks load-bearing is worse than no code at
-   * all for whoever reads this next.
+   * Correction to an earlier "dead-code removal" note that used to sit here: it argued that caching the outgoing
+   * breakpoint's layout before leaving it was unreachable, because `this.layouts[breakpoint]` is written on arrival. True
+   * for *existence*, but that entry is only ever written on arrival and never refreshed, so edits made while at a
+   * breakpoint were lost, and the entry was never read back either (`findOrGenerateResponsiveLayout` ignores its `layouts`
+   * argument). Returning to a breakpoint therefore regenerated it from the layout of the one just left, and a layout
+   * supplied through `responsiveLayouts` was never used. The refresh-on-leave and start-from-stored steps above fix both.
    */
   private resolveResponsiveColNum(): void {
     if(!this.responsive || this.containerWidth <= 0) {
@@ -1143,8 +1373,20 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     this.effectiveColNum = colsCompute;
     this.eventBus.setColNum(colsCompute);
 
+    const breakpointChanged = breakpoint !== this.lastBreakpoint;
+    // Leaving a breakpoint: store its layout as it stands now, so edits made there survive a trip through another one.
+    // The entry written on arrival (below) is otherwise never refreshed, so returning would regenerate from whatever
+    // layout was current in the *other* breakpoint instead of restoring this one.
+    if(this.lastBreakpoint !== null && breakpointChanged) {
+      this.layouts[this.lastBreakpoint] = cloneLayout(this.workingLayout);
+    }
+    // Entering a breakpoint that already has a stored layout (an earlier visit, or one supplied through
+    // `responsiveLayouts`): start from that, not from the layout being left. findOrGenerateResponsiveLayout never reads its
+    // `layouts` argument, so the stored entry has to be handed over as the source layout; it is still bounds-corrected and
+    // compacted for the current column count. Staying inside the same breakpoint keeps regenerating from the working layout.
+    const storedLayout = breakpointChanged ? this.layouts[breakpoint] : undefined;
     const newLayout = findOrGenerateResponsiveLayout(
-      this.workingLayout,
+      storedLayout ?? this.workingLayout,
       this.layouts,
       this.breakpoints,
       breakpoint,
@@ -1158,7 +1400,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     this.workingLayout = newLayout;
     this.layoutChange.emit(newLayout);
 
-    if(breakpoint !== this.lastBreakpoint) {
+    if(breakpointChanged) {
       this.lastBreakpoint = breakpoint;
       this.breakpointChanged.emit(breakpoint);
     }
@@ -1185,6 +1427,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       this.dragStart.emit(event.i);
       this.captureGestureStart(this.workingLayout);
       this.groupMoveStartPositions = this.snapshotGroupMovePositions(event.i);
+      this.swapDragState = this.collisionMode === 'swap' ? createSwapDragState(item) : undefined;
       if(this.allowCrossGridDrag) {
         this.draggedCrossGridId = event.i;
       }
@@ -1254,6 +1497,12 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
     const preMoveX = item.x;
     const preMoveY = item.y;
+    // `collisionMode: 'swap'`: trade places with the single item under the pointer first. A swap leaves the item exactly on
+    // (targetX, targetY) with nothing colliding, so the push below then changes nothing; a declined swap leaves the item where it was
+    // and the push resolves the move as usual.
+    if(this.swapDragState !== undefined && !this.preventCollision) {
+      swapElement(next, item, targetX, targetY, this.effectiveColNum, this.swapDragState);
+    }
     moveElement(next, item, targetX, targetY, true, this.horizontalShift, this.preventCollision);
 
     // MOVE_BLOCKED_BY_COLLISION — a direct port of Vue's own condition,
@@ -1293,7 +1542,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       item.isStatic = true;
       compacted = this.resolveCompactor().compact(next, this.effectiveColNum, { compactType: this.compactType, minPositions: this.positionsBeforeDrag });
       const compactedItem = getLayoutItem(compacted, event.i);
-      if(compactedItem) {
+      if(
+        // Stryker disable next-line ConditionalExpression: equivalent — compact() always hands back the dragged item, so this check is always true. (Skipping the restore is still caught: the block below is not suppressed.)
+        compactedItem) {
         compactedItem.isStatic = wasStatic;
       }
     } else {
@@ -1307,6 +1558,7 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
       this.isDragging = false;
       this.placeholder = null;
       this.positionsBeforeDrag = undefined;
+      this.swapDragState = undefined;
       this.commitGestureEnd();
     }
     this.changeDetectorRef.markForCheck();
@@ -1554,7 +1806,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   }
 
   private toGuideStyles(guides: IAlignmentGuide[]): IAlignmentGuideStyle[] {
-    if(guides.length === 0 || this.containerWidth < 1) {
+    // Stryker disable next-line ConditionalExpression: equivalent — with no guides, mapping over the empty list below gives the same empty result as this early return.
+    if(guides.length === 0
+      || this.containerWidth < 1) {
       return [];
     }
     const [marginH, marginV] = this.margin;
@@ -1567,7 +1821,9 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   }
 
   private toIndicatorStyles(indicators: ISpacingIndicator[], activeX: number, activeY: number, activeW: number, activeH: number): ISpacingIndicatorStyle[] {
-    if(indicators.length === 0 || this.containerWidth < 1) {
+    // Stryker disable next-line ConditionalExpression: equivalent — with no indicators, mapping over the empty list below gives the same empty result as this early return.
+    if(indicators.length === 0
+      || this.containerWidth < 1) {
       return [];
     }
     const [marginH, marginV] = this.margin;
@@ -1587,6 +1843,10 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
   }
 
   private resolveCompactor(compactTypeOverride?: ECompactType): ICompactor {
+    // While an item is maximized nothing is laid out, so there is nothing to compact; restoring compacts once.
+    if(this.maximizedItem !== null) {
+      return getCompactor(ECompactType.NONE);
+    }
     return this.compactor ?? getCompactor(compactTypeOverride ?? this.compactType);
   }
 
@@ -1608,15 +1868,23 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     const zone: ICrossGridZone = {
       acceptDrop: (item, sourceLayoutId) => {
         const next = cloneLayout(this.workingLayout);
-        next.push(item as ILayoutItem);
+        // Placed in the first slot that really fits, as React's `acceptExternalCrossGridItem` does, rather than at whatever x/y the
+        // item had in its SOURCE grid, which has no relationship to a free spot here: with `compactType` none there is no compaction
+        // to rescue an overlap. `moved` is the source's compaction bookkeeping and does not travel.
+        const slot = findFirstFitSlot(next, this.effectiveColNum, (item as ILayoutItem).w, (item as ILayoutItem).h);
+        const { moved: _unusedMoved, ...rest } = item as ILayoutItem;
+        next.push({ ...rest, x: slot.x, y: slot.y });
         const compacted = this.resolveCompactor().compact(next, this.effectiveColNum, { compactType: this.compactType });
         this.workingLayout = compacted;
         this.layoutChange.emit(compacted);
         this.crossGridItemDropped.emit({ item, sourceLayoutId });
         this.changeDetectorRef.markForCheck();
       },
-      // Stryker disable next-line OptionalChaining: equivalent — `nativeElement` is always defined once `containerRef` itself is; the first `?.` (unresolved ref) is the one that matters and is tested.
-      getRect: () => this.containerRef?.nativeElement?.getBoundingClientRect() ?? null,
+      // The zone is the host element, not the inner container: the host is what a consumer sizes and sees (a column's `min-height`,
+      // a fixed `height`, a flex-filled panel), where the inner container is only as tall as its content. Hit-testing the container
+      // meant that dropping below the last item, or anywhere in an empty column, missed the grid entirely. React and Vue register
+      // their root element, which is the same thing.
+      getRect: () => this.hostRef.nativeElement.getBoundingClientRect(),
       isExternalDropDisabled: () => this.disableExternalDrop,
       layoutId: this.resolvedLayoutId,
       rejectDrop: (itemId, sourceLayoutId) => {
@@ -1671,16 +1939,20 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
 
   /**
    * Attaches/detaches the four native HTML5 drag-and-drop listeners on
-   * the container element — a direct port of Vue's own
-   * `useOutsideDrop.ts` (React has no equivalent to port from). Called
+   * the grid's host element — a direct port of Vue's own
+   * `useOutsideDrop.ts` (React has no equivalent to port from). The host,
+   * not the inner container: the host is what a consumer sizes and sees,
+   * where the container only has a height when `heightMode` gives it one
+   * (`fixed` leaves it none, with the items overflowing it), so listening
+   * on the container meant a drop onto the empty part of such a grid never
+   * arrived. Events from inside the container bubble up to the host, and the
+   * drop *position* is still measured against the container, which is the
+   * grid's own coordinate system. Called
    * once from `ngAfterViewInit` for the initial `allowOutsideDrop`
    * value, and again whenever that `@Input()` changes reactively.
    */
   private setOutsideDropEnabled(enabled: boolean): void {
-    const el = this.containerRef?.nativeElement;
-    if(!el) {
-      return;
-    }
+    const el = this.hostRef.nativeElement;
     if(enabled && !this.outsideDropListenersAttached) {
       el.addEventListener(`dragenter`, this.onOutsideDragEnter);
       el.addEventListener(`dragover`, this.onOutsideDragOver);
@@ -1806,10 +2078,21 @@ export class GridLayoutComponent implements AfterViewInit, OnChanges, OnDestroy,
     return this.autoSize ? `auto` : `fixed`;
   }
 
+  /** Turns item transitions on two animation frames from now (see `hasSettled`). Called once, on the first measurement. */
+  private scheduleSettle(): void {
+    this.settleFrames.push(requestAnimationFrame(() => {
+      this.settleFrames.push(requestAnimationFrame(() => {
+        this.hasSettled = true;
+        this.updateContainerHeight();
+        this.changeDetectorRef.markForCheck();
+      }));
+    }));
+  }
+
   private updateContainerHeight(): void {
     const [marginH, marginV] = this.margin;
     const cssVars: Record<string, string | number> = {
-      '--grid-transition-duration': `${this.transitionDurationMs}ms`,
+      '--grid-transition-duration': `${this.hasSettled ? this.transitionDurationMs : 0}ms`,
       '--grid-transition-timing': this.transitionTimingFunction,
     };
     if(this.showResizeHandles) {

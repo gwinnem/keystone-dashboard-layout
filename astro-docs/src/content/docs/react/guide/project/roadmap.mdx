@@ -6,43 +6,10 @@ description: What's suggested next for Keystone Dashboard Layout for React — n
 Forward-looking — what's suggested next, not a commitment. For what's
 already built, see [Features](/react/features/).
 
-The items below are genuinely open at the `core` level, so they're
-shared with the Vue and Angular ports rather than being separate,
-per-framework efforts — see the Vue port's own
-[Roadmap](/vue/guide/project/roadmap/) for the fuller writeup of each.
-
-## Swap-on-drag collision mode
-
-Dragging item A onto item B swaps their positions, as an alternative to
-the current push-aside compaction.
-
-## Maximize/restore an item
-
-Temporarily expand a single item to fill the grid's entire visible
-area, then restore it to its prior position/size. Needs its own design
-pass before starting.
-
-## Async persistence backends
-
-A new hook with its own adapter interface for IndexedDB and
-remote-HTTP-backed persistence, alongside (not replacing) the existing
-synchronous `useLayoutStorage`.
-
-## An open, pluggable CSS positioning strategy
-
-An interface (mirroring the existing pluggable-compaction precedent)
-replacing the current on/off toggle between CSS transforms and
-`top`/`left` positioning.
-
-## A fast, large-layout compaction algorithm
-
-An additional compaction strategy aimed at very large layouts. Needs a
-real performance benchmark before shipping.
-
-## A worker-based layout engine
-
-An opt-in Web Worker executor for compaction/responsive-generation on
-very large layouts.
+There are no React-specific items open right now. Anything added at the
+`core` level is shared with the Vue and Angular ports rather than being a
+separate, per-framework effort — see the Vue port's own
+[Roadmap](/vue/guide/project/roadmap/) for what's currently queued.
 
 ## Have a request?
 

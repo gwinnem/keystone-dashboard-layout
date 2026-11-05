@@ -46,11 +46,13 @@ enough; there's no competing inline style to fight.
 | `.kdl-grid-item--resizing` | This item has an active resize in progress. |
 | `.kdl-grid-item--static` | This item's `isStatic` is `true`. |
 | `.kdl-grid-item--selected` | This item is part of the current `multiSelect` selection. |
+| `.kdl-grid-item--maximized` | This item is the one currently maximized (`maximizedItem`), filling the whole grid. See [Maximize and restore](/react/examples/maximize/). |
 | `.kdl-grid-item--has-header` | The `header` prop was provided. |
 | `.kdl-grid-item--rtl` | This item participates in `isMirrored` (RTL). |
 | `.kdl-grid-item--show-resize-handles` | The resolved `showResizeHandles` is `true` for this item. |
 | `.kdl-grid-item-header` / `.kdl-grid-item-body` | The two regions created when `header` is provided. |
 | `.kdl-grid-item-close-button` | The built-in close button, when `showCloseButton` is on. |
+| `.btn-maximize` / `.btn-maximize--active` | The built-in maximize/restore button, when `showMaximizeButton` is on; the `--active` modifier is added while its item is the maximized one. |
 | `.kdl-resize-hint--n` / `--s` / `--e` / `--w` / `--ne` / `--nw` / `--se` / `--sw` | The (always-present, invisible-by-default) hit zone for each resize edge/corner actually rendered — see `resizeHandles`. |
 
 ```css
@@ -59,6 +61,10 @@ enough; there's no competing inline style to fight.
   background-color: #1e293b;
 }
 ```
+
+## Maximized items
+
+While an item is maximized, every other item stays mounted but is hidden with an **inline** `display: none`, so a stylesheet rule cannot show it again. The maximized item takes its position and size from the grid itself (the whole grid minus one margin on each side), through the same `positionStrategy` as every other item, so size it with `margin` and the grid's own height rather than with CSS. See [Maximize and restore](/react/examples/maximize/).
 
 ## Border radius
 

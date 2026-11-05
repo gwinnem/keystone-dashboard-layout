@@ -103,6 +103,21 @@ describe(`useResponsiveLayout`, () => {
     expect(emit).not.toHaveBeenCalledWith(EGridLayoutEvent.BREAKPOINT_CHANGED, expect.anything(), expect.anything());
   });
 
+  it(`Should keep regenerating from the grid's own layout, not the layout prop, while the breakpoint stays the same`, () => {
+    const { emit, helper, originalLayout, width } = createContext();
+    width.value = 500; // 'xs'
+    helper.responsiveGridLayout();
+    // An edit made inside the grid that its consumer has not written back to the `layout` prop (which still has x: 0).
+    originalLayout.value = [{ h: 2, i: `a`, w: 2, x: 2, y: 0 }];
+    emit.mockClear();
+
+    width.value = 600; // still 'xs'
+    helper.responsiveGridLayout();
+
+    const emitted = emit.mock.calls.find(call => call[0] === EGridLayoutEvent.LAYOUT_UPDATE)?.[1] as { i: string; x: number }[];
+    expect(emitted[0].x).toBe(2);
+  });
+
   it(`Should emit breakpoint-changed again when the breakpoint actually changes on a later call`, () => {
     const { emit, helper, width } = createContext();
     width.value = 500; // 'xs'

@@ -2,6 +2,7 @@ import { IEventEmitter } from '@/core/helpers/event-emitter';
 import { IEventsData } from '@/core/common/interfaces/event-bus.interfaces';
 import type { TResizeHandle } from '@/core/helpers/native-interaction';
 import type { IItemOverridesData } from '@/core/gridlayout/interfaces/layout-data.interface';
+import type { IPositionStrategy } from '@/core/gridlayout/helpers/position-strategy';
 
 /** Grid-unit x/y position — the output of {@link useGridItemDrag}'s `calcXY`. */
 export interface ICalcXy {
@@ -67,7 +68,9 @@ export type TGridItemEventBus = IEventEmitter<{
   dragEvent?: IEventsData;
   itemOverrides?: IItemOverridesData;
   resizeEvent?: IEventsData;
+  setAutoScroll: boolean;
   setBounded: boolean;
+  setPreserveAspectRatio: boolean;
   setShowCloseButton: boolean;
   setEnableEditMode: boolean;
   setUseBorderRadius: boolean;
@@ -83,5 +86,7 @@ export type TGridItemEventBus = IEventEmitter<{
   updateWidth: number;
   setTransformScale: number;
   setUseCssTransforms: boolean;
+  setPositionStrategy: IPositionStrategy | null;
   setMaxRows: number;
+  toggleMaximize: string | number;
 }>;

@@ -66,12 +66,22 @@ state attached.
 - **Collision & movement** — `collides`, `getAllCollisions`,
   `getFirstCollision`, `findFirstFitSlot` (bin-packing), `moveElement`,
   `moveToCorrectPlace`, `moveElementAwayFromCollision`
+- **Maximize / restore** — `resolveMaximizedItem` (validates the
+  maximized id against the current layout) and `calcMaximizedPosition`
+  (the grid position a maximized item fills), with the
+  `IMaximizedPositionInput`/`IMaximizedState` types
+- **Swap on drag** — `swapElement` and `createSwapDragState`, behind the
+  framework packages' `collisionMode: 'swap'` (with the `TCollisionMode`
+  and `ISwapDragState` types)
 - **Compaction** — `compactLayout` (and its horizontal/overlap
   variants), plus the pluggable `ICompactor` interface and
   `getCompactor()` factory the framework packages' own `compactor`
   prop/input accepts (`verticalCompactor`, `horizontalCompactor`,
   `noCompactor`, `verticalOverlapCompactor`,
-  `horizontalOverlapCompactor`, matching every `ECompactType` value)
+  `horizontalOverlapCompactor`, matching every `ECompactType` value),
+  plus `verticalFastCompactor`/`compactLayoutFast`, an opt-in
+  drop-in for `verticalCompactor` that gives the same result in roughly
+  O(n log n) instead of O(n²) on very large layouts
 - **Responsive breakpoints** — `findOrGenerateResponsiveLayout`,
   `getBreakpointFromWidth`, `getColsFromBreakpoint`, `correctBounds`
 - **Alignment & snapping** — `findAlignmentGuides`,
@@ -79,12 +89,19 @@ state attached.
   `computeAlignAdjustments`/`computeDistributeAdjustments` (the
   multi-select align/distribute commands), `computeRangeSelection`
   (Shift-click range selection)
+- **Pluggable positioning** — the `IPositionStrategy` interface behind
+  the framework packages' `positionStrategy` prop, with the built-in
+  `transformStrategy` and `topLeftStrategy` and `getPositionStrategy()`
 - **Grid-unit ↔ pixel math** — `calcXY`, `calcGridItemWH`,
   `calcColWidth`, `setTransform`/`setTransformRtl`/`setTopLeft`/
   `setTopRight`
 - **Serialization & export** — `serializeLayout`/`deserializeLayout`,
   `exportLayoutAsSvg` (a dependency-free layout-to-SVG renderer),
   `readOutsideDropPayload`
+- **Async layout persistence** — `createAsyncLayoutPersistence` (a
+  write queue that never rejects), the ready-made `createHttpStorage`,
+  `createIndexedDbStorage` and `createMemoryAsyncStorage` stores, and the
+  `IAsyncLayoutStorage` interface for your own
 - **Validators** — `layoutValidator`, `keysValidator`,
   `breakpointsValidator`, `marginValidator` — the same ones the
   framework packages run internally, reachable standalone (e.g.

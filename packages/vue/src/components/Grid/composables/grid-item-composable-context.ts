@@ -15,12 +15,16 @@ import { TGridItemEventBus } from '@/core/griditem/interfaces/grid-item.interfac
  * docs/ARCHITECTURE.md for the full rationale.
  */
 export interface IGridItemComposableContext {
+  /** Resolved `autoScroll`: this item's own prop, else the parent layout's default. Optional so a context built without it falls back to the raw prop. */
+  autoScroll?: Ref<boolean>;
+  /** Resolved `preserveAspectRatio`: this item's own prop, else the parent layout's default. Optional so a context built without it falls back to the raw prop. */
+  preserveAspectRatio?: Ref<boolean>;
   /** Only populated when the `autoHeight` prop is true — the wrapper element `useGridItemResize`'s `setupAutoHeight()` observes for size changes, distinct from `gridItem` (the item's own root) since observing the root itself would also fire on drag/resize-driven size changes, not just the slot content's own. */
   autoHeightWrapper: Ref<HTMLElement | null>;
   /** Restricts dragging to within the container's bounds; only read by `useGridItemDrag`. */
   bounded: Ref<boolean | null>;
   /** Resolved master interactivity switch — `useGridItemDrag`/`useGridItemResize`/`useGridItemKeyboard` all gate on this rather than the raw `enableEditMode` prop directly, since that prop is `null` by default (meaning "inherit from GridLayout") and reading it directly as a boolean would incorrectly block every interaction by default. See ROADMAP.md's "layout-level read-only/edit-mode toggle" item. */
-  editModeEnabled: Ref<boolean | null>;
+  editModeEnabled: Readonly<Ref<boolean | null>>;
   /** Current column count, resolved from the parent layout's `colNum`/responsive breakpoint. */
   cols: Ref<number>;
   /** The container's last known-good measured pixel width (see the `updateWidth` guard in `GridItem.vue` — never set to a non-positive value). */

@@ -117,6 +117,7 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
   const activeTop = activeItem.y;
   const activeBottom = activeItem.y + activeItem.h;
 
+  // Stryker disable next-line MethodExpression,ConditionalExpression: equivalent — an item is never its own neighbour (each edge test below fails for a box with w, h >= 1), so leaving it in changes nothing.
   const others = layout.filter(item => item.i !== activeItem.i);
   const indicators: ISpacingIndicator[] = [];
 
@@ -126,11 +127,15 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
     const otherTop = item.y;
     const otherBottom = item.y + item.h;
     const yOverlaps = otherTop < activeBottom && otherBottom > activeTop;
-    if(yOverlaps && otherRight <= activeLeft && (bestLeft === undefined || otherRight > bestLeft)) {
+    if(yOverlaps && otherRight <= activeLeft && (bestLeft === undefined ||
+      // Stryker disable next-line EqualityOperator: equivalent — on a tie the assignment below stores the very same number again.
+      otherRight > bestLeft)) {
       bestLeft = otherRight;
     }
   });
-  if(bestLeft !== undefined && bestLeft < activeLeft) {
+  // Stryker disable next-line ConditionalExpression: equivalent — an undefined best fails the comparison on the next line anyway (`undefined < n` is false). Split so the mutants on that comparison stay active.
+  if(bestLeft !== undefined &&
+    bestLeft < activeLeft) {
     indicators.push({ axis: `x`, distance: activeLeft - bestLeft, gapEnd: activeLeft, gapStart: bestLeft });
   }
 
@@ -140,11 +145,15 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
     const otherTop = item.y;
     const otherBottom = item.y + item.h;
     const yOverlaps = otherTop < activeBottom && otherBottom > activeTop;
-    if(yOverlaps && otherLeft >= activeRight && (bestRight === undefined || otherLeft < bestRight)) {
+    if(yOverlaps && otherLeft >= activeRight && (bestRight === undefined ||
+      // Stryker disable next-line EqualityOperator: equivalent — on a tie the assignment below stores the very same number again.
+      otherLeft < bestRight)) {
       bestRight = otherLeft;
     }
   });
-  if(bestRight !== undefined && bestRight > activeRight) {
+  // Stryker disable next-line ConditionalExpression: equivalent — an undefined best fails the comparison on the next line anyway (`undefined > n` is false). Split so the mutants on that comparison stay active.
+  if(bestRight !== undefined &&
+    bestRight > activeRight) {
     indicators.push({ axis: `x`, distance: bestRight - activeRight, gapEnd: bestRight, gapStart: activeRight });
   }
 
@@ -154,11 +163,15 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
     const otherLeft = item.x;
     const otherRight = item.x + item.w;
     const xOverlaps = otherLeft < activeRight && otherRight > activeLeft;
-    if(xOverlaps && otherBottom <= activeTop && (bestTop === undefined || otherBottom > bestTop)) {
+    if(xOverlaps && otherBottom <= activeTop && (bestTop === undefined ||
+      // Stryker disable next-line EqualityOperator: equivalent — on a tie the assignment below stores the very same number again.
+      otherBottom > bestTop)) {
       bestTop = otherBottom;
     }
   });
-  if(bestTop !== undefined && bestTop < activeTop) {
+  // Stryker disable next-line ConditionalExpression: equivalent — an undefined best fails the comparison on the next line anyway (`undefined < n` is false). Split so the mutants on that comparison stay active.
+  if(bestTop !== undefined &&
+    bestTop < activeTop) {
     indicators.push({ axis: `y`, distance: activeTop - bestTop, gapEnd: activeTop, gapStart: bestTop });
   }
 
@@ -168,11 +181,15 @@ export function findSpacingIndicators(layout: TLayout, activeItem: ILayoutItem):
     const otherLeft = item.x;
     const otherRight = item.x + item.w;
     const xOverlaps = otherLeft < activeRight && otherRight > activeLeft;
-    if(xOverlaps && otherTop >= activeBottom && (bestBottom === undefined || otherTop < bestBottom)) {
+    if(xOverlaps && otherTop >= activeBottom && (bestBottom === undefined ||
+      // Stryker disable next-line EqualityOperator: equivalent — on a tie the assignment below stores the very same number again.
+      otherTop < bestBottom)) {
       bestBottom = otherTop;
     }
   });
-  if(bestBottom !== undefined && bestBottom > activeBottom) {
+  // Stryker disable next-line ConditionalExpression: equivalent — an undefined best fails the comparison on the next line anyway (`undefined > n` is false). Split so the mutants on that comparison stay active.
+  if(bestBottom !== undefined &&
+    bestBottom > activeBottom) {
     indicators.push({ axis: `y`, distance: bestBottom - activeBottom, gapEnd: bestBottom, gapStart: activeBottom });
   }
 

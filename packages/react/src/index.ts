@@ -16,5 +16,7 @@ export type { IGridItemProps } from './components/Grid/grid-item-props.interface
 export type { IGridLayoutHandle } from './components/Grid/grid-layout-handle.interface';
 export { useLayoutStorage } from './hooks/useLayoutStorage';
 export type { IUseLayoutStorageReturn } from './hooks/useLayoutStorage';
+export { useAsyncLayoutStorage } from './hooks/useAsyncLayoutStorage';
+export type { IUseAsyncLayoutStorageOptions, IUseAsyncLayoutStorageReturn } from './hooks/useAsyncLayoutStorage';
 export { useLayoutPresets } from './hooks/useLayoutPresets';
 export type { IUseLayoutPresetsOptions, IUseLayoutPresetsReturn } from './hooks/useLayoutPresets';

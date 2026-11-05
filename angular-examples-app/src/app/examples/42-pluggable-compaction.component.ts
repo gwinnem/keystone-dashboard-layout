@@ -1,10 +1,10 @@
 ﻿import { Component, ViewChild } from '@angular/core';
 import { GridLayoutComponent, GridItemComponent } from 'keystone-dashboard-layout-angular';
-import { ECompactType } from 'keystone-dashboard-layout-core';
+import { ECompactType, verticalFastCompactor } from 'keystone-dashboard-layout-core';
 import type { ICompactor, TLayout } from 'keystone-dashboard-layout-core';
 import { LayoutJsonViewerComponent } from '../harness/layout-json-viewer.component';
 
-type TMode = 'vertical' | 'horizontal' | 'none' | 'vertical-overlap' | 'custom';
+type TMode = 'vertical' | 'horizontal' | 'none' | 'vertical-overlap' | 'fast' | 'custom';
 
 // A custom ICompactor — stacks every non-static item into a single
 // left-hand column, one after another, ignoring x/width entirely.
@@ -40,6 +40,7 @@ const initialLayout: TLayout = [
         <option value="horizontal">compactType: horizontal</option>
         <option value="none">compactType: none</option>
         <option value="vertical-overlap">compactType: vertical-overlap</option>
+        <option value="fast">compactor: verticalFastCompactor</option>
         <option value="custom">custom compactor: single column</option>
       </select>
       <button class="demo-btn" type="button" (click)="scatter()">Scatter</button>
@@ -94,7 +95,9 @@ export class PluggableCompactionDemoComponent {
       default:
         this.compactType = ECompactType.VERTICAL;
     }
-    this.compactor = this.mode === 'custom' ? singleColumnCompactor : null;
+    // `verticalFastCompactor` gives the same result as the default vertical
+    // compactor, in roughly O(n log n) instead of O(n²).
+    this.compactor = this.mode === 'custom' ? singleColumnCompactor : this.mode === 'fast' ? verticalFastCompactor : null;
   }
 
   scatter(): void {

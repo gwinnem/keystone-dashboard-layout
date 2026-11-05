@@ -71,6 +71,12 @@ export enum EGridLayoutEvent {
   /** Fired after a layout mutation (compaction, drag/resize completion, responsive switch) has fully settled. */
   LAYOUT_UPDATED = `layout-updated`,
   /**
+   * The `v-model:maximized-item` update event — fired when `maximize()`, `restore()` or Escape changes which item is
+   * maximized. Payload: the new maximized item's id, or `null` once restored. `layout` is never touched by maximizing, so no
+   * `update:layout`/`layout-updated` accompanies it.
+   */
+  MAXIMIZED_ITEM_UPDATE = `update:maximizedItem`,
+  /**
    * Fired when `preventCollision` blocks an in-progress drag or resize —
    * the item stays exactly where it was (the collision-blocked position
    * is never committed), with no other signal otherwise indicating this

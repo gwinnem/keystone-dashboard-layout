@@ -23,6 +23,7 @@
   },
   "coverageAnalysis": "perTest",
   "timeoutMS": 15000,
+  "concurrency": 8,
   "dryRunTimeoutMinutes": 20,
   "mutate": [
     "src/components/Grid/GridLayout.tsx",

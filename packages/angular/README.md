@@ -103,9 +103,11 @@ import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-
   `'scroll'`/`'fit'` modes) and per-item `autoHeight`, visible grid
   lines, visual alignment guides *and* magnetic `snapToGrid` (a real
   distinction — one shows where edges line up, the other actually
-  moves the item), CSS transform positioning.
+  moves the item), CSS transform positioning (replaceable through
+  `positionStrategy`).
 - **A grid-wide behavioral cascade** — `isDraggable`/`isResizable`/
-  `isBounded`/`isMirrored`/`maxRows`/`showCloseButton`/`enableEditMode`/
+  `isBounded`/`isMirrored`/`autoScroll`/`preserveAspectRatio`/`maxRows`/
+  `showCloseButton`/`enableEditMode`/
   `useBorderRadius`/`borderRadiusPx`/`ariaLabels` can each be set once
   on `GridLayoutComponent` and inherited by every `GridItemComponent`,
   or overridden per-item when needed.
@@ -121,7 +123,10 @@ import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-
   plus overlap variants (`compactType`), `preventCollision`,
   `horizontalShift`, static items excluded from cascades, on-demand
   `compactNow()`/`rearrange()`, collision-safe `duplicateItem(id)`, a
-  pluggable `compactor` input for replacing the algorithm entirely.
+  pluggable `compactor` input for replacing the algorithm entirely
+  (`verticalFastCompactor` is a faster drop-in for very large layouts),
+  and `collisionMode: 'swap'` to trade places on drop instead of
+  pushing.
 - **Responsive layouts** — breakpoint-driven column counts
   (`responsive`/`breakpoints`/`cols`), predefined layouts per
   breakpoint (`responsiveLayouts`) with auto-generation for any
@@ -139,7 +144,10 @@ import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-
   + a `removeItem` `@Output()`), an edit-mode toggle (`enableEditMode`),
   add/remove items without manual position math, opt-in undo/redo
   (`enableUndoRedo`/`undoHistoryLimit`) at committed-change granularity
-  — including externally-driven `layout` changes, not just drag/resize.
+  — including externally-driven `layout` changes, not just drag/resize,
+  and maximize/restore — one item fills the whole grid without
+  changing `layout` (`[(maximizedItem)]`, `showMaximizeButton`; Escape
+  restores).
 - **Styling and customization** — configurable border radius,
   transition duration/easing, a `[kdlGridItemHeader]` marker directive
   for a dedicated header region, standalone `GridItemCloseButtonComponent`/
@@ -148,7 +156,10 @@ import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-
 - **Persistence** — `GridLayoutStorageService` for a single saved
   layout, plus `GridLayoutPresetsService` for saving and switching
   between several named arrangements — both `providedIn: 'root'`,
-  taking/returning a plain layout value directly.
+  taking/returning a plain layout value directly — and
+  `GridLayoutAsyncStorageService` for a server, IndexedDB or any other
+  promise-based store (writes are queued, failures go to `errors$`,
+  nothing rejects).
 - **Export** — `exportLayoutAsSvg()`, a dependency-free grid-to-image
   export for a report, thumbnail, or "share my dashboard" feature.
 - **Accessibility** — keyboard move/resize, `aria-roledescription`/
@@ -183,7 +194,8 @@ export class DashboardComponent {
 `canUndo`/`canRedo`, `selectItem()`/`deselectItem()`/
 `toggleItemSelection()`/`clearSelection()`/`selectedItemIds`,
 `alignSelected(edge)`/`distributeSelected(axis)`,
-`exportLayoutAsSvg(options?)`, `scrollToItem(id)`/`focusItem(id)`.
+`exportLayoutAsSvg(options?)`, `scrollToItem(id)`/`focusItem(id)`,
+`maximize(id)`/`restore()`/`toggleMaximize(id)`.
 
 ## What this package exports
 
@@ -194,6 +206,7 @@ import {
   GridItemHeaderDirective,
   GridLayoutStorageService,
   GridLayoutPresetsService,
+  GridLayoutAsyncStorageService,
   GridItemDragHandleComponent,
   GridItemCloseButtonComponent,
 } from 'keystone-dashboard-layout-angular';

@@ -95,7 +95,8 @@ import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-
   `'scroll'`/`'fit'` modes) and per-item `autoHeight`, visible grid
   lines, visual alignment guides *and* magnetic `snapToGrid` (a real
   distinction — one shows where edges line up, the other actually
-  moves the item), CSS transform positioning.
+  moves the item), CSS transform positioning (replaceable through
+  `positionStrategy`).
 - **Drag and resize** — drag from anywhere on an item by default, or
   restrict it to a handle (`dragAllowFrom`/`dragIgnoreFrom`); resize
   from all eight edges/corners with cursor affordance and optional
@@ -110,7 +111,10 @@ import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-
   plus overlap variants (`compactType`), `preventCollision`,
   `horizontalShift`, static items excluded from cascades, on-demand
   `compactNow()`/`rearrange()`, collision-safe `duplicateItem(id)`, a
-  pluggable `compactor` prop for replacing the algorithm entirely.
+  pluggable `compactor` prop for replacing the algorithm entirely
+  (`verticalFastCompactor` is a faster drop-in for very large layouts),
+  and `collisionMode: 'swap'` to trade places on drop instead of
+  pushing.
 - **Responsive layouts** — breakpoint-driven column counts
   (`responsive`/`breakpoints`/`cols`), predefined layouts per
   breakpoint (`responsiveLayouts`) with auto-generation for any
@@ -128,13 +132,19 @@ import { collides, compactLayout, moveElement } from 'keystone-dashboard-layout-
 - **Editing and lifecycle** — a close button, an edit-mode toggle
   (`enableEditMode`), add/remove items without manual position math,
   opt-in undo/redo (`enableUndoRedo`/`undoHistoryLimit`) at
-  committed-change granularity.
+  committed-change granularity, and maximize/restore — one item fills
+  the whole grid without changing `layout` (`maximizedItem`/
+  `onMaximizedItemChange`, `showMaximizeButton`; Escape restores, and
+  `onItemResized` reports the new pixel size on maximize and restore).
 - **Styling and customization** — configurable border radius, transition
   duration/easing, a `renderPlaceholder` render prop for custom
   drag-placeholder content, a `header` render prop, automatic RTL
   mirroring (`isMirrored`).
 - **Persistence** — `useLayoutStorage` for a single saved layout, plus
-  `useLayoutPresets` for saving and switching between several named
+  `useAsyncLayoutStorage` for saving to a server, IndexedDB or any other
+  promise-based store (writes are queued, failures are reported and
+  never thrown), and `useLayoutPresets` for saving and switching between
+  several named
   arrangements.
 - **Export** — `exportLayoutAsSvg()` on the imperative handle, a
   dependency-free grid-to-image export for a report, thumbnail, or
@@ -165,7 +175,8 @@ gridRef.current?.compactNow();
 `canUndo`/`canRedo`, `selectItem()`/`deselectItem()`/
 `toggleItemSelection()`/`clearSelection()`/`selectedItems`,
 `alignSelected(edge)`/`distributeSelected(axis)`,
-`exportLayoutAsSvg(options?)`, `scrollToItem(id)`/`focusItem(id)`.
+`exportLayoutAsSvg(options?)`, `scrollToItem(id)`/`focusItem(id)`,
+`maximize(id)`/`restore()`/`toggleMaximize(id)`/`maximizedItem`.
 
 > `canUndo`/`canRedo` are a snapshot read off the handle, not reactive
 > state — reading `gridRef.current?.canUndo` directly in JSX won't

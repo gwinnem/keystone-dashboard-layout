@@ -53,6 +53,10 @@ import { HeightModesPageComponent } from './pages/50-height-modes.page.component
 import { DragActivationDistancePageComponent } from './pages/51-drag-activation-distance.page.component';
 import { RestrictResizeHandlesPageComponent } from './pages/52-restrict-resize-handles.page.component';
 import { ResizeDirectionTogglesPageComponent } from './pages/53-resize-direction-toggles.page.component';
+import { PluggablePositioningPageComponent } from './pages/54-pluggable-positioning.page.component';
+import { SwapOnDragPageComponent } from './pages/55-swap-on-drag.page.component';
+import { AsyncPersistencePageComponent } from './pages/56-async-persistence.page.component';
+import { MaximizePageComponent } from './pages/57-maximize.page.component';
 
 export const ROUTES: Routes = [
   { path: '', component: HomeComponent },
@@ -109,4 +113,8 @@ export const ROUTES: Routes = [
   { path: 'examples/51-drag-activation-distance', component: DragActivationDistancePageComponent },
   { path: 'examples/52-restrict-resize-handles', component: RestrictResizeHandlesPageComponent },
   { path: 'examples/53-resize-direction-toggles', component: ResizeDirectionTogglesPageComponent },
+  { path: 'examples/54-pluggable-positioning', component: PluggablePositioningPageComponent },
+  { path: 'examples/55-swap-on-drag', component: SwapOnDragPageComponent },
+  { path: 'examples/56-async-persistence', component: AsyncPersistencePageComponent },
+  { path: 'examples/57-maximize', component: MaximizePageComponent },
 ];

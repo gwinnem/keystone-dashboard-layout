@@ -16,8 +16,10 @@ describe(`resolveAriaLabels`, () => {
     // down the real content.
     expect(DEFAULT_ARIA_LABELS.closeButton).toBe(`Close`);
     expect(DEFAULT_ARIA_LABELS.itemRoleDescription).toBe(`Draggable, resizable item`);
+    expect(DEFAULT_ARIA_LABELS.maximizeButton).toBe(`Maximize`);
     expect(DEFAULT_ARIA_LABELS.moveInstruction).toBe(`Press arrow keys to move.`);
     expect(DEFAULT_ARIA_LABELS.resizeInstruction).toBe(`Press shift plus arrow keys to resize.`);
+    expect(DEFAULT_ARIA_LABELS.restoreButton).toBe(`Restore`);
   });
 
   it(`Should let GridLayout's own labels override the defaults`, () => {

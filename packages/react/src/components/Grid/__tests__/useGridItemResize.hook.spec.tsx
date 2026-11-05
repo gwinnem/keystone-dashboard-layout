@@ -339,4 +339,68 @@ describe(`useGridItemResize`, () => {
       expect(onResize).not.toHaveBeenCalled();
     });
   });
+
+  describe(`initial state`, () => {
+    it(`Should not be resizing before any gesture, with no live size to show`, () => {
+      const ctx = createContext(defaultOptions());
+
+      expect(ctx.result.isResizing).toBe(false);
+      expect(ctx.result.resizing).toBeUndefined();
+    });
+  });
+
+  // With no resizestart there is no gesture and so no edge being dragged. An event that arrives anyway has to leave the item in the cell it
+  // already occupies, not compute a new one from edges that were never set.
+  describe(`a resizeend that arrives before any resizestart`, () => {
+    it(`Should report the item's own cell, unchanged (LTR)`, () => {
+      const onResize = vi.fn();
+      const ctx = createContext(defaultOptions({ innerX: 3, innerY: 4, onResize }));
+
+      ctx.dispatch({ type: `resizeend` });
+
+      const call = onResize.mock.calls.at(-1);
+      expect(call?.[2]).toBe(3);
+      expect(call?.[3]).toBe(4);
+    });
+
+    it(`Should report the item's own cell, unchanged (RTL)`, () => {
+      const onResize = vi.fn();
+      const ctx = createContext(defaultOptions({ innerX: 3, innerY: 4, isMirrored: true, onResize }));
+
+      ctx.dispatch({ type: `resizeend` });
+
+      const call = onResize.mock.calls.at(-1);
+      expect(call?.[2]).toBe(3);
+      expect(call?.[3]).toBe(4);
+    });
+  });
+
+  describe(`an item that fills the rest of its row and column (Infinity)`, () => {
+    it(`Should keep an infinite width and height infinite, even with no margin`, () => {
+      // With a zero margin the "gaps" term is Infinity * 0 = NaN, so without the explicit Infinity case the whole size comes out NaN.
+      const ctx = createContext(defaultOptions({ h: Infinity, margin: [0, 0], w: Infinity }));
+
+      ctx.dispatch({ type: `resizestart` });
+
+      expect(ctx.result.resizing?.height).toBe(Infinity);
+      expect(ctx.result.resizing?.width).toBe(Infinity);
+    });
+  });
+
+  describe(`onItemResized`, () => {
+    it(`Should report a resize that changed only the height`, () => {
+      // 2 -> 3 rows: height 310 + 160 = 470, and round((470 + 10) / 160) = 3. The width stays 190 (2 columns), so only the h comparison
+      // can tell that this resize changed anything.
+      const onItemResized = vi.fn();
+      const ctx = createContext(defaultOptions({ onItemResized }));
+      const bottom = { bottom: true, left: false, right: false, top: false };
+      ctx.dispatch({ edges: bottom, type: `resizestart` });
+      ctx.dispatch({ clientY: 160, edges: bottom, type: `resizemove` });
+
+      ctx.dispatch({ clientY: 160, edges: bottom, type: `resizeend` });
+
+      expect(onItemResized).toHaveBeenCalledTimes(1);
+      expect(onItemResized).toHaveBeenCalledWith({ h: 3, height: 470, i: `item-1`, w: 2, width: 190 });
+    });
+  });
 });

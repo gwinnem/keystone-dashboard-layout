@@ -1,11 +1,23 @@
 import { createRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { ECompactType } from 'keystone-dashboard-layout-core';
 import type { TLayout } from 'keystone-dashboard-layout-core';
 import { GridLayout } from '../GridLayout';
 import { GridItem } from '../GridItem';
 import type { IGridLayoutHandle } from '../grid-layout-handle.interface';
+
+/**
+ * Runs `fn` inside `act()` and hands back what it returned. Every method on the imperative handle updates the grid's state
+ * from outside React's own event system, so calling one bare makes React warn that the update was not wrapped in `act(...)`.
+ */
+function callInAct<T>(fn: () => T): T {
+  let result: T | undefined;
+  act(() => {
+    result = fn();
+  });
+  return result as T;
+}
 
 describe(`GridLayout imperative handle`, () => {
   describe(`compactNow / rearrange`, () => {
@@ -23,7 +35,7 @@ describe(`GridLayout imperative handle`, () => {
         </GridLayout>,
       );
 
-      ref.current!.compactNow();
+      callInAct(() => ref.current!.compactNow());
 
       const lastCall = handleChange.mock.calls.at(-1)![0] as TLayout;
       expect(lastCall.find(entry => entry.i === `1`)!.y).toBe(2);
@@ -43,7 +55,7 @@ describe(`GridLayout imperative handle`, () => {
         </GridLayout>,
       );
 
-      ref.current!.compactNow();
+      callInAct(() => ref.current!.compactNow());
 
       const lastCall = handleChange.mock.calls.at(-1)![0] as TLayout;
       expect(lastCall.find(entry => entry.i === `1`)!.y).toBe(2);
@@ -63,7 +75,7 @@ describe(`GridLayout imperative handle`, () => {
         </GridLayout>,
       );
 
-      ref.current!.rearrange();
+      callInAct(() => ref.current!.rearrange());
 
       const lastCall = handleChange.mock.calls.at(-1)![0] as TLayout;
       expect(lastCall.find(entry => entry.i === `1`)!.y).toBe(2);
@@ -81,7 +93,7 @@ describe(`GridLayout imperative handle`, () => {
         </GridLayout>,
       );
 
-      const newId = ref.current!.duplicateItem(`0`);
+      const newId = callInAct(() => ref.current!.duplicateItem(`0`));
 
       expect(newId).toBe(`0-copy`);
       const lastCall = handleChange.mock.calls.at(-1)![0] as TLayout;
@@ -102,7 +114,7 @@ describe(`GridLayout imperative handle`, () => {
         </GridLayout>,
       );
 
-      ref.current!.duplicateItem(`0`);
+      callInAct(() => ref.current!.duplicateItem(`0`));
 
       const lastCall = handleChange.mock.calls.at(-1)![0] as TLayout;
       const copy = lastCall.find(entry => entry.i === `0-copy`);
@@ -119,7 +131,7 @@ describe(`GridLayout imperative handle`, () => {
         </GridLayout>,
       );
 
-      const firstCopyId = ref.current!.duplicateItem(`0`);
+      const firstCopyId = callInAct(() => ref.current!.duplicateItem(`0`));
       const afterFirst = handleChange.mock.calls.at(-1)![0] as TLayout;
       rerender(
         <GridLayout compactType={ECompactType.NONE} layout={afterFirst} onLayoutChange={handleChange} ref={ref}>
@@ -128,7 +140,7 @@ describe(`GridLayout imperative handle`, () => {
         </GridLayout>,
       );
 
-      const secondCopyId = ref.current!.duplicateItem(`0`);
+      const secondCopyId = callInAct(() => ref.current!.duplicateItem(`0`));
 
       expect(firstCopyId).toBe(`0-copy`);
       expect(secondCopyId).toBe(`0-copy-2`);
@@ -142,7 +154,7 @@ describe(`GridLayout imperative handle`, () => {
         </GridLayout>,
       );
 
-      expect(ref.current!.duplicateItem(`does-not-exist`)).toBeNull();
+      expect(callInAct(() => ref.current!.duplicateItem(`does-not-exist`))).toBeNull();
     });
   });
 });

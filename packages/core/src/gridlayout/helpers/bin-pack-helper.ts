@@ -33,15 +33,16 @@ import { collides } from '@/core/gridlayout/helpers/collision-helper';
  *                same bound `GridLayout`'s own `colNum` prop enforces.
  * @param w       Width, in grid units, of the item being placed.
  * @param h       Height, in grid units, of the item being placed.
- * @return        The first `(x, y)` slot the item fits in. If every
- *                row already in use is completely full, returns
- *                `{ x: 0, y: maxY }` — one fresh row past everything
- *                currently occupied, the correct behavior once there
- *                genuinely is no gap anywhere, not a fallback masking
- *                a bug.
+ * @return        The first `(x, y)` slot the item fits in. Row `maxY` (one past
+ *                everything occupied) is always empty, so an item no wider than
+ *                `colNum` always finds a slot there at the latest. The
+ *                `{ x: 0, y: maxY }` fallback is therefore only reached for an
+ *                item WIDER than the grid (`w > colNum`), which can fit in no
+ *                column at all: it is placed on a fresh row at the left edge.
  */
 export function findFirstFitSlot(layout: TLayout, colNum: number, w: number, h: number): { x: number; y: number } {
   const maxY = layout.reduce((max, item) => Math.max(max, item.y + item.h), 0);
+  // Stryker disable next-line EqualityOperator: equivalent — row `maxY` is always empty, so skipping it just reaches the same `{ x: 0, y: maxY }` through the fallback below.
   for(let y = 0; y <= maxY; y++) {
     for(let x = 0; x <= colNum - w; x++) {
       const candidate = { h, i: `__find-first-fit-slot-candidate__`, w, x, y } as ILayoutItem;

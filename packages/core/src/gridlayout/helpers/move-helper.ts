@@ -17,7 +17,9 @@ export const moveToCorrectPlace = (
   bounds: { cols: number },
   staticItems: ILayoutItem[],
 ): void => {
-  if(layoutItem == ({} as ILayoutItem) || layoutItem === null || layoutItem === undefined) {
+  // An empty object is as unusable as null/undefined: every later read of x/y/w/h would be NaN. (This used to compare against a fresh
+  // `{}` literal with `==`, which is a reference comparison and so never true.)
+  if(layoutItem === null || layoutItem === undefined || Object.keys(layoutItem).length === 0) {
     throw new Error(EErrorMessage.INVALID_LAYOUT_ITEM);
   }
 
@@ -120,10 +122,15 @@ export function moveElement(
     }
 
     // This makes it feel a bit more precise by waiting to swap for just a bit when moving up.
-    if(l.y > collision.y && l.y - collision.y > collision.h / 4) {
+    // Stryker disable next-line ConditionalExpression,EqualityOperator: equivalent for the first operand — when `l.y <= collision.y` the difference below is
+    // zero or negative and can never exceed `collision.h / 4`, so forcing it true, or turning `>` into `>=`, changes nothing.
+    // (Split across two lines so the mutants on the second operand, which are NOT equivalent, stay active.)
+    if(l.y > collision.y &&
+      l.y - collision.y > collision.h / 4) {
       continue;
     }
 
+    // Stryker disable next-line OptionalChaining: equivalent — `filter()` always returns an array, so the guard on `[0]` is never needed.
     const movingDirection = (Object.keys(moving) as EMovingDirections[]).filter(k => moving[k])?.[0];
 
     // Don't move static items - we have to move *this* element away
@@ -179,6 +186,7 @@ export function moveElementAwayFromCollision(
     // Make a mock item, so we don't modify the item here, only modify in moveElement.
     const fakeItem: ILayoutItem = {
       h: itemToMove.h,
+      // Stryker disable next-line StringLiteral: equivalent — `collides()` compares items by reference, so this id is never read.
       i: `-1`,
       w: itemToMove.w,
       x: itemToMove.x,

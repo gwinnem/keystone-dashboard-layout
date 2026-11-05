@@ -22,6 +22,7 @@ enum EGridLayoutEvent {
   LAYOUT_READY = 'layout-ready',
   LAYOUT_UPDATE = 'update:layout',
   LAYOUT_UPDATED = 'layout-updated',
+  MAXIMIZED_ITEM_UPDATE = 'update:maximizedItem',
   MOVE_BLOCKED_BY_COLLISION = 'move-blocked-by-collision',
   SELECTION_CHANGED = 'selection-changed',
 }
@@ -40,4 +41,5 @@ don't rely on either firing. (`GridItem` has its own, functioning
 
 `LAYOUT_UPDATE`'s value (`'update:layout'`) is Vue's own `v-model`
 naming convention — it's what makes `<GridLayout v-model:layout="layout">`
-work without you needing to listen for it directly.
+work without you needing to listen for it directly. `MAXIMIZED_ITEM_UPDATE`
+does the same for `v-model:maximized-item`.

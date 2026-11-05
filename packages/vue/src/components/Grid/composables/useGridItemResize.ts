@@ -71,6 +71,11 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
     transformScale,
   } = ctx;
 
+  /** Resolved `autoScroll` (this item's own prop, else the grid's default); falls back to the raw prop when no resolved ref is supplied. */
+  const isAutoScroll = (): boolean => (ctx.autoScroll ? ctx.autoScroll.value : props.autoScroll === true);
+  /** Resolved `preserveAspectRatio`, same resolution and fallback as `isAutoScroll`. */
+  const isPreserveAspectRatio = (): boolean => (ctx.preserveAspectRatio ? ctx.preserveAspectRatio.value : props.preserveAspectRatio === true);
+
   const slots = useSlots();
 
   /** `null` until `GridItem`'s `onMounted` resolves it from the `isResizable` prop or the parent layout's default. */
@@ -263,7 +268,7 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
         isResizing.value = true;
         ({ edges } = event);
         aspectRatio.value = pos.height > 0 ? pos.width / pos.height : undefined;
-        if(props.autoScroll) {
+        if(isAutoScroll()) {
           autoScroll.start(event.target);
         }
         // The shared code below this switch statement (which this case
@@ -358,7 +363,7 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
         // the resulting height delta — the same anchor-compensation
         // `edges.top` already does for a direct height change above,
         // just applied to the derived one instead.
-        if(props.preserveAspectRatio && aspectRatio.value) {
+        if(isPreserveAspectRatio() && aspectRatio.value) {
           const drivingWidth = edges.left || edges.right;
           // Stryker disable next-line ConditionalExpression,LogicalOperator: equivalent — with no horizontal or vertical edge driving the gesture the derived size equals the current one anyway, and a lone width edge takes the same result through either branch.
           const drivingHeight = edges.top || edges.bottom;
@@ -366,8 +371,9 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
             newSize.height = newSize.width / aspectRatio.value;
           } else if(drivingHeight && !drivingWidth) {
             newSize.width = newSize.height * aspectRatio.value;
-          // Stryker disable next-line ConditionalExpression,LogicalOperator: equivalent — see the comment on drivingHeight above; the only extra case this branch can reach is a gesture with no driving edge, where the derived size equals the current one.
-          } else if(drivingWidth && drivingHeight) {
+          } else if(
+            // Stryker disable next-line ConditionalExpression,LogicalOperator: equivalent — see the comment on drivingHeight above; the only extra case this branch can reach is a gesture with no driving edge, where the derived size equals the current one.
+            drivingWidth && drivingHeight) {
             const derivedHeight = newSize.width / aspectRatio.value;
             if(edges.top) {
               newSize.top = prevTop + (prevHeight - derivedHeight);
@@ -376,7 +382,7 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
           }
         }
 
-        if(props.autoScroll) {
+        if(isAutoScroll()) {
           autoScroll.update(event.clientX, event.clientY);
         }
 
@@ -455,7 +461,9 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
     let newX = innerX.value;
     let newY = innerY.value;
     const horizontalAnchorEdge = renderRtl.value ? edges.right : edges.left;
-    if(horizontalAnchorEdge && newSize.horizontal !== undefined) {
+    if(horizontalAnchorEdge &&
+      // Stryker disable next-line ConditionalExpression: equivalent — resizemove and resizeend both assign newSize.horizontal before this point, if only as NaN, so it is never undefined here.
+      newSize.horizontal !== undefined) {
       // pixelsToGridX's formula is the same regardless of which CSS
       // property (`left` or `right`) newSize.horizontal actually
       // represents — calcPosition computes both the same way
@@ -465,7 +473,9 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
       // edge to trigger on above.
       newX = pixelsToGridX(newSize.horizontal, pos.w);
     }
-    if(edges.top && newSize.top !== undefined) {
+    if(edges.top &&
+      // Stryker disable next-line ConditionalExpression: equivalent — resizemove and resizeend both assign newSize.top before this point, if only as NaN, so it is never undefined here.
+      newSize.top !== undefined) {
       newY = pixelsToGridY(newSize.top, pos.h);
     }
 
@@ -596,7 +606,7 @@ export function useGridItemResize(ctx: IGridItemComposableContext): IUseGridItem
     // autoHeight enabled at all, where no wrapper ref exists to prefer.
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const slotElement = autoHeightWrapper.value ?? slots?.default?.()[0]?.elm;
+    const slotElement = autoHeightWrapper.value ?? slots.default?.()[0]?.elm;
     if(!slotElement || typeof slotElement.getBoundingClientRect !== `function`) {
       return;
     }

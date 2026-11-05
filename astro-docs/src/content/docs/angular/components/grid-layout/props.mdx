@@ -23,13 +23,14 @@ cascade). See each row's own note.
 
 | Input/Output | Type | Default | Description |
 |---|---|---|---|
-| `colNum` | `number` | `12` | Maximum number of columns. Ignored while `responsive` is on. |
+| `colNum` | `number` | `12` | Maximum number of columns. Ignored while `responsive` is on. Changing it pulls items that no longer fit back inside the new column count and compacts the layout, and emits `layoutChange` when anything moved. |
 | `rowHeight` | `number` | `150` | Height of one grid row, in pixels. |
 | `margin` | `[number, number]` | `[10, 10]` | `[horizontal, vertical]` spacing between items, in pixels. |
 | `maxRows` | `number` | `Infinity` | Maximum number of rows the layout may grow to — cascaded, unconditionally overriding a standalone `GridItemComponent`'s own `maxRows` `@Input()` (this one field has no per-item override in Angular either, matching Vue). |
 | `autoSize` | `boolean` | `true` | Grows/shrinks the container's height to fit the layout's content. Ignored once `heightMode` is set to anything other than `null`. |
 | `heightMode` | `'auto' \| 'fixed' \| 'scroll' \| 'fit' \| null` | `null` | How the container's height is determined. `null` defers to `autoSize`. `'auto'`: today's `autoSize: true` behavior. `'fixed'`: no explicit height. `'scroll'`: same as `'fixed'`, plus `overflow-y: auto`. `'fit'`: height locked to `100%` of the parent, with the same `overflow-y: auto` as `'scroll'`. |
-| `useCssTransforms` | `boolean` | `true` | Positions items via CSS `transform: translate3d(...)` instead of `top`/`left`. |
+| `useCssTransforms` | `boolean` | `true` | Positions items via CSS `transform: translate3d(...)` instead of `top`/`left`. Ignored when `positionStrategy` is set. |
+| `positionStrategy` | `IPositionStrategy \| null` | `null` | Replaces the `useCssTransforms` toggle with a pluggable strategy: an object with a `type`, an optional `className` and a `getStyle(position)` function returning the item's inline style. Cascaded to every descendant `GridItemComponent`. `transformStrategy` and `topLeftStrategy` are exported from `keystone-dashboard-layout-core`. Keep `width`/`height` as `'NNpx'` strings. `null` keeps `useCssTransforms` behavior. See [example 54](https://kdla.winnem.tech/examples/54-pluggable-positioning). |
 | `transformScale` | `number` | `1` | Compensates drag/resize pixel math for a scaled ancestor (e.g. a zoomed-out canvas view) — cascaded to every descendant `GridItemComponent`. |
 
 ## Drag & resize defaults
@@ -42,11 +43,14 @@ cascade). See each row's own note.
 | `enableEditMode` | `boolean` | `true` | Cascaded, grid-wide master interactivity switch — `false` disables `tabindex`/`role`/the keyboard-instructions span/the close button across the whole grid at once. Does **not** gate the native drag/resize engine itself, nor the keyboard handler's own guard — both read the raw resolved `isDraggable`/`isResizable` directly, matching Vue's own identical asymmetry. |
 | `showResizeHandles` | `boolean` | `false` | Grid-wide default for whether the 8 resize-hint spans are visibly styled, applied via `--kdl-resize-handle-color` — inherited naturally through the DOM, not via the eventBus. A per-item override exists. |
 | `resizeHandleColor` | `string` | `'rgb(94 94 94 / 45%)'` | CSS color for the visible resize-handle affordance, when `showResizeHandles` is on. |
+| `preserveAspectRatio` | `boolean` | `false` | Grid-wide default for whether resizing preserves an item's current width/height ratio. An item that doesn't set its own `preserveAspectRatio` inherits this; an item's own value overrides it. |
+| `autoScroll` | `boolean` | `false` | Grid-wide default for whether the nearest scrollable ancestor scrolls automatically while an item is being dragged or resized near its edge. An item that doesn't set its own `autoScroll` inherits this; an item's own value overrides it. |
 
 ## Collision & compaction
 
 | Input/Output | Type | Default | Description |
 |---|---|---|---|
+| `collisionMode` | `'push' \| 'swap'` | `'push'` | What dropping a dragged item onto another one does. `'push'` shoves the item underneath out of the way. `'swap'` trades places with it, when the drop lands on exactly one other non-static item that fits into the dragged item's starting cell; anything else (several items, a static item, or the other item not fitting the starting cell) falls back to `'push'`. Only affects dragging, and is ignored while `preventCollision` is on. See [Swap on drag](https://kdla.winnem.tech/examples/55-swap-on-drag). |
 | `preventCollision` | `boolean` | `false` | Blocks a drag/resize that would collide, instead of pushing the other item. |
 | `compactType` | `ECompactType` | `ECompactType.VERTICAL` | Selects one of five built-in compaction strategies. Ignored when `compactor` is set. |
 | `compactor` | `ICompactor \| null` | `null` | Overrides the built-in compaction algorithm entirely. Purely additive — `compactType` keeps working normally when this isn't set. |
@@ -58,6 +62,14 @@ cascade). See each row's own note.
 | `showAlignmentGuides` | `boolean` | `false` | Shows guide lines while dragging/resizing wherever edges line up — visual only. |
 | `showSpacingGuides` | `boolean` | `false` | Shows a labeled distance badge between the active item and its nearest neighbor. |
 | `moveBlockedByCollision` | `EventEmitter<string \| number>` | — | Emits this item's own id when `preventCollision` actually constrained a drag (blocked entirely) or a resize (clamped, can still partially grow). |
+
+## Maximize
+
+| Input/Output | Type | Default | Description |
+|---|---|---|---|
+| `maximizedItem` | `string \| number \| null` | `null` | The `i` of the item currently maximized, or `null` for none. Two-way bindable with `[(maximizedItem)]`. The maximized item fills the grid (minus one `margin` on each side); every other item is hidden but stays in the DOM, and `layout` is never changed. Compaction is suspended while maximized and runs once on restore (emitting `layoutChange`). An id that isn't in `layout` is ignored. Escape restores. See [Maximize and restore](https://kdla.winnem.tech/examples/57-maximize). |
+| `maximizedItemChange` | `EventEmitter<string \| number \| null>` | — | Emits the id when an item is maximized from inside the grid, and `null` when it is restored — the built-in button, Escape, or `maximize()`/`restore()`. Not emitted when your own `[maximizedItem]` binding changes. |
+| `showMaximizeButton` | `boolean` | `false` | Cascaded default for rendering the built-in maximize/restore button on each item. A per-item `showMaximizeButton` overrides this. |
 
 ## Multi-select & undo/redo
 
@@ -94,7 +106,7 @@ cascade). See each row's own note.
 | `showCloseButton` | `boolean` | `false` | Cascaded default for whether each item renders a close button. A per-item override exists. |
 | `borderRadiusPx` | `number` | `10` | Cascaded default border radius, applied when `useBorderRadius` is on. A per-item override exists. |
 | `useBorderRadius` | `boolean` | `false` | Cascaded default for whether `borderRadiusPx` is actually applied. A per-item override exists. |
-| `transitionDurationMs` | `number` | `200` | `--grid-transition-duration` CSS custom property, inherited naturally by every descendant item. |
+| `transitionDurationMs` | `number` | `200` | `--grid-transition-duration` CSS custom property, inherited naturally by every descendant item. Applies once the grid has settled: the property stays `0ms` until the grid has been painted once at its measured width (two animation frames after the first measurement), so items do not slide into place on load. |
 | `transitionTimingFunction` | `string` | `'ease'` | `--grid-transition-timing` CSS custom property, same inheritance as `transitionDurationMs`. |
 
 ## Cross-grid & outside drag-and-drop

@@ -36,6 +36,14 @@ Visually-hidden label for the close button. Read by screen readers; the visible 
 
 ***
 
+### maximizeButton?
+
+> `optional` **maximizeButton?**: `string`
+
+Visually-hidden label for the maximize button (`showMaximizeButton`) while the item is not maximized. Default `'Maximize'`.
+
+***
+
 ### moveInstruction?
 
 > `optional` **moveInstruction?**: `string`
@@ -49,3 +57,11 @@ Keyboard instruction text for moving a draggable item, read via `aria-describedb
 > `optional` **resizeInstruction?**: `string`
 
 Keyboard instruction text for resizing a resizable item, read via `aria-describedby`. Default `'Press shift plus arrow keys to resize.'`. Only included when the item is actually resizable.
+
+***
+
+### restoreButton?
+
+> `optional` **restoreButton?**: `string`
+
+Visually-hidden label for the same button while the item is maximized, when it restores the item. Default `'Restore'`.

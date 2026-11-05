@@ -33,6 +33,7 @@
   import ExternalDropView from './views/ExternalDropView.vue';
   import AdvancedFeaturesView from './views/AdvancedFeaturesView.vue';
   import PropsLabView from './views/PropsLabView.vue';
+  import MaximizeView from './views/MaximizeView.vue';
 
   const views = shallowRef([
     { id: 'basic', label: 'Basic grid', component: BasicGridView },
@@ -44,6 +45,7 @@
     { id: 'external-drop', label: 'Drag from outside (multi-grid)', component: ExternalDropView },
     { id: 'advanced-features', label: 'Layout tools & feedback', component: AdvancedFeaturesView },
     { id: 'props-lab', label: 'Props lab (all properties)', component: PropsLabView },
+    { id: 'maximize', label: 'Maximize / restore', component: MaximizeView },
   ]);
 
   const activeView = ref('basic');

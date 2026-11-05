@@ -81,7 +81,7 @@ collision/compaction system.
 | Licensing | MIT, free | Commercial (30-day free trial) | Commercial | Commercial, no free tier | Commercial, gated behind Ext JS Enterprise + a separate ExtAngular license | Commercial — confirmed directly: Vaadin's own pricing page states Pro "unlocks all commercial UI components, including Charts, **Dashboard**..."; not part of the free Apache-2.0 core |
 | Keyboard navigation | Yes, first-class (arrow keys move, Shift+arrow resizes) | **Confirmed, but Kendo's own docs are internally inconsistent about it.** TileLayout's own dedicated pages and API (`navigable` input) confirm it; a shared Layout-package overview page appears to exclude TileLayout from keyboard support entirely — the vendor's own docs disagree with each other | **Explicitly, unambiguously not supported.** Quoted directly: *"Keyboard support is not applicable for the Dashboard Layout."* Appears verbatim in both the Angular and React versions of this doc page | Not established | Not established | **Yes, confirmed directly and genuinely comparable to this library's own approach.** Vaadin's own engineering writeup states the component has *"keyboard-based equivalents, for moving and resizing widgets"* alongside pointer gestures, plus dedicated `[move-mode]`/`[resize-mode]` CSS states and a stated WCAG 2.1 AA conformance target |
 | RTL support | Yes | **Yes, at the package level** — *"the Layout controls support rendering in a right-to-left (RTL) direction"* | Documented, listed in its own accessibility matrix | Localization documented; RTL specifically not established | Not established | Not established |
-| Maximize/restore an item to fill the surface | **No — a real, confirmed gap** | No | Not established | **Yes — confirmed via real, named API methods**: `MaximizeDashboardItem(String)` and `RestoreDashboardItem()`, plus an `AllowMaximizeDashboardItems` flag | Not established | Not established |
+| Maximize/restore an item to fill the surface | **Yes** (`maximizedItem`, `showMaximizeButton`, `maximize()`/`restore()`) | No | Not established | **Yes — confirmed via real, named API methods**: `MaximizeDashboardItem(String)` and `RestoreDashboardItem()`, plus an `AllowMaximizeDashboardItems` flag | Not established | Not established |
 | Multi-selection and group move/resize | Yes | Not established | Not established | Has a distinct, differently-scoped "Multiselection" concept — a BI cross-filtering interaction, not layout-editing group move/resize | Not established | Not established |
 | Responsive breakpoints | Yes | No | Documented — auto-stacks to a single column, plus a configurable media-query breakpoint | Auto-stretches to fit its container — a different, non-breakpoint mechanism | Not established | Yes, in a real sense — column count is confirmed to auto-adjust to container width based on configured min/max column widths, though this is continuous reflow rather than named breakpoints |
 | Authored (pre-defined) layouts per breakpoint | Yes | Not established | Not established | Not established | Not established | Not established |
@@ -129,10 +129,10 @@ Against **DevExpress Dashboard**: not a real competitor for most
 consumers — it's a BI-authoring product where drag/resize layout is
 one supporting piece of a much larger data-analytics platform, not a
 drop-in general-purpose layout primitive. The one genuine, real,
-API-confirmed gap even at the pure layout-mechanics level is
-**maximize/restore** (`MaximizeDashboardItem`/`RestoreDashboardItem`)
-— tracked on the [Roadmap](/angular/guide/project/roadmap/), not yet
-designed. Its own "Multiselection" feature is worth being precise
+API-confirmed gap even at the pure layout-mechanics level was
+**maximize/restore** (`MaximizeDashboardItem`/`RestoreDashboardItem`),
+which this library now has too (`maximizedItem` with
+`showMaximizeButton`). Its own "Multiselection" feature is worth being precise
 about too: it's a BI cross-filtering interaction (select data points
 across items to filter a dashboard), a genuinely different concept
 from this library's own layout-editing multi-select group move/resize

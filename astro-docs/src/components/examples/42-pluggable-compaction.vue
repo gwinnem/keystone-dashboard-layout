@@ -7,6 +7,7 @@
       <option value="horizontal">compactType: horizontal</option>
       <option value="none">compactType: none</option>
       <option value="vertical-overlap">compactType: vertical-overlap</option>
+      <option value="fast">compactor: verticalFastCompactor</option>
       <option value="custom">custom compactor: single column</option>
     </select>
     <button
@@ -44,11 +45,11 @@
 
 <script lang="ts" setup>
   import { computed, ref } from 'vue';
-  import { GridLayout, GridItem, ECompactType, type TLayout, type ICompactor } from 'keystone-dashboard-layout-vue';
+  import { GridLayout, GridItem, ECompactType, verticalFastCompactor, type TLayout, type ICompactor } from 'keystone-dashboard-layout-vue';
   import 'keystone-dashboard-layout-vue/style.css';
   import LayoutJsonViewer from '../harness/LayoutJsonViewer.vue';
 
-  type TMode = 'vertical' | 'horizontal' | 'none' | 'vertical-overlap' | 'custom';
+  type TMode = 'vertical' | 'horizontal' | 'none' | 'vertical-overlap' | 'fast' | 'custom';
 
   const mode = ref<TMode>('vertical');
 
@@ -77,7 +78,14 @@
     },
   };
 
-  const customCompactor = computed(() => (mode.value === 'custom' ? singleColumnCompactor : null));
+  // `verticalFastCompactor` gives the same result as the default vertical
+  // compactor, in roughly O(n log n) instead of O(n²) — it only matters
+  // for very large layouts, but it plugs in the same way as any compactor.
+  const customCompactor = computed(() => {
+    if (mode.value === 'custom') return singleColumnCompactor;
+    if (mode.value === 'fast') return verticalFastCompactor;
+    return null;
+  });
 
   const gridRef = ref<InstanceType<typeof GridLayout>>();
   const layout = ref<TLayout>([

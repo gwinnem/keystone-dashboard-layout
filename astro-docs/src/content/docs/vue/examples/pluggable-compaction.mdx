@@ -1,6 +1,6 @@
 ---
 title: Pluggable compaction (compactType & compactor)
-description: Five built-in strategies via compactType, or replace the algorithm entirely with a custom ICompactor.
+description: Five built-in strategies via compactType, a faster vertical compactor for very large layouts, or replace the algorithm entirely with a custom ICompactor.
 ---
 import PluggableCompaction from '../../../../components/examples/42-pluggable-compaction.vue';
 import PluggableCompactionSource from '../../../../components/examples/42-pluggable-compaction.vue?raw';
@@ -17,3 +17,11 @@ context)` **must return a new array**, never mutate `layout` or its
 items in place. Runs at every trigger point the built-in strategies
 already run at: drag/resize end, item add/remove, mount, breakpoint
 change, and `compactNow()`/`rearrange()`.
+
+The `compactor: verticalFastCompactor` option in the demo plugs in
+`verticalFastCompactor` (exported from `keystone-dashboard-layout-vue`):
+the same result as the default vertical compactor in roughly O(n log n)
+instead of O(n²). With four items there is nothing to see, since it only
+starts to matter from a few hundred items. It is opt-in through
+`compactor`, exactly like a custom one, and `compactType` keeps
+selecting the original algorithm.

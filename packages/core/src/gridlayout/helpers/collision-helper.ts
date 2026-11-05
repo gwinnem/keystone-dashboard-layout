@@ -47,7 +47,10 @@ export function getAllCollisions(layout: TLayout, layoutItem: ILayoutItem): ILay
  * @throws {Error}                  Empty layout.
  */
 export function getFirstCollision(layout: TLayout, layoutItem: ILayoutItem): ILayoutItem | undefined {
-  if(layout === undefined || layout.length === 0 || layoutItem === undefined) {
+  if(layout === undefined ||
+    // Stryker disable next-line ConditionalExpression: equivalent — an empty layout skips the loop below and returns undefined anyway.
+    layout.length === 0 ||
+    layoutItem === undefined) {
     return undefined;
   }
 

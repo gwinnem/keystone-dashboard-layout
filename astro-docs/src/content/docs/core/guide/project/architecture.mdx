@@ -1,0 +1,135 @@
+---
+title: Architecture
+description: How keystone-dashboard-layout-core is organised, what each directory owns, and why the Vue, React and Angular packages all call into it.
+---
+
+This package is the shared engine underneath the Vue, React and
+Angular packages. It owns the parts of a drag-and-drop grid that are
+hard to get right and easy to get subtly wrong — collision resolution,
+compaction, breakpoint math — so that those three packages never grow
+their own divergent copies of them.
+
+## The one rule
+
+**Nothing in this package knows which framework is calling it.** There
+is no Vue, React or Angular import anywhere in `src/`, and no runtime
+dependency of any kind. What a framework package supplies is plain
+data; what it gets back is plain data, which it then renders however
+its own framework expects.
+
+That constraint is what makes the three packages behave identically.
+When a drag resolves a collision differently in React than in Vue, it
+is a bug in the framework package's wiring, not two separate
+implementations drifting apart — there is only one implementation.
+
+## Directory layout
+
+```
+src/
+├── gridlayout/helpers/     layout-level algorithms
+├── griditem/helpers/       per-item pixel/grid conversion
+├── helpers/                shared math, DOM, storage, interaction
+├── validators/             input validation
+├── common/                 enums, shared interfaces, breakpoint helpers
+└── index.ts                the public barrel
+```
+
+### `gridlayout/helpers/`
+
+Everything that operates on a whole layout array:
+
+- **`collision-helper.ts`** — whether two items overlap, and which
+  items a given item collides with.
+- **`move-helper.ts`** — resolving a move: pushing colliding items out
+  of the way, cascading those pushes, and the direction rules deciding
+  which way something gets pushed.
+- **`compactor.ts`** — the five built-in compaction strategies
+  (vertical, horizontal, their overlap variants, and none) behind one
+  `ICompactor` interface, plus `getCompactor()`. A consumer can supply
+  its own object implementing that interface instead.
+- **`bin-pack-helper.ts`** — finding the first slot a new item fits in.
+- **`alignment-helper.ts`** — alignment guides, magnetic snap
+  adjustments, and spacing indicators.
+- **`align-distribute-helper.ts`** and **`selection-range-helper.ts`** —
+  the multi-select commands: align edges, distribute evenly, and
+  resolve a Shift-click range.
+- **`responsive-helper.ts`** — generating or reusing a layout for a
+  breakpoint.
+- **`cross-grid-registry.ts`** — a module-level registry of drop zones,
+  so one grid can hand an item to another. The one piece of shared
+  mutable state in the package.
+- **`export-svg.ts`**, **`outside-drop-payload.ts`**,
+  **`sort-helper.ts`** and **`grid-layout-helper.ts`**.
+
+### `helpers/`
+
+Shared utilities that are not layout-level:
+
+- **`calculate-utils.ts`**, **`responsive-utils.ts`** and
+  **`utils.ts`** — pixel-to-grid-unit conversion, bounds correction,
+  compaction primitives, layout cloning.
+- **`native-interaction.ts`** — the Pointer Events drag/resize engine
+  (see below).
+- **`layout-storage.ts`** — serializing and deserializing a layout for
+  persistence.
+- **`event-emitter.ts`**, **`DOM.ts`** and **`draggable-utils.ts`**.
+
+### `validators/`
+
+`layoutValidator`, `keysValidator`, `marginValidator` and
+`breakpointsValidator` throw on malformed input rather than letting a
+bad layout fail somewhere deeper and less obviously. The framework
+packages call these at mount.
+
+## The one DOM-dependent part
+
+`createNativeDraggable`, `createNativeResizable` and
+`createNativeAutoScroll` in `helpers/native-interaction.ts` are the
+exception to "plain data in, plain data out". They attach real Pointer
+Event listeners to real elements, so they need a browser.
+
+They are still framework-agnostic — the Vue and React packages both
+drive the same engine — but they cannot run in Node without a DOM. This
+is also why the package ships no third-party drag library: the engine
+is hand-written Pointer Events handling, which is less maintenance than
+a dependency.
+
+Everything else in the package is pure, which is what lets you validate
+or compact a layout on a server with no browser involved at all.
+
+## How a framework package uses it
+
+The pattern is the same in all three. The framework package owns
+rendering, props and events; core owns the math.
+
+1. A gesture starts. The framework package converts pointer pixels to
+   grid units with `calcXY`.
+2. It calls `moveElement()` with the target position, which returns a
+   new layout with collisions resolved.
+3. It runs that result through the active compactor.
+4. It renders the returned layout and reports it to the consumer.
+
+Each framework package keeps its own state and reactivity model — Vue's
+eventBus and composables, React's hooks and context, Angular's services
+and `@Output()`s — but steps 2 and 3 are identical calls into this
+package.
+
+## Build output
+
+Built with Vite into both ES (`.es.js`) and CommonJS (`.cjs.js`)
+bundles, with types generated alongside. Two subpaths are exported
+beyond the root — `cross-grid-registry` and `cross-grid.interfaces` —
+so a framework package can import the registry without pulling in the
+whole barrel.
+
+`index.ts` is a pure re-export barrel and is deliberately excluded from
+coverage: every test imports the specific module it exercises, so
+covering the barrel would measure nothing. Verifying that the barrel
+exports what it claims is a job for a pack-and-install check, not a
+unit test.
+
+## Where to go next
+
+- [Testing](/core/guide/project/testing/) — how this package is tested,
+  and why it is held to a higher bar than the framework packages.
+- [API reference](/core/api/) — every exported function and type.

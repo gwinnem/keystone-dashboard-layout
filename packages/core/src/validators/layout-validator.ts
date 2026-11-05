@@ -6,38 +6,12 @@ import { keysValidator } from './keys-validator';
  * the required keys of a layout item (`validRequiredLayout`'s keys) and
  * the *type* of each optional key present (`validOptionalLayout`, checked
  * via `typeof`, not value). Also imported directly by
- * `tests/layoutValidator.spec.ts` so the test fixtures and the validator's
- * own reference shapes can't drift apart.
+ * `tests/layoutValidator.spec.ts` as known-valid fixtures, so they and the
+ * validator's own reference shapes can't drift apart. The deliberately
+ * invalid fixtures that spec needs live in the spec itself.
  */
+// Stryker disable all: equivalent — only the TYPE of each value is ever read (via `typeof`), never the value itself, so changing a value to another of the same type cannot change any result.
 export const layoutValidatorPayload = {
-  invalidOptionalLayout: {
-    h: 1,
-    i: -1,
-    isDraggable: true,
-    isResizable: false,
-    isStatic: false,
-    maxH: 0,
-    maxW: 0,
-    minH: -1,
-    minW: 0,
-    moved: false,
-    w: 1,
-    x: 0,
-    y: 0,
-  },
-  invalidRequiredLayout: {
-    h: 1,
-    i: 1,
-    w: 0,
-    x: 0,
-    y: 'a',
-  },
-  invalidRequiredLayoutTwo: {
-    h: 0,
-    i: 1,
-    w: 0,
-    x: 0,
-  },
   validOptionalLayout: {
     h: 1,
     i: 0,
@@ -61,6 +35,7 @@ export const layoutValidatorPayload = {
     y: 0,
   },
 };
+// Stryker restore all
 
 /**
  * Validates an entire layout array: every item must have the required
@@ -74,6 +49,7 @@ export const layoutValidatorPayload = {
  * @returns `true` for an empty array (nothing to violate — see docs/REFACTORING.md #9/#33: a grid mounting with no items yet, e.g. an empty cross-grid-drop target, is a normal state, not an error) or if every item has the required keys and correctly-typed optional keys.
  */
 export const layoutValidator = (layout: TLayout): boolean => {
+  // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — without this early return an empty layout produces no failures below and still returns true.
   if(layout.length === 0) {
     return true;
   }

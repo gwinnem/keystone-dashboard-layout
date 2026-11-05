@@ -137,7 +137,9 @@ export function useMultiSelect(ctx: IUseMultiSelectContext): IUseMultiSelectRetu
    * grid starts with.
    */
   const pruneSelection = (): void => {
-    if(lastAnchorId.value !== null && !props.layout.some(item => item.i === lastAnchorId.value)) {
+    // Stryker disable next-line ConditionalExpression: equivalent — with no anchor, no item has a null id, so the check below finds no match and resets an anchor that is already null.
+    if(lastAnchorId.value !== null &&
+      !props.layout.some(item => item.i === lastAnchorId.value)) {
       lastAnchorId.value = null;
     }
     // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — with an empty selection the filtered copy below is also empty and the size comparison finds no difference, so nothing is emitted either way.

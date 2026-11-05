@@ -10,8 +10,10 @@ import { RtlComponent } from './scenarios/rtl.component';
 import { CrossGridComponent } from './scenarios/cross-grid.component';
 import { ExternalDropComponent } from './scenarios/external-drop.component';
 import { ItemOverridesComponent } from './scenarios/item-overrides.component';
+import { PropsLabComponent } from './scenarios/props-lab.component';
+import { MaximizeComponent } from './scenarios/maximize.component';
 
-type TScenarioId = `basic` | `dynamic` | `drag-resize` | `keyboard` | `advanced-features` | `multi-select` | `responsive` | `rtl` | `cross-grid` | `external-drop` | `item-overrides`;
+type TScenarioId = `basic` | `dynamic` | `drag-resize` | `keyboard` | `advanced-features` | `multi-select` | `responsive` | `rtl` | `cross-grid` | `external-drop` | `item-overrides` | `props-lab` | `maximize`;
 
 /**
  * Minimal scenario switcher for the e2e test fixture — deliberately
@@ -35,6 +37,8 @@ type TScenarioId = `basic` | `dynamic` | `drag-resize` | `keyboard` | `advanced-
     CrossGridComponent,
     ExternalDropComponent,
     ItemOverridesComponent,
+    PropsLabComponent,
+    MaximizeComponent,
   ],
   selector: `app-root`,
   standalone: true,
@@ -57,6 +61,8 @@ type TScenarioId = `basic` | `dynamic` | `drag-resize` | `keyboard` | `advanced-
         @case ('cross-grid') { <app-cross-grid /> }
         @case ('external-drop') { <app-external-drop /> }
         @case ('item-overrides') { <app-item-overrides /> }
+        @case ('props-lab') { <app-props-lab /> }
+        @case ('maximize') { <app-maximize /> }
       }
     </main>
   `,
@@ -74,6 +80,8 @@ export class AppComponent {
     { id: `cross-grid` },
     { id: `external-drop` },
     { id: `item-overrides` },
+    { id: `props-lab` },
+    { id: `maximize` },
   ];
   activeId: TScenarioId = `basic`;
 }

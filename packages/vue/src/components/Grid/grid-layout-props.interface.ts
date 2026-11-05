@@ -1,6 +1,8 @@
 ﻿import { TLayout } from '@/components/Grid/layout-definition';
 import { IGridAriaLabels } from '@/core/common/interfaces/aria-labels.interface';
 import { ICompactor } from '@/core/gridlayout/helpers/compactor';
+import { IPositionStrategy } from '@/core/gridlayout/helpers/position-strategy';
+import { TCollisionMode } from '@/core/gridlayout/helpers/swap-helper';
 import { ECompactType } from '@/core/gridlayout/enums/ECompactType';
 import { TResizeHandle } from '@/core/helpers/native-interaction';
 import type { IBreakpoints, IColumns } from 'keystone-dashboard-layout-core';
@@ -26,6 +28,16 @@ export type { IBreakpoints, IColumns } from 'keystone-dashboard-layout-core';
  * `IGridItemProps` and `docs/ARCHITECTURE.md` for how that cascade works.
  */
 export interface IGridLayoutProps {
+  /**
+   * Grid-wide default for whether dragging or resizing an item auto-scrolls its nearest scrollable ancestor
+   * when the pointer nears the edge. An item that sets its own `autoScroll` keeps it. Default `false`.
+   */
+  autoScroll?: boolean;
+  /**
+   * Grid-wide default for whether resizing keeps an item's width/height ratio. An item that sets its own
+   * `preserveAspectRatio` keeps it. Default `false`.
+   */
+  preserveAspectRatio?: boolean;
   /**
    * Deprecated — prefer `heightMode`. Kept, unchanged, as a non-breaking
    * alias: still works exactly as before for anyone not using
@@ -161,6 +173,16 @@ export interface IGridLayoutProps {
   isResizable?: boolean;
   /** The layout array — one entry per `GridItem` rendered in the default slot, matched by `i`. Required; see `TLayout`/`ILayoutItem`. */
   layout: TLayout;
+  /**
+   * The id of the item that fills the whole grid, or `null` for none — use as `v-model:maximized-item`. The other items are
+   * hidden but stay mounted (so their component state survives), compaction is suspended meanwhile, and `layout` is never
+   * changed, so restoring puts everything back exactly. Drag and resize are off for the maximized item; its header and close
+   * button keep working. Escape restores. An id the layout does not have is treated as `null`. `maximize(id)`, `restore()`
+   * and `toggleMaximize(id)` on the exposed instance do the same imperatively. Default `null`.
+   */
+  maximizedItem?: string | number | null;
+  /** Default `showMaximizeButton` for items that don't set their own. Default `false`. */
+  showMaximizeButton?: boolean;
   /** `[horizontal, vertical]` spacing between items, in pixels. Default `[10, 10]`. */
   margin?: number[];
   /** Maximum number of rows the layout may grow to. Default `Infinity`. */
@@ -228,6 +250,16 @@ export interface IGridLayoutProps {
   /** Positions items with CSS `transform: translate3d(...)` instead of `top`/`left`. Default `true` (faster, GPU-accelerated). */
   useCssTransforms?: boolean;
   /**
+   * Replaces how items are placed inside the grid — see
+   * `IPositionStrategy`. `null`/`undefined` (the default) keeps the
+   * built-in choice between CSS transforms and `top`/`left` that
+   * `useCssTransforms` makes, exactly as before this prop existed. When
+   * set, it wins over `useCssTransforms`. `transformStrategy`/
+   * `topLeftStrategy` (exported from this package) are the two
+   * built-ins, reusable as a starting point. Default `null`.
+   */
+  positionStrategy?: IPositionStrategy | null;
+  /**
    * Replaces the built-in compaction algorithm entirely — see
    * `ICompactor`. `null`/`undefined` (the default) means "use the
    * built-in logic exactly as before this prop existed"; this is a
@@ -278,4 +310,16 @@ export interface IGridLayoutProps {
    * existing consumer.
    */
   compactType?: ECompactType | `${ECompactType}`;
+  /**
+   * What happens when a dragged item is dropped onto another one.
+   * `'push'` (the default) moves the item underneath out of the way,
+   * as before. `'swap'` puts the two items in each other's places
+   * instead, as long as the other item fits in the dragged item's
+   * starting cell without touching anything else; in every other case
+   * (several items hit, a static item, a drag that has not yet cleared
+   * the other item) it falls back to `'push'`. Ignored while
+   * `preventCollision` is on. Only affects dragging, not resizing.
+   * Default `'push'`.
+   */
+  collisionMode?: TCollisionMode;
 }

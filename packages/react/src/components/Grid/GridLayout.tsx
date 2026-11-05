@@ -1,5 +1,5 @@
 ﻿import { forwardRef, useCallback, useEffect, useId, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, DragEvent, JSX, MouseEvent } from 'react';
+import type { CSSProperties, DragEvent, JSX, KeyboardEvent, MouseEvent } from 'react';
 import {
   calcColWidth,
   cloneLayout,
@@ -10,6 +10,7 @@ import {
   EErrorMessage,
   exportLayoutAsSvg as coreExportLayoutAsSvg,
   findAlignmentGuides,
+  correctBounds,
   findFirstFitSlot,
   findOrGenerateResponsiveLayout,
   findSnapAdjustment,
@@ -21,15 +22,19 @@ import {
   getCompactor,
   getLayoutItem,
   layoutValidator,
+  createSwapDragState,
   moveElement,
   resolveAriaLabels,
+  resolveMaximizedItem,
+  swapElement,
 } from 'keystone-dashboard-layout-core';
-import type { IBreakpoints, IColumns, IExportLayoutAsSvgOptions, ILayoutItem, TAlignEdge, TBreakpoint, TDistributeAxis, TLayout, TResizeHandle, TResponsiveLayout } from 'keystone-dashboard-layout-core';
+import type { IBreakpoints, IColumns, IExportLayoutAsSvgOptions, ILayoutItem, ISwapDragState, TAlignEdge, TBreakpoint, TDistributeAxis, TLayout, TResizeHandle, TResponsiveLayout } from 'keystone-dashboard-layout-core';
 import type { IGridLayoutProps } from './grid-layout-props.interface';
 import type { IGridLayoutHandle } from './grid-layout-handle.interface';
 import { GridContext } from './grid-context';
 import type { TGridGestureEventType } from './grid-context';
 import { useCrossGridDrag } from './hooks/useCrossGridDrag';
+import { useIsomorphicLayoutEffect } from './hooks/useIsomorphicLayoutEffect';
 
 /** Module-level, not per-render — a fresh `[10, 10]` array literal as an inline default parameter value would be a *new* reference on every render, making anything depending on `margin` in a `useEffect`/`useCallback`/`useMemo` dependency array think it changed every single render even when the consumer never touched it. */
 const DEFAULT_MARGIN: [number, number] = [10, 10];
@@ -68,11 +73,11 @@ const DEFAULT_RESPONSIVE_LAYOUTS: TResponsiveLayout = {};
  * of data this component never looks at otherwise.
  */
 function layoutPositionsEqual(a: TLayout, b: TLayout): boolean {
-  // Stryker disable ConditionalExpression,BlockStatement,BooleanLiteral: unreachable — compaction never adds or removes items, so the two layouts compared here always have the same length.
+  // Not unreachable: when the consumer's layout is compared with the rendered one, a consumer that removes an item gives a shorter list
+  // whose every item still matches. Only the length tells that apart from an echo (and so decides whether the rest is compacted).
   if(a.length !== b.length) {
     return false;
   }
-  // Stryker restore ConditionalExpression,BlockStatement,BooleanLiteral
   const byId = new Map(b.map(item => [item.i, item]));
   return a.every(item => {
     const match = byId.get(item.i);
@@ -133,6 +138,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   onLayoutReady,
   onColumnsChanged,
   onBreakpointChange,
+  onMaximizedItemChange,
   colNum: colNumProp = 12,
   rowHeight = 150,
   margin = DEFAULT_MARGIN,
@@ -141,10 +147,12 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   isResizable = true,
   isBounded = false,
   preventCollision = false,
+  collisionMode = 'push',
   enableEditMode = true,
   autoSize = true,
   heightMode = null,
   useCssTransforms = true,
+  positionStrategy = null,
   transformScale = 1,
   transitionDurationMs = 200,
   transitionTimingFunction = `ease`,
@@ -158,6 +166,8 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   resizeHandleColor = DEFAULT_RESIZE_HANDLE_COLOR,
   showGridLines = false,
   showCloseButton = false,
+  showMaximizeButton = false,
+  maximizedItem: maximizedItemProp = null,
   snapToGrid = false,
   snapThreshold = 1,
   showAlignmentGuides = false,
@@ -220,6 +230,12 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * 480px wide too.
    */
   const [hasMeasuredWidth, setHasMeasuredWidth] = useState(false);
+  /**
+   * Whether the grid has been painted at its measured width. Until it has, the root carries `data-kdl-settling`, which turns the
+   * items' transitions off (see `styles/index.scss`): on a page that was server-rendered, the items are in the DOM at the seed
+   * width, and the first measured layout would otherwise show them growing to their real size over the transition's duration.
+   */
+  const [hasSettled, setHasSettled] = useState(false);
   const [workingLayout, setWorkingLayout] = useState<TLayout>(() => cloneLayout(layout));
   const [alignmentGuideStyles, setAlignmentGuideStyles] = useState<IAlignmentGuideStyle[]>([]);
   const [spacingIndicatorStyles, setSpacingIndicatorStyles] = useState<ISpacingIndicatorStyle[]>([]);
@@ -264,6 +280,20 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   // during render.
   const layoutsCacheRef = useRef<TResponsiveLayout>(responsiveLayouts);
   /**
+   * The cache above is initialised from `responsiveLayouts` once, at mount, so a value supplied *after* mount (state that
+   * arrives later, or a prop changed on purpose) was never used: the supplied layout for a breakpoint was silently ignored
+   * and one was generated instead. Re-seed it whenever the prop's *content* changes. Keyed on the serialised content, not the
+   * object's identity, because an inline literal (`responsiveLayouts={{ ... }}`) is a new object on every render, and
+   * re-seeding on identity would wipe what the cache has accumulated (the layouts edited at each breakpoint). The first run
+   * just re-assigns the mount-time value the ref already holds (nothing has used the cache yet), so it needs no guard. Declared before the breakpoint effect below so a change to this
+   * prop and a breakpoint switch in the same commit see the new cache.
+   */
+  const responsiveLayoutsKey = JSON.stringify(responsiveLayouts);
+  useEffect(() => {
+    layoutsCacheRef.current = responsiveLayouts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately keyed on the serialised content (see above), not the object's identity.
+  }, [responsiveLayoutsKey]);
+  /**
    * Merged with the built-in English defaults via `core`'s own
    * `resolveAriaLabels` — memoized specifically because a fresh merged
    * object literal every render (regardless of whether `ariaLabels`
@@ -285,7 +315,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * written before `responsive` existed — keeps working unchanged
    * against the resolved value, without needing to touch each call site.
    */
-  const colNum = responsive && currentBreakpoint ? getColsFromBreakpoint(currentBreakpoint, cols) : colNumProp;
+  const colNum = responsive && currentBreakpoint ? Math.min(colNumProp, getColsFromBreakpoint(currentBreakpoint, cols)) : colNumProp;
   /**
    * This grid's own actually-used width for every colWidth-derived
    * calculation (item positioning, guides, grid lines, SVG export,
@@ -354,7 +384,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     }
     let minFloorPx = 0;
     workingLayout.forEach(item => {
-      if(item.minW !== undefined && item.minW !== null) {
+      if(item.minW !== undefined &&
+        // Stryker disable next-line ConditionalExpression: equivalent — a null minW multiplies out to 0 (and `Math.max(0, null - 1)` is 0), so including it only adds a floor of 0 and changes nothing.
+        item.minW !== null) {
         minFloorPx = Math.max(minFloorPx, item.minW * rowHeight + Math.max(0, item.minW - 1) * margin[0]);
       }
     });
@@ -419,6 +451,24 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * itself rendered.
    */
   const dragMinPositionsRef = useRef<Record<string | number, { x?: number; y?: number }> | undefined>(undefined);
+  /** `collisionMode: 'swap'` bookkeeping for the drag in progress (origin cell + the item swapped aside); cleared at dragend. */
+  const swapDragStateRef = useRef<ISwapDragState | undefined>(undefined);
+
+  /**
+   * Maximize/restore. `maximizedId` is what was asked for (the `maximizedItem` prop, or the last internal change), mirrored into
+   * `maximizedIdRef` so the imperative methods below see a change made a moment ago, before the re-render. `activeMaximizedId` is
+   * the same id checked against the layout: an id that has no item (removed, or a different layout loaded) resolves to `null`, so
+   * it can never hide every other item. Maximizing never touches `layout`; it only changes how the items are drawn.
+   */
+  const [maximizedId, setMaximizedId] = useState<string | number | null>(maximizedItemProp);
+  const maximizedIdRef = useRef<string | number | null>(maximizedItemProp);
+  const activeMaximizedId = resolveMaximizedItem(workingLayout, maximizedId);
+  /** The grid container's own height, which the maximized item fills. Measured on every container resize and whenever the maximized item changes. */
+  const [maximizedHeight, setMaximizedHeight] = useState(0);
+  /** `measure` from the container effect below, so a change of the maximized item can re-read the height. The default is what runs before that effect has mounted. */
+  const measureContainerRef = useRef<() => void>(() => undefined);
+  const onMaximizedItemChangeRef = useRef(onMaximizedItemChange);
+  onMaximizedItemChangeRef.current = onMaximizedItemChange;
 
   /**
    * Snapshots `before` onto the undo stack and clears the redo stack —
@@ -445,6 +495,29 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     // Stryker disable next-line ArithmeticOperator,ArrowFunction: equivalent — this version counter only forces a re-render so `canUndo`/`canRedo` refresh, and every caller also updates real state (a layout commit, or the drag/resize state) in the same batch, which re-renders regardless of what the counter becomes.
     setUndoRedoVersion(version => version + 1);
   }, [enableUndoRedo, undoHistoryLimit]);
+
+  /**
+   * Every compaction goes through here, so none of them runs while an item is maximized: the other items are only hidden, and
+   * compacting around the one that fills the grid would move them for good. The layout is returned as it is and the one
+   * compaction that was held back runs when the grid is restored (see the restore effect below). The check is against `next`
+   * itself, so a layout that no longer has the maximized item compacts as usual.
+   */
+  const compactLayout = useCallback((next: TLayout, type: ECompactType, minPositions?: Record<string | number, { x?: number; y?: number }>): TLayout => {
+    if(resolveMaximizedItem(next, maximizedIdRef.current) !== null) {
+      return next;
+    }
+    return (compactor ?? getCompactor(type)).compact(next, colNum, { compactType: type, minPositions });
+  }, [compactor, colNum]);
+
+  // `maximizedItem` follows its prop whenever it changes — the same during-render pattern as the `layout` sync below, and ahead of
+  // it so a layout and a maximized id that arrive together are compacted knowing about the maximized item. A change the grid
+  // made itself is not reported back through this path (it does not come from the prop), so `onMaximizedItemChange` stays quiet.
+  const [prevMaximizedItemProp, setPrevMaximizedItemProp] = useState(maximizedItemProp);
+  if(maximizedItemProp !== prevMaximizedItemProp) {
+    setPrevMaximizedItemProp(maximizedItemProp);
+    maximizedIdRef.current = maximizedItemProp;
+    setMaximizedId(maximizedItemProp);
+  }
 
   // Controlled-component sync: re-mirror the incoming `layout` prop
   // into local state whenever the consumer's own reference changes —
@@ -495,7 +568,17 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     // spot. Confirmed directly via a real, reproduced case: a
     // freshly-added item's own `.style.transform` measured as an empty
     // string, sitting exactly on top of the grid's own first item.
-    const compacted = (compactor ?? getCompactor(compactType)).compact(cloned, colNum, { compactType });
+    // A controlled consumer feeds every `onLayoutChange` straight back in as `layout`, so most prop changes are just the
+    // echo of a layout this component produced itself a moment ago (identical positions to what is already rendered).
+    // Compacting that echo again is not merely redundant, it is wrong whenever the layout was produced by a compaction
+    // with extra constraints that a plain pass does not share: `restoreOnDrag` holds other items at their pre-drag row
+    // via `minPositions`, and an unconstrained pass over the echo lifted them straight back up on the very next render,
+    // so the option did nothing for any consumer that stored the layout (i.e. every real one). Only a layout that
+    // genuinely differs from what is rendered (a new item, an external edit) needs compacting here.
+    const isEchoOfRenderedLayout = layoutPositionsEqual(cloned, workingLayoutRef.current);
+    const compacted = isEchoOfRenderedLayout
+      ? cloned
+      : compactLayout(cloned, compactType);
     // Compared against the incoming `layout` prop, not `cloned`: the compactors
     // mutate their input in place and return the same item objects, so by this
     // point `cloned` already holds the compacted positions and comparing the two
@@ -505,6 +588,25 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     }
     workingLayoutRef.current = compacted;
     setWorkingLayout(compacted);
+  }
+
+  // `colNum` changing re-fits the layout to the new column count, as in Vue (its `colNum` watcher always runs the responsive-layout
+  // pass, `responsive` or not): items past the last column are pulled back inside and the result is compacted. Without this a grid
+  // going from 12 to 6 columns kept its items at x: 6 and x: 8 and drew them off the right edge, with nothing reported to the
+  // consumer. Keyed on the prop, not on the breakpoint-derived count: a breakpoint change is the responsive effect's job below,
+  // including a layout supplied for that breakpoint, which must not be compacted again here. Done during render, like the `layout`
+  // sync above, so the items render with positions that fit the columns they are drawn in. While an item is maximized the bounds are
+  // still corrected (they have to be) but `compactLayout` holds the compaction back until the restore.
+  const [prevColNumProp, setPrevColNumProp] = useState(colNumProp);
+  if(colNumProp !== prevColNumProp) {
+    setPrevColNumProp(colNumProp);
+    const rendered = workingLayoutRef.current;
+    const fitted = compactLayout(correctBounds(cloneLayout(rendered), { cols: colNum }, distributeEvenly), compactType);
+    if(!layoutPositionsEqual(fitted, rendered)) {
+      pendingCompactionNotifyRef.current = fitted;
+      workingLayoutRef.current = fitted;
+      setWorkingLayout(fitted);
+    }
   }
 
   // Actually commits whatever `pendingUndoSnapshotRef` above queued —
@@ -563,7 +665,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     // (a ref), so this doesn't need its own separate effect/dependency
     // wiring — just checked alongside the identical `workingLayout`
     // dependency the selection-pruning check above already has.
-    if(lastAnchorIdRef.current !== null && !workingLayout.some(item => item.i === lastAnchorIdRef.current)) {
+    // Stryker disable next-line ConditionalExpression: equivalent — with no anchor, no item has a null id, so the check below finds no match and resets an anchor that is already null.
+    if(lastAnchorIdRef.current !== null &&
+      !workingLayout.some(item => item.i === lastAnchorIdRef.current)) {
       lastAnchorIdRef.current = null;
     }
   }, [workingLayout]);
@@ -650,7 +754,15 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     onColumnsChangedRef.current?.(colNumProp);
   }, [colNumProp]);
 
-  useEffect(() => {
+  // Re-reads the container height whenever the maximized item changes, so the item fills the grid as it is *now*, not as it was at
+  // the last resize. Declared before the container effect below on purpose: on mount it still sees the default no-op there.
+  // Both are layout effects, so the grid is measured before the first paint (see `useIsomorphicLayoutEffect`); they run in
+  // declaration order, as the passive ones did.
+  useIsomorphicLayoutEffect(() => {
+    measureContainerRef.current();
+  }, [activeMaximizedId]);
+
+  useIsomorphicLayoutEffect(() => {
     const el = containerRef.current;
     // Stryker disable ConditionalExpression,BlockStatement: unreachable — see the v8 ignore comment below; containerRef is attached to this component's own root element.
     /* v8 ignore next 3 -- `containerRef` is attached directly to this component's own root element with no conditional rendering in between; by the time an effect with an empty dependency array runs (after the initial commit), the ref is already populated. Not reachable through any normal render path, only by directly manipulating the internal ref (which isn't exposed) — kept as a defensive guard matching the same `!(ref instanceof HTMLElement)` pattern the Vue package's own composables use for the identical reason. */
@@ -659,16 +771,36 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     }
     // Stryker restore ConditionalExpression,BlockStatement
     const measure = (): void => {
+      setMaximizedHeight(el.clientHeight);
       if(el.offsetWidth > 0) {
         setContainerWidth(el.offsetWidth);
         setHasMeasuredWidth(true);
       }
     };
+    measureContainerRef.current = measure;
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return (): void => observer.disconnect();
-  }, []);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
+  []);
+
+  // Two frames after the first measurement, so the measured layout has been painted once with transitions off. A single frame
+  // is not enough: the commit that reveals the grid and the first paint of it can be the same frame.
+  useEffect(() => {
+    if(!hasMeasuredWidth) {
+      return undefined;
+    }
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => setHasSettled(true));
+    });
+    return (): void => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+    };
+  }, [hasMeasuredWidth]);
 
   /**
    * Mount-time layout validation — matches the Vue package's own
@@ -689,12 +821,14 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * nearby error boundary catches it the same way it would any other
    * render-phase throw.
    */
+  // Stryker disable ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
   useEffect(() => {
     if(!layoutValidator(layout)) {
       throw new Error(EErrorMessage.INVALID_LAYOUT_VALIDATED);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately validates only the initial `layout` value, once, matching Vue's own mount-only validation scope exactly — including `layout` here would re-run this on every later change, which Vue's own equivalent never does either.
   }, []);
+  // Stryker restore ArrayDeclaration
 
   /**
    * `responsive`'s own breakpoint tracking — mirrors the Vue package's
@@ -717,12 +851,17 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     if(newBreakpoint === currentBreakpoint) {
       return;
     }
-    const newCols = getColsFromBreakpoint(newBreakpoint, cols);
+    // `colNum` is a hard ceiling on whatever the breakpoint would give, as in the Vue and Angular packages (their `colsCompute` is
+    // `min(colNum, breakpoint columns)`). It used to be replaced outright, so a grid with `colNum: 8` still got 12 columns at a
+    // wide breakpoint. Capped here too, not only in the derived `colNum` above: this is the count the layout for the new
+    // breakpoint is bounds-corrected and compacted against, and the one reported to `onBreakpointChange`.
+    const newCols = Math.min(colNumProp, getColsFromBreakpoint(newBreakpoint, cols));
 
     // Cache the breakpoint being left, so returning to it later restores
     // its own last-known state instead of regenerating from scratch —
     // same rationale as Vue's own `useResponsiveLayout.ts`.
-    if(currentBreakpoint) {
+    // Stryker disable next-line ConditionalExpression: equivalent — with no current breakpoint (the very first resolution) the cache would only gain a `null` key that nothing reads: lookups use real breakpoint names and findOrGenerateResponsiveLayout ignores its cache argument. Never caching the breakpoint being left is still caught by the `!==` -> `===` mutant on this line, which the cache-restore test kills.
+    if(currentBreakpoint !== null) {
       layoutsCacheRef.current = { ...layoutsCacheRef.current, [currentBreakpoint]: workingLayoutRef.current };
     }
 
@@ -755,14 +894,14 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     setCurrentBreakpoint(newBreakpoint);
     onLayoutChange?.(nextLayout);
     onBreakpointChange?.(newBreakpoint, newCols);
-  }, [responsive, hasMeasuredWidth, containerWidth, breakpoints, cols, currentBreakpoint, compactType, distributeEvenly, onLayoutChange, onBreakpointChange]);
+  }, [responsive, hasMeasuredWidth, containerWidth, breakpoints, cols, colNumProp, currentBreakpoint, compactType, distributeEvenly, onLayoutChange, onBreakpointChange]);
 
   const commitLayout = useCallback((next: TLayout, minPositions?: Record<string | number, { x?: number; y?: number }>): void => {
-    const compacted = (compactor ?? getCompactor(compactType)).compact(next, colNum, { compactType, minPositions });
+    const compacted = compactLayout(next, compactType, minPositions);
     workingLayoutRef.current = compacted;
     setWorkingLayout(compacted);
     onLayoutChange?.(compacted);
-  }, [compactor, compactType, colNum, onLayoutChange]);
+  }, [compactLayout, compactType, onLayoutChange]);
 
   /**
    * `allowCrossGridDrag`'s own accept-side: called when *another* grid's
@@ -803,13 +942,17 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    */
   const commitForcedCompaction = useCallback((next: TLayout): void => {
     const forcedType = compactType === ECompactType.NONE ? ECompactType.VERTICAL : compactType;
-    const compacted = (compactor ?? getCompactor(forcedType)).compact(next, colNum, { compactType: forcedType });
+    const compacted = compactLayout(next, forcedType);
     workingLayoutRef.current = compacted;
     setWorkingLayout(compacted);
     onLayoutChange?.(compacted);
-  }, [compactor, compactType, colNum, onLayoutChange]);
+  }, [compactLayout, compactType, onLayoutChange]);
 
   const compactNow = useCallback((): void => {
+    // Nothing to tidy while an item is maximized (compaction is held back until the grid is restored): no undo point, no callback.
+    if(resolveMaximizedItem(workingLayoutRef.current, maximizedIdRef.current) !== null) {
+      return;
+    }
     commitUndoPoint(workingLayoutRef.current);
     commitForcedCompaction(cloneLayout(workingLayoutRef.current));
   }, [commitUndoPoint, commitForcedCompaction]);
@@ -817,6 +960,70 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   const rearrange = useCallback((): void => {
     compactNow();
   }, [compactNow]);
+
+  /** The one place the maximized item changes because the grid itself decided so (as opposed to the `maximizedItem` prop): updates the state and the ref together and reports it. */
+  const changeMaximizedItem = useCallback((id: string | number | null): void => {
+    maximizedIdRef.current = id;
+    setMaximizedId(id);
+    onMaximizedItemChangeRef.current?.(id);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — the callback only touches refs and a state setter, so a constant dependency list behaves exactly like an empty one.
+  []);
+
+  const maximize = useCallback((id: string | number): void => {
+    // An id the layout does not have is ignored, and so is the one already maximized (no second report).
+    if(resolveMaximizedItem(workingLayoutRef.current, id) === null || id === maximizedIdRef.current) {
+      return;
+    }
+    changeMaximizedItem(id);
+  }, [changeMaximizedItem]);
+
+  const restore = useCallback((): void => {
+    if(maximizedIdRef.current === null) {
+      return;
+    }
+    changeMaximizedItem(null);
+  }, [changeMaximizedItem]);
+
+  const toggleMaximize = useCallback((id: string | number): void => {
+    if(maximizedIdRef.current === id) {
+      restore();
+    } else {
+      maximize(id);
+    }
+  }, [maximize, restore]);
+
+  // A maximized id that has no item any more (removed from `layout`, or a different layout loaded) is dropped, and reported like
+  // any other change the grid makes itself: the consumer's own state would otherwise keep naming an item that is gone.
+  useEffect(() => {
+    if(maximizedId !== activeMaximizedId) {
+      changeMaximizedItem(null);
+    }
+  }, [maximizedId, activeMaximizedId, changeMaximizedItem]);
+
+  // The compaction held back while an item was maximized runs once, when the grid is restored — and only calls `onLayoutChange`
+  // when it actually moved something, so restoring a layout that was already compact reports nothing.
+  const wasMaximizedRef = useRef(false);
+  useEffect(() => {
+    const isMaximized = activeMaximizedId !== null;
+    if(wasMaximizedRef.current && !isMaximized) {
+      const rendered = workingLayoutRef.current;
+      const compacted = compactLayout(cloneLayout(rendered), compactType);
+      if(!layoutPositionsEqual(compacted, rendered)) {
+        workingLayoutRef.current = compacted;
+        setWorkingLayout(compacted);
+        onLayoutChange?.(compacted);
+      }
+    }
+    wasMaximizedRef.current = isMaximized;
+  }, [activeMaximizedId, compactLayout, compactType, onLayoutChange]);
+
+  /** Escape restores the grid, unless something inside the item already used that key (a dialog or menu closing, say): that one is left alone. */
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if(event.key === `Escape` && !event.defaultPrevented) {
+      restore();
+    }
+  };
 
   const duplicateItem = useCallback((id: string | number): string | number | null => {
     const next = cloneLayout(workingLayoutRef.current);
@@ -880,7 +1087,10 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       const candidate = { ...item, ...adjustment };
       if(preventCollision) {
         const collisions = getAllCollisions(next, candidate)
-          .filter(layoutItem => layoutItem.i !== item.i && !selectedIdSet.has(layoutItem.i));
+          .filter(layoutItem =>
+            // Stryker disable next-line ConditionalExpression: equivalent — adjustments only exist for selected items, so the item itself is already excluded by the selection test on the next line.
+            layoutItem.i !== item.i &&
+            !selectedIdSet.has(layoutItem.i));
         if(collisions.length > 0) {
           return;
         }
@@ -967,7 +1177,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     const idAsString = String(id);
     const candidates = containerRef.current.querySelectorAll<HTMLElement>(`[data-grid-item-id]`);
     return Array.from(candidates).find(el => el.getAttribute(`data-grid-item-id`) === idAsString) ?? null;
-  }, []);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
+  []);
 
   /**
    * Scrolls the item with the given id into view, if it's currently
@@ -987,7 +1199,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
         resolve();
       }, 0);
     })
-  ), [findItemElement]);
+  ),
+  // Stryker disable next-line ArrayDeclaration: equivalent — findItemElement is a useCallback with no dependencies, so it never changes identity and the list behaves exactly like an empty one.
+  [findItemElement]);
 
   /** Moves keyboard focus to the item with the given id, if it's currently rendered and focusable — the React port of Vue's own `focusItem`. Same deferral/no-op rationale as `scrollToItem` above. */
   const focusItem = useCallback((id: string | number): Promise<void> => (
@@ -997,7 +1211,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
         resolve();
       }, 0);
     })
-  ), [findItemElement]);
+  ),
+  // Stryker disable next-line ArrayDeclaration: equivalent — findItemElement is a useCallback with no dependencies, so it never changes identity and the list behaves exactly like an empty one.
+  [findItemElement]);
 
   const undo = useCallback((): void => {
     if(historyRef.current.length === 0) {
@@ -1027,7 +1243,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
 
   const selectItem = useCallback((id: string | number): void => {
     setSelectedItemIds(prev => (prev.has(id) ? prev : new Set(prev).add(id)));
-  }, []);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
+  []);
 
   const deselectItem = useCallback((id: string | number): void => {
     setSelectedItemIds(prev => {
@@ -1038,7 +1256,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       next.delete(id);
       return next;
     });
-  }, []);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
+  []);
 
   const toggleItemSelection = useCallback((id: string | number): void => {
     setSelectedItemIds(prev => {
@@ -1050,12 +1270,16 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       }
       return next;
     });
-  }, []);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
+  []);
 
   const clearSelection = useCallback((): void => {
     lastAnchorIdRef.current = null;
     setSelectedItemIds(prev => (prev.size === 0 ? prev : new Set()));
-  }, []);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
+  []);
 
   /**
    * A click reported by a `GridItem`'s own root (`multiSelect` only —
@@ -1105,12 +1329,21 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     if(event.target === event.currentTarget) {
       clearSelection();
     }
-  }, [clearSelection]);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — clearSelection is a useCallback with no dependencies, so it never changes identity and the list behaves exactly like an empty one.
+  [clearSelection]);
 
   useImperativeHandle(ref, () => ({
     alignSelected,
-    canRedo: futureRef.current.length > 0,
-    canUndo: historyRef.current.length > 0,
+    // Getters, not booleans computed when the handle is built: the history is pushed by an effect after that (an item added through
+    // the `layout` prop is recorded there), so a snapshot said `false` for a handle already in the consumer's hands, and nothing
+    // made the consumer read it again. A getter always answers for the history as it is now.
+    get canRedo(): boolean {
+      return futureRef.current.length > 0;
+    },
+    get canUndo(): boolean {
+      return historyRef.current.length > 0;
+    },
     clearSelection,
     compactNow,
     deselectItem,
@@ -1118,18 +1351,25 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     duplicateItem,
     exportLayoutAsSvg,
     focusItem,
+    maximize,
+    // A getter, like `canUndo`: it answers for the grid as it is now, including a change made a moment ago that has not rendered yet.
+    get maximizedItem(): string | number | null {
+      return resolveMaximizedItem(workingLayoutRef.current, maximizedIdRef.current);
+    },
     rearrange,
     redo,
+    restore,
     scrollToItem,
     selectedItems: Array.from(selectedItemIds),
     selectItem,
     toggleItemSelection,
+    toggleMaximize,
     undo,
     // eslint-disable-next-line react-hooks/exhaustive-deps -- undoRedoVersion is intentionally a dep despite not being read directly in the body: it's what forces this factory to recompute canUndo/canRedo after an undo-history-affecting action that didn't otherwise change any other dependency here (see undoRedoVersion's own declaration comment).
   }), [
     alignSelected, clearSelection, compactNow, deselectItem, distributeSelected,
-    duplicateItem, exportLayoutAsSvg, focusItem, rearrange, redo, scrollToItem,
-    selectedItemIds, selectItem, toggleItemSelection, undo, undoRedoVersion,
+    duplicateItem, exportLayoutAsSvg, focusItem, maximize, rearrange, redo, restore, scrollToItem,
+    selectedItemIds, selectItem, toggleItemSelection, toggleMaximize, undo, undoRedoVersion,
   ]);
 
   /**
@@ -1159,7 +1399,10 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
 
     if(showAlignmentGuides) {
       const guides = findAlignmentGuides(workingLayoutRef.current, activeItem);
-      if(guides.length === 0 || effectiveContainerWidth < 1) {
+      // Stryker disable next-line ConditionalExpression,LogicalOperator: equivalent — with no guides, mapping over the empty list in the else branch gives the same empty result, and a width below 1 cannot occur (see the next operand), so neither this operand nor the `||` can change what is set.
+      if(guides.length === 0 ||
+        // Stryker disable next-line ConditionalExpression,EqualityOperator: equivalent — the container width is only ever taken when it is above 0 and otherwise stays at its seed of 100, so it is never below 1; and at exactly 1 the column width is negative, which core rejects for any item (calcGridItemWH), so no GridItem can render, let alone be dragged, to reach this check at that width.
+        effectiveContainerWidth < 1) {
         setAlignmentGuideStyles([]);
       } else {
         const colWidth = calcColWidth(effectiveContainerWidth, margin[0], colNum);
@@ -1172,7 +1415,10 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
 
     if(showSpacingGuides) {
       const indicators = findSpacingIndicators(workingLayoutRef.current, activeItem);
-      if(indicators.length === 0 || effectiveContainerWidth < 1) {
+      // Stryker disable next-line ConditionalExpression,LogicalOperator: equivalent — with no indicators, mapping over the empty list in the else branch gives the same empty result, and a width below 1 cannot occur (see the next operand), so neither this operand nor the `||` can change what is set.
+      if(indicators.length === 0 ||
+        // Stryker disable next-line ConditionalExpression,EqualityOperator: equivalent — the container width is only ever taken when it is above 0 and otherwise stays at its seed of 100, so it is never below 1; and at exactly 1 the column width is negative, which core rejects for any item (calcGridItemWH), so no GridItem can render, let alone be dragged, to reach this check at that width.
+        effectiveContainerWidth < 1) {
         setSpacingIndicatorStyles([]);
       } else {
         const colWidth = calcColWidth(effectiveContainerWidth, margin[0], colNum);
@@ -1203,7 +1449,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   const clearGuidesAndIndicators = useCallback((): void => {
     setAlignmentGuideStyles([]);
     setSpacingIndicatorStyles([]);
-  }, []);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — a constant dependency list behaves exactly like an empty one.
+  []);
 
   /**
    * `multiSelect`'s group move: dragging a selected item while more
@@ -1217,7 +1465,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
    * possible without an awkward second clone.
    */
   const applyGroupMove = useCallback((next: TLayout, eventType: TGridGestureEventType, id: string | number, x: number, y: number): void => {
-    if(!(multiSelect && selectedItemIds.has(id) && selectedItemIds.size > 1)) {
+    if(!(multiSelect && selectedItemIds.has(id) &&
+      // Stryker disable next-line ConditionalExpression,EqualityOperator: equivalent — `selectedItemIds.has(id)` already means at least one is selected, and with exactly one there is no passenger to move, so `> 1` and `>= 1` (or always true) behave the same.
+      selectedItemIds.size > 1)) {
       return;
     }
     if(eventType === `dragstart`) {
@@ -1227,7 +1477,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
           return [selectedId, { x: selectedItem?.x ?? 0, y: selectedItem?.y ?? 0 }];
         }),
       );
-    } else if((eventType === `dragmove` || eventType === `dragend`) && groupMoveStartPositions.current.has(id)) {
+    } else if(
+      // Stryker disable next-line ConditionalExpression: equivalent — dragstart was handled by the branch above and the event types are a closed union (dragstart, dragmove, dragend), so this is always one of the other two.
+      (eventType === `dragmove` || eventType === `dragend`) && groupMoveStartPositions.current.has(id)) {
       const anchorStart = groupMoveStartPositions.current.get(id)!;
       const dx = x - anchorStart.x;
       const dy = y - anchorStart.y;
@@ -1248,7 +1500,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
 
   /** `multiSelect`'s group resize — same snapshot-and-apply-delta shape as `applyGroupMove` above, applied to `w`/`h` instead of `x`/`y`, additionally clamped to each passenger's own `minW`/`maxW`/`minH`/`maxH` (not just a hard floor of 1). */
   const applyGroupResize = useCallback((next: TLayout, eventType: TGridGestureEventType, id: string | number, w: number, h: number): void => {
-    if(!(multiSelect && selectedItemIds.has(id) && selectedItemIds.size > 1)) {
+    if(!(multiSelect && selectedItemIds.has(id) &&
+      // Stryker disable next-line ConditionalExpression,EqualityOperator: equivalent — `selectedItemIds.has(id)` already means at least one is selected, and with exactly one there is no passenger to resize, so `> 1` and `>= 1` (or always true) behave the same.
+      selectedItemIds.size > 1)) {
       return;
     }
     if(eventType === `resizestart`) {
@@ -1258,7 +1512,11 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
           return [selectedId, { h: selectedItem?.h ?? 1, w: selectedItem?.w ?? 1 }];
         }),
       );
-    } else if((eventType === `resizemove` || eventType === `resizeend`) && groupResizeStartSizes.current.has(id)) {
+    } else if(
+      // Stryker disable next-line ConditionalExpression: equivalent — resizestart was handled by the branch above and the event types are a closed union, so this is always resizemove or resizeend.
+      (eventType === `resizemove` ||
+      // Stryker disable next-line ConditionalExpression,EqualityOperator,StringLiteral: equivalent — at resizeend the passengers already hold the sizes the last resizemove gave them (compaction changes positions, never sizes), so applying them again changes nothing.
+      eventType === `resizeend`) && groupResizeStartSizes.current.has(id)) {
       const anchorStart = groupResizeStartSizes.current.get(id)!;
       const dw = w - anchorStart.w;
       const dh = h - anchorStart.h;
@@ -1302,6 +1560,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       } else {
         dragMinPositionsRef.current = undefined;
       }
+      swapDragStateRef.current = collisionMode === `swap` ? createSwapDragState(item) : undefined;
     }
     if(eventType === `dragmove`) {
       onDragMove?.(id);
@@ -1360,23 +1619,27 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
       clearGuidesAndIndicators();
     } else {
       updateGuidesAndIndicators(id, resolvedX, resolvedY, w, h);
-    }
-
-    // Regular in-grid drag placeholder — the React equivalent of Vue's
-    // own #placeholder scoped slot rendering during any in-grid drag,
-    // not just outside-drop (which `outsideDropPlaceholder` below
-    // already covers separately). Uses the same, already-computed
-    // `resolvedX`/`resolvedY` (post-snap, pre-collision-resolution) as
-    // the "where is this drag currently heading" position — the same
-    // value `moveElement` below is about to resolve against collisions.
-    if(eventType === `dragstart` || eventType === `dragmove`) {
+      // Regular in-grid drag placeholder — the React equivalent of Vue's
+      // own #placeholder scoped slot rendering during any in-grid drag,
+      // not just outside-drop (which `outsideDropPlaceholder` below
+      // already covers separately). Set for dragstart and dragmove, i.e.
+      // everything but dragend (cleared at the end of this function), the
+      // same shape as `handleItemResize`'s own. Uses the same,
+      // already-computed `resolvedX`/`resolvedY` (post-snap,
+      // pre-collision-resolution) as the "where is this drag currently
+      // heading" position — the same value `moveElement` below is about
+      // to resolve against collisions.
       setItemGesturePlaceholder({ h, w, x: resolvedX, y: resolvedY });
     }
 
     const preMoveX = item.x;
     const preMoveY = item.y;
 
-    const moved = moveElement(next, item, resolvedX, resolvedY, true, horizontalShift, preventCollision);
+    // `collisionMode: 'swap'`: try to trade places with the single item under the pointer first; anything it declines
+    // (no hit, several hits, statics, partial overlaps, no room) falls back to the ordinary push below.
+    const swapState = swapDragStateRef.current;
+    const swapped = swapState !== undefined && !preventCollision && swapElement(next, item, resolvedX, resolvedY, colNum, swapState);
+    const moved = swapped ? next : moveElement(next, item, resolvedX, resolvedY, true, horizontalShift, preventCollision);
     // `onMoveBlockedByCollision`: fires only when the move was
     // genuinely *attempted* (the target actually differs from where
     // the item already was) but `preventCollision` blocked it entirely
@@ -1388,6 +1651,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     // otherwise look like a blocked move too). Matches the Vue
     // package's own `dragEvent`'s identical check.
     const movedItem = getLayoutItem(moved, id);
+    // Stryker disable next-line OptionalChaining: equivalent — moveElement returns the layout it was given with the item still in it, so movedItem is never undefined here.
     if((resolvedX !== preMoveX || resolvedY !== preMoveY) && movedItem?.x === preMoveX && movedItem?.y === preMoveY) {
       onMoveBlockedByCollision?.(id);
     }
@@ -1395,13 +1659,14 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     commitLayout(moved, minPositionsForThisCommit);
     if(eventType === `dragend`) {
       dragMinPositionsRef.current = undefined;
+      swapDragStateRef.current = undefined;
       setIsAnyItemDragging(false);
       setItemGesturePlaceholder(null);
     }
   }, [
     commitUndoPoint, crossGridDrag, onDragStart, onDragMove, onDragEnd, onMoveBlockedByCollision,
     restoreOnDrag, compactType, clearGuidesAndIndicators, commitLayout, snapToGrid, snapThreshold,
-    applyGroupMove, horizontalShift, preventCollision, updateGuidesAndIndicators,
+    applyGroupMove, horizontalShift, preventCollision, collisionMode, colNum, updateGuidesAndIndicators,
   ]);
 
   const handleItemResize = useCallback((id: string | number, eventType: TGridGestureEventType, x: number, y: number, w: number, h: number): void => {
@@ -1478,12 +1743,16 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     isResizable,
     layout: workingLayout,
     margin,
+    maximizedHeight,
+    maximizedId: activeMaximizedId,
     maxRows,
     multiSelect,
     onItemClick: handleItemClick,
     onItemClose,
     onItemDrag: handleItemDrag,
     onItemResize: handleItemResize,
+    onItemToggleMaximize: toggleMaximize,
+    positionStrategy,
     preserveAspectRatio,
     preventCollision,
     resizeHandleColor,
@@ -1491,15 +1760,16 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     rowHeight,
     selectedItemIds,
     showCloseButton,
+    showMaximizeButton,
     showResizeHandles,
     transformScale,
     useBorderRadius,
     useCssTransforms,
   }), [
     resolvedAriaLabels, autoScroll, borderRadiusPx, colNum, effectiveContainerWidth, enableEditMode,
-    isBounded, isDraggable, isMirrored, isResizable, workingLayout, margin, maxRows, multiSelect,
-    handleItemClick, onItemClose, handleItemDrag, handleItemResize, preserveAspectRatio, preventCollision,
-    resizeHandleColor, resizeHandles, rowHeight, selectedItemIds, showCloseButton, showResizeHandles,
+    isBounded, isDraggable, isMirrored, isResizable, workingLayout, margin, maximizedHeight, activeMaximizedId, maxRows, multiSelect,
+    handleItemClick, onItemClose, handleItemDrag, handleItemResize, toggleMaximize, positionStrategy, preserveAspectRatio, preventCollision,
+    resizeHandleColor, resizeHandles, rowHeight, selectedItemIds, showCloseButton, showMaximizeButton, showResizeHandles,
     transformScale, useBorderRadius, useCssTransforms,
   ]);
 
@@ -1639,7 +1909,9 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
   if(heightMode !== null) {
     resolvedHeightMode = heightMode;
   } else {
-    resolvedHeightMode = autoSize ? `auto` : `fixed`;
+    resolvedHeightMode = autoSize ? `auto` :
+      // Stryker disable next-line StringLiteral: equivalent — an empty mode and `fixed` both fall into the switch's default branch below, so neither sets a height or an overflow.
+      `fixed`;
   }
 
   let containerHeight: string | undefined;
@@ -1731,7 +2003,7 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
         <div className="kdl-grid-placeholder" style={itemGesturePlaceholderStyle} />
       )}
       {renderPlaceholder && activePlaceholderStyle && (
-        <div style={activePlaceholderStyle}>
+        <div className="kdl-grid-placeholder-wrapper" style={activePlaceholderStyle}>
           {renderPlaceholder(activePlaceholder, isPlaceholderActive)}
         </div>
       )}
@@ -1742,12 +2014,14 @@ export const GridLayout = forwardRef<IGridLayoutHandle, IGridLayoutProps>(functi
     <div
       ref={containerRef}
       className={classNames}
+      data-kdl-settling={hasSettled ? undefined : ``}
       onClick={handleBackgroundClick}
       onDragEnter={handleOutsideDragEnter}
       onDragLeave={handleOutsideDragLeave}
       onDragOver={handleOutsideDragOver}
       onDrop={handleOutsideDrop}
-      style={{ height: containerHeight, overflowX: needsHorizontalScroll ? `auto` : undefined, overflowY: containerOverflow, position: `relative`, ...gridLinesStyle, ...transitionStyle }}
+      onKeyDown={handleKeyDown}
+      style={{ height: containerHeight, overflowX: needsHorizontalScroll ? `auto` : undefined, overflowY: containerOverflow, position: `relative`, visibility: hasMeasuredWidth ? undefined : `hidden`, ...gridLinesStyle, ...transitionStyle }}
     >
       {needsWidthWrapper ? (
         // height matches whatever the outer root resolved to (a real px

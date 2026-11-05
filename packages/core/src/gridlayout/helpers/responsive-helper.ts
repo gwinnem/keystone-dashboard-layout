@@ -44,5 +44,6 @@ export const findOrGenerateResponsiveLayout = (
   const layout = cloneLayout(orgLayout || []);
   const bounded = correctBounds(layout, { cols }, distributeEvenly);
 
+  // Stryker disable next-line ObjectLiteral: equivalent — ICompactorContext.compactType is informational: no built-in compactor reads it (only minPositions), so an empty context behaves identically.
   return getCompactor(compactType).compact(bounded, cols, { compactType });
 };

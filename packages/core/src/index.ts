@@ -54,6 +54,16 @@ export { findFirstFitSlot } from '@/core/gridlayout/helpers/bin-pack-helper';
 // grid bounds.
 export { moveToCorrectPlace, moveElement, moveElementAwayFromCollision } from '@/core/gridlayout/helpers/move-helper';
 
+// Swap-on-drag collision mode — the `collisionMode: 'swap'` drag step.
+export type { TCollisionMode, ISwapDragState } from '@/core/gridlayout/helpers/swap-helper';
+export { createSwapDragState, swapElement } from '@/core/gridlayout/helpers/swap-helper';
+
+// Maximize/restore — which id a grid may maximize, and the pixel rectangle that item fills. The grid keeps the id as its own
+// state and never touches `layout`.
+export type { IMaximizedPositionInput } from '@/core/gridlayout/helpers/maximize-helper';
+export type { IMaximizedState } from '@/core/gridlayout/interfaces/layout-data.interface';
+export { calcMaximizedPosition, resolveMaximizedItem } from '@/core/gridlayout/helpers/maximize-helper';
+
 // Compaction, cloning, and pixel-position style generation.
 export {
   cloneLayoutItem,
@@ -80,13 +90,21 @@ export { getBottomYCoordinate } from '@/core/gridlayout/helpers/grid-layout-help
 export type { ICompactor, ICompactorContext } from '@/core/gridlayout/helpers/compactor';
 export {
   verticalCompactor,
+  verticalFastCompactor,
   horizontalCompactor,
   noCompactor,
   verticalOverlapCompactor,
   horizontalOverlapCompactor,
   getCompactor,
 } from '@/core/gridlayout/helpers/compactor';
+export { compactLayoutFast } from '@/core/gridlayout/helpers/fast-compact-helper';
 export { ECompactType } from '@/core/gridlayout/enums/ECompactType';
+
+// Pluggable CSS positioning — the interface `GridLayout`'s own
+// `positionStrategy` prop takes, the two built-in strategies behind
+// `useCssTransforms`, and a lookup by that flag.
+export type { IPositionStrategy, IPositionStyleInput } from '@/core/gridlayout/helpers/position-strategy';
+export { transformStrategy, topLeftStrategy, getPositionStrategy } from '@/core/gridlayout/helpers/position-strategy';
 
 // Grid-unit <-> pixel math.
 export { calcXY } from '@/core/helpers/calculate-utils';
@@ -158,6 +176,21 @@ export {
 
 // Serialization, SVG export, and the outside-drop payload helper.
 export { serializeLayout, deserializeLayout } from '@/core/helpers/layout-storage';
+
+// Async persistence — the `IAsyncLayoutStorage` contract, IndexedDB/HTTP/in-memory adapters, and the ordered, never-rejecting
+// wrapper the framework wrappers (`useAsyncLayoutStorage`, `GridLayoutAsyncStorageService`) are built on.
+export type {
+  IAsyncLayoutPersistence,
+  IAsyncLayoutStorage,
+  IHttpStorageOptions,
+  IIndexedDbStorageOptions,
+} from '@/core/helpers/async-layout-storage';
+export {
+  createAsyncLayoutPersistence,
+  createHttpStorage,
+  createIndexedDbStorage,
+  createMemoryAsyncStorage,
+} from '@/core/helpers/async-layout-storage';
 export type { IExportLayoutAsSvgOptions } from '@/core/gridlayout/helpers/export-svg';
 export { exportLayoutAsSvg } from '@/core/gridlayout/helpers/export-svg';
 export { readOutsideDropPayload } from '@/core/gridlayout/helpers/outside-drop-payload';

@@ -57,4 +57,18 @@ describe(`findFirstFitSlot`, () => {
     const layout: TLayout = [{ h: 3, i: `0`, w: 2, x: 0, y: 0 }];
     expect(findFirstFitSlot(layout, 12, 2, 2)).toStrictEqual({ x: 2, y: 0 });
   });
+
+  it(`Should use the rightmost column when it is the only free slot in a row`, () => {
+    // colNum 4, an item 2 wide: the last valid x is 2 (2 + 2 = 4). Row 0 has x 0-2 taken, so (2, 0) is the only fit there; stopping the
+    // scan one column short would skip it and fall to a lower row.
+    const layout: TLayout = [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }];
+    expect(findFirstFitSlot(layout, 4, 2, 2)).toStrictEqual({ x: 2, y: 0 });
+  });
+
+  it(`Should place an item wider than the whole grid on a fresh row at the left edge, since it fits no column`, () => {
+    // w 3 > colNum 2: no x is valid in any row, so the scan finds nothing and the fallback (0, maxY) applies.
+    const layout: TLayout = [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }];
+    expect(findFirstFitSlot(layout, 2, 3, 1)).toStrictEqual({ x: 0, y: 2 });
+    expect(findFirstFitSlot([], 2, 3, 1)).toStrictEqual({ x: 0, y: 0 });
+  });
 });

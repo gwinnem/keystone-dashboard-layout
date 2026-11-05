@@ -104,4 +104,37 @@ describe(`calcXY`, () => {
   it(`Should NOT throw when containerWidth is exactly 1`, () => {
     expect(() => calcXY(50, 100, [10, 10], 60, 6, 2, 2, 10, 1)).not.toThrow();
   });
+
+  // The "all-valid" test above lands on cell (1, 1) however the margin is applied: (100 + 10) / 98.33 and (100 - 10) / 98.33 both
+  // round to 1, so a flipped sign or a wrong divisor never changed the result. These use pixel positions about 2.4 cells in, where
+  // each of those mistakes rounds to 3 instead of 2.
+  //   margin [10, 10], rowHeight 60, cols 6, containerWidth 600 -> colWidth 88.33, column step 98.33, row step 70
+  it(`Should subtract the margin from the pixel position and add it to the cell size, for x`, () => {
+    // (246 - 10) / (88.33 + 10) = 2.40 -> 2.   (246 + 10) / 98.33 = 2.60 -> 3.   236 / (88.33 - 10) = 3.01 -> 3.
+    expect(calcXY(10, 246, [10, 10], 60, 6, 2, 2, 10, 600).x).toBe(2);
+  });
+
+  it(`Should subtract the margin from the pixel position and add it to the cell size, for y`, () => {
+    // (178 - 10) / (60 + 10) = 2.40 -> 2.   (178 + 10) / 70 = 2.69 -> 3.   168 / (60 - 10) = 3.36 -> 3.
+    expect(calcXY(178, 10, [10, 10], 60, 6, 2, 2, 10, 600).y).toBe(2);
+  });
+
+  it(`Should use the vertical margin for y, not the horizontal one`, () => {
+    // margin [10, 30]: (206 - 30) / (60 + 30) = 1.96 -> 2.   Using margin[0] = 10 instead: (206 - 10) / 70 = 2.80 -> 3.
+    expect(calcXY(206, 10, [10, 30], 60, 6, 2, 2, 10, 600).y).toBe(2);
+  });
+
+  it(`Should cap x so the item, at its own width, cannot pass the last column`, () => {
+    // The pixel position is about 100 cells across; with innerW 2 in 6 columns the furthest start is column 4 (not 6 + 2 = 8).
+    expect(calcXY(10, 10000, [10, 10], 60, 6, 3, 2, 10, 600).x).toBe(4);
+  });
+
+  it(`Should cap y so the item, at its own height, cannot pass the last row`, () => {
+    // With innerH 3 in 10 rows the furthest start is row 7 (not 10 + 3 = 13).
+    expect(calcXY(10000, 10, [10, 10], 60, 6, 3, 2, 10, 600).y).toBe(7);
+  });
+
+  it(`Should clamp a position before the grid's own origin to 0, in both directions`, () => {
+    expect(calcXY(-500, -500, [10, 10], 60, 6, 2, 2, 10, 600)).toStrictEqual({ x: 0, y: 0 });
+  });
 });

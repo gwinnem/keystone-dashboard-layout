@@ -7,8 +7,10 @@ description: The interface backing localizable ARIA strings, plus the built-in E
 interface IGridAriaLabels {
   closeButton?: string;
   itemRoleDescription?: string;
+  maximizeButton?: string;
   moveInstruction?: string;
   resizeInstruction?: string;
+  restoreButton?: string;
 }
 ```
 
@@ -16,6 +18,8 @@ interface IGridAriaLabels {
 |---|---|---|
 | `closeButton` | `'Close'` | Visually-hidden label for the close button. Read by screen readers; the visible button only shows an icon. |
 | `itemRoleDescription` | `'Draggable, resizable item'` | `aria-roledescription` on a draggable/resizable/static-with-neither item's root element. Only applied when the item is actually draggable or resizable — a purely static item has no interactive role to describe. |
+| `maximizeButton` | `'Maximize'` | Visually-hidden label (and tooltip) of the built-in maximize/restore button while the item is *not* maximized. |
+| `restoreButton` | `'Restore'` | The same button's label while the item *is* maximized. |
 | `moveInstruction` | `'Press arrow keys to move.'` | Keyboard instruction text for moving a draggable item, read via `aria-describedby`. Only included when the item is actually draggable. |
 | `resizeInstruction` | `'Press shift plus arrow keys to resize.'` | Keyboard instruction text for resizing a resizable item, read via `aria-describedby`. Only included when the item is actually resizable. |
 

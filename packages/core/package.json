@@ -1,6 +1,6 @@
 {
   "name": "keystone-dashboard-layout-core",
-  "version": "1.0.1",
+  "version": "1.2.0",
   "type": "module",
   "description": "Framework-agnostic grid-layout algorithms (bin-packing, collision detection, compaction, responsive breakpoints, alignment guides) shared by the Vue, React, and Angular packages in this monorepo. Zero framework dependency — every function takes plain data in, returns plain data out.",
   "author": "Geirr Winnem <geirr@winnem.tech>",
@@ -30,6 +30,11 @@
   "main": "dist/keystone-dashboard-layout-core.cjs.js",
   "module": "dist/keystone-dashboard-layout-core.es.js",
   "types": "./dist/types/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "types/*": ["dist/types/*"]
+    }
+  },
   "files": ["dist/*", "LICENSE", "NOTICE.md", "SUPPORT.md", "CHANGELOG.md"],
   "exports": {
     ".": {
@@ -46,6 +51,9 @@
       "types": "./dist/types/gridlayout/interfaces/cross-grid.interfaces.d.ts",
       "import": "./dist/cross-grid-interfaces.es.js",
       "require": "./dist/cross-grid-interfaces.cjs.js"
+    },
+    "./types/*": {
+      "types": "./dist/types/*.d.ts"
     }
   },
   "homepage": "https://kdl.winnem.tech/core/",
@@ -64,7 +72,9 @@
     "lint:fix": "eslint --fix --color",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:mutation": "stryker run"
+    "bench": "vitest bench --run",
+    "test:mutation": "stryker run",
+    "changeset": "node ../../scripts/changeset.mjs"
   },
   "devDependencies": {
     "@stryker-mutator/core": "^9.6.1",

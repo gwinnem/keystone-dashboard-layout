@@ -9,6 +9,16 @@ import { fileURLToPath } from 'node:url';
 // monorepo's own `engines.node`) doesn't have it.
 const __dirname = import.meta.dirname ?? dirname(fileURLToPath(import.meta.url));
 
+// The `@/core/*` alias makes vite-plugin-dts emit relative specifiers into
+// the sibling core package's source (`../../../../core/src/<path>`), which
+// is not in the published tarball. Rewrite them to core's types-only
+// `./types/*` subpath export instead (see packages/core/package.json).
+// Matches any quoting/form: `from '...'`, `import('...')`, `export ... from '...'`.
+const CORE_SRC_PATH = /(?:\.\.\/)+core\/src\/([^'"`\s]+)/g;
+const CORE_SRC_BARREL = /(?:\.\.\/)+core\/src(?=['"`])/g;
+const rewriteCoreSrcSpecifiers = (content: string): string =>
+  content.replace(CORE_SRC_PATH, 'keystone-dashboard-layout-core/types/$1').replace(CORE_SRC_BARREL, 'keystone-dashboard-layout-core');
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -44,6 +54,10 @@ export default defineConfig({
       // own `rootDir` — so the shared, widened `rootDir` doesn't shift
       // output paths.
       tsconfigPath: './tsconfig.build-types.json',
+      beforeWriteFile: (filePath, content) => ({
+        filePath,
+        content: filePath.endsWith('.d.ts') ? rewriteCoreSrcSpecifiers(content) : content,
+      }),
     }),
   ],
   build: {

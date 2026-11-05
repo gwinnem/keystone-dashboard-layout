@@ -28,7 +28,7 @@ interface IWidgetPayload {
     <label>vertical compact <input data-testid="toggle-vertical-compact" type="checkbox" [(ngModel)]="verticalCompact" /></label>
     <button data-testid="reset-grids" type="button" (click)="reset()">Reset</button>
 
-    <div style="display: flex; gap: 16px">
+    <div data-testid="external-drop-view-wrap" style="display: flex; gap: 16px">
       <div data-testid="drop-grid-left" style="border: 1px solid #ccc; min-height: 200px; width: 50%">
         <kdl-grid-layout style="display: block; width: 100%" [allowCrossGridDrag]="true" [allowOutsideDrop]="true" class="cross-grid-empty-target" [colNum]="6" [compactType]="verticalCompact ? ECompactType.VERTICAL : ECompactType.NONE" [layout]="layoutLeft" layoutId="drop-grid-left" [rowHeight]="80" (layoutChange)="layoutLeft = $event" (itemDroppedFromOutside)="onOutsideDrop($event, 'left')">
           @for (item of layoutLeft; track item.i) {

@@ -374,4 +374,20 @@ describe(`useGridItemDrag`, () => {
       expect(removeSpy).toHaveBeenCalledWith(`pointerdown`, expect.any(Function));
     });
   });
+
+  describe(`onItemMoved`, () => {
+    it(`Should report a drag that changed only the row, ending in the column the item started in`, () => {
+      // The item starts in cell (0, 0). A drag straight down keeps x at 0 and lands in row 2 (top 300 -> round((300 - 10) / 160)), so the
+      // x comparison alone would call this "not moved": only the y comparison can tell.
+      const onItemMoved = vi.fn();
+      const ctx = createContext(defaultOptions({ onItemMoved }));
+      ctx.dispatch({ clientX: 0, clientY: 0, type: `dragstart` });
+      ctx.dispatch({ clientX: 0, clientY: 300, type: `dragmove` });
+
+      ctx.dispatch({ clientX: 0, clientY: 300, type: `dragend` });
+
+      expect(onItemMoved).toHaveBeenCalledTimes(1);
+      expect(onItemMoved).toHaveBeenCalledWith({ i: `item-1`, x: 0, y: 2 });
+    });
+  });
 });

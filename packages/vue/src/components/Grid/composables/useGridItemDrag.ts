@@ -50,6 +50,9 @@ export function useGridItemDrag(ctx: IGridItemDragContext): IUseGridItemDragRetu
     transformScale,
   } = ctx;
 
+  /** Resolved `autoScroll` (this item's own prop, else the grid's default); falls back to the raw prop when no resolved ref is supplied. */
+  const isAutoScroll = (): boolean => (ctx.autoScroll ? ctx.autoScroll.value : props.autoScroll === true);
+
   /** `null` until `GridItem`'s `onMounted` resolves it from the `isDraggable` prop or the parent layout's default. */
   const draggable = ref<boolean | null>(null);
   /** Whether a drag is currently in progress — drives the `vue-draggable-dragging`/`disable-userselect` classes. */
@@ -142,7 +145,7 @@ export function useGridItemDrag(ctx: IGridItemDragContext): IUseGridItemDragRetu
         newPosition.top = cTop - pTop;
         dragging.value = newPosition as IGridItemPosition;
         isDragging.value = true;
-        if(props.autoScroll) {
+        if(isAutoScroll()) {
           autoScroll.start(tg);
         }
         break;
@@ -202,7 +205,7 @@ export function useGridItemDrag(ctx: IGridItemDragContext): IUseGridItemDragRetu
           newPosition.left = clamp(newPosition.left, 0, rightBoundary);
         }
         dragging.value = newPosition as IGridItemPosition;
-        if(props.autoScroll) {
+        if(isAutoScroll()) {
           autoScroll.update(event.clientX, event.clientY);
         }
         break;

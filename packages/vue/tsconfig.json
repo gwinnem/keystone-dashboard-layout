@@ -30,16 +30,15 @@
     // inherits `".."` from here instead.
     "rootDir": "..",
     "paths": {
-      // Bare-barrel entries (no trailing `/*`) are a *different* paths
+      // The bare-barrel entry (no trailing `/*`) is a *different* paths
       // pattern from the wildcard one below — TypeScript's `paths`
       // wildcard matching requires at least one path segment after the
       // prefix, so `@/core/foo` resolves via the wildcard entry but a
-      // bare `@/core` (no segment) or the real published package name
-      // `@keystone-dashboard-layout/core` (used directly by some demo
-      // files and by this package's own grid-layout-props.interface.ts)
-      // needs its own explicit entry pointing at the core barrel.
+      // bare `@/core` (no segment) needs its own explicit entry pointing
+      // at the core barrel. (The old `@keystone-dashboard-layout/core`
+      // entry was removed: the real package name is
+      // `keystone-dashboard-layout-core`, resolved through node_modules.)
       "@/core": ["../core/src/index"],
-      "@keystone-dashboard-layout/core": ["../core/src/index"],
       "@/core/*": ["../core/src/*"],
       "@/components/Grid/layout-definition": ["../core/src/layout-definition"],
       "@/*": ["./src/*"],

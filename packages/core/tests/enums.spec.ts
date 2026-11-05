@@ -47,6 +47,7 @@ describe(`EGridLayoutEvent`, () => {
     expect(EGridLayoutEvent.LAYOUT_READY).toBe(`layout-ready`);
     expect(EGridLayoutEvent.LAYOUT_UPDATE).toBe(`update:layout`);
     expect(EGridLayoutEvent.LAYOUT_UPDATED).toBe(`layout-updated`);
+    expect(EGridLayoutEvent.MAXIMIZED_ITEM_UPDATE).toBe(`update:maximizedItem`);
     expect(EGridLayoutEvent.MOVE_BLOCKED_BY_COLLISION).toBe(`move-blocked-by-collision`);
     expect(EGridLayoutEvent.SELECTION_CHANGED).toBe(`selection-changed`);
   });

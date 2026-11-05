@@ -110,6 +110,12 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
   const [dragging, setDragging] = useState<IGridItemPosition | undefined>(undefined);
 
   const draggingRef = useRef<IGridItemPosition | undefined>(undefined);
+  /**
+   * The grid cell the item occupied when the drag started, captured at `dragstart`. By `dragend` the layout already holds the
+   * live position (every tick commits it), so the item's own `innerX`/`innerY` can no longer say where it began; this is what
+   * lets `onItemMoved` stay silent for a drag that ends in the cell it started in, as the Vue package's `item-moved` does.
+   */
+  const startCellRef = useRef<{ x: number; y: number } | undefined>(undefined);
   const lastX = useRef(NaN);
   const lastY = useRef(NaN);
 
@@ -137,7 +143,9 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     y = Math.max(Math.min(y, maxRows - h), 0);
 
     return { x, y };
-  }, []);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — every option is read through optionsRef, so a constant dependency list behaves exactly like an empty one.
+  []);
 
   const handleDrag = useCallback((event: INativeDragEvent): void => {
     const { h, i, isBounded, isMirrored, margin, cols, containerWidth, rowHeight, transformScale, w, onDrag, onItemMoved, autoScroll } = optionsRef.current;
@@ -154,12 +162,15 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
         const parentRect = parentTarget.getBoundingClientRect();
         const clientRect = target.getBoundingClientRect();
         if(isMirrored) {
-          newPosition.left = (clientRect.right - parentRect.right) * -1;
+          const rightGap = clientRect.right - parentRect.right;
+          // Stryker disable next-line ArithmeticOperator: equivalent — `x * -1` and `x / -1` are the same number for every finite x.
+          newPosition.left = rightGap * -1;
         } else {
           newPosition.left = clientRect.left - parentRect.left;
         }
         newPosition.top = clientRect.top - parentRect.top;
         draggingRef.current = newPosition as IGridItemPosition;
+        startCellRef.current = { x: optionsRef.current.innerX, y: optionsRef.current.innerY };
         setDragging(draggingRef.current);
         setIsDragging(true);
         if(autoScroll) {
@@ -225,20 +236,28 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     lastY.current = y;
 
     if(event.type === `dragend`) {
-      onItemMoved?.({ i, x: pos.x, y: pos.y });
+      const start = startCellRef.current;
+      startCellRef.current = undefined;
+      // Only a drag that actually changed the cell is a move: one that ends where it began (a click with a little jitter, or
+      // a drag put back) reports nothing.
+      if(!start || start.x !== pos.x || start.y !== pos.y) {
+        onItemMoved?.({ i, x: pos.x, y: pos.y });
+      }
     }
 
     onDrag(i, event.type, pos.x, pos.y, w, h, event.clientX, event.clientY);
-  }, [calcXY]);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — calcXY is itself a useCallback with no dependencies, so it never changes identity and [calcXY] behaves exactly like [].
+  [calcXY]);
 
   useEffect(() => {
     const el = rootRef.current;
-    // Stryker disable BlockStatement: unreachable — see the v8 ignore comment below; rootRef is attached to this component's own root element.
+    // Stryker disable BlockStatement,ConditionalExpression: unreachable — see the v8 ignore comment below; rootRef is attached to this component's own root element.
     /* v8 ignore next 3 -- same class of genuinely-unreachable-in-practice guard as GridLayout.tsx's own container-ref check; see that file's comment for the full rationale. */
     if(!el) {
       return undefined;
     }
-    // Stryker restore BlockStatement
+    // Stryker restore BlockStatement,ConditionalExpression
     const native = createNativeDraggable(
       el,
       () => ({
@@ -252,7 +271,9 @@ export function useGridItemDrag(rootRef: RefObject<HTMLDivElement | null>, optio
     return (): void => {
       native.destroy();
     };
-  }, [handleDrag, rootRef]);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — handleDrag is stable (it depends only on the stable calcXY) and rootRef is a ref object, so neither ever changes identity.
+  [handleDrag, rootRef]);
 
   return useMemo(() => ({ dragging, isDragging }), [dragging, isDragging]);
 }

@@ -12,8 +12,9 @@
     class="vue-grid-layout"
     :class="{ grid: props.showGridLines, 'vue-grid-layout--active-drag': isDragging }"
     :dir="props.isMirrored ? 'rtl' : 'ltr'"
-    :style="[mergeStyle, transitionStyle, gridLinesStyle, resizeHandleStyle, overflowXStyle]"
-    @click="backgroundClickHandler">
+    :style="[mergeStyle, transitionStyle, gridLinesStyle, resizeHandleStyle, overflowXStyle, unmeasuredStyle]"
+    @click="backgroundClickHandler"
+    @keydown="keydownHandler">
     <div :style="contentWrapperStyle">
       <slot></slot>
       <GridItem
@@ -24,6 +25,7 @@
         :h="placeholder.h"
         :i="placeholder.i"
         :show-close-button="showCloseButton"
+        :show-maximize-button="false"
         :use-border-radius="useBorderRadius"
         :w="placeholder.w"
         :x="placeholder.x"
@@ -77,7 +79,7 @@
 <script lang="ts" setup>
   import { createEventEmitter, TEventType as EventType } from '@/core/helpers/event-emitter';
   import { ILayoutItem, TLayout } from '@/components';
-  import { TGridLayoutEventBus, IItemOverridesData, IPlaceholder } from '@/core/gridlayout/interfaces/layout-data.interface';
+  import { TGridLayoutEventBus, IItemOverridesData, IMaximizedState, IPlaceholder } from '@/core/gridlayout/interfaces/layout-data.interface';
   import GridItem from './GridItem.vue';
   import { cloneLayout, getLayoutItem } from '@/core/helpers/utils';
   import { getCompactor, ICompactorContext } from '@/core/gridlayout/helpers/compactor';
@@ -92,8 +94,11 @@
   import { getBottomYCoordinate } from '@/core/gridlayout/helpers/grid-layout-helper';
   import { getAllStaticGridItems } from '@/core/common/helpers/grid-item-type-helpers';
   import { moveElement } from '@/core/gridlayout/helpers/move-helper';
+  import { resolveMaximizedItem } from '@/core/gridlayout/helpers/maximize-helper';
+  import { createSwapDragState, ISwapDragState, swapElement } from '@/core/gridlayout/helpers/swap-helper';
   import { findAlignmentGuides, findSnapAdjustment, findSpacingIndicators, IAlignmentGuide, ISpacingIndicator } from '@/core/gridlayout/helpers/alignment-helper';
   import { computeAlignAdjustments, computeDistributeAdjustments, TAlignEdge, TDistributeAxis } from '@/core/gridlayout/helpers/align-distribute-helper';
+  import { exportLayoutAsSvg as coreExportLayoutAsSvg, IExportLayoutAsSvgOptions } from '@/core/gridlayout/helpers/export-svg';
   import { calcColWidth } from '@/core/griditem/helpers/grid-item-calculate-helper';
   import { layoutValidator } from '@/core/validators/layout-validator';
   import { EErrorMessage } from '@/core/common/enums/ErrorMessages';
@@ -107,6 +112,8 @@
   const props = withDefaults(defineProps<IGridLayoutProps>(), {
     allowCrossGridDrag: false,
     ariaLabels: () => ({}),
+    autoScroll: false,
+    preserveAspectRatio: false,
     autoSize: true,
     heightMode: null,
     borderRadiusPx: 10,
@@ -121,6 +128,9 @@
       xs: 480,
       xxs: 0,
     }),
+    collisionMode: 'push',
+    maximizedItem: null,
+    showMaximizeButton: false,
     colNum: 12,
     cols: (): IColumns => ({
       xxl: 12,
@@ -168,6 +178,7 @@
     transitionTimingFunction: `ease`,
     useBorderRadius: false,
     useCssTransforms: true,
+    positionStrategy: null,
     compactor: null,
     enableUndoRedo: false,
     undoHistoryLimit: 50,
@@ -175,6 +186,8 @@
   });
 
   const width = ref<number | null>(null);
+  /** See the doc comment on `unmeasuredStyle` below. */
+  const hasSettled = ref(false);
   /**
    * This grid's own actually-used width for every colWidth-derived
    * calculation (item positioning, guides, grid lines, outside-drop
@@ -267,6 +280,19 @@
 
   provide(`eventBus`, eventBus);
 
+  // Maximize/restore. The grid owns one id; `layout` is never written for it, so restoring is exact by construction.
+  /** The id the grid was last asked to maximize (`maximizedItem` prop, `maximize()` or an item's button), before checking the layout still has it. */
+  const maximizedId = ref<string | number | null>(props.maximizedItem ?? null);
+  /** The grid container's height in pixels as last measured — the maximized item fills it. */
+  const maximizedHeight = ref<number>(0);
+  /** The maximized item's id, or `null`. `maximizedId` only while the layout still has that item, so a removed item cannot leave every other item hidden. */
+  const activeMaximizedItem = computed(() => resolveMaximizedItem(props.layout, maximizedId.value));
+  /** What every `GridItem` reads (through `defineExpose`) to fill the grid or hide. */
+  const maximizedState = computed<IMaximizedState>(() => ({ height: maximizedHeight.value, id: activeMaximizedItem.value }));
+  const measureGridHeight = (): void => {
+    maximizedHeight.value = refsLayout.value.clientHeight;
+  };
+
   // Runtime-array form, not the generic/type-argument form this used to
   // use — see CustomCloseButton.vue's own identical comment for the full
   // explanation: a confirmed, Stryker-sandbox-specific `@vue/compiler-sfc`
@@ -291,6 +317,7 @@
     EGridLayoutEvent.LAYOUT_UPDATE,
     EGridLayoutEvent.LAYOUT_UPDATED,
     EGridLayoutEvent.LAYOUT_READY,
+    EGridLayoutEvent.MAXIMIZED_ITEM_UPDATE,
     EGridLayoutEvent.MOVE_BLOCKED_BY_COLLISION,
     EGridLayoutEvent.SELECTION_CHANGED,
   ]);
@@ -492,6 +519,10 @@
    * pass anything.
    */
   const runCompaction = (minPositions?: ICompactorContext[`minPositions`], compactTypeOverride?: ECompactType): void => {
+    // While an item is maximized nothing is laid out, so there is nothing to compact; `restore()` compacts once.
+    if(activeMaximizedItem.value !== null) {
+      return;
+    }
     const compactType = compactTypeOverride ?? props.compactType as ECompactType;
     const compactor = props.compactor ?? getCompactor(compactType);
     const compacted = compactor.compact(props.layout, props.colNum as number, { compactType, minPositions });
@@ -564,6 +595,85 @@
   const rearrange = (): void => {
     compactNow();
   };
+
+  /**
+   * Renders the current layout as a standalone SVG string. A thin wrapper around the standalone `exportLayoutAsSvg`,
+   * defaulting `colNum`, `rowHeight`, `margin` and `containerWidth` to this grid's live values (1200 before the first
+   * width measurement). Every option can still be overridden. Matches React's handle and Angular's component method.
+   */
+  const exportLayoutAsSvg = (options: IExportLayoutAsSvgOptions = {}): string => {
+    return coreExportLayoutAsSvg(props.layout, {
+      colNum: props.colNum as number,
+      containerWidth: width.value || 1200,
+      margin: props.margin as [number, number],
+      rowHeight: props.rowHeight as number,
+      ...options,
+    });
+  };
+
+  /**
+   * Makes `id` fill the whole grid and hides every other item (they stay mounted, so their component state survives).
+   * `layout` is not touched and compaction is suspended until `restore()`. An id the layout does not have restores instead.
+   */
+  const maximize = (id: string | number | null): void => {
+    const next = resolveMaximizedItem(props.layout, id);
+    if(next === activeMaximizedItem.value) {
+      return;
+    }
+    measureGridHeight();
+    maximizedId.value = next;
+    emit(EGridLayoutEvent.MAXIMIZED_ITEM_UPDATE, next);
+  };
+
+  /** Brings every item back exactly where `layout` has it. Does nothing when nothing is maximized. */
+  const restore = (): void => {
+    maximize(null);
+  };
+
+  /** Maximizes `id`, or restores when it already is the maximized item. */
+  const toggleMaximize = (id: string | number): void => {
+    maximize(activeMaximizedItem.value === id ? null : id);
+  };
+
+  const keydownHandler = (event: KeyboardEvent): void => {
+    // `defaultPrevented`: a widget inside the item (a dropdown, a dialog) that already used Escape keeps it.
+    // `restore()` does nothing while nothing is maximized, so no check of its own is needed here.
+    if(event.key === `Escape` && !event.defaultPrevented) {
+      restore();
+    }
+  };
+
+  watch(
+    () => props.maximizedItem,
+    id => {
+      measureGridHeight();
+      maximizedId.value = id ?? null;
+    },
+  );
+
+  // Once nothing is maximized any more (restored, or the maximized item was removed), do the compaction that was skipped
+  // meanwhile — an item added while maximized sits at `y: Infinity` until now.
+  // The watcher only runs on a change, so `now === null` means something was maximized a moment ago.
+  watch(activeMaximizedItem, now => {
+    if(now !== null) {
+      return;
+    }
+    if(maximizedId.value !== null) {
+      // The maximized item left `layout`: let a bound `v-model:maximized-item` forget it too.
+      maximizedId.value = null;
+      emit(EGridLayoutEvent.MAXIMIZED_ITEM_UPDATE, null);
+    }
+    // One string per item: the comma keeps two different positions from ever producing the same string.
+    const positionsBefore = new Map<string | number, string>(props.layout.map(item => [item.i, `${item.x},${item.y}`]));
+    runCompaction();
+    eventBus.emit(`compact`);
+    updateHeight();
+    const moved = props.layout.some(item => positionsBefore.get(item.i) !== `${item.x},${item.y}`);
+    if(moved) {
+      emit(EGridLayoutEvent.LAYOUT_UPDATE, props.layout);
+      emit(EGridLayoutEvent.LAYOUT_UPDATED, props.layout);
+    }
+  });
 
   /**
    * Clones the item with the given id, placing the copy directly below
@@ -747,9 +857,32 @@
    * takes precedence over the inherited value.
    */
   const transitionStyle = computed(() => ({
-    '--grid-transition-duration': `${props.transitionDurationMs}ms`,
+    // 0ms until the grid has settled (see `hasSettled` below) — the custom
+    // property inherits to every item, so this alone keeps their first
+    // placement from animating.
+    '--grid-transition-duration': `${hasSettled.value ? props.transitionDurationMs : 0}ms`,
     '--grid-transition-timing': props.transitionTimingFunction,
   }));
+
+  /**
+   * Whether the grid has been painted at its real measured width. Until
+   * then every item sits at a provisional 100px-container position, and
+   * the server-rendered markup has no size or position at all (plain
+   * full-width blocks) — so the grid is hidden (`unmeasuredStyle`) and
+   * item transitions are off (`transitionStyle`), instead of showing
+   * those blocks and then animating them into place. Flips two animation
+   * frames after the first measurement, so the item positions computed
+   * from it are already painted before transitions switch on.
+   */
+  let settleFrames: number[] = [];
+
+  /** `visibility: hidden` until the first real width measurement (hidden, not `display: none`, so the container can still be measured). */
+  const unmeasuredStyle = computed(() => (width.value === null ? { visibility: `hidden` } as const : {}));
+
+  const cancelSettleFrames = (): void => {
+    settleFrames.forEach(frame => cancelAnimationFrame(frame));
+    settleFrames = [];
+  };
 
   /**
    * `--resize-handle-color`, inherited naturally by every `GridItem`
@@ -1111,6 +1244,10 @@
     }
   };
 
+  // Where the dragged item started and what it has swapped aside, for `collisionMode: 'swap'` — one drag at a time, so plain
+  // (non-reactive) state is enough. Created at dragstart, dropped at dragend.
+  let swapDragState: ISwapDragState | undefined;
+
   const dragEvent = (
     eventName?: EventType,
     id?: string | number,
@@ -1139,6 +1276,10 @@
       x: 0,
       y: 0,
     } as ILayoutItem);
+
+    if(eventName === `dragstart`) {
+      swapDragState = props.collisionMode === `swap` ? createSwapDragState(l) : undefined;
+    }
 
     const { x: snappedX, y: snappedY } = applySnapToGridAdjustment(eventName, id, x, y, w, h);
 
@@ -1244,7 +1385,11 @@
     // Move the element to the dragged location.
     const preMoveX = l.x;
     const preMoveY = l.y;
-    const layout = moveElement(
+    // `collisionMode: 'swap'` tries to trade places with the one item it landed on first; anything it can't resolve that way
+    // (and every drag with the default mode) goes through the usual push below.
+    const swapped = swapDragState !== undefined && !props.preventCollision &&
+      swapElement(props.layout, l, snappedX as number, snappedY as number, props.colNum as number, swapDragState);
+    const layout = swapped ? props.layout : moveElement(
       props.layout,
       l,
       snappedX as number,
@@ -1281,6 +1426,7 @@
     eventBus.emit(`compact`);
     updateHeight();
     if(eventName !== undefined && eventName === EGridLayoutEvent.DRAG_END) {
+      swapDragState = undefined;
       commitDragEnd();
       positionsBeforeDrag.value = undefined;
       originalLayout.value = layout;
@@ -1576,6 +1722,7 @@
   eventBus.on(`resizeEvent`, resizeEventHandler);
   eventBus.on(`itemClicked`, itemClickedHandler);
   eventBus.on(`itemOverrides`, itemOverridesHandler);
+  eventBus.on(`toggleMaximize`, toggleMaximize);
 
   /**
    * eventBus `dragEvent` listener — see `resizeEventHandler` above for
@@ -1691,7 +1838,9 @@
     eventBus.off(`dragEvent`, dragEventHandler);
     eventBus.off(`itemClicked`, itemClickedHandler);
     eventBus.off(`itemOverrides`, itemOverridesHandler);
+    eventBus.off(`toggleMaximize`, toggleMaximize);
     removeWindowEventListener(`resize`, onWindowResize);
+    cancelSettleFrames();
     if(erd.value) {
       erd.value.disconnect();
     }
@@ -1743,8 +1892,10 @@
           // is no longer needed. See docs/BUNDLE_ANALYSIS.md #3.
           erd.value = new ResizeObserver(() => {
             onWindowResize();
+            measureGridHeight();
           });
           erd.value.observe(refsLayout.value);
+          measureGridHeight();
         });
       });
     });
@@ -1758,6 +1909,13 @@
    * width and stabilize its own size.
    */
   watch(width, (newVal, oldVal) => {
+    if(oldVal === null && !hasSettled.value) {
+      settleFrames.push(requestAnimationFrame(() => {
+        settleFrames.push(requestAnimationFrame(() => {
+          hasSettled.value = true;
+        }));
+      }));
+    }
     nextTick(() => {
       // Emits the effective (min/maxW-adjusted) width, not the raw
       // `newVal` this watcher itself observed — `effectiveWidth` is a
@@ -1919,6 +2077,20 @@
   );
 
   watch(
+    () => props.autoScroll,
+    val => {
+      eventBus.emit(`setAutoScroll`, val);
+    },
+  );
+
+  watch(
+    () => props.preserveAspectRatio,
+    val => {
+      eventBus.emit(`setPreserveAspectRatio`, val);
+    },
+  );
+
+  watch(
     () => props.enableEditMode,
     val => {
       // Same inherit pattern as showCloseButton above — a layout-level
@@ -1979,6 +2151,15 @@
     () => props.useCssTransforms,
     val => {
       eventBus.emit(`setUseCssTransforms`, val);
+    },
+  );
+
+  // Same reason as the `useCssTransforms` watcher above: items read the
+  // strategy once at mount, so a change afterwards has to be pushed.
+  watch(
+    () => props.positionStrategy,
+    val => {
+      eventBus.emit(`setPositionStrategy`, val);
     },
   );
 
@@ -2077,9 +2258,15 @@
     focusItem,
     compactNow,
     rearrange,
+    maximize,
+    restore,
+    toggleMaximize,
+    maximizedItem: activeMaximizedItem,
+    maximizedState,
     duplicateItem,
     alignSelected,
     distributeSelected,
+    exportLayoutAsSvg,
     undo,
     redo,
     canUndo,

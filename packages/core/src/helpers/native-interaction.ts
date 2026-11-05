@@ -126,6 +126,7 @@ export function createNativeDraggable(
   let pointerId: number | null = null;
   let startX = 0;
   let startY = 0;
+  // Stryker disable next-line BooleanLiteral: equivalent — `onPointerDown` sets this to false itself at the start of every gesture, and the move/up handlers are only attached after that, so the initial value is never read.
   let dragStarted = false;
   /** Resolved once per gesture at `pointerdown` (see there) — doesn't need to react to a mid-gesture options change, the same "read once at gesture start" treatment `allowFrom`/`ignoreFrom` already get here. */
   let activationThresholdPx = DRAG_ACTIVATION_THRESHOLD_PX;
@@ -158,6 +159,7 @@ export function createNativeDraggable(
       }
     }
     pointerId = null;
+    // Stryker disable next-line BooleanLiteral: equivalent — `onPointerDown` resets this to false at the start of the next gesture, and nothing reads it in between (the handlers return early while pointerId is null).
     dragStarted = false;
     el.removeEventListener(`pointermove`, onPointerMove);
     el.removeEventListener(`pointerup`, onPointerUp);
@@ -299,7 +301,10 @@ export function createNativeResizable(
   };
 
   const cleanup = (): void => {
-    if(activeHandle && pointerId !== null) {
+    // Stryker disable next-line LogicalOperator: equivalent — activeHandle and pointerId are always set and cleared together, so either one alone decides the same way.
+    if(activeHandle &&
+      // Stryker disable next-line ConditionalExpression: equivalent — for the same reason, pointerId is non-null whenever activeHandle is.
+      pointerId !== null) {
       try {
         activeHandle.releasePointerCapture(pointerId);
       } catch{
@@ -444,12 +449,16 @@ export function createNativeAutoScroll(): INativeAutoScroll {
 
     if(distLeft >= 0 && distLeft < AUTO_SCROLL_MARGIN_PX) {
       dx = -AUTO_SCROLL_MAX_SPEED_PX * (1 - distLeft / AUTO_SCROLL_MARGIN_PX);
-    } else if(distRight >= 0 && distRight < AUTO_SCROLL_MARGIN_PX) {
+    } else if(distRight >= 0 &&
+      // Stryker disable next-line EqualityOperator: equivalent — this is the last branch of its chain, and at exactly one margin away the speed below is 12 * (1 - 1) = 0, so including that distance changes nothing.
+      distRight < AUTO_SCROLL_MARGIN_PX) {
       dx = AUTO_SCROLL_MAX_SPEED_PX * (1 - distRight / AUTO_SCROLL_MARGIN_PX);
     }
     if(distTop >= 0 && distTop < AUTO_SCROLL_MARGIN_PX) {
       dy = -AUTO_SCROLL_MAX_SPEED_PX * (1 - distTop / AUTO_SCROLL_MARGIN_PX);
-    } else if(distBottom >= 0 && distBottom < AUTO_SCROLL_MARGIN_PX) {
+    } else if(distBottom >= 0 &&
+      // Stryker disable next-line EqualityOperator: equivalent — this is the last branch of its chain, and at exactly one margin away the speed below is 12 * (1 - 1) = 0, so including that distance changes nothing.
+      distBottom < AUTO_SCROLL_MARGIN_PX) {
       dy = AUTO_SCROLL_MAX_SPEED_PX * (1 - distBottom / AUTO_SCROLL_MARGIN_PX);
     }
 

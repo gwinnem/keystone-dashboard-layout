@@ -18,18 +18,24 @@ export interface IGridAriaLabels {
   closeButton?: string;
   /** `aria-roledescription` on a draggable/resizable/static-with-neither item's root element. Default `'Draggable, resizable item'`. Only applied when the item is actually draggable or resizable (see `draggableOrResizableAndNotStatic` in `GridItem.vue`) — a purely static item has no interactive role to describe. */
   itemRoleDescription?: string;
+  /** Visually-hidden label for the maximize button (`showMaximizeButton`) while the item is not maximized. Default `'Maximize'`. */
+  maximizeButton?: string;
   /** Keyboard instruction text for moving a draggable item, read via `aria-describedby`. Default `'Press arrow keys to move.'`. Only included when the item is actually draggable. */
   moveInstruction?: string;
   /** Keyboard instruction text for resizing a resizable item, read via `aria-describedby`. Default `'Press shift plus arrow keys to resize.'`. Only included when the item is actually resizable. */
   resizeInstruction?: string;
+  /** Visually-hidden label for the same button while the item is maximized, when it restores the item. Default `'Restore'`. */
+  restoreButton?: string;
 }
 
 /** The current English text, as the fallback for any key a consumer doesn't override at either the `GridLayout` or `GridItem` level. */
 export const DEFAULT_ARIA_LABELS: Required<IGridAriaLabels> = {
   closeButton: `Close`,
   itemRoleDescription: `Draggable, resizable item`,
+  maximizeButton: `Maximize`,
   moveInstruction: `Press arrow keys to move.`,
   resizeInstruction: `Press shift plus arrow keys to resize.`,
+  restoreButton: `Restore`,
 };
 
 /**

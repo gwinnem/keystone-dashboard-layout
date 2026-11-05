@@ -1,7 +1,6 @@
-import { useEffect, useId, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import type { CSSProperties, JSX, KeyboardEvent, MouseEvent } from 'react';
-import { resolveAriaLabels, setTopLeft, setTopRight, setTransform, setTransformRtl } from 'keystone-dashboard-layout-core';
-import type { ITopLeftStyle, ITopRightStyle, ITransformStyle } from 'keystone-dashboard-layout-core';
+import { calcMaximizedPosition, getPositionStrategy, resolveAriaLabels } from 'keystone-dashboard-layout-core';
 import type { IGridItemProps } from './grid-item-props.interface';
 import { useGridContext } from './grid-context';
 import { useGridItemDrag } from './hooks/useGridItemDrag';
@@ -84,10 +83,19 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   }
 
   const isStatic = Boolean(item.isStatic);
+  // Maximize/restore: while some item fills the grid, every other one is hidden (still mounted, so its state is kept), and the
+  // maximized one is neither draggable nor resizable — there is nowhere to move it to. `context.maximizedId` is already checked
+  // against the layout, so it is never an id that has no item.
+  const isMaximized = context.maximizedId === i;
+  const isHiddenByMaximize = context.maximizedId !== null && !isMaximized;
   const resolvedEnableEditMode = item.enableEditMode ?? context.enableEditMode;
-  const resolvedDraggable = (item.isDraggable ?? context.isDraggable) && resolvedEnableEditMode && !isStatic;
-  const resolvedResizable = (item.isResizable ?? context.isResizable) && resolvedEnableEditMode && !isStatic;
-  const resolvedShowCloseButton = (item.showCloseButton ?? context.showCloseButton) && resolvedEnableEditMode;
+  const resolvedDraggable = (item.isDraggable ?? context.isDraggable) && resolvedEnableEditMode && !isStatic && !isMaximized;
+  const resolvedResizable = (item.isResizable ?? context.isResizable) && resolvedEnableEditMode && !isStatic && !isMaximized;
+  // A static item never shows a close button, whatever is configured (the Vue package's own rule, and the same reason it
+  // has no role, tab stop or handles): there is nothing to operate on a static item.
+  const resolvedShowCloseButton = (item.showCloseButton ?? context.showCloseButton) && resolvedEnableEditMode && !isStatic;
+  // Not tied to edit mode or `isStatic`: maximizing only changes how an item is drawn, so any item can be maximized.
+  const resolvedShowMaximizeButton = item.showMaximizeButton ?? context.showMaximizeButton;
   const resolvedAutoScroll = item.autoScroll ?? context.autoScroll;
   const resolvedPreserveAspectRatio = item.preserveAspectRatio ?? context.preserveAspectRatio;
   const resolvedIsBounded = item.isBounded ?? context.isBounded;
@@ -137,6 +145,43 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   // incorrectly fall through to the grid-wide default instead.
   const resolvedResizeHandleEdges = item.resizeHandles ?? context.resizeHandles;
 
+  /**
+   * Suppresses the trailing `click` a browser dispatches when a drag or resize ends. The native engine captures the pointer
+   * on this item (`setPointerCapture`), so the `click` that follows `pointerup` is delivered to it however far the pointer
+   * travelled in between. With `multiSelect` on, `handleClick` below treats that as a plain click, which selects *only this
+   * item* — so every drag of a selected item used to collapse the selection to just that item once it ended.
+   *
+   * Armed synchronously inside the engine's own `dragend`/`resizeend` callback, not from an effect watching `isDragging`/
+   * `isResizing` (which is how the Vue package does it): the browser dispatches `pointerup`, `mouseup` and `click` back to
+   * back in one task, and React renders an update made from a native listener in a *later* task, so an effect would arm the
+   * flag after the click had already gone by. The flag clears on the next task (`setTimeout(0)`), by which point the
+   * trailing click is long gone, so a genuine click straight afterwards is not swallowed. A pointer that never moved far
+   * enough to start a drag produces no `dragend`, so a plain click is never suppressed.
+   */
+  const suppressNextClickRef = useRef(false);
+  const armClickSuppression = useCallback((): void => {
+    suppressNextClickRef.current = true;
+    setTimeout(() => {
+      suppressNextClickRef.current = false;
+    }, 0);
+  },
+  // Stryker disable next-line ArrayDeclaration: equivalent — the callback only touches a ref and a timer, so a constant dependency list behaves exactly like an empty one.
+  []);
+  const reportItemDrag = context.onItemDrag;
+  const reportItemResize = context.onItemResize;
+  const handleDragReport = useCallback((...args: Parameters<typeof reportItemDrag>): void => {
+    if(args[1] === `dragend`) {
+      armClickSuppression();
+    }
+    reportItemDrag(...args);
+  }, [reportItemDrag, armClickSuppression]);
+  const handleResizeReport = useCallback((...args: Parameters<typeof reportItemResize>): void => {
+    if(args[1] === `resizeend`) {
+      armClickSuppression();
+    }
+    reportItemResize(...args);
+  }, [reportItemResize, armClickSuppression]);
+
   const { dragging, isDragging } = useGridItemDrag(rootRef, {
     activationDistance: resolvedDragActivationDistance,
     allowFrom: resolvedDragAllowFrom,
@@ -153,7 +198,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     isMirrored: resolvedIsMirrored,
     margin: context.margin,
     maxRows: context.maxRows,
-    onDrag: context.onItemDrag,
+    onDrag: handleDragReport,
     onItemMoved,
     rowHeight: context.rowHeight,
     transformScale: context.transformScale,
@@ -192,7 +237,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     maxW,
     minH,
     minW,
-    onResize: context.onItemResize,
+    onResize: handleResizeReport,
     onItemResized,
     preserveAspectRatio: resolvedPreserveAspectRatio,
     resizeHandles: resolvedResizeHandleEdges,
@@ -202,6 +247,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   });
 
   useEffect(() => {
+    // Stryker disable next-line ConditionalExpression,BlockStatement: equivalent — with autoHeight off the wrapper is not rendered, so the wrapper check below returns in exactly the same case.
     if(!resolvedAutoHeight) {
       return undefined;
     }
@@ -251,6 +297,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   const style = useMemo<CSSProperties>(() => {
     const pos = calcPosition(item.x, item.y, item.w, item.h);
 
+    // Stryker disable next-line LogicalOperator: equivalent — resizing is set exactly when isResizing is, so `||` gives the same answer.
     if(isResizing && resizing) {
       pos.top = resizing.top;
       pos.width = resizing.width;
@@ -273,6 +320,7 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       // direction needs. Kept as defensive guards — the same reasoning
       // as the Vue package's own identical `useGridItemResize.ts` gap
       // — rather than removed.
+      // Stryker disable ConditionalExpression: equivalent — resizing.right is defined exactly when mirrored and resizing.left exactly when not, so each pair of checks below is redundant and removing either one changes nothing. A region, because the v8 comments inside leave no room for a next-line directive; it is restored inside the condition of the branch that follows.
       if(resolvedIsMirrored) {
         /* v8 ignore next 3 -- see the comment above: resizing.right is always set by calcPosition() while isResizing is true. */
         if(resizing.right !== undefined) {
@@ -285,7 +333,10 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
           pos.left = resizing.left;
         }
       }
-    } else if(isDragging && dragging) {
+    } else if(
+      // Stryker restore ConditionalExpression
+      // Stryker disable next-line LogicalOperator: equivalent — dragging is set exactly when isDragging is, so `||` gives the same answer.
+      isDragging && dragging) {
       pos.top = dragging.top;
       // `dragging.left` always holds the value (RTL-negated or not —
       // see `useGridItemDrag.ts`'s own doc comment), regardless of
@@ -298,21 +349,28 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       }
     }
 
-    let styleFn: (top: number, leftOrRight: number, width: number, height: number) => ITransformStyle | ITopLeftStyle | ITopRightStyle;
-    if(resolvedIsMirrored && context.useCssTransforms) {
-      styleFn = setTransformRtl;
-    } else if(resolvedIsMirrored) {
-      styleFn = setTopRight;
-    } else if(context.useCssTransforms) {
-      styleFn = setTransform;
-    } else {
-      styleFn = setTopLeft;
-    }
+    // The grid's `positionStrategy` decides how the pixel position becomes
+    // inline style; without one, `useCssTransforms` picks a built-in.
+    const strategy = context.positionStrategy ?? getPositionStrategy(context.useCssTransforms);
     const anchor = resolvedIsMirrored ? Number(pos.right) : Number(pos.left);
-    const baseStyle = styleFn(pos.top, anchor, pos.width, pos.height) as unknown as CSSProperties;
+    // The maximized item ignores its own cell and fills the grid instead (minus one margin on each side), through the same
+    // strategy as every other item, so a custom `positionStrategy` and RTL apply to it too.
+    const placement = isMaximized
+      ? calcMaximizedPosition({ containerHeight: context.maximizedHeight, containerWidth: context.containerWidth, margin: context.margin, rtl: resolvedIsMirrored })
+      : {
+        height: pos.height,
+        left: resolvedIsMirrored ? undefined : anchor,
+        right: resolvedIsMirrored ? anchor : undefined,
+        rtl: resolvedIsMirrored,
+        top: pos.top,
+        width: pos.width,
+      };
+    const positionedStyle = strategy.getStyle(placement) as CSSProperties;
+    const baseStyle = isHiddenByMaximize ? { ...positionedStyle, display: `none` } : positionedStyle;
     // An explicit per-item zIndex always wins over the CSS-class-based
     // static/dragging/resizing defaults — same override rule as the
     // Vue package's own `zIndex` prop.
+    // Stryker disable next-line ConditionalExpression: equivalent — with no zIndex the spread would carry `zIndex: undefined`, which React leaves out of the rendered style, so forcing that branch changes nothing visible.
     const withZIndex = item.zIndex != null ? { ...baseStyle, zIndex: item.zIndex } : baseStyle;
     // `useBorderRadius`/`borderRadiusPx`: a plain numeric inline style,
     // not a CSS custom property (unlike `transitionDurationMs`/
@@ -333,10 +391,33 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
   // eslint-disable-next-line react-hooks/exhaustive-deps -- context.containerWidth/margin/colNum/rowHeight are deliberately included despite not being read directly in this function's own body; see this useMemo's own doc comment above for the full, confirmed-bug rationale (calcPosition's own stable reference reads them internally via a ref, so omitting them here silently stops this from recomputing when they change).
   }, [
     calcPosition, item.x, item.y, item.w, item.h, item.zIndex,
-    isResizing, resizing, isDragging, dragging,
-    context.useCssTransforms, context.containerWidth, context.margin, context.colNum, context.rowHeight,
+    isResizing, resizing, isDragging, dragging, isMaximized, isHiddenByMaximize, context.maximizedHeight,
+    context.useCssTransforms, context.positionStrategy, context.containerWidth, context.margin, context.colNum, context.rowHeight,
     resolvedIsMirrored, resolvedUseBorderRadius, resolvedBorderRadiusPx, resolvedShowResizeHandles, resolvedResizeHandleColor,
   ]);
+
+  /**
+   * Maximizing or restoring changes the pixel size this item is drawn at without any resize gesture, so it is reported through
+   * `onItemResized` as well — the way the Vue and Angular packages do. Reported when this item becomes maximized, stops being
+   * maximized, and while it is maximized and the grid's height or width changes (it keeps filling the grid). The items that stay
+   * hidden have no new size to report and stay quiet. Read through a ref so a callback that is a new function on every render
+   * does not re-run the effect.
+   */
+  const onItemResizedRef = useRef(onItemResized);
+  onItemResizedRef.current = onItemResized;
+  const wasMaximizedRef = useRef(isMaximized);
+  useEffect(() => {
+    const changed = wasMaximizedRef.current !== isMaximized;
+    wasMaximizedRef.current = isMaximized;
+    if(!changed && !isMaximized) {
+      return;
+    }
+    const size = isMaximized
+      ? calcMaximizedPosition({ containerHeight: context.maximizedHeight, containerWidth: context.containerWidth, margin: context.margin, rtl: resolvedIsMirrored })
+      : calcPosition(item.x, item.y, item.w, item.h);
+    onItemResizedRef.current?.({ h: item.h, height: Number(size.height), i, w: item.w, width: Number(size.width) });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately only these three: they are exactly the events worth reporting. The layout cell (`item.x`/`y`/`w`/`h`), `margin` and `calcPosition` are read when one of them fires, but a change of their own is not a size change of a maximized item and must not report again.
+  }, [isMaximized, context.maximizedHeight, context.containerWidth]);
 
   const classNames = [
     `kdl-grid-item`,
@@ -346,8 +427,11 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
     isDragging && `kdl-grid-item--dragging`,
     isResizing && `kdl-grid-item--resizing`,
     isSelected && `kdl-grid-item--selected`,
+    isMaximized && `kdl-grid-item--maximized`,
     resolvedIsMirrored && `kdl-grid-item--rtl`,
     resolvedShowResizeHandles && `kdl-grid-item--show-resize-handles`,
+    // Only a custom strategy contributes a class: the built-in ones keep the markup exactly as it was.
+    context.positionStrategy?.className,
     className,
   ].filter(Boolean).join(` `);
 
@@ -382,6 +466,10 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       return;
     }
     event.stopPropagation();
+    // The click that trails a drag/resize is not a selection click (see suppressNextClickRef above).
+    if(suppressNextClickRef.current) {
+      return;
+    }
     context.onItemClick(i, { ctrlKey: event.ctrlKey, metaKey: event.metaKey, shiftKey: event.shiftKey });
   };
 
@@ -420,6 +508,10 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       }
       context.onItemResize(i, `resizestart`, item.x, item.y, item.w, item.h);
       context.onItemResize(i, `resizeend`, item.x, item.y, w, h);
+      // The per-item callback is otherwise only fired by the resize hook at the end of a pointer gesture, so a keyboard
+      // resize never reached it. Reports the same payload (grid units and pixels), like the Vue package's own `resized`.
+      const resizedPx = calcPosition(item.x, item.y, w, h);
+      onItemResized?.({ h, height: Number(resizedPx.height), i, w, width: Number(resizedPx.width) });
     } else {
       if(!resolvedDraggable) {
         return;
@@ -432,6 +524,8 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
       }
       context.onItemDrag(i, `dragstart`, item.x, item.y, item.w, item.h);
       context.onItemDrag(i, `dragend`, x, y, item.w, item.h);
+      // Same gap as the resize branch above: `onItemMoved` was only fired by the drag hook, never for a keyboard move.
+      onItemMoved?.({ i, x, y });
     }
   };
 
@@ -472,6 +566,21 @@ export function GridItem({ i, header, children, renderResizeHandle, onItemMoved,
           type="button"
         >
           ×
+        </button>
+      )}
+      {resolvedShowMaximizeButton && (
+        <button
+          className={isMaximized ? `btn-maximize btn-maximize--active` : `btn-maximize`}
+          onClick={event => {
+            // Not a click on the item itself (which would select it with `multiSelect` on).
+            event.stopPropagation();
+            // Safari does not focus a button on click, and without focus inside the grid the Escape key never reaches it.
+            event.currentTarget.focus();
+            context.onItemToggleMaximize(i);
+          }}
+          type="button"
+        >
+          <span className="kdl-visually-hidden">{isMaximized ? resolvedAriaLabels.restoreButton : resolvedAriaLabels.maximizeButton}</span>
         </button>
       )}
       {resolvedResizable && resolvedResizeHandleEdges.map(edge => (

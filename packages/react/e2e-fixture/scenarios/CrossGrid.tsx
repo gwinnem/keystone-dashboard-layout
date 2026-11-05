@@ -29,7 +29,7 @@ export default function CrossGrid(): React.JSX.Element {
   const [layoutB, setLayoutB] = useState<TLayout>([]);
 
   return (
-    <div style={{ display: `flex`, gap: `16px` }}>
+    <div data-testid="cross-grid-view-wrap" style={{ display: `flex`, gap: `16px` }}>
       <div data-testid="cross-grid-a" style={{ border: `1px solid #ccc`, minHeight: `200px`, width: `50%` }}>
         <GridLayout allowCrossGridDrag colNum={6} layout={layoutA} layoutId="grid-a" onLayoutChange={setLayoutA} rowHeight={80}>
           {layoutA.map(item => (

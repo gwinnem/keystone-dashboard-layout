@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import type { TLayout } from 'keystone-dashboard-layout-core';
 import { GridLayout } from '../GridLayout';
 import { GridItem } from '../GridItem';
@@ -38,6 +39,31 @@ describe(`GridItem autoHeight`, () => {
     const wrapper = container.querySelector(`.kdl-grid-item-auto-height-wrapper`);
     expect(wrapper).toBeTruthy();
     expect(getByText(`Item 0`)).toBeTruthy();
+  });
+
+  it(`Should start observing the wrapper once autoHeight is switched on after mount`, () => {
+    stubOffsetWidth(1210);
+    const off: TLayout = [{ h: 2, i: `0`, w: 2, x: 0, y: 0 }];
+    const on: TLayout = [{ autoHeight: true, h: 2, i: `0`, w: 2, x: 0, y: 0 }];
+    const handleChange = vi.fn();
+    const grid = (layout: TLayout): ReactElement => (
+      <GridLayout colNum={12} layout={layout} margin={[10, 10]} onLayoutChange={handleChange} rowHeight={100}>
+        <GridItem i="0">Item 0</GridItem>
+      </GridLayout>
+    );
+    const { container, rerender } = render(grid(off));
+
+    rerender(grid(on));
+    const wrapper = container.querySelector(`.kdl-grid-item-auto-height-wrapper`) as HTMLElement;
+    // Same numbers as the test below: 250px tall rounds *up* to 3 rows. Only an observer created after the switch can report it,
+    // because the one effect run at mount found autoHeight off and set nothing up.
+    stubRect(wrapper, 250, 190);
+    handleChange.mockClear();
+    triggerResizeObserverMockAt(0);
+    triggerResizeObserverMockAt(1);
+
+    const resized = (handleChange.mock.calls.at(-1)![0] as TLayout).find(entry => entry.i === `0`)!;
+    expect(resized.h).toBe(3);
   });
 
   it(`Should commit a resizeend-style height change when the wrapper's content grows, rounding height *up* (not to the nearest unit)`, () => {

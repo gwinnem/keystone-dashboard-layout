@@ -1,0 +1,4 @@
+# Typecheck and lint every package with changes, plus the packages that depend on it (a change in core also checks Vue, React and Angular).
+# Turborepo caches both tasks, so packages whose files have not changed since the last green run cost nothing.
+# A type error or a lint error blocks the commit; lint warnings do not. Skip it once with `git commit --no-verify`.
+pnpm exec turbo run typecheck lint --filter="...[HEAD]" --output-logs=errors-only

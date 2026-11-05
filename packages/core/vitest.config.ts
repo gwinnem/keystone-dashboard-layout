@@ -18,6 +18,9 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/*.spec.ts'],
+    benchmark: {
+      include: ['tests/*.bench.ts'],
+    },
     coverage: {
       enabled: true,
       provider: 'v8',

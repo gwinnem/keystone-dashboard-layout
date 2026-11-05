@@ -24,13 +24,14 @@ it per-item; see each prop's note.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `colNum` | `number` | `12` | Maximum number of columns. |
+| `colNum` | `number` | `12` | Maximum number of columns. Changing it pulls items that no longer fit back inside the new column count and compacts the layout, whether or not `responsive` is on, and reports the result through `onLayoutChange` when anything moved. |
 | `rowHeight` | `number` | `150` | Height of one grid row, in pixels. |
 | `margin` | `[number, number]` | `[10, 10]` | `[horizontal, vertical]` spacing between items, in pixels. |
 | `maxRows` | `number` | `Infinity` | Maximum number of rows the layout may grow to. |
 | `autoSize` | `boolean` | `true` | Deprecated — prefer `heightMode`. Grows/shrinks the container's height to fit the layout's content. Ignored once `heightMode` is set to anything other than `null`. |
 | `heightMode` | `'auto' \| 'fixed' \| 'scroll' \| 'fit' \| null` | `null` | How the container's height is determined. `null` defers to `autoSize`. `'auto'`: today's `autoSize: true` behavior. `'fixed'`: no explicit height — today's `autoSize: false`. `'scroll'`: same as `'fixed'`, plus `overflow-y: auto`. `'fit'`: height locked to `100%` of the parent, with the same `overflow-y: auto` as `'scroll'`. |
-| `useCssTransforms` | `boolean` | `true` | Positions items via CSS `transform: translate3d(...)` instead of `top`/`left`. |
+| `useCssTransforms` | `boolean` | `true` | Positions items via CSS `transform: translate3d(...)` instead of `top`/`left`. Ignored when `positionStrategy` is set. |
+| `positionStrategy` | `IPositionStrategy \| null` | `null` | Replaces the `useCssTransforms` toggle with a pluggable strategy: an object with a `type`, an optional `className` and a `getStyle(position)` function returning the item's inline style. `transformStrategy` and `topLeftStrategy` are exported from `keystone-dashboard-layout-core`. Keep `width`/`height` as `'NNpx'` strings. `null` keeps `useCssTransforms` behavior. See [Pluggable positioning](/react/examples/pluggable-positioning/). |
 | `transformScale` | `number` | `1` | Compensates drag/resize pixel math for a scaled ancestor (e.g. a zoomed-out canvas view). |
 
 ## Drag & resize defaults
@@ -52,6 +53,7 @@ it per-item; see each prop's note.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
+| `collisionMode` | `'push' \| 'swap'` | `'push'` | What dropping a dragged item onto another one does. `'push'` shoves the item underneath out of the way. `'swap'` trades places with it, when the drop lands on exactly one other non-static item that fits into the dragged item's starting cell; anything else (several items, a static item, or the other item not fitting the starting cell) falls back to `'push'`. Only affects dragging, and is ignored while `preventCollision` is on. See [Swap on drag](/react/examples/swap-on-drag/). |
 | `preventCollision` | `boolean` | `false` | Blocks a drag/resize that would collide, instead of pushing the other item. |
 | `compactType` | `ECompactType` | `ECompactType.VERTICAL` | Selects one of five built-in compaction strategies. Ignored when `compactor` is set. |
 | `compactor` | `ICompactor \| null` | `null` | Overrides the built-in compaction algorithm entirely. Purely additive — `compactType` keeps working normally when this isn't set. |
@@ -63,6 +65,14 @@ it per-item; see each prop's note.
 | `showAlignmentGuides` | `boolean` | `false` | Shows guide lines while dragging/resizing wherever edges line up — visual only. |
 | `showSpacingGuides` | `boolean` | `false` | Shows a labeled distance badge between the active item and its nearest neighbor. |
 | `onMoveBlockedByCollision` | `(id: string \| number) => void` | — | Called when `preventCollision` actually constrained a drag or resize. |
+
+## Maximize
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `maximizedItem` | `string \| number \| null` | `undefined` | The `i` of the item to maximize, or `null` for none. Controlled: when you pass it, the grid follows it; leave it out and the grid keeps its own state (driven by the button, Escape or the imperative handle). The maximized item fills the grid (minus one `margin` on each side); every other item is hidden but stays mounted, and `layout` is never changed. Compaction is suspended while maximized and runs once on restore. An id that isn't in `layout` is ignored. See [Maximize and restore](/react/examples/maximize/). |
+| `onMaximizedItemChange` | `(id: string \| number \| null) => void` | — | Called with the id when an item is maximized from inside the grid, and with `null` when it is restored — the built-in button, Escape, or `maximize()`/`restore()`. Not called when your own `maximizedItem` prop changes (an unknown id is reported once as `null`). |
+| `showMaximizeButton` | `boolean` | `false` | Grid-wide default for rendering the built-in maximize/restore button on each item. A per-item `showMaximizeButton` on the layout entry overrides this. |
 
 ## Multi-select & undo/redo
 
@@ -101,7 +111,7 @@ it per-item; see each prop's note.
 | `onItemClose` | `(id: string \| number) => void` | — | Called when an item's close button is clicked. Does not itself remove anything from `layout` — your own handler decides. |
 | `borderRadiusPx` | `number` | `10` | Grid-wide default border radius, applied when `useBorderRadius` is on. A per-item override exists. |
 | `useBorderRadius` | `boolean` | `false` | Whether `borderRadiusPx` is actually applied. A per-item override exists. |
-| `transitionDurationMs` | `number` | `200` | Duration, in milliseconds, of the CSS transition applied to item position/size changes. |
+| `transitionDurationMs` | `number` | `200` | Duration, in milliseconds, of the CSS transition applied to item position/size changes. Applies once the grid has settled: the root carries `data-kdl-settling` until it has been painted once at its measured width, and item transitions are off while it does, so nothing animates on load. See [Configurable transition duration & easing](/react/examples/transition-duration-easing/). |
 | `transitionTimingFunction` | `string` | `'ease'` | CSS `transition-timing-function` for the same transitions. |
 
 ## Cross-grid & outside drag-and-drop

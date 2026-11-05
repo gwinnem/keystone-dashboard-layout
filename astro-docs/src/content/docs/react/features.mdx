@@ -3,13 +3,13 @@ title: Features
 description: Everything Keystone Dashboard Layout for React does, grouped by category, with a live example linked from every bullet.
 ---
 
-:::note[All 53 examples are live, each with an editable StackBlitz playground]
+:::note[All 57 examples are live, each with an editable StackBlitz playground]
 React reached full feature parity with Vue some time ago, and its own
-53 interactive examples are now fully ported too — every link below
+57 interactive examples are now fully ported too — every link below
 resolves to a real, live page of its own, not a substitute pointing at
 Vue's copy. Every example also has an "Open in StackBlitz" button
 seeding a real, editable, running project from that exact example's own
-source. See [Examples](/react/examples/) for the same 53, organized the
+source. See [Examples](/react/examples/) for the same 57, organized the
 same way this page is.
 :::
 
@@ -29,6 +29,9 @@ same way this page is.
 
 - **Automatic compaction.** Items fill gaps vertically by default; other items automatically move out of the way of a drag/resize.
 - **Pluggable compaction strategy** (`compactType`) — five built-in strategies (vertical, horizontal, none, and overlap variants of each), or replace the algorithm entirely with a custom `compactor` prop. See [Pluggable compaction](/react/examples/pluggable-compaction/).
+- **A faster vertical compactor** (`verticalFastCompactor`, imported from `keystone-dashboard-layout-core`) — the same result as the default vertical compactor in roughly O(n log n) instead of O(n²), for very large layouts. Opt in through the `compactor` prop. See [Pluggable compaction](/react/api/interfaces/compactor/).
+- **Swap-on-drag collision mode** (`collisionMode: 'swap'`) — drop an item onto exactly one other item and the two trade places, instead of the default push-aside. Anything that isn't a clean swap falls back to the push. See [Swap on drag](/react/examples/swap-on-drag/).
+- **Pluggable positioning** (`positionStrategy`) — choose how items are placed on the page: CSS transforms (`transformStrategy`, the default), `top`/`left` (`topLeftStrategy`), or your own `IPositionStrategy`. See [Pluggable positioning](/react/examples/pluggable-positioning/).
 - **Horizontal shift mode** — push colliding items left/right instead of down. See [Horizontal shift](/react/examples/horizontal-shift/).
 - **Prevent collision mode** (`preventCollision`) — block a drag/resize instead of pushing other items, with an `onMoveBlockedByCollision(id)` callback so a consumer can give feedback the moment that happens. See [Prevent collision](/react/examples/prevent-collision/) and [Blocked-move feedback](/react/examples/blocked-move-feedback/).
 - **Magnetic snap-to-grid** (`snapToGrid`/`snapThreshold`) — actually adjusts an item's landing position to align with a neighbor, not just a visual guide. See [Snap to grid](/react/examples/snap-to-grid/).
@@ -37,6 +40,8 @@ same way this page is.
 - **Auto-sizing container** — the grid's height grows/shrinks to fit its content by default (`autoSize`, or the newer `heightMode` prop for finer control including `'scroll'`/`'fit'` modes). See [Auto-size grid on content](/react/examples/auto-size-grid/) and [Height modes](/react/examples/height-modes/).
 - **Spacing indicators** (`showSpacingGuides`) — a labeled distance badge (e.g. "2 cols") in the gap between the active item and its nearest neighbor on each side, independently toggleable alongside alignment guides. See [Spacing indicators](/react/examples/spacing-indicators/).
 - **Serializable layout.** The `layout` array is a plain, JSON-serializable structure you own — persist it anywhere. See [Save/load layout](/react/examples/save-load-layout/).
+- **Async persistence** (`useAsyncLayoutStorage`) — save and load through a promise-based store: ready-made HTTP and IndexedDB adapters (from `keystone-dashboard-layout-core`), or your own `IAsyncLayoutStorage`. Writes are queued so a slow save never overwrites a newer one, failures are reported (`error`, `onError`) rather than thrown, and `isLoading`/`isSaving` track what is in flight. Sits alongside the synchronous `useLayoutStorage`. See [Async persistence](/react/examples/async-persistence/).
+- **Maximize and restore** (`maximizedItem`, `showMaximizeButton`) — expand one item to fill the whole grid and put everything back exactly. `layout` is never changed, the other items stay mounted (hidden), compaction pauses until you restore, and Escape restores. Control it with `maximizedItem` + `onMaximizedItemChange`, or call `maximize(id)` / `restore()` / `toggleMaximize(id)` on the imperative handle. See [Maximize and restore](/react/examples/maximize/).
 - **Named layout presets** (`useLayoutPresets`) — save and switch between multiple named arrangements, layered on the same serialize/restore primitives. See [Named layout presets](/react/examples/named-presets/).
 - **Grid-to-SVG export** (`exportLayoutAsSvg()` on the imperative handle) — a dependency-free utility producing a standalone SVG snapshot of the current layout. See [Export layout as SVG](/react/examples/svg-export/).
 - **Undo/redo** (`enableUndoRedo`, capped via `undoHistoryLimit`) — opt-in history at committed-change granularity (drag/resize end, add/remove), not per intermediate frame. See [Undo/redo](/react/examples/undo-redo/).
@@ -89,7 +94,7 @@ same way this page is.
 
 ## Developer experience
 
-- **Full TypeScript support.** Every prop, callback, and interface is typed and exported from the package's main entry point — see [API](/react/api/) once that page lands.
+- **Full TypeScript support.** Every prop, callback, and interface is typed and exported from the package's main entry point — see [API](/react/api/).
 - **Zero runtime dependencies.** The drag/resize engine is built on native Pointer Events, not a third-party library — the same shared engine the Vue package uses.
 - **The same framework-agnostic core** (`keystone-dashboard-layout-core`) Vue uses for its own grid-layout math (collision detection, movement, compaction, and more) — both packages share one implementation of the hard, easy-to-get-subtly-wrong parts.
 - **Idiomatic React.** A fully controlled component (`layout`/`onLayoutChange`), hooks instead of composables, Context instead of `provide`/`inject`, render props instead of named slots, and a `ref`-based imperative handle instead of `defineExpose` — the same underlying behavior, expressed the way React actually works.

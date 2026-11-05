@@ -51,6 +51,15 @@
   position: relative;
 }
 
+/**
+ * `data-kdl-settling` is on the root from the first render until the grid has been painted once at its measured width
+ * (`GridLayout.tsx`, `hasSettled`). A page that was server-rendered has its items in the DOM at the seed width, so without this
+ * the first measured layout would show them growing to their real size over the transition's duration.
+ */
+.kdl-grid-layout[data-kdl-settling] .kdl-grid-item {
+  transition: none;
+}
+
 /*
  * allowCrossGridDrag — confirmed gap via a fresh e2e run: the dragged
  * item stays a DOM child of its own *source* grid the entire time it's
@@ -93,6 +102,9 @@
 
 .kdl-grid-item--dragging {
   transition: none;
+  /* Safari/WebKit still only honours the prefixed form, so without it a dragged item could select the text it passes over there. */
+  /* stylelint-disable-next-line property-no-vendor-prefix */
+  -webkit-user-select: none;
   user-select: none;
   z-index: 3;
 }
@@ -250,6 +262,52 @@
 }
 
 /*
+ * showMaximizeButton — sits beside the close button (28px further in from the same corner, so both fit), the same circle shape and
+ * stacking. The icon is a white-bordered square drawn by `::before`; while the item is maximized (`--active`) its top border
+ * thickens into a title bar, the usual "restore" look. The label inside is visually hidden, for assistive technology. The
+ * `--close-button-inset` custom property is optional: without it the button keeps the close button's default 4px inset.
+ */
+.btn-maximize {
+  background: #1481b4;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  height: 24px;
+  padding: 0;
+  position: absolute;
+  right: calc(var(--close-button-inset, 4px) + 28px);
+  top: var(--close-button-inset, 4px);
+  width: 24px;
+  z-index: 20;
+}
+
+.btn-maximize:hover {
+  background: #0e5f85;
+}
+
+.btn-maximize::before {
+  border: 2px solid #fff;
+  box-sizing: border-box;
+  content: '';
+  height: 12px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+}
+
+.btn-maximize--active::before {
+  border-top-width: 4px;
+}
+
+/* isMirrored (RTL) — the button follows the close button to the other corner. */
+.kdl-grid-item--rtl .btn-maximize {
+  left: calc(var(--close-button-inset, 4px) + 28px);
+  right: auto;
+}
+
+/*
  * isMirrored (RTL) — confirmed gap via a fresh e2e run: `setTransformRtl`
  * (`@keystone-dashboard-layout/core`) computes `translate3d(-right, ...)`,
  * which is only correct if the item's own *pre-transform* static
@@ -294,11 +352,34 @@
   z-index: 17;
 }
 
+/*
+ * The in-grid drag/resize placeholder (`.kdl-grid-placeholder`, or the wrapper around a custom `renderPlaceholder`) — where the
+ * dragged/resized item will land. It had no rule at all, so it rendered as a static block: its inline left/top were ignored
+ * and it sat in the normal flow instead of on the grid cell it describes. `border-box` keeps the dashed border inside the
+ * computed pixel size, so the box matches the cell exactly. Above ordinary items (z-index auto), below an item that is
+ * being dragged or resized (3), and `pointer-events: none` so it never intercepts the drag itself or a cross-grid drop.
+ */
+.kdl-grid-placeholder,
+.kdl-grid-placeholder-wrapper {
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.kdl-grid-placeholder {
+  background: rgb(37 99 235 / 15%);
+  border: 2px dashed rgb(37 99 235 / 60%);
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
 /* allowOutsideDrop — the live drop-position preview, tracking the pointer while a native HTML5 drag is over the grid. */
 .kdl-grid-outside-drop-placeholder {
   background: rgb(37 99 235 / 15%);
   border: 2px dashed rgb(37 99 235 / 60%);
   border-radius: 4px;
+  /* border-box, so the dashed border sits inside the computed pixel size: without it the preview was 4px wider and taller than the cell the drop would land in. */
+  box-sizing: border-box;
   pointer-events: none;
   position: absolute;
   z-index: 4;

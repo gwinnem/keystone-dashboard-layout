@@ -18,13 +18,12 @@ import { AutoScrollDemoComponent } from '../examples/39-auto-scroll.component';
     </example-try-it>
 
     <p>
-      <code>autoScroll</code> is a per-item input on
-      <code>GridItemComponent</code>, matching Vue's own shape exactly
-      &mdash; no grid-wide default exists for this on
-      <code>GridLayoutComponent</code> (confirmed directly from its
-      source: no such input is declared there at all). Scrolls the
-      item's nearest scrollable ancestor, not necessarily the whole
-      page. Off by default, since a plain page-level grid usually has
+      <code>autoScroll</code> is an input on both
+      <code>GridItemComponent</code> and <code>GridLayoutComponent</code>:
+      the grid-wide value is inherited by every item that leaves its own
+      value <code>null</code>, and an item's own value overrides it.
+      Scrolls the item's nearest scrollable ancestor, not necessarily
+      the whole page. Off by default, since a plain page-level grid usually has
       nothing to scroll; turn it on for items living inside a
       fixed-height, overflow-scrolling container.
     </p>
